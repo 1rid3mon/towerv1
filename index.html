@@ -234,55 +234,14 @@
                 <button onclick="toggleRangeCircle()" id="btn-toggle-range" class="px-2 py-1 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-[11px] text-slate-300 flex items-center gap-1 shadow" title="Menzil">
                     <i class="fa-solid fa-bullseye text-blue-400"></i><span class="hidden sm:inline">Menzil</span>
                 </button>
-                <button onclick="toggleDamageText()" id="btn-toggle-dmg" class="px-2 py-1 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-[11px] text-slate-300 flex items-center gap-1 shadow" title="Hasar">
-                    <i class="fa-solid fa-font text-amber-400"></i><span class="hidden sm:inline">Hasar Yazı</span>
-                </button>
-            </div>
-
-            <div id="defeat-overlay" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center z-30">
-                <div class="bg-slate-900 border border-red-500/40 p-5 rounded-2xl max-w-xs text-center shadow-2xl">
-                    <div class="w-10 h-10 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mx-auto mb-2 text-xl">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                    </div>
-                    <h2 class="font-tech font-bold text-xl text-white mb-1">KULE YIKILDI!</h2>
-                    <p class="text-xs text-slate-300 mb-3">Savunma yarıldı. Güvenli bölgeye çekiliyorsun...</p>
-                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                        <div id="defeat-timer-bar" class="bg-red-500 h-full transition-all duration-100" style="width: 100%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- AÇILIR KAPANIR GELİŞTİRME & EŞYA & KUMAR MENÜSÜ -->
-        <div id="upgrade-drawer" class="absolute top-0 left-0 bottom-0 w-full sm:w-[460px] md:w-[500px] bg-slate-900/95 backdrop-blur-xl border-r border-slate-800 flex flex-col z-20 shadow-2xl transform -translate-x-full">
-            <div class="px-4 py-3 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between shrink-0">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-microchip text-blue-400 text-lg"></i>
-                    <h3 class="font-tech font-bold text-lg text-white">Komuta Merkezi & Envanter</h3>
-                </div>
-                <button onclick="toggleUpgradeDrawer()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <div class="px-4 py-2 bg-slate-950/40 border-b border-slate-800 flex items-center justify-between shrink-0">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Satın Alma Adedi:</span>
-                <div class="flex space-x-1 bg-slate-900 p-1 rounded-lg border border-slate-800">
-                    <button onclick="setBuyMultiplier(1)" id="mult-1" class="px-2.5 py-0.5 rounded text-xs font-tech font-bold bg-blue-600 text-white transition">1x</button>
-                    <button onclick="setBuyMultiplier(5)" id="mult-5" class="px-2.5 py-0.5 rounded text-xs font-tech font-bold text-slate-400 hover:text-white transition">5x</button>
-                    <button onclick="setBuyMultiplier(10)" id="mult-10" class="px-2.5 py-0.5 rounded text-xs font-tech font-bold text-slate-400 hover:text-white transition">10x</button>
-                    <button onclick="setBuyMultiplier('MAX')" id="mult-MAX" class="px-2.5 py-0.5 rounded text-xs font-tech font-bold text-slate-400 hover:text-white transition">MAKS</button>
-                </div>
-            </div>
-
-            <!-- Sekmeler (8 Adet: Saldırı, Savunma, Ekonomi, Yoldaş, Eşyalar, Sandık, Prestij, Mini Oyun) -->
+                    <!-- Sekmeler (8 Adet: Saldırı, Savunma, Ekonomi, Yoldaş, Eşyalar, Sandık, Prestij, Mini Oyun) -->
             <nav class="grid grid-cols-8 bg-slate-900 border-b border-slate-800 shrink-0 text-[9px] font-medium">
                 <button onclick="switchTab('attack')" id="tab-btn-attack" class="py-2.5 flex flex-col items-center justify-center gap-0.5 tab-active transition hover:bg-slate-800/40"><i class="fa-solid fa-crosshairs text-xs text-red-400"></i><span>Saldırı</span></button>
                 <button onclick="switchTab('defense')" id="tab-btn-defense" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-shield-halved text-xs text-emerald-400"></i><span>Savunma</span></button>
                 <button onclick="switchTab('economy')" id="tab-btn-economy" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-coins text-xs text-amber-400"></i><span>Ekonomi</span></button>
                 <button onclick="switchTab('companions')" id="tab-btn-companions" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-satellite text-xs text-cyan-400"></i><span>Yoldaş</span></button>
-                <button onclick="switchTab('items')" id="tab-btn-items" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40 relative"><i class="fa-solid fa-shield-cat text-xs text-yellow-400"></i><span>Eşyalar</span><span id="badge-equipped-count" class="absolute top-1 right-1 px-1 bg-yellow-500 text-black font-bold text-[8px] rounded-full">0/3</span></button>
-                <button onclick="switchTab('lootbox')" id="tab-btn-lootbox" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-box-open text-xs text-pink-400"></i><span>Sandık</span></button>
+                <button onclick="switchTab('items')" id="tab-btn-items" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40 relative"><i class="fa-solid fa-shield-cat text-xs text-yellow-400"></i><span>Envanter</span><span id="badge-equipped-count" class="absolute top-1 right-1 px-1 bg-yellow-500 text-black font-bold text-[8px] rounded-full">0/3</span></button>
+                <button onclick="switchTab('lootbox')" id="tab-btn-lootbox" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-box-open text-xs text-pink-400"></i><span>Kutular</span></button>
                 <button onclick="switchTab('prestige')" id="tab-btn-prestige" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-bolt-lightning text-xs text-purple-400"></i><span>Prestij</span></button>
                 <button onclick="switchTab('casino')" id="tab-btn-casino" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-dice text-xs text-amber-300 animate-pulse"></i><span>Kumar</span></button>
             </nav>
@@ -293,37 +252,69 @@
                 <div id="tab-economy" class="hidden space-y-2"><div id="economy-upgrades-list" class="space-y-2"></div></div>
                 <div id="tab-companions" class="hidden space-y-2.5"><div id="companions-list" class="space-y-2.5"></div></div>
                 
-                <!-- YENİ: EŞYALAR & ENVANTER SEKMESİ -->
+                <!-- EŞYALAR & KULE SKİNLERİ ENVANTER SEKMESİ -->
                 <div id="tab-items" class="hidden space-y-3">
-                    <div class="bg-slate-950/90 border border-yellow-500/30 rounded-xl p-3">
-                        <h4 class="font-tech font-bold text-xs text-yellow-400 uppercase mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-star"></i> Kuşanılan Eşyalar (Maks 3)</h4>
-                        <div id="equipped-items-list" class="grid grid-cols-3 gap-2 min-h-[70px] bg-slate-900 p-2 rounded-lg border border-slate-800"></div>
+                    <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                        <button onclick="switchInventorySubTab('gear')" id="inv-sub-gear" class="py-1.5 rounded-lg font-tech font-bold text-xs bg-blue-600 text-white transition"><i class="fa-solid fa-toolbox mr-1"></i>Eşyalar</button>
+                        <button onclick="switchInventorySubTab('skins')" id="inv-sub-skins" class="py-1.5 rounded-lg font-tech font-bold text-xs text-slate-400 hover:text-white transition"><i class="fa-solid fa-chess-rook mr-1"></i>Kule Skinleri (<span id="owned-skins-count">1/21</span>)</button>
                     </div>
-                    <div>
-                        <h4 class="font-tech font-bold text-xs text-slate-300 uppercase mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-box"></i> Envanterdeki Tüm Eşyalar</h4>
-                        <div id="inventory-items-list" class="grid grid-cols-2 gap-2 max-h-[320px] overflow-y-auto pr-1"></div>
+
+                    <div id="inv-panel-gear" class="space-y-3">
+                        <div class="bg-slate-950/90 border border-yellow-500/30 rounded-xl p-3">
+                            <h4 class="font-tech font-bold text-xs text-yellow-400 uppercase mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-star"></i> Kuşanılan Eşyalar (Maks 3)</h4>
+                            <div id="equipped-items-list" class="grid grid-cols-3 gap-2 min-h-[70px] bg-slate-900 p-2 rounded-lg border border-slate-800"></div>
+                        </div>
+                        <div>
+                            <h4 class="font-tech font-bold text-xs text-slate-300 uppercase mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-box"></i> Envanterdeki Tüm Eşyalar</h4>
+                            <div id="inventory-items-list" class="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1"></div>
+                        </div>
+                    </div>
+
+                    <div id="inv-panel-skins" class="hidden space-y-3">
+                        <div class="bg-slate-950/90 border border-amber-500/40 rounded-xl p-3 flex items-center justify-between">
+                            <div>
+                                <div class="text-[10px] text-amber-400 font-tech uppercase font-bold">Aktif Kule Görünümü</div>
+                                <div id="active-skin-title" class="text-sm font-tech font-bold text-white">Klasik Plazma Kulesi</div>
+                            </div>
+                            <span class="px-2 py-1 rounded bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-tech font-bold">AKTİF</span>
+                        </div>
+                        <div id="skins-inventory-list" class="grid grid-cols-2 gap-2 max-h-[340px] overflow-y-auto pr-1"></div>
                     </div>
                 </div>
 
-                <!-- SANDIK SEKMESİ -->
+                <!-- KUTULAR (EŞYA SANDIĞI & SKİN KUTUSU) SEKMESİ -->
                 <div id="tab-lootbox" class="hidden space-y-3">
-                    <div class="bg-gradient-to-br from-pink-950/50 via-slate-900 to-indigo-950/50 border border-pink-500/40 rounded-2xl p-4 shadow-lg text-center">
-                        <div class="w-14 h-14 rounded-2xl bg-pink-500/20 border border-pink-500/40 flex items-center justify-center mx-auto mb-3 text-pink-400 text-2xl"><i class="fa-solid fa-cube"></i></div>
-                        <h3 class="font-tech font-bold text-lg text-pink-300 mb-1">Eşya & Kuantum Sandığı</h3>
-                        <p class="text-xs text-slate-300 mb-3">Kristal harcayarak Rare - Legendary eşyalar düşür!</p>
-                        <div class="flex justify-center gap-2 mb-2">
-                            <button onclick="openLootbox(1)" class="px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs"><i class="fa-solid fa-gem"></i> 5 Kristal (1'li)</button>
-                            <button onclick="openLootbox(5)" class="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-tech font-bold text-xs"><i class="fa-solid fa-gem"></i> 25 Kristal (5'li)</button>
+                    <!-- 1. Eşya & Kuantum Sandığı -->
+                    <div class="bg-gradient-to-br from-pink-950/50 via-slate-900 to-indigo-950/50 border border-pink-500/40 rounded-2xl p-3.5 shadow-lg text-center">
+                        <div class="w-11 h-11 rounded-2xl bg-pink-500/20 border border-pink-500/40 flex items-center justify-center mx-auto mb-2 text-pink-400 text-xl"><i class="fa-solid fa-cube"></i></div>
+                        <h3 class="font-tech font-bold text-base text-pink-300 mb-0.5">Eşya & Kuantum Sandığı</h3>
+                        <p class="text-[11px] text-slate-300 mb-2.5">Kuleye pasif güç veren eşyalar düşür! (Kopya eşyalar +2 💎 iade eder)</p>
+                        <div class="flex justify-center gap-2">
+                            <button onclick="openLootbox(1)" class="px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 5 Kristal (1'li)</button>
+                            <button onclick="openLootbox(5)" class="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 25 Kristal (5'li)</button>
                         </div>
                     </div>
+
+                    <!-- 2. YENİ: Kule Skin Kutusu -->
+                    <div class="bg-gradient-to-br from-amber-950/60 via-slate-900 to-yellow-950/40 border border-amber-500/50 rounded-2xl p-3.5 shadow-lg text-center relative overflow-hidden">
+                        <div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-tech font-bold text-[9px] uppercase">Yeni Kutu!</div>
+                        <div class="w-11 h-11 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center mx-auto mb-2 text-amber-400 text-xl"><i class="fa-solid fa-crown"></i></div>
+                        <h3 class="font-tech font-bold text-base text-amber-300 mb-0.5">Kule Skin Kutusu</h3>
+                        <p class="text-[11px] text-slate-300 mb-2.5">Efsanevi <b class="text-yellow-300">DGDVRN</b> (Altın Kaplama), Kardan Adam, Yıldız Kruvazörü ve 20 özel Kule Skini içerir!</p>
+                        <div class="flex justify-center gap-2">
+                            <button onclick="openSkinBox(1)" class="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 5 Kristal (1'li)</button>
+                            <button onclick="openSkinBox(5)" class="px-3 py-2 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 25 Kristal (5'li)</button>
+                        </div>
+                    </div>
+
                     <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-xs">
-                        <div class="font-semibold text-slate-300 mb-1">Düşme Oranları:</div>
+                        <div class="font-semibold text-slate-300 mb-1">Kutu Düşme Oranları:</div>
                         <div class="grid grid-cols-2 gap-1 text-[11px] text-slate-400">
                             <div>🟢 Rare: <b class="text-blue-400">%55</b></div>
                             <div>🔵 Super Rare: <b class="text-cyan-400">%28</b></div>
                             <div>🟣 Epic: <b class="text-purple-400">%12</b></div>
                             <div>🟠 Mythic: <b class="text-pink-400">%4</b></div>
-                            <div class="col-span-2 text-center">🟡 Legendary: <b class="text-yellow-400">%1</b></div>
+                            <div class="col-span-2 text-center">🟡 Legendary (DGDVRN vb.): <b class="text-yellow-400">%1</b></div>
                         </div>
                     </div>
                 </div>
@@ -334,9 +325,13 @@
                             <h3 class="font-tech font-bold text-base text-purple-300 flex items-center gap-2"><i class="fa-solid fa-rotate text-purple-400"></i> EVRİM GEÇİR</h3>
                             <span class="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded font-tech">Sıfırlama: <b id="ui-prestige-count">0</b></span>
                         </div>
-                        <p class="text-xs text-slate-300 mb-3">Dalganı sıfırlayarak Ruh Taşı kazan. (Min. 10. Dalga)</p>
+                        <p id="ui-prestige-req-text" class="text-xs text-slate-300 mb-3">Dalganı sıfırlayarak Ruh Taşı kazan. (En az Başlangıç + 10. Dalgaya ulaşmalısın)</p>
                         <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
-                            <div><div class="text-[11px] text-slate-400">Kazanılacak:</div><div class="font-tech font-bold text-lg text-purple-400" id="ui-pending-souls">+0 Ruh</div></div>
+                            <div>
+                                <div class="text-[11px] text-slate-400">Kazanılacak:</div>
+                                <div class="font-tech font-bold text-lg text-purple-400" id="ui-pending-souls">+0 Ruh</div>
+                                <div id="ui-prestige-min-wave" class="text-[10px] text-amber-400 font-tech">Gereken: Dalga 10</div>
+                            </div>
                             <button id="btn-prestige-action" onclick="openPrestigeConfirm()" class="px-3 py-2 rounded-xl font-tech font-bold text-xs bg-purple-600 hover:bg-purple-500 text-white disabled:opacity-40">SIFIRLA</button>
                         </div>
                     </div>
@@ -366,16 +361,21 @@
                             <button onclick="switchMiniGame('blackjack')" id="mg-btn-blackjack" class="py-2 rounded-xl bg-slate-800 text-slate-300 font-tech font-bold text-xs transition">BLACKJACK</button>
                         </div>
 
-                        <!-- 1. RULET -->
+                        <!-- 1. GÖRSEL DÖNEN RULET ÇARKI VE TOPU -->
                         <div id="mg-roulette" class="space-y-2.5 pt-1">
-                            <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center space-y-2">
-                                <div id="roulette-wheel-display" class="font-tech font-bold text-2xl text-amber-300 py-3 bg-slate-950 rounded-lg border border-slate-800 shadow-inner">?</div>
-                                <div id="roulette-result" class="text-xs text-slate-300 min-h-[18px]">Bahis türünü seç ve çevir!</div>
+                            <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center space-y-2 flex flex-col items-center">
+                                <div class="relative w-[180px] h-[180px] flex items-center justify-center">
+                                    <canvas id="rouletteCanvas" width="180" height="180" class="rounded-full shadow-lg border-2 border-amber-500/40"></canvas>
+                                    <!-- Üst İbre -->
+                                    <div class="absolute -top-1 left-1/2 -translate-x-1/2 text-amber-400 text-sm drop-shadow"><i class="fa-solid fa-caret-down"></i></div>
+                                </div>
+                                <div id="roulette-wheel-display" class="font-tech font-bold text-sm text-amber-300 py-1 px-3 bg-slate-950 rounded-lg border border-slate-800">ÇARK HAZIR</div>
+                                <div id="roulette-result" class="text-xs text-slate-300 min-h-[18px]">Renk seç, çarkı ve topu döndür!</div>
                             </div>
                             <div class="grid grid-cols-3 gap-2">
-                                <button onclick="playRoulette('red')" class="py-2.5 rounded-xl bg-red-600/80 hover:bg-red-600 text-white font-tech font-bold text-xs shadow">KIRMIZI (x2)</button>
-                                <button onclick="playRoulette('green')" class="py-2.5 rounded-xl bg-emerald-600/80 hover:bg-emerald-600 text-white font-tech font-bold text-xs shadow">YEŞİL (x14)</button>
-                                <button onclick="playRoulette('black')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-tech font-bold text-xs shadow border border-slate-700">SİYAH (x2)</button>
+                                <button id="btn-roul-red" onclick="playRoulette('red')" class="upgrade-btn py-2.5 rounded-xl bg-red-600/80 hover:bg-red-600 text-white font-tech font-bold text-xs shadow">KIRMIZI (x2)</button>
+                                <button id="btn-roul-green" onclick="playRoulette('green')" class="upgrade-btn py-2.5 rounded-xl bg-emerald-600/80 hover:bg-emerald-600 text-white font-tech font-bold text-xs shadow">YEŞİL (x14)</button>
+                                <button id="btn-roul-black" onclick="playRoulette('black')" class="upgrade-btn py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-tech font-bold text-xs shadow border border-slate-700">SİYAH (x2)</button>
                             </div>
                         </div>
 
@@ -491,10 +491,36 @@
     <script>
         const SAVE_KEY = 'CoreTowerDefense_Save_v10';
 
+        // TEMALAR SADECE ARKA PLAN VE ATMOSFERİ DEĞİŞTİRİR (Kule Skinleri Kutuya Taşındı!)
         const THEME_DEFS = {
-            cyber: { id: 'cyber', name: 'Siber Çekirdek', towerName: 'Plazma Kulesi', reqWave: 1, icon: 'fa-solid fa-microchip', color: 'text-blue-400', desc: 'Klasik siber savunma üssü.' },
-            snow: { id: 'snow', name: 'Buzul Gezegeni (Kar)', towerName: 'Kardan Adam', reqWave: 30, icon: 'fa-solid fa-snowman', color: 'text-sky-300', desc: '30. Dalgada açılır.' },
-            space: { id: 'space', name: 'Derin Uzay Nebulası', towerName: 'Yıldız Kruvazörü', reqWave: 60, icon: 'fa-solid fa-shuttle-space', color: 'text-purple-400', desc: '60. Dalgada açılır.' }
+            cyber: { id: 'cyber', name: 'Siber Çekirdek', towerName: 'Siber Izgara Arka Planı', reqWave: 1, icon: 'fa-solid fa-microchip', color: 'text-blue-400', desc: 'Klasik siber savunma atmosferi.' },
+            snow: { id: 'snow', name: 'Buzul Gezegeni (Kar)', towerName: 'Kar Yağışlı Arka Plan', reqWave: 30, icon: 'fa-solid fa-snowflake', color: 'text-sky-300', desc: '30. Dalgada açılır. Kar fırtınası atmosferi.' },
+            space: { id: 'space', name: 'Derin Uzay Nebulası', towerName: 'Kozmik Nebula Arka Planı', reqWave: 60, icon: 'fa-solid fa-shuttle-space', color: 'text-purple-400', desc: '60. Dalgada açılır. Derin uzay atmosferi.' }
+        };
+
+        // 20+ KULE SKİNİ VERİTABANI (Skin Kutusundan Çıkar)
+        const SKIN_DATABASE = {
+            default_cyber: { id: 'default_cyber', name: 'Plazma Kulesi', rarity: 'rare', emoji: '⚡', desc: 'Standart siber savunma kulesi.', specialRender: 'cyber' },
+            dgdvrn: { id: 'dgdvrn', name: 'DGDVRN (Altın Kaplama)', rarity: 'legendary', emoji: '👑', desc: 'Özel üretim saf altın kaplamalı efsanevi kule!', specialRender: 'dgdvrn' },
+            snowman: { id: 'snowman', name: 'Kardan Adam Kulesi', rarity: 'mythic', emoji: '⛄', desc: 'Havuç burunlu efsanevi Kardan Adam kulesi.', specialRender: 'snowman' },
+            star_cruiser: { id: 'star_cruiser', name: 'Yıldız Kruvazörü', rarity: 'mythic', emoji: '🚀', desc: 'Galaktik uzay kruvazörü kule görünümü.', specialRender: 'star_cruiser' },
+            lion: { id: 'lion', name: 'Ormanlar Kralı Aslan', rarity: 'epic', emoji: '🦁', desc: 'Kükreyen aslan kule görünümü.' },
+            tiger: { id: 'tiger', name: 'Bengal Kaplanı', rarity: 'epic', emoji: '🐯', desc: 'Keskin pençeli kaplan kulesi.' },
+            bird: { id: 'bird', name: 'Gökdoğan Kuşu', rarity: 'rare', emoji: '🐦', desc: 'Hızlı ve çevik kuş kule skini.' },
+            car: { id: 'car', name: 'Yarış Arabası', rarity: 'super_rare', emoji: '🚗', desc: 'Tam gaz ateş eden araba kulesi.' },
+            monkey: { id: 'monkey', name: 'Çılgın Maymun', rarity: 'super_rare', emoji: '🐵', desc: 'Muz yerine plazma fırlatan maymun.' },
+            water_bottle: { id: 'water_bottle', name: 'Su Şişesi', rarity: 'rare', emoji: '🧴', desc: 'Buz gibi serinleten su şişesi kulesi.' },
+            chair: { id: 'chair', name: 'Oyuncu Sandalyesi', rarity: 'rare', emoji: '🪑', desc: 'Konforlu taktiksel sandalye skini.' },
+            tree: { id: 'tree', name: 'Kadim Ağaç', rarity: 'super_rare', emoji: '🌳', desc: 'Kök salmış doğa koruyucusu ağaç.' },
+            table: { id: 'table', name: 'Taktik Masası', rarity: 'rare', emoji: '🪵', desc: 'Sağlam meşe masa kule görünümü.', specialRender: 'table' },
+            sofa: { id: 'sofa', name: 'Kraliyet Koltuğu', rarity: 'epic', emoji: '🛋️', desc: 'Rahatlığından ödün vermeyen koltuk kulesi.' },
+            sleep_emoji: { id: 'sleep_emoji', name: 'Uyku Emojisi', rarity: 'super_rare', emoji: '😴', desc: 'Uyurken bile tek atan kule skini.' },
+            dragon: { id: 'dragon', name: 'Kızıl Ejderha', rarity: 'mythic', emoji: '🐉', desc: 'Ateş püskürten antik ejderha skini.' },
+            robot: { id: 'robot', name: 'Siber Meka', rarity: 'epic', emoji: '🤖', desc: 'Yüksek teknolojili yapay zeka robot.' },
+            alien: { id: 'alien', name: 'Bölge 51 Uzaylısı', rarity: 'super_rare', emoji: '👽', desc: 'Galaksi ötesi ziyaretçi kulesi.' },
+            pizza: { id: 'pizza', name: 'Sıcak Pizza', rarity: 'rare', emoji: '🍕', desc: 'Bol malzemeli İtalyan kule skini.' },
+            toilet: { id: 'toilet', name: 'Altın Porselen', rarity: 'rare', emoji: '🚽', desc: 'Düşmanları sifonla çeken mizahi skin.' },
+            fire_demon: { id: 'fire_demon', name: 'Ateş İblisi', rarity: 'epic', emoji: '👹', desc: 'Karanlık diyarların korkusuz muhafızı.' }
         };
 
         // 25+ ADET EŞSİZ İTEM SİSTEMİ (Rare, Super Rare, Epic, Mythic, Legendary)
@@ -554,6 +580,8 @@
                 },
                 inventory: [], // Sahip olunan eşya ID listesi
                 equippedItems: [], // Kuşanılan eşya ID listesi (maks 3)
+                ownedSkins: ['default_cyber'], // Sahip olunan kule skinleri
+                activeSkin: 'default_cyber', // Aktif takılı kule skini
                 lootboxBonuses: { extraDamagePct: 0, extraGoldPct: 0, totalOpened: 0 },
                 prestigeUpgrades: { permDamage: 0, permGold: 0, companionBoost: 0, costDiscount: 0, startWave: 0 },
                 lastSaveTime: Date.now()
@@ -626,19 +654,16 @@
             permGold: { name: 'Altın Simyası', icon: 'fa-solid fa-coins', desc: 'Altın kazancını artırır.', baseCost: 1, costScale: 1.5, maxLevel: 999, getEffectText: (lvl) => `+%${lvl * 30}` },
             companionBoost: { name: 'Senkronize Yörünge', icon: 'fa-solid fa-satellite', desc: 'Yoldaş gücü.', baseCost: 2, costScale: 1.6, maxLevel: 999, getEffectText: (lvl) => `+%${lvl * 35}` },
             costDiscount: { name: 'Mühendislik Verimi', icon: 'fa-solid fa-tags', desc: 'Maliyeti düşürür.', baseCost: 3, costScale: 1.8, maxLevel: 25, getEffectText: (lvl) => `-%${lvl * 2}` },
-            startWave: { name: 'Zaman Sıçraması', icon: 'fa-solid fa-forward', desc: 'İleri dalgadan başla.', baseCost: 4, costScale: 2.0, maxLevel: 30, getEffectText: (lvl) => `Başlangıç: Dalga ${1 + lvl * 2}` }
+            startWave: { name: 'Zaman Sıçraması', icon: 'fa-solid fa-forward', desc: 'İleri dalgadan başla (Evrim için +10 dalga ilerlemelisin).', baseCost: 5, costScale: 2.2, maxLevel: 25, getEffectText: (lvl) => `Başlangıç: Dalga ${getStartWaveLevel(lvl)}` }
         };
 
-        function formatNumber(num) {
-            if (num === null || num === undefined || isNaN(num)) return "0";
-            if (num < 1000) return Math.floor(num).toString();
-            const suffixes = ["", "B", "M", "Mr", "T", "KT", "KN"];
-            const tier = Math.floor(Math.log10(Math.abs(num)) / 3);
-            if (tier === 0) return Math.floor(num).toString();
-            const suffix = suffixes[tier] || `e${tier*3}`;
-            const scale = Math.pow(10, tier * 3);
-            const scaled = num / scale;
-            return scaled.toFixed(scaled < 10 ? 2 : 1) + suffix;
+        function getStartWaveLevel(lvl = (game.prestigeUpgrades?.startWave || 0)) {
+            return 1 + lvl * 2;
+        }
+
+        function getMinPrestigeWave() {
+            // BUG FIX: Oyuncunun sınırsız rebirth yapamaması için başladığı dalganın üzerine EN AZ 10 dalga ilerlemesi şarttır!
+            return Math.max(10, getStartWaveLevel() + 10);
         }
 
         function getDiscountMultiplier() { return Math.max(0.5, 1 - (game.prestigeUpgrades.costDiscount * 0.02)); }
@@ -773,8 +798,13 @@
         }
         function getCompanionBoost() { return 1 + game.prestigeUpgrades.companionBoost * 0.30; }
         function calculatePendingSouls() {
-            if (game.wave < 10) return 0;
-            return Math.max(1, Math.floor(Math.pow(game.wave - 8, 1.35)));
+            const minReq = getMinPrestigeWave();
+            if (game.wave < minReq) return 0;
+            // Sadece gerçek ilerleme ve ulaşılan zorluk üzerinden dengeli Ruh Taşı hesabı
+            const progressedWaves = Math.max(1, game.wave - getStartWaveLevel());
+            const baseSouls = Math.floor(Math.pow(game.wave - 8, 1.28));
+            const progressRatio = Math.min(1, progressedWaves / 12);
+            return Math.max(1, Math.floor(baseSouls * progressRatio));
         }
 
         const canvas = document.getElementById('gameCanvas');
@@ -1353,7 +1383,49 @@
                 ctx.fillStyle = 'rgba(56, 189, 248, 0.09)'; ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
             }
 
-            if (theme === 'snow') {
+            const skinId = game.activeSkin || 'default_cyber';
+            const skinDef = SKIN_DATABASE[skinId] || SKIN_DATABASE.default_cyber;
+
+            if (skinDef.specialRender === 'dgdvrn') {
+                // 1. DGDVRN ALTIN KAPLAMALI EFSANEVİ KULE SKİNİ
+                const pulseGlow = 22 + Math.sin(performance.now() * 0.006) * 3;
+                ctx.beginPath(); ctx.arc(0, 0, pulseGlow, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(250, 204, 21, 0.16)'; ctx.fill();
+
+                ctx.beginPath();
+                for (let i = 0; i < 8; i++) {
+                    const a = (i * Math.PI) / 4;
+                    const px = Math.cos(a) * 20, py = Math.sin(a) * 20;
+                    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+                const goldGrad = ctx.createLinearGradient(-18, -18, 18, 18);
+                goldGrad.addColorStop(0, '#fef08a');
+                goldGrad.addColorStop(0.5, '#eab308');
+                goldGrad.addColorStop(1, '#a16207');
+                ctx.fillStyle = goldGrad;
+                ctx.strokeStyle = '#fef9c3';
+                ctx.lineWidth = 2.5;
+                ctx.fill(); ctx.stroke();
+
+                ctx.save();
+                ctx.rotate(tower.angle);
+                ctx.fillStyle = '#ca8a04';
+                ctx.strokeStyle = '#fef08a';
+                ctx.lineWidth = 1.5;
+                ctx.fillRect(6 - tower.recoil, -5, 20, 10);
+                ctx.strokeRect(6 - tower.recoil, -5, 20, 10);
+                ctx.restore();
+
+                ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2);
+                ctx.fillStyle = '#422006'; ctx.fill();
+                ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.stroke();
+
+                ctx.font = "bold 7px 'Rajdhani', sans-serif";
+                ctx.fillStyle = '#fef08a'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('DGDVRN', 0, 0);
+            } else if (skinDef.specialRender === 'snowman') {
+                // 2. KARDAN ADAM KULE SKİNİ (Kutudan çıkar)
                 ctx.fillStyle = '#f8fafc'; ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2;
                 ctx.beginPath(); ctx.arc(0, 5, 18, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
                 ctx.beginPath(); ctx.arc(0, -4, 13, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
@@ -1364,13 +1436,27 @@
                 ctx.fillStyle = '#38bdf8'; ctx.fillRect(6 - tower.recoil, -3.5, 17, 7);
                 ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(0, 0, 9.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
                 ctx.fillStyle = '#f97316'; ctx.beginPath(); ctx.moveTo(6, -2.5); ctx.lineTo(17, 0); ctx.lineTo(6, 2.5); ctx.closePath(); ctx.fill();
-            } else if (theme === 'space') {
+            } else if (skinDef.specialRender === 'star_cruiser') {
+                // 3. YILDIZ KRUVAZÖRÜ KULE SKİNİ (Kutudan çıkar)
                 ctx.rotate(tower.angle);
                 ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.moveTo(-18, -6); ctx.lineTo(-26, 0); ctx.lineTo(-18, 6); ctx.closePath(); ctx.fill();
                 ctx.fillStyle = '#312e81'; ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2;
                 ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(-14, -20); ctx.lineTo(-18, -12); ctx.lineTo(-10, 0); ctx.lineTo(-18, 12); ctx.lineTo(-14, 20); ctx.closePath(); ctx.fill(); ctx.stroke();
                 ctx.fillStyle = '#22d3ee'; ctx.fillRect(6 - tower.recoil, -9, 14, 3); ctx.fillRect(6 - tower.recoil, 6, 14, 3);
-            } else {
+            } else if (skinDef.specialRender === 'table') {
+                // MASA KULE SKİNİ
+                ctx.save(); ctx.rotate(tower.angle);
+                ctx.fillStyle = '#60a5fa'; ctx.fillRect(6 - tower.recoil, -4, 18, 8);
+                ctx.restore();
+                ctx.fillStyle = '#78350f'; ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2;
+                ctx.fillRect(-16, -12, 32, 24); ctx.strokeRect(-16, -12, 32, 24);
+                ctx.fillStyle = '#451a03';
+                ctx.fillRect(-14, -10, 4, 4); ctx.fillRect(10, -10, 4, 4);
+                ctx.fillRect(-14, 6, 4, 4); ctx.fillRect(10, 6, 4, 4);
+                ctx.font = "14px sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('┬─┬', 0, 0);
+            } else if (skinDef.specialRender === 'cyber') {
+                // VARSAYILAN SİBER PLAZMA KULESİ
                 ctx.beginPath();
                 for (let i = 0; i < 8; i++) {
                     const a = (i * Math.PI) / 4;
@@ -1382,36 +1468,335 @@
                 ctx.rotate(tower.angle);
                 ctx.fillStyle = '#60a5fa'; ctx.fillRect(4 - tower.recoil, -4, 18, 8);
                 ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2); ctx.fillStyle = '#3b82f6'; ctx.fill();
+            } else {
+                // EMOJİ & ÖZEL İKON TABANLI KULE SKİNLERİ (Aslan, Kaplan, Kuş, Araba, Maymun, Su Şişesi, Sandalye, Ağaç, Koltuk, Uyku vb.)
+                ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI * 2);
+                ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2.5;
+                ctx.fill(); ctx.stroke();
+
+                ctx.save();
+                ctx.rotate(tower.angle);
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(8 - tower.recoil, -4, 17, 8);
+                ctx.restore();
+
+                ctx.font = "22px sans-serif";
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(skinDef.emoji || '⚡', 0, 1);
             }
             ctx.restore();
 
             for (const e of enemies) {
-                ctx.save(); ctx.translate(e.x, e.y);
-                const col = e.hitFlash > 0 ? '#ffffff' : e.color;
-                const angToTower = Math.atan2(tower.y - e.y, tower.x - e.x);
-                const pulse = Math.sin(e.animPhase || 0) * 2;
+        // MİNİ OYUN (KUMARHANE - KRİSTAL İLE OYNANIR & DÖNEN RULET ÇARKI)
+        let activeMiniGame = 'roulette';
+        let bjState = { playerHand: [], dealerHand: [], active: false };
 
-                ctx.save(); ctx.rotate(angToTower);
-                if (e.type === 'boss') {
-                    ctx.strokeStyle = '#d8b4fe'; ctx.lineWidth = 3;
-                    for (let t = 0; t < 6; t++) {
-                        const ta = (t * Math.PI) / 3 + e.rot;
-                        ctx.beginPath(); ctx.moveTo(Math.cos(ta) * (e.radius * 0.6), Math.sin(ta) * (e.radius * 0.6));
-                        ctx.lineTo(Math.cos(ta) * (e.radius + 12 + pulse), Math.sin(ta) * (e.radius + 12 + pulse)); ctx.stroke();
-                    }
-                    ctx.fillStyle = col; ctx.strokeStyle = '#3b0764'; ctx.lineWidth = 2.5;
-                    ctx.beginPath(); ctx.arc(0, 0, e.radius, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-                } else if (e.type === 'teleporter') {
-                    ctx.fillStyle = col; ctx.strokeStyle = '#422006'; ctx.lineWidth = 1.5;
-                    ctx.beginPath(); ctx.moveTo(e.radius + 3, 0); ctx.lineTo(-3, -e.radius); ctx.lineTo(-e.radius, 0); ctx.lineTo(-3, e.radius); ctx.closePath(); ctx.fill(); ctx.stroke();
-                } else if (e.type === 'ranged') {
-                    ctx.fillStyle = '#083344'; ctx.strokeStyle = '#22d3ee'; ctx.lineWidth = 1.5;
-                    ctx.beginPath(); ctx.ellipse(0, 0, e.radius - 1, e.radius + 3, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-                    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(0, 0, e.radius * 0.75, 0, Math.PI * 2); ctx.fill();
+        const ROULETTE_SECTORS = [
+            { num: '0', color: 'green', hex: '#10b981' },
+            { num: '32', color: 'red', hex: '#dc2626' },
+            { num: '15', color: 'black', hex: '#1e293b' },
+            { num: '19', color: 'red', hex: '#dc2626' },
+            { num: '4', color: 'black', hex: '#1e293b' },
+            { num: '21', color: 'red', hex: '#dc2626' },
+            { num: '2', color: 'black', hex: '#1e293b' },
+            { num: '25', color: 'red', hex: '#dc2626' },
+            { num: '17', color: 'black', hex: '#1e293b' },
+            { num: '34', color: 'red', hex: '#dc2626' },
+            { num: '6', color: 'black', hex: '#1e293b' },
+            { num: '27', color: 'red', hex: '#dc2626' },
+            { num: '13', color: 'black', hex: '#1e293b' },
+            { num: '36', color: 'red', hex: '#dc2626' },
+            { num: '11', color: 'black', hex: '#1e293b' }
+        ];
+
+        let rouletteAnim = {
+            spinning: false,
+            wheelAngle: 0,
+            ballAngle: 0,
+            ballRadius: 72,
+            startTime: 0,
+            duration: 2800,
+            startWheelAngle: 0,
+            targetWheelAngle: 0,
+            startBallAngle: 0,
+            targetBallAngle: 0,
+            winningSector: null,
+            userChoice: null,
+            betAmount: 0
+        };
+
+        function drawRouletteWheel() {
+            const rCanvas = document.getElementById('rouletteCanvas');
+            if (!rCanvas) return;
+            const rCtx = rCanvas.getContext('2d');
+            const cx = rCanvas.width / 2;
+            const cy = rCanvas.height / 2;
+            const outerR = 85;
+            const innerR = 32;
+            const sliceAngle = (Math.PI * 2) / ROULETTE_SECTORS.length;
+
+            rCtx.clearRect(0, 0, rCanvas.width, rCanvas.height);
+
+            // Dış Ahşap/Altın Çerçeve
+            rCtx.beginPath();
+            rCtx.arc(cx, cy, outerR + 3, 0, Math.PI * 2);
+            rCtx.fillStyle = '#78350f';
+            rCtx.fill();
+
+            // Çark Dilimleri
+            rCtx.save();
+            rCtx.translate(cx, cy);
+            rCtx.rotate(rouletteAnim.wheelAngle);
+
+            for (let i = 0; i < ROULETTE_SECTORS.length; i++) {
+                const sec = ROULETTE_SECTORS[i];
+                const startA = i * sliceAngle;
+                const endA = startA + sliceAngle;
+
+                rCtx.beginPath();
+                rCtx.moveTo(0, 0);
+                rCtx.arc(0, 0, outerR, startA, endA);
+                rCtx.closePath();
+                rCtx.fillStyle = sec.hex;
+                rCtx.fill();
+                rCtx.strokeStyle = '#fbbf24';
+                rCtx.lineWidth = 1;
+                rCtx.stroke();
+
+                // Numara Yazısı
+                rCtx.save();
+                rCtx.rotate(startA + sliceAngle / 2);
+                rCtx.fillStyle = '#ffffff';
+                rCtx.font = "bold 9px 'Rajdhani', sans-serif";
+                rCtx.textAlign = 'center';
+                rCtx.textBaseline = 'middle';
+                rCtx.fillText(sec.num, outerR - 14, 0);
+                rCtx.restore();
+            }
+
+            // İç Göbek ve Metal Artı
+            rCtx.beginPath();
+            rCtx.arc(0, 0, innerR, 0, Math.PI * 2);
+            rCtx.fillStyle = '#0f172a';
+            rCtx.fill();
+            rCtx.strokeStyle = '#f59e0b';
+            rCtx.lineWidth = 2.5;
+            rCtx.stroke();
+
+            rCtx.strokeStyle = '#fbbf24';
+            rCtx.lineWidth = 2;
+            rCtx.beginPath();
+            rCtx.moveTo(-18, 0); rCtx.lineTo(18, 0);
+            rCtx.moveTo(0, -18); rCtx.lineTo(0, 18);
+            rCtx.stroke();
+
+            rCtx.beginPath();
+            rCtx.arc(0, 0, 6, 0, Math.PI * 2);
+            rCtx.fillStyle = '#fbbf24';
+            rCtx.fill();
+            rCtx.restore();
+
+            // Dönen Beyaz Rulet Topu
+            rCtx.save();
+            rCtx.translate(cx, cy);
+            const bx = Math.cos(rouletteAnim.ballAngle) * rouletteAnim.ballRadius;
+            const by = Math.sin(rouletteAnim.ballAngle) * rouletteAnim.ballRadius;
+
+            rCtx.shadowColor = '#ffffff';
+            rCtx.shadowBlur = 6;
+            rCtx.beginPath();
+            rCtx.arc(bx, by, 5.5, 0, Math.PI * 2);
+            rCtx.fillStyle = '#f8fafc';
+            rCtx.fill();
+            rCtx.strokeStyle = '#94a3b8';
+            rCtx.lineWidth = 1;
+            rCtx.stroke();
+            rCtx.restore();
+        }
+
+        function updateRouletteAnimation(now) {
+            if (!rouletteAnim.spinning) return;
+            const elapsed = now - rouletteAnim.startTime;
+            const t = Math.min(1, elapsed / rouletteAnim.duration);
+            // Ease-out cubic yavaşlama eğrisi
+            const ease = 1 - Math.pow(1 - t, 3);
+
+            rouletteAnim.wheelAngle = rouletteAnim.startWheelAngle + (rouletteAnim.targetWheelAngle - rouletteAnim.startWheelAngle) * ease;
+            rouletteAnim.ballAngle = rouletteAnim.startBallAngle + (rouletteAnim.targetBallAngle - rouletteAnim.startBallAngle) * ease;
+            rouletteAnim.ballRadius = 76 - ease * 18; // Top yavaşladıkça dilimin içine oturur
+
+            drawRouletteWheel();
+
+            if (t >= 1) {
+                rouletteAnim.spinning = false;
+                finishRouletteSpin();
+            }
+        }
+
+        function switchMiniGame(gameType) {
+            activeMiniGame = gameType;
+            document.getElementById('mg-roulette').classList.toggle('hidden', gameType !== 'roulette');
+            document.getElementById('mg-blackjack').classList.toggle('hidden', gameType !== 'blackjack');
+            document.getElementById('mg-btn-roulette').className = gameType === 'roulette' ? 'py-2 rounded-xl bg-amber-600 text-white font-tech font-bold text-xs transition' : 'py-2 rounded-xl bg-slate-800 text-slate-300 font-tech font-bold text-xs transition';
+            document.getElementById('mg-btn-blackjack').className = gameType === 'blackjack' ? 'py-2 rounded-xl bg-amber-600 text-white font-tech font-bold text-xs transition' : 'py-2 rounded-xl bg-slate-800 text-slate-300 font-tech font-bold text-xs transition';
+            if (gameType === 'roulette') drawRouletteWheel();
+        }
+
+        function setCasinoBetVal(val) {
+            document.getElementById('casino-bet').value = val;
+        }
+
+        function playRoulette(choice) {
+            if (rouletteAnim.spinning) { showToast('Çark zaten dönüyor!'); return; }
+            const betInput = document.getElementById('casino-bet');
+            const bet = parseInt(betInput.value) || 0;
+            if (bet <= 0 || bet > game.crystals) { showToast('Yeterli kristalin yok!'); return; }
+            game.crystals -= bet;
+            updateHUD();
+
+            // Sonuç sektörünü belirle (Yeşil: %6.6, Kırmızı: %46.7, Siyah: %46.7)
+            const winIndex = Math.floor(Math.random() * ROULETTE_SECTORS.length);
+            const winSec = ROULETTE_SECTORS[winIndex];
+            const sliceAngle = (Math.PI * 2) / ROULETTE_SECTORS.length;
+
+            rouletteAnim.spinning = true;
+            rouletteAnim.startTime = performance.now();
+            rouletteAnim.duration = 2600;
+            rouletteAnim.userChoice = choice;
+            rouletteAnim.betAmount = bet;
+            rouletteAnim.winningSector = winSec;
+
+            // Çark saat yönünde 4-5 tur dönsün ve üst ibre (-PI/2) kazanan dilimi göstersin
+            const currentNorm = rouletteAnim.wheelAngle % (Math.PI * 2);
+            rouletteAnim.startWheelAngle = currentNorm;
+            const targetSliceCenter = winIndex * sliceAngle + sliceAngle / 2;
+            const desiredFinalWheelAngle = -Math.PI / 2 - targetSliceCenter;
+            rouletteAnim.targetWheelAngle = desiredFinalWheelAngle + Math.PI * 2 * 5;
+
+            // Top ters yönde dönüp en üstte (-PI/2) kazanan dilimin yuvasına otursun
+            rouletteAnim.startBallAngle = rouletteAnim.ballAngle % (Math.PI * 2);
+            rouletteAnim.targetBallAngle = -Math.PI / 2 - Math.PI * 2 * 6;
+
+            document.getElementById('roulette-wheel-display').textContent = 'ÇARK DÖNÜYOR...';
+            document.getElementById('roulette-result').innerHTML = '<span class="text-amber-300 animate-pulse">Top dönüyor, bol şans!</span>';
+            ['red', 'green', 'black'].forEach(c => {
+                const b = document.getElementById(`btn-roul-${c}`);
+                if (b) b.disabled = true;
+            });
+        }
+
+        function finishRouletteSpin() {
+            ['red', 'green', 'black'].forEach(c => {
+                const b = document.getElementById(`btn-roul-${c}`);
+                if (b) b.disabled = false;
+            });
+
+            const winSec = rouletteAnim.winningSector;
+            const resultColor = winSec.color;
+            const mult = resultColor === 'green' ? 14 : 2;
+            const display = document.getElementById('roulette-wheel-display');
+            const resText = document.getElementById('roulette-result');
+
+            display.textContent = `${resultColor === 'green' ? 'YEŞİL' : (resultColor === 'red' ? 'KIRMIZI' : 'SİYAH')} (${winSec.num})`;
+            display.className = `font-tech font-bold text-sm py-1 px-3 rounded-lg border border-slate-800 shadow-inner ${resultColor === 'green' ? 'text-emerald-400 bg-emerald-950/40' : (resultColor === 'red' ? 'text-red-400 bg-red-950/40' : 'text-slate-200 bg-slate-950')}`;
+
+            if (rouletteAnim.userChoice === resultColor) {
+                const win = rouletteAnim.betAmount * mult;
+                game.crystals += win;
+                resText.innerHTML = `<span class="text-emerald-400 font-bold">KAZANDIN! +${win} 💎</span>`;
+                showToast(`Rulet Kazancı: +${win} Kristal!`);
+            } else {
+                resText.innerHTML = `<span class="text-red-400 font-bold">KAYBETTİN! -${rouletteAnim.betAmount} 💎</span>`;
+            }
+            updateHUD(); refreshUpgradeButtonsState(); saveGame(true);
+        }
+        // SANDIKTAN İŞLEMLER, EŞYA VE KULE SKİN KUTUSU SİSTEMİ
+        function openLootbox(count) {
+            const cost = count * 5;
+            if (game.crystals < cost) { showToast('Yeterli kristalin yok!'); return; }
+            game.crystals -= cost; game.lootboxBonuses.totalOpened += count;
+
+            let droppedItems = [];
+            let refundCrystals = 0;
+            for (let i = 0; i < count; i++) {
+                const roll = Math.random() * 100;
+                let rarity = 'rare';
+                if (roll < 1) rarity = 'legendary';
+                else if (roll < 5) rarity = 'mythic';
+                else if (roll < 17) rarity = 'epic';
+                else if (roll < 45) rarity = 'super_rare';
+
+                const pool = Object.values(ITEM_DATABASE).filter(item => item.rarity === rarity);
+                const item = pool[Math.floor(Math.random() * pool.length)];
+
+                if (!game.inventory.includes(item.id)) {
+                    game.inventory.push(item.id);
                 } else {
-                    ctx.fillStyle = col; ctx.strokeStyle = '#052e16'; ctx.lineWidth = 1.5;
-                    ctx.beginPath(); ctx.ellipse(0, 0, e.radius + 1.5, e.radius * 0.8, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                    refundCrystals += 2; // Kopya eşya teselli iadesi
                 }
+                droppedItems.push(item);
+            }
+
+            if (refundCrystals > 0) game.crystals += refundCrystals;
+            const refundText = refundCrystals > 0 ? ` (Kopyalardan +${refundCrystals}💎 iade)` : '';
+            showToast(`Eşya: ${droppedItems[0].name} [${droppedItems[0].rarity.toUpperCase()}]${refundText}`);
+            buildInventoryUI(); updateHUD(); saveGame(true);
+        }
+
+        function openSkinBox(count) {
+            const cost = count * 5;
+            if (game.crystals < cost) { showToast('Yeterli kristalin yok! (5 Kristal gerekli)'); return; }
+            game.crystals -= cost;
+
+            if (!Array.isArray(game.ownedSkins)) game.ownedSkins = ['default_cyber'];
+
+            let droppedSkins = [];
+            let refundCrystals = 0;
+            const allBoxSkins = Object.values(SKIN_DATABASE).filter(s => s.id !== 'default_cyber');
+
+            for (let i = 0; i < count; i++) {
+                const roll = Math.random() * 100;
+                let rarity = 'rare';
+                if (roll < 2.5) rarity = 'legendary'; // DGDVRN şansı
+                else if (roll < 12) rarity = 'mythic'; // Kardan Adam, Yıldız Kruvazörü, Ejderha
+                else if (roll < 32) rarity = 'epic';
+                else if (roll < 60) rarity = 'super_rare';
+
+                let pool = allBoxSkins.filter(s => s.rarity === rarity);
+                if (pool.length === 0) pool = allBoxSkins;
+                const skin = pool[Math.floor(Math.random() * pool.length)];
+
+                if (!game.ownedSkins.includes(skin.id)) {
+                    game.ownedSkins.push(skin.id);
+                } else {
+                    refundCrystals += 2; // Zaten sahip olunan skin için +2 Kristal teselli iadesi
+                }
+                droppedSkins.push(skin);
+            }
+
+            if (refundCrystals > 0) game.crystals += refundCrystals;
+            const lastSkin = droppedSkins[droppedSkins.length - 1];
+            const refundMsg = refundCrystals > 0 ? ` (+${refundCrystals}💎 Kopya İadesi)` : '';
+            showToast(`🎉 Skin Çıktı: ${lastSkin.emoji} ${lastSkin.name}${refundMsg}`);
+            buildInventoryUI(); updateHUD(); saveGame(true);
+        }
+
+        function selectTowerSkin(skinId) {
+            if (!game.ownedSkins.includes(skinId)) return;
+            game.activeSkin = skinId;
+            const skin = SKIN_DATABASE[skinId];
+            showToast(`Kule Skini Kuşanıldı: ${skin.emoji} ${skin.name}`);
+            buildInventoryUI(); saveGame(true);
+        }
+
+        function switchInventorySubTab(sub) {
+            document.getElementById('inv-panel-gear').classList.toggle('hidden', sub !== 'gear');
+            document.getElementById('inv-panel-skins').classList.toggle('hidden', sub !== 'skins');
+            document.getElementById('inv-sub-gear').className = sub === 'gear' ? 'py-1.5 rounded-lg font-tech font-bold text-xs bg-blue-600 text-white transition' : 'py-1.5 rounded-lg font-tech font-bold text-xs text-slate-400 hover:text-white transition';
+            document.getElementById('inv-sub-skins').className = sub === 'skins' ? 'py-1.5 rounded-lg font-tech font-bold text-xs bg-amber-600 text-white transition' : 'py-1.5 rounded-lg font-tech font-bold text-xs text-slate-400 hover:text-white transition';
+            buildInventoryUI();
+        }
                 ctx.restore();
 
                 if (e.hp < e.maxHp || e.type === 'boss') {
@@ -1671,6 +2056,7 @@
 
             for (const itemId of game.inventory) {
                 const item = ITEM_DATABASE[itemId];
+                if (!item) continue;
                 const isEquipped = game.equippedItems.includes(itemId);
                 const badge = getRarityBadge(item.rarity);
                 const card = document.createElement('div');
@@ -1689,6 +2075,42 @@
                     </button>
                 `;
                 invContainer.appendChild(card);
+            }
+
+            // KULE SKİNLERİ LİSTESİNİ OLUŞTUR
+            if (!Array.isArray(game.ownedSkins)) game.ownedSkins = ['default_cyber'];
+            const allSkins = Object.values(SKIN_DATABASE);
+            const countEl = document.getElementById('owned-skins-count');
+            if (countEl) countEl.textContent = `${game.ownedSkins.length}/${allSkins.length}`;
+
+            const curSkin = SKIN_DATABASE[game.activeSkin] || SKIN_DATABASE.default_cyber;
+            const titleEl = document.getElementById('active-skin-title');
+            if (titleEl) titleEl.textContent = `${curSkin.emoji} ${curSkin.name}`;
+
+            const skinsContainer = document.getElementById('skins-inventory-list');
+            if (skinsContainer) {
+                skinsContainer.innerHTML = '';
+                for (const skin of allSkins) {
+                    const owned = game.ownedSkins.includes(skin.id);
+                    const isActive = (game.activeSkin || 'default_cyber') === skin.id;
+                    const badge = getRarityBadge(skin.rarity);
+                    const card = document.createElement('div');
+                    card.className = `p-2.5 rounded-xl border flex flex-col justify-between gap-1.5 ${isActive ? 'bg-amber-950/40 border-amber-400' : (owned ? 'bg-slate-950/90 border-slate-800' : 'bg-slate-950/40 border-slate-900 opacity-55')}`;
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between gap-1">
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <span class="text-lg leading-none">${skin.emoji}</span>
+                                <span class="font-semibold text-xs text-white truncate">${skin.name}</span>
+                            </div>
+                            <span class="text-[8px] px-1.5 py-0.2 rounded border font-tech shrink-0 ${badge.class}">${badge.text}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400">${skin.desc}</div>
+                        <button onclick="selectTowerSkin('${skin.id}')" ${!owned || isActive ? 'disabled' : ''} class="upgrade-btn w-full py-1 rounded text-[10px] font-tech font-bold ${isActive ? 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/40' : (owned ? 'bg-amber-600 hover:bg-amber-500 text-white' : 'bg-slate-800 text-slate-500')}">
+                            ${isActive ? 'Takılı' : (owned ? 'Skini Tak' : 'Kutudan Çıkar')}
+                        </button>
+                    `;
+                    skinsContainer.appendChild(card);
+                }
             }
         }
 
@@ -1851,10 +2273,16 @@
 
         function updatePrestigeUI() {
             const pending = calculatePendingSouls();
+            const minReq = getMinPrestigeWave();
             document.getElementById('ui-pending-souls').textContent = `+${formatNumber(pending)} Ruh`;
             document.getElementById('ui-prestige-count').textContent = game.stats.prestiges;
+            const minWaveEl = document.getElementById('ui-prestige-min-wave');
+            if (minWaveEl) {
+                minWaveEl.textContent = `Gereken Dalga: ${minReq} (Şu an: ${game.wave})`;
+                minWaveEl.className = game.wave >= minReq ? 'text-[10px] text-emerald-400 font-tech' : 'text-[10px] text-amber-400 font-tech';
+            }
             const btn = document.getElementById('btn-prestige-action');
-            if (btn) btn.disabled = pending <= 0;
+            if (btn) btn.disabled = pending <= 0 || game.wave < minReq;
         }
 
         function updateHUD() {
@@ -1963,9 +2391,9 @@
 
         function executePrestige() {
             const pending = calculatePendingSouls();
-            if (pending <= 0) return;
+            if (pending <= 0 || game.wave < getMinPrestigeWave()) return;
             game.souls += pending; game.stats.prestiges++;
-            game.wave = 1 + game.prestigeUpgrades.startWave * 2;
+            game.wave = getStartWaveLevel();
             game.waveKills = 0; game.holdWave = false; game.gold = 100;
             game.upgrades = { ...getDefaultState().upgrades };
             enemies = []; projectiles = [];
@@ -1981,6 +2409,23 @@
                 const ind = document.getElementById('save-indicator');
                 ind.style.opacity = '1'; setTimeout(() => { ind.style.opacity = '0'; }, 1500);
                 if (!silent) showToast('Oyun Kaydedildi!');
+            } catch (e) {}
+        }
+        function loadGame() {
+            try {
+                const raw = localStorage.getItem(SAVE_KEY);
+                if (!raw) return;
+                const parsed = JSON.parse(raw);
+                game = {
+                    ...getDefaultState(),
+                    ...parsed,
+                    stats: { ...getDefaultState().stats, ...(parsed.stats || {}) },
+                    settings: { ...getDefaultState().settings, ...(parsed.settings || {}) },
+                    upgrades: { ...getDefaultState().upgrades, ...(parsed.upgrades || {}) },
+                    prestigeUpgrades: { ...getDefaultState().prestigeUpgrades, ...(parsed.prestigeUpgrades || {}) },
+                    ownedSkins: Array.isArray(parsed.ownedSkins) ? parsed.ownedSkins : ['default_cyber'],
+                    activeSkin: parsed.activeSkin || 'default_cyber'
+                };
             } catch (e) {}
         }
         function loadGame() {
@@ -2059,6 +2504,7 @@
             lastTime = now;
             updateGame(dt);
             renderGame();
+            updateRouletteAnimation(now);
             requestAnimationFrame(mainLoop);
         }
 
@@ -2067,7 +2513,7 @@
             setDeviceMode(game.deviceMode || 'pc');
             tower.maxHp = getTowerMaxHp(); tower.hp = tower.maxHp;
             tower.maxShield = getTowerMaxShield(); tower.shield = tower.maxShield;
-            updateHoldWaveButton(); buildAllUpgradeCards(); updateHUD();
+            updateHoldWaveButton(); buildAllUpgradeCards(); updateHUD(); drawRouletteWheel();
             setInterval(() => saveGame(true), 5000);
             requestAnimationFrame(mainLoop);
         };
