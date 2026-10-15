@@ -1,4 +1,3 @@
-# towerv1
 <!DOCTYPE html>
 <html lang="tr" class="dark">
 <head>
@@ -88,19 +87,23 @@
         .card-red {
             color: #dc2626;
         }
+        /* Cihaz modlarına göre ölçeklendirmeler */
+        body.device-phone .hide-on-phone { display: none !important; }
+        body.device-phone .text-shrink { font-size: 11px !important; }
+        body.device-tablet .tablet-compact { padding: 8px !important; }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden">
+<body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-pc" id="main-body">
 
     <!-- ÜST BİLGİ ÇUBUĞU -->
-    <header class="h-14 bg-slate-900/95 border-b border-slate-800 px-3 lg:px-6 flex items-center justify-between shrink-0 z-30">
-        <div class="flex items-center space-x-3">
-            <button onclick="toggleUpgradeDrawer()" class="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-tech font-bold text-xs flex items-center gap-2 shadow-lg shadow-blue-600/30 transition">
+    <header class="h-14 bg-slate-900/95 border-b border-slate-800 px-2 sm:px-4 lg:px-6 flex items-center justify-between shrink-0 z-30">
+        <div class="flex items-center space-x-2 sm:space-x-3">
+            <button onclick="toggleUpgradeDrawer()" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-tech font-bold text-xs flex items-center gap-1.5 sm:gap-2 shadow-lg shadow-blue-600/30 transition">
                 <i class="fa-solid fa-shop text-sm"></i>
-                <span class="hidden sm:inline">Geliştirmeler & Mini Oyun</span>
+                <span class="hidden sm:inline">Geliştirmeler & Eşyalar</span>
             </button>
 
-            <div class="hidden sm:block">
+            <div class="hidden md:block">
                 <h1 class="font-tech font-bold text-base tracking-wider leading-none text-white flex items-center gap-2">
                     ÇEKİRDEK KULE
                     <span id="save-indicator" class="text-[10px] font-sans font-normal bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded opacity-0 transition-opacity duration-500">
@@ -111,56 +114,56 @@
             </div>
         </div>
 
-        <div class="flex items-center space-x-2 sm:space-x-4 bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-800/90">
+        <div class="flex items-center space-x-1.5 sm:space-x-3 bg-slate-950/80 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-800/90">
             <div class="flex items-center space-x-1.5" title="Altın">
-                <div class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-xs">
+                <div class="w-5 sm:w-6 h-5 sm:h-6 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-xs">
                     <i class="fa-solid fa-coins"></i>
                 </div>
                 <div>
-                    <div class="text-[9px] text-slate-400 leading-none">ALTIN</div>
-                    <div id="ui-gold" class="font-tech font-bold text-sm sm:text-base text-amber-400 neon-text-gold leading-tight">0</div>
+                    <div class="text-[8px] sm:text-[9px] text-slate-400 leading-none">ALTIN</div>
+                    <div id="ui-gold" class="font-tech font-bold text-xs sm:text-base text-amber-400 neon-text-gold leading-tight">0</div>
                 </div>
             </div>
 
-            <div class="h-6 w-[1px] bg-slate-800"></div>
+            <div class="h-5 sm:h-6 w-[1px] bg-slate-800"></div>
 
             <div class="flex items-center space-x-1.5" title="Kristal">
-                <div class="w-6 h-6 rounded-full bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 text-xs">
+                <div class="w-5 sm:w-6 h-5 sm:h-6 rounded-full bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 text-xs">
                     <i class="fa-solid fa-gem"></i>
                 </div>
                 <div>
-                    <div class="text-[9px] text-slate-400 leading-none">KRİSTAL</div>
-                    <div id="ui-crystals" class="font-tech font-bold text-sm sm:text-base text-cyan-400 neon-text-cyan leading-tight">0</div>
+                    <div class="text-[8px] sm:text-[9px] text-slate-400 leading-none">KRİSTAL</div>
+                    <div id="ui-crystals" class="font-tech font-bold text-xs sm:text-base text-cyan-400 neon-text-cyan leading-tight">0</div>
                 </div>
             </div>
 
-            <div class="h-6 w-[1px] bg-slate-800"></div>
+            <div class="h-5 sm:h-6 w-[1px] bg-slate-800"></div>
 
             <div class="flex items-center space-x-1.5" title="Ruh Taşı">
-                <div class="w-6 h-6 rounded-full bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 text-xs">
+                <div class="w-5 sm:w-6 h-5 sm:h-6 rounded-full bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 text-xs">
                     <i class="fa-solid fa-fire-flame-curved"></i>
                 </div>
                 <div>
-                    <div class="text-[9px] text-slate-400 leading-none">RUH TAŞI</div>
-                    <div id="ui-souls" class="font-tech font-bold text-sm sm:text-base text-purple-400 neon-text-purple leading-tight">0</div>
+                    <div class="text-[8px] sm:text-[9px] text-slate-400 leading-none">RUH</div>
+                    <div id="ui-souls" class="font-tech font-bold text-xs sm:text-base text-purple-400 neon-text-purple leading-tight">0</div>
                 </div>
             </div>
         </div>
 
-        <div class="flex items-center space-x-1.5 sm:space-x-2">
-            <button onclick="openThemeModal()" class="px-2.5 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-tech font-bold text-xs sm:text-sm transition flex items-center gap-1.5">
+        <div class="flex items-center space-x-1 sm:space-x-2">
+            <button onclick="openThemeModal()" class="px-2 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-tech font-bold text-xs transition flex items-center gap-1">
                 <i id="ui-theme-icon" class="fa-solid fa-palette text-xs"></i>
-                <span id="ui-theme-name" class="hidden md:inline">Siber Çekirdek</span>
+                <span id="ui-theme-name" class="hidden lg:inline">Siber</span>
             </button>
-            <button id="btn-speed" onclick="toggleGameSpeed()" class="px-2.5 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-tech font-bold text-sm transition flex items-center gap-1">
+            <button id="btn-speed" onclick="toggleGameSpeed()" class="px-2 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-tech font-bold text-xs transition flex items-center gap-1">
                 <i class="fa-solid fa-forward-fast text-xs"></i>
                 <span id="ui-speed">1x</span>
             </button>
-            <button id="btn-pause" onclick="togglePause()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition text-sm">
-                <i id="icon-pause" class="fa-solid fa-pause w-4 text-center"></i>
+            <button id="btn-pause" onclick="togglePause()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition text-xs">
+                <i id="icon-pause" class="fa-solid fa-pause w-3 text-center"></i>
             </button>
-            <button onclick="openSettingsModal()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition text-sm" title="Ayarlar & Kayıt">
-                <i class="fa-solid fa-gear w-4 text-center"></i>
+            <button onclick="openSettingsModal()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition text-xs" title="Ayarlar">
+                <i class="fa-solid fa-gear w-3 text-center"></i>
             </button>
         </div>
     </header>
@@ -172,31 +175,31 @@
         <div id="canvas-container" class="absolute inset-0 bg-slate-950 overflow-hidden select-none">
             <canvas id="gameCanvas" class="block w-full h-full"></canvas>
 
-            <div class="absolute top-3 left-3 right-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pointer-events-none z-10">
-                <div class="bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-2.5 rounded-xl w-full sm:w-64 shadow-lg pointer-events-auto">
+            <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pointer-events-none z-10">
+                <div class="bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-2 sm:p-2.5 rounded-xl w-full sm:w-60 shadow-lg pointer-events-auto tablet-compact">
                     <div class="flex justify-between text-xs mb-1">
-                        <span class="font-semibold text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-heart-pulse"></i> Kule Canı</span>
-                        <span id="ui-hp-text" class="font-tech font-bold text-slate-200">100 / 100</span>
+                        <span class="font-semibold text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-heart-pulse"></i> Can</span>
+                        <span id="ui-hp-text" class="font-tech font-bold text-slate-200 text-shrink">100 / 100</span>
                     </div>
-                    <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden mb-1.5 border border-slate-700/50">
+                    <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-1.5 border border-slate-700/50">
                         <div id="ui-hp-bar" class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-150" style="width: 100%"></div>
                     </div>
                     <div id="shield-container" class="hidden">
                         <div class="flex justify-between text-[11px] mb-0.5">
-                            <span class="font-semibold text-sky-400 flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> Enerji Kalkanı</span>
+                            <span class="font-semibold text-sky-400 flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> Kalkan</span>
                             <span id="ui-shield-text" class="font-tech font-bold text-sky-300">50 / 50</span>
                         </div>
-                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
+                        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
                             <div id="ui-shield-bar" class="h-full bg-gradient-to-r from-sky-600 to-cyan-400 transition-all duration-150" style="width: 100%"></div>
                         </div>
                     </div>
-                    <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1.5 pt-1 border-t border-slate-800/80">
-                        <span><i class="fa-solid fa-plus-circle text-emerald-400 mr-1"></i>Yenileme: <b id="ui-hud-regen" class="text-slate-200">0/sn</b></span>
-                        <span><i class="fa-solid fa-shield text-slate-400 mr-1"></i>Zırh: <b id="ui-hud-armor" class="text-slate-200">0</b></span>
+                    <div class="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 mt-1 pt-1 border-t border-slate-800/80">
+                        <span>Yenileme: <b id="ui-hud-regen" class="text-slate-200">0/sn</b></span>
+                        <span>Zırh: <b id="ui-hud-armor" class="text-slate-200">0</b></span>
                     </div>
                 </div>
 
-                <div class="bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-2.5 rounded-xl w-full sm:w-72 shadow-lg pointer-events-auto">
+                <div class="bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-2 sm:p-2.5 rounded-xl w-full sm:w-64 shadow-lg pointer-events-auto tablet-compact">
                     <div class="flex items-center justify-between mb-1">
                         <div class="flex items-center gap-1.5">
                             <span id="ui-wave-badge" class="px-2 py-0.5 text-xs font-tech font-bold rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">DALGA 1</span>
@@ -204,45 +207,45 @@
                         </div>
                         <span id="ui-wave-progress-text" class="text-xs font-tech text-slate-300">0 / 15</span>
                     </div>
-                    <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
+                    <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
                         <div id="ui-wave-bar" class="h-full bg-gradient-to-r from-blue-600 to-indigo-400 transition-all duration-200" style="width: 0%"></div>
                     </div>
-                    <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1.5 pt-1 border-t border-slate-800/80">
+                    <div class="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 mt-1 pt-1 border-t border-slate-800/80">
                         <span>Aktif Düşman: <b id="ui-active-enemies" class="text-slate-200">0</b></span>
                         <button onclick="toggleHoldWave()" id="btn-hold-wave" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[10px] font-semibold text-emerald-400 transition flex items-center gap-1">
                             <i id="icon-hold-wave" class="fa-solid fa-forward"></i>
-                            <span id="text-hold-wave">Oto İlerle: Açık</span>
+                            <span id="text-hold-wave">Oto İlerle</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div class="absolute bottom-3 left-3 bg-slate-900/85 backdrop-blur-sm border border-slate-800/80 px-3 py-2 rounded-xl pointer-events-none hidden sm:flex items-center space-x-4 text-xs z-10">
-                <div><span class="text-slate-400 block text-[9px]">HASAR</span><span id="ui-Quick-dmg" class="font-tech font-bold text-sm text-red-400">10</span></div>
-                <div class="h-5 w-[1px] bg-slate-800"></div>
-                <div><span class="text-slate-400 block text-[9px]">ATIŞ HIZI</span><span id="ui-Quick-spd" class="font-tech font-bold text-sm text-amber-400">1.00/sn</span></div>
-                <div class="h-5 w-[1px] bg-slate-800"></div>
-                <div><span class="text-slate-400 block text-[9px]">KRİTİK</span><span id="ui-Quick-crit" class="font-tech font-bold text-sm text-purple-400">%5 (x2.0)</span></div>
-                <div class="h-5 w-[1px] bg-slate-800"></div>
-                <div><span class="text-slate-400 block text-[9px]">ÇOKLU ATIŞ</span><span id="ui-Quick-multi" class="font-tech font-bold text-sm text-cyan-400">1 Hedef</span></div>
+            <div class="absolute bottom-2 left-2 bg-slate-900/85 backdrop-blur-sm border border-slate-800/80 px-2.5 py-1.5 rounded-xl pointer-events-none hidden md:flex items-center space-x-3 text-xs z-10">
+                <div><span class="text-slate-400 block text-[9px]">HASAR</span><span id="ui-Quick-dmg" class="font-tech font-bold text-xs text-red-400">10</span></div>
+                <div class="h-4 w-[1px] bg-slate-800"></div>
+                <div><span class="text-slate-400 block text-[9px]">ATIŞ HIZI</span><span id="ui-Quick-spd" class="font-tech font-bold text-xs text-amber-400">1.00</span></div>
+                <div class="h-4 w-[1px] bg-slate-800"></div>
+                <div><span class="text-slate-400 block text-[9px]">KRİTİK</span><span id="ui-Quick-crit" class="font-tech font-bold text-xs text-purple-400">%5</span></div>
+                <div class="h-4 w-[1px] bg-slate-800"></div>
+                <div><span class="text-slate-400 block text-[9px]">ÇOKLU</span><span id="ui-Quick-multi" class="font-tech font-bold text-xs text-cyan-400">1</span></div>
             </div>
 
-            <div class="absolute bottom-3 right-3 flex items-center space-x-1.5 z-10">
-                <button onclick="toggleRangeCircle()" id="btn-toggle-range" class="px-2.5 py-1.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-xs text-slate-300 flex items-center gap-1.5 shadow" title="Menzil Çemberi">
+            <div class="absolute bottom-2 right-2 flex items-center space-x-1.5 z-10">
+                <button onclick="toggleRangeCircle()" id="btn-toggle-range" class="px-2 py-1 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-[11px] text-slate-300 flex items-center gap-1 shadow" title="Menzil">
                     <i class="fa-solid fa-bullseye text-blue-400"></i><span class="hidden sm:inline">Menzil</span>
                 </button>
-                <button onclick="toggleDamageText()" id="btn-toggle-dmg" class="px-2.5 py-1.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-xs text-slate-300 flex items-center gap-1.5 shadow" title="Hasar Sayıları">
-                    <i class="fa-solid fa-font text-amber-400"></i><span class="hidden sm:inline">Hasar Yazısı</span>
+                <button onclick="toggleDamageText()" id="btn-toggle-dmg" class="px-2 py-1 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-[11px] text-slate-300 flex items-center gap-1 shadow" title="Hasar">
+                    <i class="fa-solid fa-font text-amber-400"></i><span class="hidden sm:inline">Hasar Yazı</span>
                 </button>
             </div>
 
             <div id="defeat-overlay" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center z-30">
-                <div class="bg-slate-900 border border-red-500/40 p-6 rounded-2xl max-w-sm text-center shadow-2xl">
-                    <div class="w-12 h-12 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mx-auto mb-3 text-2xl">
+                <div class="bg-slate-900 border border-red-500/40 p-5 rounded-2xl max-w-xs text-center shadow-2xl">
+                    <div class="w-10 h-10 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mx-auto mb-2 text-xl">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                     </div>
-                    <h2 class="font-tech font-bold text-2xl text-white mb-1">KULE YIKILDI!</h2>
-                    <p class="text-xs text-slate-300 mb-4">Savunma yarıldı. Yeniden deniyorsun...</p>
+                    <h2 class="font-tech font-bold text-xl text-white mb-1">KULE YIKILDI!</h2>
+                    <p class="text-xs text-slate-300 mb-3">Savunma yarıldı. Güvenli bölgeye çekiliyorsun...</p>
                     <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
                         <div id="defeat-timer-bar" class="bg-red-500 h-full transition-all duration-100" style="width: 100%"></div>
                     </div>
@@ -250,12 +253,12 @@
             </div>
         </div>
 
-        <!-- AÇILIR KAPANIR GELİŞTİRME & MİNİ OYUN MENÜSÜ -->
+        <!-- AÇILIR KAPANIR GELİŞTİRME & EŞYA & KUMAR MENÜSÜ -->
         <div id="upgrade-drawer" class="absolute top-0 left-0 bottom-0 w-full sm:w-[460px] md:w-[500px] bg-slate-900/95 backdrop-blur-xl border-r border-slate-800 flex flex-col z-20 shadow-2xl transform -translate-x-full">
             <div class="px-4 py-3 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-microchip text-blue-400 text-lg"></i>
-                    <h3 class="font-tech font-bold text-lg text-white">Komuta Merkezi & Kumarhane</h3>
+                    <h3 class="font-tech font-bold text-lg text-white">Komuta Merkezi & Envanter</h3>
                 </div>
                 <button onclick="toggleUpgradeDrawer()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
                     <i class="fa-solid fa-xmark text-lg"></i>
@@ -272,15 +275,16 @@
                 </div>
             </div>
 
-            <!-- Sekmeler (7 Adet: Saldırı, Savunma, Ekonomi, Yoldaş, Kutu, Prestij, Mini Oyun - SAĞDA) -->
-            <nav class="grid grid-cols-7 bg-slate-900 border-b border-slate-800 shrink-0 text-[10px] font-medium">
+            <!-- Sekmeler (8 Adet: Saldırı, Savunma, Ekonomi, Yoldaş, Eşyalar, Sandık, Prestij, Mini Oyun) -->
+            <nav class="grid grid-cols-8 bg-slate-900 border-b border-slate-800 shrink-0 text-[9px] font-medium">
                 <button onclick="switchTab('attack')" id="tab-btn-attack" class="py-2.5 flex flex-col items-center justify-center gap-0.5 tab-active transition hover:bg-slate-800/40"><i class="fa-solid fa-crosshairs text-xs text-red-400"></i><span>Saldırı</span></button>
                 <button onclick="switchTab('defense')" id="tab-btn-defense" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-shield-halved text-xs text-emerald-400"></i><span>Savunma</span></button>
                 <button onclick="switchTab('economy')" id="tab-btn-economy" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-coins text-xs text-amber-400"></i><span>Ekonomi</span></button>
                 <button onclick="switchTab('companions')" id="tab-btn-companions" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-satellite text-xs text-cyan-400"></i><span>Yoldaş</span></button>
-                <button onclick="switchTab('lootbox')" id="tab-btn-lootbox" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-box-open text-xs text-pink-400"></i><span>Kutu</span></button>
+                <button onclick="switchTab('items')" id="tab-btn-items" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40 relative"><i class="fa-solid fa-shield-cat text-xs text-yellow-400"></i><span>Eşyalar</span><span id="badge-equipped-count" class="absolute top-1 right-1 px-1 bg-yellow-500 text-black font-bold text-[8px] rounded-full">0/3</span></button>
+                <button onclick="switchTab('lootbox')" id="tab-btn-lootbox" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-box-open text-xs text-pink-400"></i><span>Sandık</span></button>
                 <button onclick="switchTab('prestige')" id="tab-btn-prestige" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-bolt-lightning text-xs text-purple-400"></i><span>Prestij</span></button>
-                <button onclick="switchTab('casino')" id="tab-btn-casino" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40 relative"><i class="fa-solid fa-dice text-xs text-amber-300 animate-pulse"></i><span>Mini Oyun</span></button>
+                <button onclick="switchTab('casino')" id="tab-btn-casino" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-dice text-xs text-amber-300 animate-pulse"></i><span>Kumar</span></button>
             </nav>
 
             <div class="flex-1 overflow-y-auto p-3 space-y-2.5" id="tab-content-area">
@@ -288,23 +292,42 @@
                 <div id="tab-defense" class="hidden space-y-2"><div id="defense-upgrades-list" class="space-y-2"></div></div>
                 <div id="tab-economy" class="hidden space-y-2"><div id="economy-upgrades-list" class="space-y-2"></div></div>
                 <div id="tab-companions" class="hidden space-y-2.5"><div id="companions-list" class="space-y-2.5"></div></div>
+                
+                <!-- YENİ: EŞYALAR & ENVANTER SEKMESİ -->
+                <div id="tab-items" class="hidden space-y-3">
+                    <div class="bg-slate-950/90 border border-yellow-500/30 rounded-xl p-3">
+                        <h4 class="font-tech font-bold text-xs text-yellow-400 uppercase mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-star"></i> Kuşanılan Eşyalar (Maks 3)</h4>
+                        <div id="equipped-items-list" class="grid grid-cols-3 gap-2 min-h-[70px] bg-slate-900 p-2 rounded-lg border border-slate-800"></div>
+                    </div>
+                    <div>
+                        <h4 class="font-tech font-bold text-xs text-slate-300 uppercase mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-box"></i> Envanterdeki Tüm Eşyalar</h4>
+                        <div id="inventory-items-list" class="grid grid-cols-2 gap-2 max-h-[320px] overflow-y-auto pr-1"></div>
+                    </div>
+                </div>
+
+                <!-- SANDIK SEKMESİ -->
                 <div id="tab-lootbox" class="hidden space-y-3">
                     <div class="bg-gradient-to-br from-pink-950/50 via-slate-900 to-indigo-950/50 border border-pink-500/40 rounded-2xl p-4 shadow-lg text-center">
                         <div class="w-14 h-14 rounded-2xl bg-pink-500/20 border border-pink-500/40 flex items-center justify-center mx-auto mb-3 text-pink-400 text-2xl"><i class="fa-solid fa-cube"></i></div>
-                        <h3 class="font-tech font-bold text-lg text-pink-300 mb-1">Kuantum Sandığı</h3>
-                        <p class="text-xs text-slate-300 mb-3">Kristal harcayarak kalıcı güçlendirmeler kazan!</p>
+                        <h3 class="font-tech font-bold text-lg text-pink-300 mb-1">Eşya & Kuantum Sandığı</h3>
+                        <p class="text-xs text-slate-300 mb-3">Kristal harcayarak Rare - Legendary eşyalar düşür!</p>
                         <div class="flex justify-center gap-2 mb-2">
                             <button onclick="openLootbox(1)" class="px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs"><i class="fa-solid fa-gem"></i> 5 Kristal (1'li)</button>
                             <button onclick="openLootbox(5)" class="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-tech font-bold text-xs"><i class="fa-solid fa-gem"></i> 25 Kristal (5'li)</button>
                         </div>
                     </div>
-                    <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3">
-                        <div id="lootbox-stats-summary" class="grid grid-cols-2 gap-2 text-xs">
-                            <div class="bg-slate-900 p-2 rounded-lg border border-slate-800"><span class="text-slate-400 block text-[10px]">Hasar Bonusu</span><strong id="box-stat-dmg" class="text-red-400 font-tech text-sm">+%0</strong></div>
-                            <div class="bg-slate-900 p-2 rounded-lg border border-slate-800"><span class="text-slate-400 block text-[10px]">Altın Bonusu</span><strong id="box-stat-gold" class="text-amber-400 font-tech text-sm">+%0</strong></div>
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-xs">
+                        <div class="font-semibold text-slate-300 mb-1">Düşme Oranları:</div>
+                        <div class="grid grid-cols-2 gap-1 text-[11px] text-slate-400">
+                            <div>🟢 Rare: <b class="text-blue-400">%55</b></div>
+                            <div>🔵 Super Rare: <b class="text-cyan-400">%28</b></div>
+                            <div>🟣 Epic: <b class="text-purple-400">%12</b></div>
+                            <div>🟠 Mythic: <b class="text-pink-400">%4</b></div>
+                            <div class="col-span-2 text-center">🟡 Legendary: <b class="text-yellow-400">%1</b></div>
                         </div>
                     </div>
                 </div>
+
                 <div id="tab-prestige" class="hidden space-y-3">
                     <div class="bg-gradient-to-br from-purple-950/60 via-slate-900 to-indigo-950/60 border border-purple-500/40 rounded-2xl p-4 shadow-lg">
                         <div class="flex items-center justify-between mb-2">
@@ -320,21 +343,21 @@
                     <div id="prestige-upgrades-list" class="space-y-2"></div>
                 </div>
 
-                <!-- 7. MİNİ OYUN / KUMARHANE SEKMESİ (GÖRSEL BLACKJACK VE RULET) -->
+                <!-- KUMARHANE / MİNİ OYUN SEKMESİ (KRİSTAL İLE OYNANIR) -->
                 <div id="tab-casino" class="hidden space-y-3">
                     <div class="bg-slate-950/90 border border-amber-500/40 rounded-2xl p-3.5 space-y-3 shadow-xl">
                         <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                            <h3 class="font-tech font-bold text-sm text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-dice"></i> Kuantum Kumarhanesi</h3>
-                            <span class="text-[10px] text-slate-400">Bota Karşı</span>
+                            <h3 class="font-tech font-bold text-sm text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-dice"></i> Kristal Kumarhanesi</h3>
+                            <span class="text-[10px] text-cyan-400 font-tech"><i class="fa-solid fa-gem"></i> Para Birimi: Kristal</span>
                         </div>
 
                         <div class="space-y-1">
-                            <label class="text-[11px] text-slate-400 block font-semibold">Bahis Miktarı (Altın):</label>
+                            <label class="text-[11px] text-slate-400 block font-semibold">Bahis Miktarı (Kristal):</label>
                             <div class="flex gap-1.5">
-                                <input type="number" id="casino-bet" value="50" min="10" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-amber-400 font-tech font-bold focus:outline-none focus:border-amber-500">
-                                <button onclick="setCasinoBetPct(0.1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] rounded text-slate-300 font-tech">%10</button>
-                                <button onclick="setCasinoBetPct(0.5)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] rounded text-slate-300 font-tech">%50</button>
-                                <button onclick="setCasinoBetPct(1.0)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] rounded text-slate-300 font-tech">MAX</button>
+                                <input type="number" id="casino-bet" value="2" min="1" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-cyan-400 font-tech font-bold focus:outline-none focus:border-cyan-500">
+                                <button onclick="setCasinoBetVal(1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] rounded text-slate-300 font-tech">1</button>
+                                <button onclick="setCasinoBetVal(5)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] rounded text-slate-300 font-tech">5</button>
+                                <button onclick="setCasinoBetVal(10)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] rounded text-slate-300 font-tech">10</button>
                             </div>
                         </div>
 
@@ -379,7 +402,7 @@
                                     </div>
                                 </div>
 
-                                <div id="bj-status" class="text-center text-slate-300 pt-1 font-medium bg-slate-950 p-2 rounded border border-slate-800">Bahsini gir ve Dağıt'a bas.</div>
+                                <div id="bj-status" class="text-center text-slate-300 pt-1 font-medium bg-slate-950 p-2 rounded border border-slate-800">Kristal bahsini gir ve Dağıt'a bas.</div>
                             </div>
                             <div id="bj-actions-start" class="grid grid-cols-1">
                                 <button onclick="startBlackjack()" class="py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-tech font-bold text-xs shadow">KARTLARI DAĞIT</button>
@@ -399,33 +422,48 @@
     <div id="theme-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-indigo-500/40 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="font-tech font-bold text-xl text-white flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i> Tema & Kule Görünümü</h3>
+                <h3 class="font-tech font-bold text-xl text-white flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i> Tema Seçimi</h3>
                 <button onclick="closeThemeModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <p class="text-xs text-slate-400">Ulaştığın en yüksek dalgaya göre yeni gezegen temaları açılır.</p>
             <div id="theme-list" class="space-y-2.5"></div>
         </div>
     </div>
 
-    <!-- MODAL: AYARLAR -->
+    <!-- MODAL: AYARLAR & KAYIT / YAPIŞTIRMA -->
     <div id="settings-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="font-tech font-bold text-xl text-white flex items-center gap-2"><i class="fa-solid fa-sliders text-blue-400"></i> Ayarlar & Kayıt</h3>
+                <h3 class="font-tech font-bold text-xl text-white flex items-center gap-2"><i class="fa-solid fa-sliders text-blue-400"></i> Ayarlar & Cihaz Modu</h3>
                 <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
+
+            <!-- Cihaz Optimizasyon Seçici -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-semibold text-slate-300 block">Cihaz Ekran Optimizasyonu:</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="setDeviceMode('phone')" id="dev-phone" class="py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-tech font-bold border border-slate-700 transition">Telefon</button>
+                    <button onclick="setDeviceMode('tablet')" id="dev-tablet" class="py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-tech font-bold border border-slate-700 transition">Tablet</button>
+                    <button onclick="setDeviceMode('pc')" id="dev-pc" class="py-2 rounded-xl bg-blue-600 text-white text-xs font-tech font-bold border border-blue-500 transition">PC</button>
+                </div>
+            </div>
+
             <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 space-y-1.5 text-xs">
                 <div class="font-semibold text-slate-300 mb-1 border-b border-slate-800 pb-1">Genel İstatistikler</div>
                 <div class="flex justify-between"><span class="text-slate-400">Toplam Düşman:</span> <b id="stat-total-kills" class="text-slate-200">0</b></div>
                 <div class="flex justify-between"><span class="text-slate-400">Boss Kesen:</span> <b id="stat-boss-kills" class="text-slate-200">0</b></div>
                 <div class="flex justify-between"><span class="text-slate-400">En Yüksek Dalga:</span> <b id="stat-max-wave" class="text-amber-400">1</b></div>
             </div>
+
+            <!-- KAYIT KODU KOPYALA / YAPIŞTIR SEKSİYONU -->
             <div class="space-y-2">
+                <label class="text-xs font-semibold text-slate-300 block">Kayıt Kodu (Import / Export):</label>
+                <textarea id="save-code-textarea" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-[11px] text-slate-300 font-mono focus:outline-none focus:border-blue-500" placeholder="Kayıt kodunu buraya yapıştır veya kopyala..."></textarea>
                 <div class="grid grid-cols-2 gap-2">
-                    <button onclick="manualSave()" class="py-2 px-3 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-semibold"><i class="fa-solid fa-floppy-disk mr-1"></i> Kaydet</button>
-                    <button onclick="exportSave()" class="py-2 px-3 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 text-xs font-semibold"><i class="fa-solid fa-copy mr-1"></i> Kopyala</button>
+                    <button onclick="exportSaveCode()" class="py-2 px-3 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 text-xs font-semibold"><i class="fa-solid fa-copy mr-1"></i> Kopyala</button>
+                    <button onclick="importSaveCode()" class="py-2 px-3 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-semibold"><i class="fa-solid fa-file-arrow-down mr-1"></i> Kodu Yükle</button>
                 </div>
             </div>
+
             <div class="pt-3 border-t border-slate-800 flex items-center justify-between">
                 <span class="text-[11px] text-slate-400">Oyunu sıfırla:</span>
                 <button onclick="openHardResetConfirm()" class="px-3 py-1.5 rounded-lg bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-400 text-xs font-semibold"><i class="fa-solid fa-trash-can mr-1"></i> Sıfırla</button>
@@ -451,18 +489,58 @@
     </div>
 
     <script>
-        const SAVE_KEY = 'CoreTowerDefense_Save_v9';
+        const SAVE_KEY = 'CoreTowerDefense_Save_v10';
 
         const THEME_DEFS = {
             cyber: { id: 'cyber', name: 'Siber Çekirdek', towerName: 'Plazma Kulesi', reqWave: 1, icon: 'fa-solid fa-microchip', color: 'text-blue-400', desc: 'Klasik siber savunma üssü.' },
-            snow: { id: 'snow', name: 'Buzul Gezegeni (Kar)', towerName: 'Savaşçı Kardan Adam', reqWave: 30, icon: 'fa-solid fa-snowman', color: 'text-sky-300', desc: '30. Dalgada açılır. Kardan Adam kulesi!' },
-            space: { id: 'space', name: 'Derin Uzay Nebulası', towerName: 'Yıldız Kruvazörü (Uzay Gemisi)', reqWave: 60, icon: 'fa-solid fa-shuttle-space', color: 'text-purple-400', desc: '60. Dalgada açılır. Uzay Gemisi kulesi!' }
+            snow: { id: 'snow', name: 'Buzul Gezegeni (Kar)', towerName: 'Kardan Adam', reqWave: 30, icon: 'fa-solid fa-snowman', color: 'text-sky-300', desc: '30. Dalgada açılır.' },
+            space: { id: 'space', name: 'Derin Uzay Nebulası', towerName: 'Yıldız Kruvazörü', reqWave: 60, icon: 'fa-solid fa-shuttle-space', color: 'text-purple-400', desc: '60. Dalgada açılır.' }
+        };
+
+        // 25+ ADET EŞSİZ İTEM SİSTEMİ (Rare, Super Rare, Epic, Mythic, Legendary)
+        const ITEM_DATABASE = {
+            // RARE (10 adet)
+            rare_bow_shard: { id: 'rare_bow_shard', name: 'Kırık Yay Parçası', rarity: 'rare', type: 'damage', val: 5, desc: 'Hasarı +5 artırır.', icon: 'fa-solid fa-feather' },
+            rare_copper_coin: { id: 'rare_copper_coin', name: 'Bakır Ganimet', rarity: 'rare', type: 'gold', val: 0.08, desc: 'Altın kazancını +%8 artırır.', icon: 'fa-solid fa-coins' },
+            rare_iron_nail: { id: 'rare_iron_nail', name: 'Demir Çivi', rarity: 'rare', type: 'armor', val: 2, desc: 'Zırh değerini +2 artırır.', icon: 'fa-solid fa-hammer' },
+            rare_soft_feather: { id: 'rare_soft_feather', name: 'Hafif Tüy', rarity: 'rare', type: 'speed', val: 0.04, desc: 'Atış hızını +%4 artırır.', icon: 'fa-solid fa-wind' },
+            rare_small_gem: { id: 'rare_small_gem', name: 'Minik Safir', rarity: 'rare', type: 'crit', val: 2, desc: 'Kritik şansını +%2 artırır.', icon: 'fa-solid fa-gem' },
+            rare_sturdy_wood: { id: 'rare_sturdy_wood', name: 'Sağlam Meşe', rarity: 'rare', type: 'hp', val: 25, desc: 'Maksimum canı +25 artırır.', icon: 'fa-solid fa-tree' },
+            rare_rusty_gear: { id: 'rare_rusty_gear', name: 'Paslı Dişli', rarity: 'rare', type: 'regen', val: 0.5, desc: 'Can yenilemesini +0.5/sn artırır.', icon: 'fa-solid fa-gear' },
+            rare_sharp_arrow: { id: 'rare_sharp_arrow', name: 'Ucu Sivri Ok', rarity: 'rare', type: 'critMult', val: 0.1, desc: 'Kritik çarpanını +0.1 artırır.', icon: 'fa-solid fa-crosshairs' },
+            rare_glass_shard: { id: 'rare_glass_shard', name: 'Kristal Parçası', rarity: 'rare', type: 'crystal', val: 0.005, desc: 'Kristal düşme şansını artırır.', icon: 'fa-solid fa-diamond' },
+            rare_leather_grip: { id: 'rare_leather_grip', name: 'Deri Kabza', rarity: 'rare', type: 'range', val: 10, desc: 'Menzili +10 piksel artırır.', icon: 'fa-solid fa-hand-fist' },
+
+            // SUPER RARE (6 adet)
+            srare_silver_quiver: { id: 'srare_silver_quiver', name: 'Gümüş Sadak', rarity: 'super_rare', type: 'damage', val: 18, desc: 'Hasarı +18 artırır.', icon: 'fa-solid fa-bullseye' },
+            srare_gold_ring: { id: 'srare_gold_ring', name: 'Tüccar Yüzüğü', rarity: 'super_rare', type: 'gold', val: 0.20, desc: 'Altın kazancını +%20 artırır.', icon: 'fa-solid fa-ring' },
+            srare_titanium_plate: { id: 'srare_titanium_plate', name: 'Titanyum Levha', rarity: 'super_rare', type: 'armor', val: 8, desc: 'Zırh değerini +8 artırır.', icon: 'fa-solid fa-shield-halved' },
+            srare_wind_charm: { id: 'srare_wind_charm', name: 'Rüzgar Tılsımı', rarity: 'super_rare', type: 'speed', val: 0.10, desc: 'Atış hızını +%10 artırır.', icon: 'fa-solid fa-tornado' },
+            srare_ruby_eye: { id: 'srare_ruby_eye', name: 'Yakut Göz', rarity: 'super_rare', type: 'crit', val: 6, desc: 'Kritik şansını +%6 artırır.', icon: 'fa-solid fa-eye' },
+            srare_energy_cell: { id: 'srare_energy_cell', name: 'Enerji Hücresi', rarity: 'super_rare', type: 'shield', val: 50, desc: 'Plazma kalkanını +50 artırır.', icon: 'fa-solid fa-battery-full' },
+
+            // EPIC (5 adet)
+            epic_shadow_bow: { id: 'epic_shadow_bow', name: 'Gölge Avcısı Yayı', rarity: 'epic', type: 'damage', val: 55, desc: 'Hasarı +55 artırır.', icon: 'fa-solid fa-bow-arrow' },
+            epic_dragon_scale: { id: 'epic_dragon_scale', name: 'Ejderha Pul Zırhı', rarity: 'epic', type: 'hp', val: 200, desc: 'Maksimum canı +200 artırır.', icon: 'fa-solid fa-shield' },
+            epic_chronos_sand: { id: 'epic_chronos_sand', name: 'Zaman Kumları', rarity: 'epic', type: 'speed', val: 0.18, desc: 'Atış hızını +%18 artırır.', icon: 'fa-solid fa-hourglass-half' },
+            epic_vampire_fang: { id: 'epic_vampire_fang', name: 'Vampir Dişi', rarity: 'epic', type: 'lifesteal', val: 0.01, desc: 'Can çalma oranını +%1 artırır.', icon: 'fa-solid fa-droplet' },
+            epic_plasma_core: { id: 'epic_plasma_core', name: 'Kararsız Plazma Çekirdeği', rarity: 'epic', type: 'critMult', val: 0.4, desc: 'Kritik çarpanını +0.4 artırır.', icon: 'fa-solid fa-atom' },
+
+            // MYTHIC (3 adet)
+            mythic_valkyrie_wing: { id: 'mythic_valkyrie_wing', name: 'Valkür Kanadı', rarity: 'mythic', type: 'damage', val: 140, desc: 'Hasarı muazzam biçimde (+140) artırır.', icon: 'fa-solid fa-feather-pointed' },
+            mythic_eternal_heart: { id: 'mythic_eternal_heart', name: 'Ebedi Yaşam Kalbi', rarity: 'mythic', type: 'hp', val: 650, desc: 'Kule canını +650 artırır.', icon: 'fa-solid fa-heart-pulse' },
+            mythic_god_crown: { id: 'mythic_god_crown', name: 'Tanrısal Hükümdar Tacı', rarity: 'mythic', type: 'gold', val: 0.50, desc: 'Altın kazancını +%50 artırır.', icon: 'fa-solid fa-crown' },
+
+            // LEGENDARY (2 adet)
+            legendary_cosmos_shard: { id: 'legendary_cosmos_shard', name: 'Kozmik Tekillik Çekirdeği', rarity: 'legendary', type: 'damage_mult', val: 0.35, desc: 'Tüm kule hasarını +%35 çarpanla katlar!', icon: 'fa-solid fa-sun' },
+            legendary_infinity_bow: { id: 'legendary_infinity_bow', name: 'Sonsuzluk Efsanevi Yayı', rarity: 'legendary', type: 'multishot_buff', val: 1, desc: 'Ekstra +1 Çoklu Atış hedefi sağlar!', icon: 'fa-solid fa-infinity' }
         };
 
         function getDefaultState() {
             return {
-                gold: 80, crystals: 0, souls: 0, wave: 1, highestWave: 1, waveKills: 0, waveTargetKills: 15,
+                gold: 100, crystals: 15, souls: 0, wave: 1, highestWave: 1, waveKills: 0, waveTargetKills: 15,
                 holdWave: false, holdWaveTimer: 0, consecutiveDefeats: 0, consecutiveHoldWins: 0,
+                deviceMode: 'pc',
                 stats: { totalKills: 0, bossKills: 0, prestiges: 0, playTimeSeconds: 0 },
                 settings: { showRange: true, showDamageText: true, activeTheme: 'cyber' },
                 upgrades: {
@@ -474,6 +552,8 @@
                     laserDrone: { unlocked: false, level: 1 }, frostOrb: { unlocked: false, level: 1 },
                     missileBot: { unlocked: false, level: 1 }, repairDrone: { unlocked: false, level: 1 }, plasmaSatellite: { unlocked: false, level: 1 }
                 },
+                inventory: [], // Sahip olunan eşya ID listesi
+                equippedItems: [], // Kuşanılan eşya ID listesi (maks 3)
                 lootboxBonuses: { extraDamagePct: 0, extraGoldPct: 0, totalOpened: 0 },
                 prestigeUpgrades: { permDamage: 0, permGold: 0, companionBoost: 0, costDiscount: 0, startWave: 0 },
                 lastSaveTime: Date.now()
@@ -496,41 +576,55 @@
             else drawer.classList.add('-translate-x-full');
         }
 
+        function setDeviceMode(mode) {
+            game.deviceMode = mode;
+            const body = document.getElementById('main-body');
+            body.className = `h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-${mode}`;
+            ['phone', 'tablet', 'pc'].forEach(m => {
+                const btn = document.getElementById(`dev-${m}`);
+                if (btn) {
+                    btn.className = m === mode ? 'py-2 rounded-xl bg-blue-600 text-white text-xs font-tech font-bold border border-blue-500 transition' : 'py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-tech font-bold border border-slate-700 transition';
+                }
+            });
+            showToast(`Cihaz modu: ${mode.toUpperCase()} olarak ayarlandı.`);
+            resizeCanvas();
+        }
+
         const UPGRADE_DEFS = {
             damage: { category: 'attack', name: 'Plazma Hasarı', icon: 'fa-solid fa-explosion', color: 'text-red-400', desc: 'Silah hasarını artırır.', baseCost: 12, costScale: 1.25, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerDamage())} Hasar` },
             attackSpeed: { category: 'attack', name: 'Atış Hızı', icon: 'fa-solid fa-gauge-high', color: 'text-amber-400', desc: 'Atış sıklığı.', baseCost: 38, costScale: 1.28, maxLevel: 40, getValueText: (lvl) => `${getTowerFireRate().toFixed(2)}/sn` },
-            range: { category: 'attack', name: 'Radar Menzili', icon: 'fa-solid fa-bullseye', color: 'text-blue-400', desc: 'Mavi nişancılar bu sınırdan vurur.', baseCost: 28, costScale: 1.26, maxLevel: 40, getValueText: (lvl) => `${Math.round(getTowerRange())} px` },
+            range: { category: 'attack', name: 'Radar Menzili', icon: 'fa-solid fa-bullseye', color: 'text-blue-400', desc: 'Nişancı menzili.', baseCost: 28, costScale: 1.26, maxLevel: 40, getValueText: (lvl) => `${Math.round(getTowerRange())} px` },
             critChance: { category: 'attack', name: 'Kritik Şansı', icon: 'fa-solid fa-bolt', color: 'text-purple-400', desc: 'Kritik vuruş şansı (Maks %75).', baseCost: 50, costScale: 1.30, maxLevel: 70, getValueText: (lvl) => `%${getTowerCritChance()}` },
             critMult: { category: 'attack', name: 'Kritik Çarpanı', icon: 'fa-solid fa-skull-crossbones', color: 'text-pink-400', desc: 'Kritik hasar katı.', baseCost: 65, costScale: 1.28, maxLevel: 80, getValueText: (lvl) => `x${getTowerCritMult().toFixed(2)}` },
-            multishot: { category: 'attack', name: 'Çoklu Atış', icon: 'fa-solid fa-arrows-split-up-and-left', color: 'text-cyan-400', desc: 'Dalga kilidine bağlı çoklu hedef.', baseCost: 1200, costScale: 3.2, maxLevel: 5, getValueText: (lvl) => `${1 + lvl} Hedef` },
+            multishot: { category: 'attack', name: 'Çoklu Atış', icon: 'fa-solid fa-arrows-split-up-and-left', color: 'text-cyan-400', desc: 'Dalga kilidine bağlı çoklu hedef.', baseCost: 1200, costScale: 3.2, maxLevel: 5, getValueText: (lvl) => `${getEffectiveMultishot()} Hedef` },
             bounce: { category: 'attack', name: 'Sekme (Zincir)', icon: 'fa-solid fa-share-nodes', color: 'text-indigo-400', desc: 'Merminin sekmesi.', baseCost: 1000, costScale: 3.0, maxLevel: 4, getValueText: (lvl) => `${lvl} Sekme` },
-            knockback: { category: 'attack', name: 'Şok Dalgası (İtme)', icon: 'fa-solid fa-wind', color: 'text-teal-400', desc: 'Düşmanı en fazla 2 kez hafif iter (Maks Sv.3).', baseCost: 3500, costScale: 5.0, maxLevel: 3, getValueText: (lvl) => lvl === 0 ? 'Kapalı' : `Sv.${lvl} (Maks)` },
+            knockback: { category: 'attack', name: 'Şok Dalgası', icon: 'fa-solid fa-wind', color: 'text-teal-400', desc: 'Düşmanı hafif iter.', baseCost: 3500, costScale: 5.0, maxLevel: 3, getValueText: (lvl) => lvl === 0 ? 'Kapalı' : `Sv.${lvl}` },
 
             maxHp: { category: 'defense', name: 'Titanyum Gövde', icon: 'fa-solid fa-heart', color: 'text-emerald-400', desc: 'Kulenin maksimum canı.', baseCost: 12, costScale: 1.20, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerMaxHp())} HP` },
             hpRegen: { category: 'defense', name: 'Nano Onarım', icon: 'fa-solid fa-notes-medical', color: 'text-green-400', desc: 'Saniyede otomatik iyileşme.', baseCost: 22, costScale: 1.22, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerRegen())}/sn` },
             armor: { category: 'defense', name: 'Reaktif Zırh', icon: 'fa-solid fa-shield', color: 'text-slate-300', desc: 'Alınan hasarı azaltır.', baseCost: 25, costScale: 1.24, maxLevel: 9999, getValueText: (lvl) => `-${formatNumber(getTowerArmor())} Hasar` },
             shield: { category: 'defense', name: 'Plazma Kalkanı', icon: 'fa-solid fa-shield-virus', color: 'text-sky-400', desc: 'Darbeleri emen kalkan.', baseCost: 70, costScale: 1.25, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerMaxShield())} Kalkan` },
-            lifesteal: { category: 'defense', name: 'Can Çalma', icon: 'fa-solid fa-droplet', color: 'text-rose-500', desc: 'Verilen hasardan can kazan.', baseCost: 220, costScale: 1.38, maxLevel: 25, getValueText: (lvl) => `%${(lvl * 0.4).toFixed(1)}` },
+            lifesteal: { category: 'defense', name: 'Can Çalma', icon: 'fa-solid fa-droplet', color: 'text-rose-500', desc: 'Verilen hasardan can kazan.', baseCost: 220, costScale: 1.38, maxLevel: 25, getValueText: (lvl) => `%${(getTowerLifesteal()*100).toFixed(1)}` },
             thorns: { category: 'defense', name: 'Dikenli Zırh', icon: 'fa-solid fa-burst', color: 'text-rose-400', desc: 'Saldırana hasar yansıt.', baseCost: 45, costScale: 1.24, maxLevel: 40, getValueText: (lvl) => `%${getTowerThorns()}` },
 
-            goldBonus: { category: 'economy', name: 'Ganimet Çarpanı', icon: 'fa-solid fa-sack-dollar', color: 'text-amber-400', desc: 'Düşmanlardan altın kazancı.', baseCost: 35, costScale: 1.30, maxLevel: 9999, getValueText: (lvl) => `+%${lvl * 10}` },
-            waveGold: { category: 'economy', name: 'Dalga İkramiyesi', icon: 'fa-solid fa-award', color: 'text-yellow-400', desc: 'Dalga sonu altın ödülü (Farmda kapalı).', baseCost: 60, costScale: 1.38, maxLevel: 9999, getValueText: (lvl) => `+${formatNumber(getWaveBonusPreview(lvl))}` },
-            crystalChance: { category: 'economy', name: 'Kristal Sondajı', icon: 'fa-solid fa-gem', color: 'text-cyan-400', desc: 'Normal düşmandan kristal şansı.', baseCost: 200, costScale: 1.42, maxLevel: 25, getValueText: (lvl) => `%${(1.5 + lvl * 0.4).toFixed(1)}` },
-            interest: { category: 'economy', name: 'Kuantum Bankası', icon: 'fa-solid fa-piggy-bank', color: 'text-emerald-400', desc: 'Dalga sonu faiz (Farmda kapalı).', baseCost: 400, costScale: 1.55, maxLevel: 10, getValueText: (lvl) => `%${(lvl * 0.4).toFixed(1)}` }
+            goldBonus: { category: 'economy', name: 'Ganimet Çarpanı', icon: 'fa-solid fa-sack-dollar', color: 'text-amber-400', desc: 'Düşmanlardan altın kazancı.', baseCost: 35, costScale: 1.30, maxLevel: 9999, getValueText: (lvl) => `+%${Math.round(getGoldMultiplier()*100 - 100)}` },
+            waveGold: { category: 'economy', name: 'Dalga İkramiyesi', icon: 'fa-solid fa-award', color: 'text-yellow-400', desc: 'Dalga sonu altın ödülü.', baseCost: 60, costScale: 1.38, maxLevel: 9999, getValueText: (lvl) => `+${formatNumber(getWaveBonusPreview(lvl))}` },
+            crystalChance: { category: 'economy', name: 'Kristal Sondajı', icon: 'fa-solid fa-gem', color: 'text-cyan-400', desc: 'Düşmandan kristal şansı.', baseCost: 200, costScale: 1.42, maxLevel: 25, getValueText: (lvl) => `%${(1.5 + lvl * 0.4).toFixed(1)}` },
+            interest: { category: 'economy', name: 'Kuantum Bankası', icon: 'fa-solid fa-piggy-bank', color: 'text-emerald-400', desc: 'Dalga sonu faiz.', baseCost: 400, costScale: 1.55, maxLevel: 10, getValueText: (lvl) => `%${(lvl * 0.4).toFixed(1)}` }
         };
 
         const COMPANION_DEFS = {
             laserDrone: { name: 'Lazer Dronu', icon: 'fa-solid fa-crosshairs', badgeClass: 'text-red-400 bg-red-500/10 border-red-500/30', desc: 'Lazer atar.', unlockCost: 8, baseUpgradeCost: 6, costScale: 1.4, orbitRadius: 65, orbitSpeed: 1.6 },
             frostOrb: { name: 'Buzul Küresi', icon: 'fa-solid fa-snowflake', badgeClass: 'text-sky-400 bg-sky-500/10 border-sky-500/30', desc: 'Yavaşlatır.', unlockCost: 18, baseUpgradeCost: 10, costScale: 1.45, orbitRadius: 85, orbitSpeed: -1.1 },
-            missileBot: { name: 'Füze Bataryası', icon: 'fa-solid fa-rocket', badgeClass: 'text-orange-400 bg-orange-500/10 border-orange-500/30', desc: 'Alan hasarı verir.', unlockCost: 35, baseUpgradeCost: 18, costScale: 1.48, orbitRadius: 105, orbitSpeed: 0.85 },
+            missileBot: { name: 'Füze Bataryası', icon: 'fa-solid fa-rocket', badgeClass: 'text-orange-400 bg-orange-500/10 border-orange-500/30', desc: 'Alan hasarı.', unlockCost: 35, baseUpgradeCost: 18, costScale: 1.48, orbitRadius: 105, orbitSpeed: 0.85 },
             repairDrone: { name: 'Onarım Mekaniği', icon: 'fa-solid fa-screwdriver-wrench', badgeClass: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30', desc: 'Can yeniler.', unlockCost: 55, baseUpgradeCost: 28, costScale: 1.52, orbitRadius: 48, orbitSpeed: -2.0 },
-            plasmaSatellite: { name: 'Plazma Uydusu', icon: 'fa-solid fa-satellite-dish', badgeClass: 'text-purple-400 bg-purple-500/10 border-purple-500/30', desc: 'Zincirleme yıldırım.', unlockCost: 100, baseUpgradeCost: 45, costScale: 1.6, orbitRadius: 125, orbitSpeed: 0.6 }
+            plasmaSatellite: { name: 'Plazma Uydusu', icon: 'fa-solid fa-satellite-dish', badgeClass: 'text-purple-400 bg-purple-500/10 border-purple-500/30', desc: 'Yıldırım.', unlockCost: 100, baseUpgradeCost: 45, costScale: 1.6, orbitRadius: 125, orbitSpeed: 0.6 }
         };
 
         const PRESTIGE_DEFS = {
             permDamage: { name: 'Antik Çekirdek', icon: 'fa-solid fa-fire', desc: 'Tüm hasarı artırır.', baseCost: 1, costScale: 1.5, maxLevel: 999, getEffectText: (lvl) => `+%${lvl * 25}` },
             permGold: { name: 'Altın Simyası', icon: 'fa-solid fa-coins', desc: 'Altın kazancını artırır.', baseCost: 1, costScale: 1.5, maxLevel: 999, getEffectText: (lvl) => `+%${lvl * 30}` },
-            companionBoost: { name: 'Senkronize Yörünge', icon: 'fa-solid fa-satellite', desc: 'Yoldaş gücünü artırır.', baseCost: 2, costScale: 1.6, maxLevel: 999, getEffectText: (lvl) => `+%${lvl * 35}` },
+            companionBoost: { name: 'Senkronize Yörünge', icon: 'fa-solid fa-satellite', desc: 'Yoldaş gücü.', baseCost: 2, costScale: 1.6, maxLevel: 999, getEffectText: (lvl) => `+%${lvl * 35}` },
             costDiscount: { name: 'Mühendislik Verimi', icon: 'fa-solid fa-tags', desc: 'Maliyeti düşürür.', baseCost: 3, costScale: 1.8, maxLevel: 25, getEffectText: (lvl) => `-%${lvl * 2}` },
             startWave: { name: 'Zaman Sıçraması', icon: 'fa-solid fa-forward', desc: 'İleri dalgadan başla.', baseCost: 4, costScale: 2.0, maxLevel: 30, getEffectText: (lvl) => `Başlangıç: Dalga ${1 + lvl * 2}` }
         };
@@ -555,6 +649,24 @@
 
         const MULTISHOT_WAVE_REQS = [10, 25, 45, 70, 95];
         function getMultishotRequiredWave(nextLevelIndex) { return MULTISHOT_WAVE_REQS[nextLevelIndex] || 999; }
+
+        function getItemStatBonus(type) {
+            let total = 0;
+            for (const itemId of (game.equippedItems || [])) {
+                const item = ITEM_DATABASE[itemId];
+                if (item && item.type === type) total += item.val;
+            }
+            return total;
+        }
+
+        function getEffectiveMultishot() {
+            let base = 1 + game.upgrades.multishot;
+            for (const itemId of (game.equippedItems || [])) {
+                const item = ITEM_DATABASE[itemId];
+                if (item && item.type === 'multishot_buff') base += item.val;
+            }
+            return base;
+        }
 
         function getBulkUpgradeInfo(key) {
             const def = UPGRADE_DEFS[key];
@@ -587,17 +699,33 @@
             return { count, totalCost, canAfford: game.gold >= totalCost && count > 0, maxed: false, lockedReason: null };
         }
 
-        function getPermDamageMult() { return (1 + game.prestigeUpgrades.permDamage * 0.20) * (1 + game.souls * 0.04) * (1 + (game.lootboxBonuses.extraDamagePct || 0) / 100); }
+        function getPermDamageMult() { 
+            const itemBonus = 1 + getItemStatBonus('damage_mult');
+            return (1 + game.prestigeUpgrades.permDamage * 0.20) * (1 + game.souls * 0.04) * (1 + (game.lootboxBonuses.extraDamagePct || 0) / 100) * itemBonus; 
+        }
         function getTowerDamage() {
             const lvl = game.upgrades.damage;
             const milestone = Math.pow(1.08, Math.floor(lvl / 10));
-            const earlyBoost = game.wave <= 3 ? 1.4 : 1.0; // İlk dalgalar için hafif başlangıç kolaylığı
-            return Math.round((9 * Math.pow(1.08, lvl - 1) + (lvl - 1) * 2) * milestone * getPermDamageMult() * earlyBoost);
+            const earlyBoost = game.wave <= 3 ? 1.4 : 1.0;
+            const flatItemDmg = getItemStatBonus('damage');
+            return Math.round(((9 * Math.pow(1.08, lvl - 1) + (lvl - 1) * 2) + flatItemDmg) * milestone * getPermDamageMult() * earlyBoost);
         }
-        function getTowerFireRate() { return 1.0 + (game.upgrades.attackSpeed - 1) * 0.08; }
-        function getTowerRange() { return 130 + (game.upgrades.range - 1) * 4.5; }
-        function getTowerCritChance() { return Math.min(75, 5 + Math.min(70, game.upgrades.critChance || 0) * 1.0); }
-        function getTowerCritMult() { return 2.0 + (game.upgrades.critMult - 1) * 0.12; }
+        function getTowerFireRate() { 
+            const itemSpd = getItemStatBonus('speed');
+            return 1.0 + (game.upgrades.attackSpeed - 1) * 0.08 + itemSpd; 
+        }
+        function getTowerRange() { 
+            const itemRange = getItemStatBonus('range');
+            return 130 + (game.upgrades.range - 1) * 4.5 + itemRange; 
+        }
+        function getTowerCritChance() { 
+            const itemCrit = getItemStatBonus('crit');
+            return Math.min(85, 5 + Math.min(80, game.upgrades.critChance || 0) * 1.0 + itemCrit); 
+        }
+        function getTowerCritMult() { 
+            const itemCritMult = getItemStatBonus('critMult');
+            return 2.0 + (game.upgrades.critMult - 1) * 0.12 + itemCritMult; 
+        }
         function getTowerKnockback() {
             const lvl = Math.min(3, game.upgrades.knockback || 0);
             if (lvl <= 0) return 0;
@@ -607,32 +735,37 @@
         function getTowerMaxHp() {
             const lvl = game.upgrades.maxHp;
             const milestone = Math.pow(1.15, Math.floor(lvl / 10));
-            return Math.round((130 * Math.pow(1.12, lvl - 1) + (lvl - 1) * 30) * milestone);
+            const itemHp = getItemStatBonus('hp');
+            return Math.round(((130 * Math.pow(1.12, lvl - 1) + (lvl - 1) * 30) + itemHp) * milestone);
         }
         function getTowerRegen() {
             const lvl = game.upgrades.hpRegen;
-            if (lvl === 0) return 0;
-            return Math.round((3.5 * Math.pow(1.12, lvl - 1) + lvl * 2.0) * 10) / 10;
+            const itemRegen = getItemStatBonus('regen');
+            if (lvl === 0 && itemRegen === 0) return 0;
+            return Math.round(((3.5 * Math.pow(1.12, Math.max(0, lvl - 1)) + lvl * 2.0) + itemRegen) * 10) / 10;
         }
         function getTowerArmor() {
             const lvl = game.upgrades.armor;
-            if (lvl === 0) return 0;
-            return Math.round(3.5 * Math.pow(1.11, lvl - 1) + lvl * 2.5);
+            const itemArmor = getItemStatBonus('armor');
+            if (lvl === 0 && itemArmor === 0) return 0;
+            return Math.round(3.5 * Math.pow(1.11, Math.max(0, lvl - 1)) + lvl * 2.5 + itemArmor);
         }
         function getTowerThorns() { return game.upgrades.thorns * 5; }
         function getTowerMaxShield() {
             const lvl = game.upgrades.shield;
-            if (lvl === 0) return 0;
-            return Math.round(80 * Math.pow(1.12, lvl - 1) + lvl * 25);
+            const itemShield = getItemStatBonus('shield');
+            if (lvl === 0 && itemShield === 0) return 0;
+            return Math.round(80 * Math.pow(1.12, Math.max(0, lvl - 1)) + lvl * 25 + itemShield);
         }
-        function getTowerLifesteal() { return (game.upgrades.lifesteal || 0) * 0.005; }
+        function getTowerLifesteal() { return (game.upgrades.lifesteal || 0) * 0.005 + getItemStatBonus('lifesteal'); }
 
         function getGoldMultiplier() {
             const upg = 1 + game.upgrades.goldBonus * 0.10;
             const perm = 1 + game.prestigeUpgrades.permGold * 0.20;
             const box = 1 + (game.lootboxBonuses.extraGoldPct || 0) / 100;
+            const itemGold = getItemStatBonus('gold');
             const farmPenalty = game.holdWave ? 0.20 : 1.0;
-            return upg * perm * box * farmPenalty;
+            return (upg + itemGold) * perm * box * farmPenalty;
         }
         function getWaveBonusPreview(lvl) {
             if (lvl === 0 || game.holdWave) return 0;
@@ -788,7 +921,7 @@
                     .sort((a, b) => a.dist - b.dist);
 
                 if (inRange.length > 0) {
-                    const targetsCount = Math.min(inRange.length, 1 + game.upgrades.multishot);
+                    const targetsCount = Math.min(inRange.length, getEffectiveMultishot());
                     tower.fireCooldown = 1 / getTowerFireRate();
                     tower.recoil = 4;
                     tower.angle = Math.atan2(inRange[0].enemy.y - tower.y, inRange[0].enemy.x - tower.x);
@@ -872,7 +1005,6 @@
                     if (e.slowTimer <= 0) e.slowFactor = 1;
                 }
 
-                // Mavi Nişancılar oyuncunun tam radar menzili sınırından vurur
                 let targetStopDist = e.isRanged ? currentTowerRange : 30;
 
                 if (e.isTeleporter) {
@@ -1087,8 +1219,8 @@
                 game.wave++;
                 if (game.wave > game.highestWave) {
                     game.highestWave = game.wave;
-                    if (prevHighest < 30 && game.highestWave >= 30) showToast('❄️ 30. Dalga! Kar Teması ve Kardan Adam Kulesi Açıldı!');
-                    else if (prevHighest < 60 && game.highestWave >= 60) showToast('🚀 60. Dalga! Uzay Teması ve Uzay Gemisi Kulesi Açıldı!');
+                    if (prevHighest < 30 && game.highestWave >= 30) showToast('❄️ 30. Dalga! Kar Teması Açıldı!');
+                    else if (prevHighest < 60 && game.highestWave >= 60) showToast('🚀 60. Dalga! Uzay Teması Açıldı!');
                 }
                 game.consecutiveDefeats = 0;
             } else {
@@ -1116,7 +1248,6 @@
                 isDefeated = true; defeatTimer = 2.5;
                 document.getElementById('defeat-overlay').classList.remove('hidden');
             } else {
-                // İlk yenilgide hemen farm moduna atmaz, canı tazeler ve uyarı verir
                 showToast(`Kule ağır hasar aldı! 2. yenilgide farm moduna geçilecek.`);
                 tower.hp = tower.maxHp * 0.5;
             }
@@ -1130,7 +1261,7 @@
             if (game.wave > 1) {
                 game.wave--; game.holdWave = true; game.holdWaveTimer = 0; game.consecutiveHoldWins = 0;
                 updateHoldWaveButton();
-                showToast('Üst üste 2 kez yıkıldın! Güvenli dalgaya çekildin (Farm Modu)');
+                showToast('Üst üste 2 kez yıkıldın! Güvenli dalgaya çekildin.');
             }
             game.consecutiveDefeats = 0;
             game.waveKills = 0;
@@ -1141,7 +1272,7 @@
         function toggleHoldWave() {
             game.holdWave = !game.holdWave; game.holdWaveTimer = 0; game.consecutiveHoldWins = 0;
             updateHoldWaveButton();
-            showToast(game.holdWave ? 'Farm Modu Açıldı (Altın az, 4 dalga sonra oto döner)' : 'Otomatik İlerleme Açıldı');
+            showToast(game.holdWave ? 'Farm Modu Açıldı (4 dalga sonra oto döner)' : 'Otomatik İlerleme Açıldı');
         }
 
         function updateHoldWaveButton() {
@@ -1151,10 +1282,10 @@
             if (!btn) return;
             if (game.holdWave) {
                 btn.className = 'px-2 py-0.5 rounded bg-amber-500/25 border border-amber-500/40 text-[10px] font-semibold text-amber-300 transition flex items-center gap-1';
-                icon.className = 'fa-solid fa-repeat'; txt.textContent = 'Sabit (Farm)';
+                icon.className = 'fa-solid fa-repeat'; txt.textContent = 'Farm';
             } else {
                 btn.className = 'px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-semibold text-emerald-400 transition flex items-center gap-1';
-                icon.className = 'fa-solid fa-forward'; txt.textContent = 'Oto İlerle: Açık';
+                icon.className = 'fa-solid fa-forward'; txt.textContent = 'Oto İlerle';
             }
         }
 
@@ -1254,7 +1385,6 @@
             }
             ctx.restore();
 
-            // Uzaylı Görselleri (Kusursuz Estetik Yapı)
             for (const e of enemies) {
                 ctx.save(); ctx.translate(e.x, e.y);
                 const col = e.hitFlash > 0 ? '#ffffff' : e.color;
@@ -1306,7 +1436,7 @@
             }
         }
 
-        // MİNİ OYUN (KUMARHANE) MANTIĞI & GÖRSEL BLACKJACK
+        // MİNİ OYUN (KUMARHANE - KRİSTAL İLE OYNANIR)
         let activeMiniGame = 'roulette';
         let bjState = { playerHand: [], dealerHand: [], active: false };
 
@@ -1318,16 +1448,15 @@
             document.getElementById('mg-btn-blackjack').className = gameType === 'blackjack' ? 'py-2 rounded-xl bg-amber-600 text-white font-tech font-bold text-xs transition' : 'py-2 rounded-xl bg-slate-800 text-slate-300 font-tech font-bold text-xs transition';
         }
 
-        function setCasinoBetPct(pct) {
-            const bet = Math.max(10, Math.floor(game.gold * pct));
-            document.getElementById('casino-bet').value = bet;
+        function setCasinoBetVal(val) {
+            document.getElementById('casino-bet').value = val;
         }
 
         function playRoulette(choice) {
             const betInput = document.getElementById('casino-bet');
             const bet = parseInt(betInput.value) || 0;
-            if (bet <= 0 || bet > game.gold) { showToast('Geçersiz bahis miktarı!'); return; }
-            game.gold -= bet;
+            if (bet <= 0 || bet > game.crystals) { showToast('Yeterli kristalin yok!'); return; }
+            game.crystals -= bet;
 
             const roll = Math.random() * 100;
             let resultColor = 'black';
@@ -1343,10 +1472,10 @@
 
             if (choice === resultColor) {
                 const win = bet * mult;
-                game.gold += win;
-                resText.innerHTML = `<span class="text-emerald-400 font-bold">KAZANDIN! +${formatNumber(win)} 🪙</span>`;
+                game.crystals += win;
+                resText.innerHTML = `<span class="text-emerald-400 font-bold">KAZANDIN! +${win} 💎</span>`;
             } else {
-                resText.innerHTML = `<span class="text-red-400 font-bold">KAYBETTİN! -${formatNumber(bet)} 🪙</span>`;
+                resText.innerHTML = `<span class="text-red-400 font-bold">KAYBETTİN! -${bet} 💎</span>`;
             }
             updateHUD(); refreshUpgradeButtonsState();
         }
@@ -1383,8 +1512,8 @@
 
         function startBlackjack() {
             const bet = parseInt(document.getElementById('casino-bet').value) || 0;
-            if (bet <= 0 || bet > game.gold) { showToast('Geçersiz bahis!'); return; }
-            game.gold -= bet;
+            if (bet <= 0 || bet > game.crystals) { showToast('Yeterli kristalin yok!'); return; }
+            game.crystals -= bet;
 
             bjState = {
                 bet, active: true,
@@ -1403,7 +1532,7 @@
             bjState.playerHand.push(drawCard());
             const pSum = calcHand(bjState.playerHand);
             if (pSum > 21) {
-                endBlackjack('Bust! Elin 21\'i geçti, kaybettin.');
+                endBlackjack('Bust! 21\'i geçtin, kaybettin.');
             } else {
                 updateBlackjackUI(false);
             }
@@ -1419,11 +1548,11 @@
             const pSum = calcHand(bjState.playerHand);
             if (dSum > 21 || pSum > dSum) {
                 const win = bjState.bet * 2;
-                game.gold += win;
-                endBlackjack(`KAZANDIN! +${formatNumber(win)} 🪙`);
+                game.crystals += win;
+                endBlackjack(`KAZANDIN! +${win} 💎`);
             } else if (pSum === dSum) {
-                game.gold += bjState.bet;
-                endBlackjack('BERABERE! Bahis iade edildi.');
+                game.crystals += bjState.bet;
+                endBlackjack('BERABERE! Kristal iade edildi.');
             } else {
                 endBlackjack(`KAYBETTİN! Bot kazandı.`);
             }
@@ -1451,6 +1580,115 @@
                 dCardsEl.innerHTML = renderCardHTML(bjState.dealerHand[0], false) + renderCardHTML(null, true);
                 document.getElementById('bj-dealer-score').textContent = `Toplam: ${bjState.dealerHand[0].score} + ?`;
                 document.getElementById('bj-status').textContent = 'Kart Çek (Hit) veya Kal (Stand)';
+            }
+        }
+
+        // SANDIKTAN İŞLEMLER VE EŞYA SİSTEMİ
+        function openLootbox(count) {
+            const cost = count * 5;
+            if (game.crystals < cost) { showToast('Yeterli kristalin yok!'); return; }
+            game.crystals -= cost; game.lootboxBonuses.totalOpened += count;
+
+            let droppedItems = [];
+            for (let i = 0; i < count; i++) {
+                const roll = Math.random() * 100;
+                let rarity = 'rare';
+                if (roll < 1) rarity = 'legendary';
+                else if (roll < 5) rarity = 'mythic';
+                else if (roll < 17) rarity = 'epic';
+                else if (roll < 45) rarity = 'super_rare';
+
+                const pool = Object.values(ITEM_DATABASE).filter(item => item.rarity === rarity);
+                const item = pool[Math.floor(Math.random() * pool.length)];
+
+                if (!game.inventory.includes(item.id)) {
+                    game.inventory.push(item.id);
+                }
+                droppedItems.push(item);
+            }
+
+            showToast(`Sandıktan Düştü: ${droppedItems[0].name} (${droppedItems[0].rarity.toUpperCase()})`);
+            buildInventoryUI(); updateHUD(); saveGame(true);
+        }
+
+        function toggleEquipItem(itemId) {
+            const idx = game.equippedItems.indexOf(itemId);
+            if (idx > -1) {
+                game.equippedItems.splice(idx, 1);
+            } else {
+                if (game.equippedItems.length >= 3) {
+                    showToast('En fazla 3 eşya kuşanabilirsin!');
+                    return;
+                }
+                game.equippedItems.push(itemId);
+            }
+            buildInventoryUI(); updateHUD();
+        }
+
+        function getRarityBadge(rarity) {
+            switch(rarity) {
+                case 'legendary': return { text: 'LEGENDARY', class: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40' };
+                case 'mythic': return { text: 'MYTHIC', class: 'bg-pink-500/20 text-pink-300 border-pink-500/40' };
+                case 'epic': return { text: 'EPIC', class: 'bg-purple-500/20 text-purple-300 border-purple-500/30' };
+                case 'super_rare': return { text: 'SUPER RARE', class: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' };
+                default: return { text: 'RARE', class: 'bg-blue-500/20 text-blue-300 border-blue-500/30' };
+            }
+        }
+
+        function buildInventoryUI() {
+            const eqContainer = document.getElementById('equipped-items-list');
+            eqContainer.innerHTML = '';
+            document.getElementById('badge-equipped-count').textContent = `${game.equippedItems.length}/3`;
+
+            for (let i = 0; i < 3; i++) {
+                const itemId = game.equippedItems[i];
+                if (itemId) {
+                    const item = ITEM_DATABASE[itemId];
+                    const badge = getRarityBadge(item.rarity);
+                    const slot = document.createElement('div');
+                    slot.className = 'bg-slate-950 border border-yellow-500/50 rounded-lg p-2 flex flex-col justify-between items-center text-center cursor-pointer hover:border-red-500 transition';
+                    slot.onclick = () => toggleEquipItem(itemId);
+                    slot.innerHTML = `
+                        <i class="${item.icon} text-yellow-400 text-base"></i>
+                        <span class="text-[10px] font-semibold text-white truncate w-full">${item.name}</span>
+                        <span class="text-[8px] px-1 rounded border ${badge.class}">${badge.text}</span>
+                    `;
+                    eqContainer.appendChild(slot);
+                } else {
+                    const slot = document.createElement('div');
+                    slot.className = 'bg-slate-950/50 border border-slate-800 rounded-lg flex items-center justify-center text-slate-600 text-xs italic';
+                    slot.textContent = `Boş ${i+1}`;
+                    eqContainer.appendChild(slot);
+                }
+            }
+
+            const invContainer = document.getElementById('inventory-items-list');
+            invContainer.innerHTML = '';
+            if (game.inventory.length === 0) {
+                invContainer.innerHTML = '<div class="col-span-2 text-xs text-slate-500 text-center py-4 italic">Henüz eşya düşürmedin. Sandıktan eşya çıkar!</div>';
+                return;
+            }
+
+            for (const itemId of game.inventory) {
+                const item = ITEM_DATABASE[itemId];
+                const isEquipped = game.equippedItems.includes(itemId);
+                const badge = getRarityBadge(item.rarity);
+                const card = document.createElement('div');
+                card.className = `p-2 rounded-xl border flex flex-col justify-between gap-1.5 ${isEquipped ? 'bg-yellow-950/30 border-yellow-500/50' : 'bg-slate-950/80 border-slate-800'}`;
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <i class="${item.icon} text-amber-400 text-sm"></i>
+                            <span class="font-semibold text-xs text-white">${item.name}</span>
+                        </div>
+                        <span class="text-[8px] px-1.5 py-0.2 rounded border font-tech ${badge.class}">${badge.text}</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400">${item.desc}</div>
+                    <button onclick="toggleEquipItem('${itemId}')" class="upgrade-btn w-full py-1 rounded text-[10px] font-tech font-bold ${isEquipped ? 'bg-red-600/30 text-red-300 border border-red-500/40' : 'bg-blue-600 hover:bg-blue-500 text-white'}">
+                        ${isEquipped ? 'Çıkar' : 'Kuşan'}
+                    </button>
+                `;
+                invContainer.appendChild(card);
             }
         }
 
@@ -1486,7 +1724,7 @@
                 else if (def.category === 'defense') defenseList.appendChild(card);
                 else if (def.category === 'economy') economyList.appendChild(card);
             }
-            buildCompanionsList(); buildPrestigeList(); updateLootboxUI(); refreshUpgradeButtonsState();
+            buildCompanionsList(); buildPrestigeList(); buildInventoryUI(); refreshUpgradeButtonsState();
         }
 
         function buildCompanionsList() {
@@ -1538,34 +1776,6 @@
                 `;
                 container.appendChild(card);
             }
-        }
-
-        function updateLootboxUI() {
-            document.getElementById('box-stat-dmg').textContent = `+%${game.lootboxBonuses.extraDamagePct || 0}`;
-            document.getElementById('box-stat-gold').textContent = `+%${game.lootboxBonuses.extraGoldPct || 0}`;
-        }
-
-        function openLootbox(count) {
-            const cost = count * 5;
-            if (game.crystals < cost) { showToast('Yeterli kristalin yok!'); return; }
-            game.crystals -= cost; game.lootboxBonuses.totalOpened += count;
-
-            let rewards = [];
-            for (let i = 0; i < count; i++) {
-                const roll = Math.random();
-                if (roll < 0.45) {
-                    const goldAmt = Math.round(150 * Math.pow(1.2, game.wave));
-                    game.gold += goldAmt; rewards.push(`+${formatNumber(goldAmt)} 🪙 Altın`);
-                } else if (roll < 0.75) {
-                    const extraDmg = 2 + Math.floor(Math.random() * 4);
-                    game.lootboxBonuses.extraDamagePct = (game.lootboxBonuses.extraDamagePct || 0) + extraDmg;
-                    rewards.push(`+%${extraDmg} Hasar Bonusu`);
-                } else {
-                    game.crystals += 8; rewards.push(`+8 💎 Kristal`);
-                }
-            }
-            showToast('Kutu açıldı: ' + rewards[0]);
-            updateLootboxUI(); updateHUD(); saveGame(true);
         }
 
         function refreshUpgradeButtonsState() {
@@ -1677,9 +1887,9 @@
             document.getElementById('ui-active-enemies').textContent = enemies.length;
 
             document.getElementById('ui-Quick-dmg').textContent = formatNumber(getTowerDamage());
-            document.getElementById('ui-Quick-spd').textContent = `${getTowerFireRate().toFixed(2)}/sn`;
-            document.getElementById('ui-Quick-crit').textContent = `%${getTowerCritChance()} (x${getTowerCritMult().toFixed(1)})`;
-            document.getElementById('ui-Quick-multi').textContent = `${1 + game.upgrades.multishot} Hedef`;
+            document.getElementById('ui-Quick-spd').textContent = `${getTowerFireRate().toFixed(2)}`;
+            document.getElementById('ui-Quick-crit').textContent = `%${getTowerCritChance()}`;
+            document.getElementById('ui-Quick-multi').textContent = `${getEffectiveMultishot()}`;
         }
 
         function buyUpgrade(key) {
@@ -1719,12 +1929,15 @@
         }
 
         function switchTab(name) {
-            ['attack', 'defense', 'economy', 'companions', 'lootbox', 'prestige', 'casino'].forEach(t => {
+            ['attack', 'defense', 'economy', 'companions', 'items', 'lootbox', 'prestige', 'casino'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== name);
                 const btn = document.getElementById(`tab-btn-${t}`);
-                if (t === name) { btn.classList.add('tab-active'); btn.classList.remove('text-slate-400'); }
-                else { btn.classList.remove('tab-active'); btn.classList.add('text-slate-400'); }
+                if (btn) {
+                    if (t === name) { btn.classList.add('tab-active'); btn.classList.remove('text-slate-400'); }
+                    else { btn.classList.remove('tab-active'); btn.classList.add('text-slate-400'); }
+                }
             });
+            if (name === 'items') buildInventoryUI();
             refreshUpgradeButtonsState();
         }
 
@@ -1734,7 +1947,7 @@
         }
         function togglePause() {
             isPaused = !isPaused;
-            document.getElementById('icon-pause').className = isPaused ? 'fa-solid fa-play w-4 text-center text-emerald-400' : 'fa-solid fa-pause w-4 text-center';
+            document.getElementById('icon-pause').className = isPaused ? 'fa-solid fa-play w-3 text-center text-emerald-400' : 'fa-solid fa-pause w-3 text-center';
         }
         function toggleRangeCircle() { game.settings.showRange = !game.settings.showRange; }
         function toggleDamageText() { game.settings.showDamageText = !game.settings.showDamageText; }
@@ -1753,12 +1966,12 @@
             if (pending <= 0) return;
             game.souls += pending; game.stats.prestiges++;
             game.wave = 1 + game.prestigeUpgrades.startWave * 2;
-            game.waveKills = 0; game.holdWave = false; game.gold = 80;
+            game.waveKills = 0; game.holdWave = false; game.gold = 100;
             game.upgrades = { ...getDefaultState().upgrades };
             enemies = []; projectiles = [];
             tower.hp = getTowerMaxHp(); tower.shield = getTowerMaxShield();
             closeConfirmModal(); updateHoldWaveButton(); buildAllUpgradeCards(); updateHUD(); saveGame(true);
-            showToast(`Evrim Başarılı! +${formatNumber(pending)} Ruh Taşı kazandın!`);
+            showToast(`Evrim Başarılı! +${formatNumber(pending)} Ruh Taşı!`);
         }
 
         function saveGame(silent = false) {
@@ -1778,17 +1991,41 @@
                 game = { ...getDefaultState(), ...parsed, stats: { ...getDefaultState().stats, ...(parsed.stats || {}) }, settings: { ...getDefaultState().settings, ...(parsed.settings || {}) }, upgrades: { ...getDefaultState().upgrades, ...(parsed.upgrades || {}) } };
             } catch (e) {}
         }
-        function manualSave() { saveGame(false); }
-        function exportSave() {
+
+        function exportSaveCode() {
             saveGame(true);
             const code = btoa(encodeURIComponent(JSON.stringify(game)));
-            const t = document.createElement('textarea'); t.value = code; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
-            showToast('Kayıt kodu kopyalandı!');
+            const ta = document.getElementById('save-code-textarea');
+            ta.value = code; ta.select(); document.execCommand('copy');
+            showToast('Kayıt kodu panoya kopyalandı!');
         }
+
+        function importSaveCode() {
+            const code = document.getElementById('save-code-textarea').value.trim();
+            if (!code) { showToast('Lütfen geçerli bir kod yapıştırın!'); return; }
+            try {
+                const jsonStr = decodeURIComponent(atob(code));
+                const parsed = JSON.parse(jsonStr);
+                if (parsed && parsed.wave) {
+                    game = { ...getDefaultState(), ...parsed };
+                    saveGame(true);
+                    buildAllUpgradeCards();
+                    updateHUD();
+                    setDeviceMode(game.deviceMode || 'pc');
+                    closeSettingsModal();
+                    showToast('Kayıt başarıyla yüklendi!');
+                } else {
+                    showToast('Geçersiz kayıt kodu!');
+                }
+            } catch (err) {
+                showToast('Kayıt kodu çözülemedi!');
+            }
+        }
+
         function openHardResetConfirm() {
             closeSettingsModal();
             document.getElementById('confirm-title').textContent = 'Tüm Kaydı Sıfırla';
-            document.getElementById('confirm-desc').textContent = 'Her şey sıfırlanacak. Emin misin?';
+            document.getElementById('confirm-desc').textContent = 'Her şey silinecek. Emin misin?';
             document.getElementById('confirm-yes-btn').onclick = () => {
                 localStorage.removeItem(SAVE_KEY); game = getDefaultState(); enemies = []; projectiles = [];
                 tower.hp = getTowerMaxHp(); tower.shield = getTowerMaxShield();
@@ -1801,6 +2038,7 @@
             document.getElementById('stat-total-kills').textContent = formatNumber(game.stats.totalKills);
             document.getElementById('stat-boss-kills').textContent = formatNumber(game.stats.bossKills);
             document.getElementById('stat-max-wave').textContent = game.highestWave;
+            document.getElementById('save-code-textarea').value = btoa(encodeURIComponent(JSON.stringify(game)));
             document.getElementById('settings-modal').classList.remove('hidden');
         }
         function closeSettingsModal() { document.getElementById('settings-modal').classList.add('hidden'); }
@@ -1826,6 +2064,7 @@
 
         window.onload = function() {
             loadGame(); resizeCanvas();
+            setDeviceMode(game.deviceMode || 'pc');
             tower.maxHp = getTowerMaxHp(); tower.hp = tower.maxHp;
             tower.maxShield = getTowerMaxShield(); tower.shield = tower.maxShield;
             updateHoldWaveButton(); buildAllUpgradeCards(); updateHUD();
