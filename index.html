@@ -93,6 +93,42 @@
             border-color: rgba(255, 255, 255, 0.12) !important;
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
         }
+
+        @keyframes chestShake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            15% { transform: translate(-6px, -4px) rotate(-6deg) scale(1.06); }
+            30% { transform: translate(6px, -2px) rotate(6deg) scale(1.1); }
+            45% { transform: translate(-8px, 4px) rotate(-8deg) scale(1.14); }
+            60% { transform: translate(8px, 2px) rotate(8deg) scale(1.18); }
+            75% { transform: translate(-5px, -6px) rotate(-5deg) scale(1.22); }
+            90% { transform: translate(5px, 4px) rotate(5deg) scale(1.26); }
+        }
+        @keyframes spinRays {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes lootCardPop {
+            0% { opacity: 0; transform: perspective(600px) rotateY(90deg) scale(0.5) translateY(30px); }
+            65% { opacity: 1; transform: perspective(600px) rotateY(-8deg) scale(1.06) translateY(-4px); }
+            100% { opacity: 1; transform: perspective(600px) rotateY(0deg) scale(1) translateY(0); }
+        }
+        @keyframes flashBurst {
+            0% { opacity: 0.95; transform: scale(0.8); }
+            100% { opacity: 0; transform: scale(2.2); }
+        }
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+        .chest-shaking { animation: chestShake 0.45s infinite ease-in-out; }
+        .rays-spinning { animation: spinRays 10s linear infinite; }
+        .loot-card-anim { opacity: 0; animation: lootCardPop 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .loot-float { animation: floatSlow 2.6s ease-in-out infinite; }
+        .rarity-glow-rare { box-shadow: 0 0 20px rgba(59, 130, 246, 0.35), inset 0 0 15px rgba(59, 130, 246, 0.15); }
+        .rarity-glow-super_rare { box-shadow: 0 0 25px rgba(6, 182, 212, 0.45), inset 0 0 15px rgba(6, 182, 212, 0.2); }
+        .rarity-glow-epic { box-shadow: 0 0 30px rgba(168, 85, 247, 0.55), inset 0 0 20px rgba(168, 85, 247, 0.25); }
+        .rarity-glow-mythic { box-shadow: 0 0 38px rgba(236, 72, 153, 0.7), inset 0 0 25px rgba(236, 72, 153, 0.3); }
+        .rarity-glow-legendary { box-shadow: 0 0 45px rgba(250, 204, 21, 0.85), inset 0 0 30px rgba(250, 204, 21, 0.4); }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-pc color-pastel" id="main-body">
@@ -266,7 +302,7 @@
                 <div id="tab-items" class="hidden space-y-3">
                     <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
                         <button onclick="switchInventorySubTab('gear')" id="inv-sub-gear" class="py-1.5 rounded-lg font-tech font-bold text-xs bg-blue-600 text-white transition"><i class="fa-solid fa-toolbox mr-1"></i>Eşyalar</button>
-                        <button onclick="switchInventorySubTab('skins')" id="inv-sub-skins" class="py-1.5 rounded-lg font-tech font-bold text-xs text-slate-400 hover:text-white transition"><i class="fa-solid fa-chess-rook mr-1"></i>Kule Skinleri (<span id="owned-skins-count">1/21</span>)</button>
+                        <button onclick="switchInventorySubTab('skins')" id="inv-sub-skins" class="py-1.5 rounded-lg font-tech font-bold text-xs text-slate-400 hover:text-white transition"><i class="fa-solid fa-chess-rook mr-1"></i>Kule Skinleri (<span id="owned-skins-count">1/26</span>)</button>
                     </div>
 
                     <div id="inv-panel-gear" class="space-y-3">
@@ -304,10 +340,10 @@
                     </div>
 
                     <div class="premium-card bg-gradient-to-br from-amber-950/60 via-slate-900 to-yellow-950/40 p-3.5 shadow-lg text-center relative overflow-hidden">
-                        <div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-tech font-bold text-[9px] uppercase">Yeni Kutu!</div>
+                        <div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-tech font-bold text-[9px] uppercase">Yeni Skinler!</div>
                         <div class="w-11 h-11 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center mx-auto mb-2 text-amber-400 text-xl"><i class="fa-solid fa-crown"></i></div>
                         <h3 class="font-tech font-bold text-base text-amber-300 mb-0.5">Kule Skin Kutusu</h3>
-                        <p class="text-[11px] text-slate-300 mb-2.5">Efsanevi <b class="text-yellow-300">DGDVRN</b>, Kardan Adam ve 20 özel Kule Skini içerir!</p>
+                        <p class="text-[11px] text-slate-300 mb-2.5">Efsanevi <b class="text-yellow-300">Kurt Kaan</b>, <b class="text-yellow-300">DGDVRN</b>, <b class="text-pink-300">Balonlu Sakız</b> ve 25 özel Kule Skini içerir!</p>
                         <div class="flex justify-center gap-2">
                             <button onclick="openSkinBox(1)" class="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 5 Kristal (1'li)</button>
                             <button onclick="openSkinBox(5)" class="px-3 py-2 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 25 Kristal (5'li)</button>
@@ -497,6 +533,54 @@
         </div>
     </div>
 
+    <!-- PREMİUM KUTU AÇILIŞ MODALI -->
+    <div id="lootbox-anim-modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-xl flex flex-col items-center justify-center p-4 z-50 overflow-hidden select-none">
+        <!-- Dönen Arka Plan Işık Hüzmeleri -->
+        <div id="loot-bg-rays" class="absolute w-[650px] h-[650px] rounded-full pointer-events-none opacity-35 rays-spinning" style="background: conic-gradient(from 0deg, transparent 0deg 20deg, rgba(250, 204, 21, 0.35) 20deg 40deg, transparent 40deg 60deg, rgba(236, 72, 153, 0.35) 60deg 80deg, transparent 80deg 100deg, rgba(59, 130, 246, 0.35) 100deg 120deg, transparent 120deg 140deg, rgba(168, 85, 247, 0.35) 140deg 160deg, transparent 160deg 180deg, rgba(250, 204, 21, 0.35) 180deg 200deg, transparent 200deg 220deg, rgba(236, 72, 153, 0.35) 220deg 240deg, transparent 240deg 260deg, rgba(59, 130, 246, 0.35) 260deg 280deg, transparent 280deg 300deg, rgba(168, 85, 247, 0.35) 300deg 320deg, transparent 320deg 340deg, rgba(250, 204, 21, 0.35) 340deg 360deg); filter: blur(18px);"></div>
+
+        <!-- Beyaz/Altın Patlama Efekti -->
+        <div id="loot-flash-burst" class="hidden absolute inset-0 bg-white pointer-events-none z-20"></div>
+
+        <!-- AŞAMA 1: SANDIK TİTREME VE ENERJİ YÜKLENMESİ -->
+        <div id="loot-stage-chest" class="relative z-10 flex flex-col items-center justify-center text-center space-y-5">
+            <div class="text-xs font-tech font-bold uppercase tracking-widest text-amber-300 animate-pulse" id="loot-chest-subtitle">KUANTUM MÜHRÜ KIRILIYOR...</div>
+            <div id="loot-chest-icon-wrap" onclick="skipLootboxAnim()" class="cursor-pointer w-32 h-32 sm:w-36 sm:h-36 rounded-3xl bg-gradient-to-br from-amber-500/30 via-purple-600/30 to-slate-900 border-2 border-amber-400/70 flex items-center justify-center shadow-[0_0_60px_rgba(245,158,11,0.5)] chest-shaking relative">
+                <i id="loot-chest-icon" class="fa-solid fa-crown text-6xl text-amber-300 drop-shadow-[0_0_20px_rgba(250,204,21,0.9)]"></i>
+                <div class="absolute -inset-2 rounded-3xl border border-white/20 animate-ping opacity-30"></div>
+            </div>
+            <button onclick="skipLootboxAnim()" class="px-4 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-tech font-bold border border-white/10 transition">
+                Hızlı Aç <i class="fa-solid fa-forward ml-1"></i>
+            </button>
+        </div>
+
+        <!-- AŞAMA 2: KARTLARIN AÇILIMI -->
+        <div id="loot-stage-reveal" class="hidden relative z-10 max-w-3xl w-full flex flex-col items-center space-y-5 max-h-[90vh] overflow-y-auto px-2 py-4">
+            <div class="text-center space-y-1">
+                <div id="loot-reveal-badge" class="inline-block px-3 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 font-tech font-bold text-xs uppercase tracking-wider">KUTU AÇILDI!</div>
+                <h2 id="loot-reveal-title" class="font-tech font-bold text-2xl sm:text-3xl text-white tracking-wide drop-shadow">KAZANILAN ÖDÜLLER</h2>
+            </div>
+
+            <!-- Kartların Dizildiği Alan -->
+            <div id="loot-cards-container" class="w-full flex flex-wrap items-stretch justify-center gap-3 sm:gap-4 py-2"></div>
+
+            <!-- İade Özeti -->
+            <div id="loot-refund-banner" class="hidden px-4 py-2 rounded-xl bg-cyan-950/80 border border-cyan-400/40 text-cyan-300 text-xs font-tech font-bold flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-rotate-left text-cyan-400"></i>
+                <span id="loot-refund-text">Kopya ödüllerden +0 💎 Kristal iade edildi!</span>
+            </div>
+
+            <!-- Aksiyon Butonları -->
+            <div class="flex items-center gap-3 pt-2">
+                <button onclick="closeLootboxModal()" class="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-tech font-bold text-sm transition shadow-lg">
+                    HARİKA!
+                </button>
+                <button id="loot-btn-reopen" onclick="reopenLastBox()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-tech font-bold text-sm transition shadow-[0_0_20px_rgba(245,158,11,0.4)] flex items-center gap-1.5">
+                    <i class="fa-solid fa-gem"></i> <span id="loot-reopen-label">Tekrar Aç (5 💎)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- TOAST -->
     <div id="toast-msg" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900/95 border border-blue-500/50 text-white px-4 py-2 rounded-xl shadow-xl text-xs font-medium pointer-events-none opacity-0 transition-opacity duration-300 z-50 flex items-center gap-2">
         <i class="fa-solid fa-circle-info text-blue-400"></i><span id="toast-text">Bildirim</span>
@@ -513,26 +597,31 @@
 
         const SKIN_DATABASE = {
             default_cyber: { id: 'default_cyber', name: 'Plazma Kulesi', rarity: 'rare', emoji: '⚡', desc: 'Standart siber savunma kulesi.', projColor: '#60a5fa', critColor: '#c084fc' },
+            kurt_kaan: { id: 'kurt_kaan', name: 'Kurt Kaan', rarity: 'legendary', emoji: '🐺', desc: 'Asil bozkurt ruhu taşıyan, uluyarak plazma pençesi fırlatan Efsanevi Kurt Kaan kulesi!', projColor: '#38bdf8', critColor: '#facc15' },
             dgdvrn: { id: 'dgdvrn', name: 'DGDVRN (Altın Kaplama)', rarity: 'legendary', emoji: '👑', desc: 'Özel üretim saf altın kaplamalı efsanevi kule!', projColor: '#facc15', critColor: '#fef08a' },
+            black_hole: { id: 'black_hole', name: 'Kozmik Kara Delik', rarity: 'legendary', emoji: '🕳️', desc: 'Uzay-zamanı büken, etrafında olay ufku dönen efsanevi kara delik kulesi!', projColor: '#a855f7', critColor: '#f43f5e' },
+            bubblegum: { id: 'bubblegum', name: 'Balonlu Sakız', rarity: 'mythic', emoji: '🫧', desc: 'Şişip patlayan tatlı pembe balonlu sakız otomatı kulesi.', projColor: '#f472b6', critColor: '#c084fc' },
+            cyber_samurai: { id: 'cyber_samurai', name: 'Siber Samuray', rarity: 'mythic', emoji: '🥷', desc: 'Çift katana namlulu, kızıl kabuto miğferli ölümsüz Shogun kulesi.', projColor: '#f43f5e', critColor: '#fde047' },
             snowman: { id: 'snowman', name: 'Kardan Adam Kulesi', rarity: 'mythic', emoji: '⛄', desc: 'Havuç burunlu efsanevi Kardan Adam kulesi.', projColor: '#bae6fd', critColor: '#38bdf8' },
             star_cruiser: { id: 'star_cruiser', name: 'Yıldız Kruvazörü', rarity: 'mythic', emoji: '🚀', desc: 'Galaktik uzay kruvazörü kule görünümü.', projColor: '#38bdf8', critColor: '#f43f5e' },
+            dragon: { id: 'dragon', name: 'Kızıl Ejderha', rarity: 'mythic', emoji: '🐉', desc: 'Kanatlı ve boynuzlu ateş püskürten ejderha.', projColor: '#ef4444', critColor: '#f97316' },
+            fighter_jet: { id: 'fighter_jet', name: 'Süpersonik Uçak', rarity: 'epic', emoji: '✈️', desc: 'Ses duvarını aşan çift türbinli F-22 avcı uçağı kulesi.', projColor: '#38bdf8', critColor: '#f97316' },
             lion: { id: 'lion', name: 'Ormanlar Kralı Aslan', rarity: 'epic', emoji: '🦁', desc: 'Kükreyen altın yeleli aslan kulesi.', projColor: '#f59e0b', critColor: '#fde047' },
             tiger: { id: 'tiger', name: 'Bengal Kaplanı', rarity: 'epic', emoji: '🐯', desc: 'Siyah çizgili keskin pençeli kaplan kulesi.', projColor: '#fb923c', critColor: '#fef08a' },
-            bird: { id: 'bird', name: 'Gökdoğan Kuşu', rarity: 'rare', emoji: '🐦', desc: 'Açık kanatlı çevik gökdoğan kulesi.', projColor: '#7dd3fc', critColor: '#facc15' },
+            sofa: { id: 'sofa', name: 'Kraliyet Koltuğu', rarity: 'epic', emoji: '🛋️', desc: 'Mor kadife ve altın varaklı kraliyet koltuğu.', projColor: '#c084fc', critColor: '#facc15' },
+            robot: { id: 'robot', name: 'Siber Meka', rarity: 'epic', emoji: '🤖', desc: 'Kırmızı lazer vizörlü ağır çelik meka.', projColor: '#94a3b8', critColor: '#ef4444' },
+            fire_demon: { id: 'fire_demon', name: 'Ateş İblisi', rarity: 'epic', emoji: '👹', desc: 'Lav çekirdekli ve boynuzlu ateş iblisi.', projColor: '#f97316', critColor: '#fef08a' },
             car: { id: 'car', name: 'Yarış Arabası', rarity: 'super_rare', emoji: '🚗', desc: 'Çift şeritli kırmızı spor yarış arabası.', projColor: '#ef4444', critColor: '#fde047' },
             monkey: { id: 'monkey', name: 'Çılgın Maymun', rarity: 'super_rare', emoji: '🐵', desc: 'Muz namlulu plazma fırlatan maymun.', projColor: '#facc15', critColor: '#a3e635' },
+            tree: { id: 'tree', name: 'Kadim Ağaç', rarity: 'super_rare', emoji: '🌳', desc: 'Kök salmış yapraklı doğa koruyucusu.', projColor: '#4ade80', critColor: '#bef264' },
+            sleep_emoji: { id: 'sleep_emoji', name: 'Uyku Emojisi', rarity: 'super_rare', emoji: '😴', desc: 'Zzz efektli uyurken bile tek atan kule.', projColor: '#818cf8', critColor: '#fde047' },
+            alien: { id: 'alien', name: 'Bölge 51 Uzaylısı', rarity: 'super_rare', emoji: '👽', desc: 'UFO tabanlı yeşil uzaylı kulesi.', projColor: '#4ade80', critColor: '#22d3ee' },
+            bird: { id: 'bird', name: 'Gökdoğan Kuşu', rarity: 'rare', emoji: '🐦', desc: 'Açık kanatlı çevik gökdoğan kulesi.', projColor: '#7dd3fc', critColor: '#facc15' },
             water_bottle: { id: 'water_bottle', name: 'Su Şişesi', rarity: 'rare', emoji: '🧴', desc: 'Buz gibi su dalgalı şişe kulesi.', projColor: '#38bdf8', critColor: '#e0f2fe' },
             chair: { id: 'chair', name: 'Oyuncu Sandalyesi', rarity: 'rare', emoji: '🪑', desc: 'RGB aydınlatmalı kırmızı-siyah oyuncu koltuğu.', projColor: '#f43f5e', critColor: '#22d3ee' },
-            tree: { id: 'tree', name: 'Kadim Ağaç', rarity: 'super_rare', emoji: '🌳', desc: 'Kök salmış yapraklı doğa koruyucusu.', projColor: '#4ade80', critColor: '#bef264' },
             table: { id: 'table', name: 'Taktik Masası', rarity: 'rare', emoji: '🪵', desc: 'Üzerinde radar haritası olan meşe masa.', projColor: '#d97706', critColor: '#fde68a' },
-            sofa: { id: 'sofa', name: 'Kraliyet Koltuğu', rarity: 'epic', emoji: '🛋️', desc: 'Mor kadife ve altın varaklı kraliyet koltuğu.', projColor: '#c084fc', critColor: '#facc15' },
-            sleep_emoji: { id: 'sleep_emoji', name: 'Uyku Emojisi', rarity: 'super_rare', emoji: '😴', desc: 'Zzz efektli uyurken bile tek atan kule.', projColor: '#818cf8', critColor: '#fde047' },
-            dragon: { id: 'dragon', name: 'Kızıl Ejderha', rarity: 'mythic', emoji: '🐉', desc: 'Kanatlı ve boynuzlu ateş püskürten ejderha.', projColor: '#ef4444', critColor: '#f97316' },
-            robot: { id: 'robot', name: 'Siber Meka', rarity: 'epic', emoji: '🤖', desc: 'Kırmızı lazer vizörlü ağır çelik meka.', projColor: '#94a3b8', critColor: '#ef4444' },
-            alien: { id: 'alien', name: 'Bölge 51 Uzaylısı', rarity: 'super_rare', emoji: '👽', desc: 'UFO tabanlı yeşil uzaylı kulesi.', projColor: '#4ade80', critColor: '#22d3ee' },
             pizza: { id: 'pizza', name: 'Sıcak Pizza', rarity: 'rare', emoji: '🍕', desc: 'Sucuklu ve erimiş peynirli İtalyan pizzası.', projColor: '#f97316', critColor: '#ef4444' },
-            toilet: { id: 'toilet', name: 'Altın Porselen', rarity: 'rare', emoji: '🚽', desc: 'Girdaplı porselen mizahi kule skini.', projColor: '#60a5fa', critColor: '#facc15' },
-            fire_demon: { id: 'fire_demon', name: 'Ateş İblisi', rarity: 'epic', emoji: '👹', desc: 'Lav çekirdekli ve boynuzlu ateş iblisi.', projColor: '#f97316', critColor: '#fef08a' }
+            toilet: { id: 'toilet', name: 'Altın Porselen', rarity: 'rare', emoji: '🚽', desc: 'Girdaplı porselen mizahi kule skini.', projColor: '#60a5fa', critColor: '#facc15' }
         };
 
         const ITEM_DATABASE = {
@@ -544,24 +633,34 @@
             rare_sturdy_wood: { id: 'rare_sturdy_wood', name: 'Sağlam Meşe', rarity: 'rare', type: 'hp', val: 25, desc: 'Maksimum canı +25 artırır.', icon: 'fa-solid fa-tree' },
             rare_rusty_gear: { id: 'rare_rusty_gear', name: 'Paslı Dişli', rarity: 'rare', type: 'regen', val: 0.5, desc: 'Can yenilemesini +0.5/sn artırır.', icon: 'fa-solid fa-gear' },
             rare_sharp_arrow: { id: 'rare_sharp_arrow', name: 'Ucu Sivri Ok', rarity: 'rare', type: 'critMult', val: 0.1, desc: 'Kritik çarpanını +0.1 artırır.', icon: 'fa-solid fa-crosshairs' },
-            rare_glass_shard: { id: 'rare_glass_shard', name: 'Kristal Parçası', rarity: 'rare', type: 'crystal', val: 0.005, desc: 'Kristal düşme şansını artırır.', icon: 'fa-solid fa-diamond' },
+            rare_glass_shard: { id: 'rare_glass_shard', name: 'Kristal Parçası', rarity: 'rare', type: 'crystal', val: 0.005, desc: 'Kristal düşme şansını +%0.5 artırır.', icon: 'fa-solid fa-diamond' },
             rare_leather_grip: { id: 'rare_leather_grip', name: 'Deri Kabza', rarity: 'rare', type: 'range', val: 10, desc: 'Menzili +10 piksel artırır.', icon: 'fa-solid fa-hand-fist' },
+            rare_wolf_fang: { id: 'rare_wolf_fang', name: 'Bozkurt Dişi', rarity: 'rare', type: 'crit', val: 3, desc: 'Kritik şansını +%3 artırır.', icon: 'fa-solid fa-tooth' },
+            rare_radar_lens: { id: 'rare_radar_lens', name: 'Optik Radar Merceği', rarity: 'rare', type: 'range', val: 18, desc: 'Menzili +18 piksel artırır.', icon: 'fa-solid fa-magnifying-glass' },
             srare_silver_quiver: { id: 'srare_silver_quiver', name: 'Gümüş Sadak', rarity: 'super_rare', type: 'damage', val: 18, desc: 'Hasarı +18 artırır.', icon: 'fa-solid fa-bullseye' },
             srare_gold_ring: { id: 'srare_gold_ring', name: 'Tüccar Yüzüğü', rarity: 'super_rare', type: 'gold', val: 0.20, desc: 'Altın kazancını +%20 artırır.', icon: 'fa-solid fa-ring' },
             srare_titanium_plate: { id: 'srare_titanium_plate', name: 'Titanyum Levha', rarity: 'super_rare', type: 'armor', val: 8, desc: 'Zırh değerini +8 artırır.', icon: 'fa-solid fa-shield-halved' },
             srare_wind_charm: { id: 'srare_wind_charm', name: 'Rüzgar Tılsımı', rarity: 'super_rare', type: 'speed', val: 0.10, desc: 'Atış hızını +%10 artırır.', icon: 'fa-solid fa-tornado' },
             srare_ruby_eye: { id: 'srare_ruby_eye', name: 'Yakut Göz', rarity: 'super_rare', type: 'crit', val: 6, desc: 'Kritik şansını +%6 artırır.', icon: 'fa-solid fa-eye' },
             srare_energy_cell: { id: 'srare_energy_cell', name: 'Enerji Hücresi', rarity: 'super_rare', type: 'shield', val: 50, desc: 'Plazma kalkanını +50 artırır.', icon: 'fa-solid fa-battery-full' },
+            srare_frost_core: { id: 'srare_frost_core', name: 'Sıfır Noktası Modülü', rarity: 'super_rare', type: 'regen', val: 3.5, desc: 'Can yenilemesini +3.5/sn artırır.', icon: 'fa-solid fa-snowflake' },
+            srare_sniper_scope: { id: 'srare_sniper_scope', name: 'Termal Lazer Dürbünü', rarity: 'super_rare', type: 'critMult', val: 0.25, desc: 'Kritik çarpanını +0.25 artırır.', icon: 'fa-solid fa-crosshairs' },
             epic_shadow_bow: { id: 'epic_shadow_bow', name: 'Gölge Avcısı Yayı', rarity: 'epic', type: 'damage', val: 55, desc: 'Hasarı +55 artırır.', icon: 'fa-solid fa-bow-arrow' },
             epic_dragon_scale: { id: 'epic_dragon_scale', name: 'Ejderha Pul Zırhı', rarity: 'epic', type: 'hp', val: 200, desc: 'Maksimum canı +200 artırır.', icon: 'fa-solid fa-shield' },
             epic_chronos_sand: { id: 'epic_chronos_sand', name: 'Zaman Kumları', rarity: 'epic', type: 'speed', val: 0.18, desc: 'Atış hızını +%18 artırır.', icon: 'fa-solid fa-hourglass-half' },
             epic_vampire_fang: { id: 'epic_vampire_fang', name: 'Vampir Dişi', rarity: 'epic', type: 'lifesteal', val: 0.01, desc: 'Can çalma oranını +%1 artırır.', icon: 'fa-solid fa-droplet' },
             epic_plasma_core: { id: 'epic_plasma_core', name: 'Kararsız Plazma Çekirdeği', rarity: 'epic', type: 'critMult', val: 0.4, desc: 'Kritik çarpanını +0.4 artırır.', icon: 'fa-solid fa-atom' },
+            epic_cyber_katana: { id: 'epic_cyber_katana', name: 'Muramasa Plazma Kılıcı', rarity: 'epic', type: 'damage', val: 75, desc: 'Hasarı +75 artırır.', icon: 'fa-solid fa-khanda' },
+            epic_aegis_barrier: { id: 'epic_aegis_barrier', name: 'Aegis Yansıtıcı Kalkan', rarity: 'epic', type: 'shield', val: 160, desc: 'Plazma kalkanını +160 artırır.', icon: 'fa-solid fa-user-shield' },
+            epic_crystal_magnet: { id: 'epic_crystal_magnet', name: 'Kuantum Mıknatısı', rarity: 'epic', type: 'crystal', val: 0.015, desc: 'Kristal düşme şansını +%1.5 artırır.', icon: 'fa-solid fa-magnet' },
             mythic_valkyrie_wing: { id: 'mythic_valkyrie_wing', name: 'Valkür Kanadı', rarity: 'mythic', type: 'damage', val: 140, desc: 'Hasarı muazzam biçimde (+140) artırır.', icon: 'fa-solid fa-feather-pointed' },
             mythic_eternal_heart: { id: 'mythic_eternal_heart', name: 'Ebedi Yaşam Kalbi', rarity: 'mythic', type: 'hp', val: 650, desc: 'Kule canını +650 artırır.', icon: 'fa-solid fa-heart-pulse' },
             mythic_god_crown: { id: 'mythic_god_crown', name: 'Tanrısal Hükümdar Tacı', rarity: 'mythic', type: 'gold', val: 0.50, desc: 'Altın kazancını +%50 artırır.', icon: 'fa-solid fa-crown' },
+            mythic_blood_chalice: { id: 'mythic_blood_chalice', name: 'Ölümsüzlük Kadehi', rarity: 'mythic', type: 'lifesteal', val: 0.025, desc: 'Can çalma oranını +%2.5 artırır.', icon: 'fa-solid fa-wine-glass' },
+            mythic_hyper_turbine: { id: 'mythic_hyper_turbine', name: 'Hiper-Türbin Motoru', rarity: 'mythic', type: 'speed', val: 0.35, desc: 'Atış hızını +%35 artırır.', icon: 'fa-solid fa-fan' },
             legendary_cosmos_shard: { id: 'legendary_cosmos_shard', name: 'Kozmik Tekillik Çekirdeği', rarity: 'legendary', type: 'damage_mult', val: 0.35, desc: 'Tüm kule hasarını +%35 çarpanla katlar!', icon: 'fa-solid fa-sun' },
-            legendary_infinity_bow: { id: 'legendary_infinity_bow', name: 'Sonsuzluk Efsanevi Yayı', rarity: 'legendary', type: 'multishot_buff', val: 1, desc: 'Ekstra +1 Çoklu Atış hedefi sağlar!', icon: 'fa-solid fa-infinity' }
+            legendary_infinity_bow: { id: 'legendary_infinity_bow', name: 'Sonsuzluk Efsanevi Yayı', rarity: 'legendary', type: 'multishot_buff', val: 1, desc: 'Ekstra +1 Çoklu Atış hedefi sağlar!', icon: 'fa-solid fa-infinity' },
+            legendary_kurt_totem: { id: 'legendary_kurt_totem', name: 'Kurt Kaan\'ın Ebedi Totemi', rarity: 'legendary', type: 'damage_mult', val: 0.50, desc: 'Tüm kule hasarını +%50 çarpanla katlar!', icon: 'fa-solid fa-paw' }
         };
 
         const UPGRADE_DEFS = {
@@ -583,7 +682,7 @@
 
             goldBonus: { category: 'economy', name: 'Ganimet Çarpanı', icon: 'fa-solid fa-sack-dollar', color: 'text-amber-400', desc: 'Düşmanlardan altın kazancı.', baseCost: 35, costScale: 1.30, maxLevel: 9999, getValueText: (lvl) => `+%${Math.round(getGoldMultiplier()*100 - 100)}` },
             waveGold: { category: 'economy', name: 'Dalga İkramiyesi', icon: 'fa-solid fa-award', color: 'text-yellow-400', desc: 'Dalga sonu altın ödülü.', baseCost: 60, costScale: 1.38, maxLevel: 9999, getValueText: (lvl) => `+${formatNumber(getWaveBonusPreview(lvl))}` },
-            crystalChance: { category: 'economy', name: 'Kristal Sondajı', icon: 'fa-solid fa-gem', color: 'text-cyan-400', desc: 'Düşmandan kristal şansı.', baseCost: 200, costScale: 1.42, maxLevel: 25, getValueText: (lvl) => `%${(1.5 + lvl * 0.4).toFixed(1)}` },
+            crystalChance: { category: 'economy', name: 'Kristal Sondajı', icon: 'fa-solid fa-gem', color: 'text-cyan-400', desc: 'Düşmandan kristal şansı.', baseCost: 200, costScale: 1.42, maxLevel: 25, getValueText: (lvl) => `%${(1.5 + lvl * 0.4 + getItemStatBonus('crystal') * 100).toFixed(1)}` },
             interest: { category: 'economy', name: 'Kuantum Bankası', icon: 'fa-solid fa-piggy-bank', color: 'text-emerald-400', desc: 'Dalga sonu faiz.', baseCost: 400, costScale: 1.55, maxLevel: 10, getValueText: (lvl) => `%${(lvl * 0.4).toFixed(1)}` }
         };
 
@@ -1110,6 +1209,168 @@
             }
 
             switch (skinId) {
+                case 'kurt_kaan': {
+                    // Kurt Kaan Efsanevi Aurası
+                    const wolfAura = 24 + Math.sin(nowTime * 0.007) * 3;
+                    c.beginPath(); c.arc(0, 0, wolfAura, 0, Math.PI * 2);
+                    c.fillStyle = 'rgba(56, 189, 248, 0.22)'; c.fill();
+                    c.strokeStyle = 'rgba(250, 204, 21, 0.5)'; c.lineWidth = 1.5; c.stroke();
+
+                    drawBarrels('#0284c7', '#facc15', '#e0f2fe', 22, 8, 'cone');
+
+                    c.save(); c.rotate(angle);
+                    // Gümüş-Buz Yele Çevresi (10 Köşeli Kurt Kürkü)
+                    c.fillStyle = '#334155'; c.strokeStyle = '#94a3b8'; c.lineWidth = 1.8;
+                    c.beginPath();
+                    for (let i = 0; i < 20; i++) {
+                        const a = (i * Math.PI) / 10;
+                        const r = i % 2 === 0 ? 21 : 15;
+                        const px = Math.cos(a) * r, py = Math.sin(a) * r;
+                        if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+                    }
+                    c.closePath(); c.fill(); c.stroke();
+
+                    // Sivri Kurt Kulakları (Arkaya doğru)
+                    c.fillStyle = '#475569'; c.strokeStyle = '#e2e8f0'; c.lineWidth = 1.6;
+                    c.beginPath(); c.moveTo(-2, -10); c.lineTo(-16, -20); c.lineTo(-12, -5); c.closePath(); c.fill(); c.stroke();
+                    c.beginPath(); c.moveTo(-2, 10); c.lineTo(-16, 20); c.lineTo(-12, 5); c.closePath(); c.fill(); c.stroke();
+                    // Kulak içi altın detay
+                    c.fillStyle = '#facc15';
+                    c.beginPath(); c.moveTo(-5, -10); c.lineTo(-13, -16); c.lineTo(-10, -7); c.closePath(); c.fill();
+                    c.beginPath(); c.moveTo(-5, 10); c.lineTo(-13, 16); c.lineTo(-10, 7); c.closePath(); c.fill();
+
+                    // Kurt Kaan Kafa Gövdesi ve Burun
+                    const wolfGrad = c.createRadialGradient(0, 0, 2, 0, 0, 17);
+                    wolfGrad.addColorStop(0, '#cbd5e1'); wolfGrad.addColorStop(0.6, '#64748b'); wolfGrad.addColorStop(1, '#1e293b');
+                    c.fillStyle = wolfGrad; c.strokeStyle = '#38bdf8'; c.lineWidth = 1.8;
+                    c.beginPath();
+                    c.moveTo(18, 0); c.lineTo(6, -12); c.lineTo(-12, -13); c.lineTo(-15, 0); c.lineTo(-12, 13); c.lineTo(6, 12);
+                    c.closePath(); c.fill(); c.stroke();
+
+                    // Siyah Burun Ucu
+                    c.fillStyle = '#0f172a';
+                    c.beginPath(); c.arc(15, 0, 3.2, 0, Math.PI * 2); c.fill();
+
+                    // Parlayan Mavi-Altın Alfa Gözler
+                    c.fillStyle = '#38bdf8';
+                    c.beginPath(); c.moveTo(5, -4); c.lineTo(0, -9); c.lineTo(-2, -4); c.closePath(); c.fill();
+                    c.beginPath(); c.moveTo(5, 4); c.lineTo(0, 9); c.lineTo(-2, 4); c.closePath(); c.fill();
+
+                    // Alında Altın Hilal & KAAN Yazısı
+                    c.strokeStyle = '#facc15'; c.lineWidth = 2;
+                    c.beginPath(); c.arc(-5, 0, 4.5, -Math.PI * 0.65, Math.PI * 0.65); c.stroke();
+                    c.restore();
+
+                    c.font = "bold 6.5px 'Rajdhani', sans-serif"; c.fillStyle = '#fef08a'; c.textAlign = 'center'; c.fillText('KAAN', 0, 24);
+                    break;
+                }
+                case 'bubblegum': {
+                    // Şeker Çizgili Pembe Namlular
+                    drawBarrels('#ec4899', '#fbcfe8', '#ffffff', 19, 7.5);
+                    // Kırmızı-Pembe Sakız Otomatı Alt Tabanı
+                    c.fillStyle = '#db2777'; c.strokeStyle = '#fbcfe8'; c.lineWidth = 2;
+                    c.beginPath(); c.arc(0, 0, 19, 0, Math.PI * 2); c.fill(); c.stroke();
+                    // Cam Küre İçindeki Renkli Sakız Topları
+                    c.fillStyle = 'rgba(253, 242, 248, 0.25)';
+                    c.beginPath(); c.arc(0, 0, 15, 0, Math.PI * 2); c.fill();
+                    const gumColors = [['#f472b6', -6, -6], ['#38bdf8', 6, -5], ['#facc15', -5, 6], ['#4ade80', 6, 6], ['#c084fc', 0, -8], ['#fb7185', 0, 8]];
+                    for (const [col, gx, gy] of gumColors) {
+                        c.fillStyle = col; c.beginPath(); c.arc(gx, gy, 3.8, 0, Math.PI * 2); c.fill();
+                    }
+                    // Şişip Büyüyen Balonlu Sakız Küresi
+                    const bubbleR = 11 + Math.sin(nowTime * 0.007) * 3.5;
+                    const bGrad = c.createRadialGradient(-3, -3, 1, 0, 0, bubbleR);
+                    bGrad.addColorStop(0, '#fce7f3'); bGrad.addColorStop(0.5, '#f472b6'); bGrad.addColorStop(1, '#be185d');
+                    c.fillStyle = bGrad; c.strokeStyle = '#fbcfe8'; c.lineWidth = 1.5;
+                    c.beginPath(); c.arc(0, 0, bubbleR, 0, Math.PI * 2); c.fill(); c.stroke();
+                    // Balon Parlama Efekti
+                    c.fillStyle = 'rgba(255, 255, 255, 0.75)';
+                    c.beginPath(); c.ellipse(-bubbleR * 0.35, -bubbleR * 0.35, bubbleR * 0.28, bubbleR * 0.15, -0.6, 0, Math.PI * 2); c.fill();
+                    break;
+                }
+                case 'fighter_jet': {
+                    drawBarrels('#334155', '#38bdf8', '#f97316', 23, 6);
+                    c.save(); c.rotate(angle);
+                    // Çift Jet Türbini Alevleri
+                    const jetFlame = 9 + Math.sin(nowTime * 0.03) * 3.5;
+                    c.fillStyle = '#38bdf8';
+                    c.beginPath(); c.moveTo(-15, -6); c.lineTo(-15 - jetFlame, -4); c.lineTo(-15, -2); c.closePath(); c.fill();
+                    c.beginPath(); c.moveTo(-15, 2); c.lineTo(-15 - jetFlame, 4); c.lineTo(-15, 6); c.closePath(); c.fill();
+                    // Kanat Altı Füzeler
+                    c.fillStyle = '#f43f5e';
+                    c.fillRect(-4, -21, 10, 2.5); c.fillRect(-4, 18.5, 10, 2.5);
+                    // Süpersonik Avcı Uçağı Kanatları ve Gövdesi
+                    c.fillStyle = '#475569'; c.strokeStyle = '#94a3b8'; c.lineWidth = 1.8;
+                    c.beginPath();
+                    c.moveTo(22, 0); // Sivri Burun
+                    c.lineTo(5, -5);
+                    c.lineTo(-6, -22); // Sol Kanat Ucu
+                    c.lineTo(-13, -20);
+                    c.lineTo(-10, -7);
+                    c.lineTo(-17, -11); // Sol Kuyruk Kanadı
+                    c.lineTo(-16, 0);
+                    c.lineTo(-17, 11);  // Sağ Kuyruk Kanadı
+                    c.lineTo(-10, 7);
+                    c.lineTo(-13, 20);
+                    c.lineTo(-6, 22);  // Sağ Kanat Ucu
+                    c.lineTo(5, 5);
+                    c.closePath(); c.fill(); c.stroke();
+                    // Altın Stealth Kokpit Camı
+                    c.fillStyle = '#fbbf24'; c.strokeStyle = '#fef08a'; c.lineWidth = 1;
+                    c.beginPath(); c.ellipse(4, 0, 7.5, 3, 0, 0, Math.PI * 2); c.fill(); c.stroke();
+                    c.restore();
+                    break;
+                }
+                case 'cyber_samurai': {
+                    // Katana Çeliği Namlular
+                    drawBarrels('#e2e8f0', '#ef4444', '#facc15', 22, 6, 'cone');
+                    c.save(); c.rotate(angle);
+                    // Kabuto Samuray Miğfer Kanatları (Shikoro)
+                    c.fillStyle = '#18181b'; c.strokeStyle = '#dc2626'; c.lineWidth = 2;
+                    c.beginPath();
+                    c.arc(0, 0, 18, 0.35 * Math.PI, 1.65 * Math.PI);
+                    c.lineTo(6, -13); c.lineTo(6, 13); c.closePath(); c.fill(); c.stroke();
+                    // Koyu Kızıl Zırh Başlığı
+                    c.fillStyle = '#991b1b'; c.strokeStyle = '#f87171'; c.lineWidth = 1.8;
+                    c.beginPath(); c.arc(0, 0, 14, 0, Math.PI * 2); c.fill(); c.stroke();
+                    // Parlayan Siber Vizör Gözler
+                    c.fillStyle = '#fef08a';
+                    c.fillRect(5, -8, 4, 5); c.fillRect(5, 3, 4, 5);
+                    // Miğfer Önündeki Altın Boynuz Hilal (Maedate)
+                    c.strokeStyle = '#facc15'; c.lineWidth = 2.8;
+                    c.beginPath(); c.moveTo(8, 0); c.lineTo(17, -14); c.moveTo(8, 0); c.lineTo(17, 14); c.stroke();
+                    c.restore();
+                    break;
+                }
+                case 'black_hole': {
+                    // Dönen Olay Ufku (Accretion Disk)
+                    c.save();
+                    c.rotate(nowTime * 0.003);
+                    const diskGrad = c.createRadialGradient(0, 0, 8, 0, 0, 24);
+                    diskGrad.addColorStop(0, '#020617');
+                    diskGrad.addColorStop(0.45, '#f43f5e');
+                    diskGrad.addColorStop(0.7, '#a855f7');
+                    diskGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+                    c.fillStyle = diskGrad;
+                    c.beginPath(); c.arc(0, 0, 24, 0, Math.PI * 2); c.fill();
+
+                    // Kavisli Kozmik Girdap Kolları
+                    c.strokeStyle = '#e879f9'; c.lineWidth = 1.8;
+                    for (let i = 0; i < 4; i++) {
+                        const a = (i * Math.PI) / 2;
+                        c.beginPath(); c.arc(0, 0, 16, a, a + 1.1); c.stroke();
+                    }
+                    c.restore();
+
+                    drawBarrels('#3b0764', '#e879f9', '#38bdf8', 20, 6.5, 'cone');
+
+                    // Mutlak Karanlık Tekillik Çekirdeği & Foton Halkası
+                    c.fillStyle = '#020617'; c.strokeStyle = '#f0abfc'; c.lineWidth = 2.2;
+                    c.beginPath(); c.arc(0, 0, 12, 0, Math.PI * 2); c.fill(); c.stroke();
+                    c.strokeStyle = '#38bdf8'; c.lineWidth = 1;
+                    c.beginPath(); c.arc(0, 0, 9, 0, Math.PI * 2); c.stroke();
+                    break;
+                }
                 case 'dgdvrn': {
                     const pulseGlow = 23 + Math.sin(nowTime * 0.006) * 3;
                     c.beginPath(); c.arc(0, 0, pulseGlow, 0, Math.PI * 2);
@@ -1550,7 +1811,7 @@
             const goldEarned = Math.max(1, Math.round(enemy.gold)); game.gold += goldEarned;
             addFloatingText(enemy.x, enemy.y - 10, `+${formatNumber(goldEarned)} 🪙`, '#fbbf24', 11);
 
-            const crystalChance = (1.5 + game.upgrades.crystalChance * 0.4) * (game.holdWave ? 0.15 : 1.0);
+            const crystalChance = (1.5 + game.upgrades.crystalChance * 0.4 + getItemStatBonus('crystal') * 100) * (game.holdWave ? 0.15 : 1.0);
             if (enemy.type === 'boss') {
                 const c = game.holdWave ? 1 : (2 + Math.floor(game.wave / 8));
                 game.crystals += c; game.stats.bossKills++;
@@ -2061,37 +2322,203 @@
             else { dCardsEl.innerHTML = renderCardHTML(bjState.dealerHand[0], false) + renderCardHTML(null, true); document.getElementById('bj-dealer-score').textContent = `Toplam: ${bjState.dealerHand[0].score} + ?`; document.getElementById('bj-status').textContent = 'Kart Çek (Hit) veya Kal (Stand)'; }
         }
 
+        let lootboxAnimTimer = null;
+        let currentLootSession = null;
+
         function openLootbox(count) {
-            const cost = count * 5; if (game.crystals < cost) { showToast('Yeterli kristalin yok!'); return; }
-            game.crystals -= cost; game.lootboxBonuses.totalOpened += count;
-            let droppedItems = [], refundCrystals = 0;
+            const cost = count * 5;
+            if (game.crystals < cost) { showToast('Yeterli kristalin yok!'); return; }
+            game.crystals -= cost;
+            game.lootboxBonuses.totalOpened += count;
+
+            let droppedEntries = [];
+            let refundCrystals = 0;
+
             for (let i = 0; i < count; i++) {
-                const roll = Math.random() * 100; let rarity = 'rare';
-                if (roll < 1) rarity = 'legendary'; else if (roll < 5) rarity = 'mythic'; else if (roll < 17) rarity = 'epic'; else if (roll < 45) rarity = 'super_rare';
-                const pool = Object.values(ITEM_DATABASE).filter(item => item.rarity === rarity), item = pool[Math.floor(Math.random() * pool.length)];
-                if (!game.inventory.includes(item.id)) game.inventory.push(item.id); else refundCrystals += 2;
-                droppedItems.push(item);
+                const roll = Math.random() * 100;
+                let rarity = 'rare';
+                if (roll < 1.5) rarity = 'legendary';
+                else if (roll < 6) rarity = 'mythic';
+                else if (roll < 19) rarity = 'epic';
+                else if (roll < 47) rarity = 'super_rare';
+
+                const pool = Object.values(ITEM_DATABASE).filter(item => item.rarity === rarity);
+                const item = pool[Math.floor(Math.random() * pool.length)];
+                const isDuplicate = game.inventory.includes(item.id);
+
+                if (!isDuplicate) game.inventory.push(item.id);
+                else refundCrystals += 2;
+
+                droppedEntries.push({ kind: 'item', data: item, isDuplicate });
             }
+
             if (refundCrystals > 0) game.crystals += refundCrystals;
-            showToast(`Eşya: ${droppedItems[0].name} [${droppedItems[0].rarity.toUpperCase()}]${refundCrystals > 0 ? ` (+${refundCrystals}💎)` : ''}`);
             buildInventoryUI(); updateHUD(); saveGame(true);
+
+            startLootboxModalAnimation('item', count, droppedEntries, refundCrystals);
         }
 
         function openSkinBox(count) {
-            const cost = count * 5; if (game.crystals < cost) { showToast('Yeterli kristalin yok!'); return; }
-            game.crystals -= cost; if (!Array.isArray(game.ownedSkins)) game.ownedSkins = ['default_cyber'];
-            let droppedSkins = [], refundCrystals = 0; const allBoxSkins = Object.values(SKIN_DATABASE).filter(s => s.id !== 'default_cyber');
+            const cost = count * 5;
+            if (game.crystals < cost) { showToast('Yeterli kristalin yok!'); return; }
+            game.crystals -= cost;
+            if (!Array.isArray(game.ownedSkins)) game.ownedSkins = ['default_cyber'];
+
+            let droppedEntries = [];
+            let refundCrystals = 0;
+            const allBoxSkins = Object.values(SKIN_DATABASE).filter(s => s.id !== 'default_cyber');
+
             for (let i = 0; i < count; i++) {
-                const roll = Math.random() * 100; let rarity = 'rare';
-                if (roll < 2.5) rarity = 'legendary'; else if (roll < 12) rarity = 'mythic'; else if (roll < 32) rarity = 'epic'; else if (roll < 60) rarity = 'super_rare';
-                let pool = allBoxSkins.filter(s => s.rarity === rarity); if (pool.length === 0) pool = allBoxSkins;
+                const roll = Math.random() * 100;
+                let rarity = 'rare';
+                if (roll < 2.8) rarity = 'legendary';
+                else if (roll < 13) rarity = 'mythic';
+                else if (roll < 34) rarity = 'epic';
+                else if (roll < 62) rarity = 'super_rare';
+
+                let pool = allBoxSkins.filter(s => s.rarity === rarity);
+                if (pool.length === 0) pool = allBoxSkins;
                 const skin = pool[Math.floor(Math.random() * pool.length)];
-                if (!game.ownedSkins.includes(skin.id)) game.ownedSkins.push(skin.id); else refundCrystals += 2;
-                droppedSkins.push(skin);
+                const isDuplicate = game.ownedSkins.includes(skin.id);
+
+                if (!isDuplicate) game.ownedSkins.push(skin.id);
+                else refundCrystals += 2;
+
+                droppedEntries.push({ kind: 'skin', data: skin, isDuplicate });
             }
+
             if (refundCrystals > 0) game.crystals += refundCrystals;
-            showToast(`🎉 Skin: ${droppedSkins[droppedSkins.length - 1].emoji} ${droppedSkins[droppedSkins.length - 1].name}${refundCrystals > 0 ? ` (+${refundCrystals}💎)` : ''}`);
             buildInventoryUI(); updateHUD(); saveGame(true);
+
+            startLootboxModalAnimation('skin', count, droppedEntries, refundCrystals);
+        }
+
+        function startLootboxModalAnimation(boxType, count, entries, refundCrystals) {
+            currentLootSession = { boxType, count, entries, refundCrystals };
+            clearTimeout(lootboxAnimTimer);
+
+            const modal = document.getElementById('lootbox-anim-modal');
+            const stageChest = document.getElementById('loot-stage-chest');
+            const stageReveal = document.getElementById('loot-stage-reveal');
+            const chestIcon = document.getElementById('loot-chest-icon');
+            const chestSubtitle = document.getElementById('loot-chest-subtitle');
+
+            modal.classList.remove('hidden');
+            stageChest.classList.remove('hidden');
+            stageReveal.classList.add('hidden');
+
+            if (boxType === 'skin') {
+                chestIcon.className = 'fa-solid fa-crown text-6xl text-amber-300 drop-shadow-[0_0_20px_rgba(250,204,21,0.9)]';
+                chestSubtitle.textContent = count > 1 ? '5x KULE SKİN KUTUSU AÇILIYOR...' : 'KULE SKİN KUTUSU AÇILIYOR...';
+            } else {
+                chestIcon.className = 'fa-solid fa-cube text-6xl text-pink-400 drop-shadow-[0_0_20px_rgba(236,72,153,0.9)]';
+                chestSubtitle.textContent = count > 1 ? '5x KUANTUM EŞYA SANDIĞI AÇILIYOR...' : 'KUANTUM EŞYA SANDIĞI AÇILIYOR...';
+            }
+
+            lootboxAnimTimer = setTimeout(() => {
+                revealLootboxCards();
+            }, 950);
+        }
+
+        function skipLootboxAnim() {
+            clearTimeout(lootboxAnimTimer);
+            revealLootboxCards();
+        }
+
+        function revealLootboxCards() {
+            if (!currentLootSession) return;
+            const { boxType, count, entries, refundCrystals } = currentLootSession;
+
+            const stageChest = document.getElementById('loot-stage-chest');
+            const stageReveal = document.getElementById('loot-stage-reveal');
+            const flashBurst = document.getElementById('loot-flash-burst');
+            const cardsContainer = document.getElementById('loot-cards-container');
+            const refundBanner = document.getElementById('loot-refund-banner');
+            const refundText = document.getElementById('loot-refund-text');
+            const reopenLabel = document.getElementById('loot-reopen-label');
+
+            stageChest.classList.add('hidden');
+            stageReveal.classList.remove('hidden');
+
+            // Parlama Efekti
+            flashBurst.classList.remove('hidden');
+            flashBurst.style.animation = 'none';
+            void flashBurst.offsetWidth;
+            flashBurst.style.animation = 'flashBurst 0.55s ease-out forwards';
+
+            reopenLabel.textContent = `Tekrar Aç (${count * 5} 💎)`;
+
+            if (refundCrystals > 0) {
+                refundBanner.classList.remove('hidden');
+                refundText.textContent = `Kopya ödüllerden +${refundCrystals} 💎 Kristal iade edildi!`;
+            } else {
+                refundBanner.classList.add('hidden');
+            }
+
+            cardsContainer.innerHTML = entries.map((entry, idx) => {
+                const d = entry.data;
+                const rb = getRarityBadge(d.rarity);
+                const glowClass = `rarity-glow-${d.rarity}`;
+                const delayMs = idx * 110;
+                const isSingle = entries.length === 1;
+                const cardSizeCls = isSingle ? 'w-64 p-5' : 'w-36 sm:w-40 p-3';
+
+                const statusBadge = entry.isDuplicate
+                    ? `<span class="px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-cyan-300 text-[9px] font-tech font-bold">+2 💎 KOPYA</span>`
+                    : `<span class="px-2 py-0.5 rounded-full bg-emerald-500/25 border border-emerald-400/60 text-emerald-300 text-[9px] font-tech font-bold animate-pulse">✨ YENİ!</span>`;
+
+                const visualCenter = entry.kind === 'skin'
+                    ? `<div class="my-2 flex flex-col items-center justify-center loot-float">
+                           <canvas id="loot-skin-canvas-${idx}" width="76" height="76" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-950/90 border border-white/15 shadow-inner"></canvas>
+                       </div>`
+                    : `<div class="my-3 w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl bg-slate-950/90 border border-white/15 flex items-center justify-center text-2xl sm:text-3xl ${rb.cls.split(' ')[0]} loot-float">
+                           <i class="${d.icon}"></i>
+                       </div>`;
+
+                return `
+                    <div style="animation-delay: ${delayMs}ms" class="loot-card-anim ${cardSizeCls} rounded-2xl bg-slate-900/95 border-2 ${rb.cls} ${glowClass} flex flex-col items-center justify-between text-center relative overflow-hidden">
+                        <div class="w-full flex items-center justify-between gap-1 mb-1">
+                            <span class="px-2 py-0.5 rounded text-[9px] font-tech font-bold border ${rb.cls}">${rb.text}</span>
+                            ${statusBadge}
+                        </div>
+                        ${visualCenter}
+                        <div>
+                            <div class="font-tech font-bold ${isSingle ? 'text-base' : 'text-xs'} text-white leading-tight mb-1">${d.emoji ? d.emoji + ' ' : ''}${d.name}</div>
+                            <div class="text-[10px] text-slate-300 leading-snug line-clamp-2">${d.desc}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Skin önizleme canvaslarını çiz
+            const pastel = isPastelMode();
+            entries.forEach((entry, idx) => {
+                if (entry.kind === 'skin') {
+                    const cEl = document.getElementById(`loot-skin-canvas-${idx}`);
+                    if (cEl) {
+                        const cCtx = cEl.getContext('2d');
+                        cCtx.clearRect(0, 0, cEl.width, cEl.height);
+                        cCtx.save();
+                        cCtx.translate(cEl.width / 2 - 2, cEl.height / 2);
+                        cCtx.scale(1.15, 1.15);
+                        drawCustomTowerSkin(cCtx, entry.data.id, 0, 0, 1, pastel, performance.now());
+                        cCtx.restore();
+                    }
+                }
+            });
+        }
+
+        function closeLootboxModal() {
+            clearTimeout(lootboxAnimTimer);
+            document.getElementById('lootbox-anim-modal').classList.add('hidden');
+            currentLootSession = null;
+        }
+
+        function reopenLastBox() {
+            if (!currentLootSession) return;
+            const { boxType, count } = currentLootSession;
+            if (boxType === 'skin') openSkinBox(count);
+            else openLootbox(count);
         }
 
         function selectTowerSkin(skinId) {
