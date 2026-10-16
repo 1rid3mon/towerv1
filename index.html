@@ -42,6 +42,9 @@
             border-bottom: 2px solid #3b82f6; color: #60a5fa;
         }
         #upgrade-drawer { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        #hud-top-bar, #hud-hp-card, #hud-wave-card, #hud-quick-stats, #hud-bottom-controls {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         
         .playing-card {
             width: 42px; height: 60px; background: #ffffff; color: #0f172a; border-radius: 6px;
@@ -184,8 +187,8 @@
         <div id="canvas-container" class="absolute inset-0 bg-slate-950 overflow-hidden select-none">
             <canvas id="gameCanvas" class="block w-full h-full"></canvas>
 
-            <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pointer-events-none z-10">
-                <div class="bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-2 sm:p-2.5 rounded-xl w-full sm:w-60 shadow-lg pointer-events-auto tablet-compact">
+            <div id="hud-top-bar" class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pointer-events-none z-10">
+                <div id="hud-hp-card" class="bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-2 sm:p-2.5 rounded-xl w-full sm:w-60 shadow-lg pointer-events-auto tablet-compact">
                     <div class="flex justify-between text-xs mb-1">
                         <span class="font-semibold text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-heart-pulse"></i> Can</span>
                         <span id="ui-hp-text" class="font-tech font-bold text-slate-200 text-shrink">100 / 100</span>
@@ -208,7 +211,7 @@
                     </div>
                 </div>
 
-                <div class="bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-2 sm:p-2.5 rounded-xl w-full sm:w-64 shadow-lg pointer-events-auto tablet-compact">
+                <div id="hud-wave-card" class="bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-2 sm:p-2.5 rounded-xl w-full sm:w-64 shadow-lg pointer-events-auto tablet-compact">
                     <div class="flex items-center justify-between mb-1">
                         <div class="flex items-center gap-1.5">
                             <span id="ui-wave-badge" class="px-2 py-0.5 text-xs font-tech font-bold rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">DALGA 1</span>
@@ -229,7 +232,7 @@
                 </div>
             </div>
 
-            <div class="absolute bottom-2 left-2 bg-slate-900/85 backdrop-blur-sm border border-slate-800/80 px-2.5 py-1.5 rounded-xl pointer-events-none hidden md:flex items-center space-x-3 text-xs z-10">
+            <div id="hud-quick-stats" class="absolute bottom-2 left-2 bg-slate-900/90 backdrop-blur-md border border-slate-800/90 px-3 py-1.5 rounded-xl pointer-events-none flex items-center space-x-3 text-xs z-10 shadow-lg">
                 <div><span class="text-slate-400 block text-[9px]">HASAR</span><span id="ui-Quick-dmg" class="font-tech font-bold text-xs text-red-400">10</span></div>
                 <div class="h-4 w-[1px] bg-slate-800"></div>
                 <div><span class="text-slate-400 block text-[9px]">ATIŞ HIZI</span><span id="ui-Quick-spd" class="font-tech font-bold text-xs text-amber-400">1.00</span></div>
@@ -239,7 +242,7 @@
                 <div><span class="text-slate-400 block text-[9px]">ÇOKLU</span><span id="ui-Quick-multi" class="font-tech font-bold text-xs text-cyan-400">1</span></div>
             </div>
 
-            <div class="absolute bottom-2 right-2 flex items-center space-x-1.5 z-10">
+            <div id="hud-bottom-controls" class="absolute bottom-2 right-2 flex items-center space-x-1.5 z-10">
                 <button onclick="toggleRangeCircle()" id="btn-toggle-range" class="px-2 py-1 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-[11px] text-slate-300 flex items-center gap-1 shadow" title="Menzil">
                     <i class="fa-solid fa-bullseye text-blue-400"></i><span class="hidden sm:inline">Menzil</span>
                 </button>
@@ -280,6 +283,16 @@
                 </div>
             </div>
 
+            <!-- Mobil / Küçük Ekranlar İçin Panel İçi Canlı Durum Çubuğu -->
+            <div class="sm:hidden bg-slate-950/95 border-b border-slate-800/90 px-2.5 py-1.5 grid grid-cols-6 gap-1 text-center text-[10px] shrink-0">
+                <div class="bg-slate-900/80 rounded px-1 py-0.5"><span class="text-slate-400 block text-[8px]">CAN</span><b id="ui-drawer-hp" class="font-tech text-emerald-400">100</b></div>
+                <div class="bg-slate-900/80 rounded px-1 py-0.5"><span class="text-slate-400 block text-[8px]">ZIRH</span><b id="ui-drawer-armor" class="font-tech text-slate-200">0</b></div>
+                <div class="bg-slate-900/80 rounded px-1 py-0.5"><span class="text-slate-400 block text-[8px]">HASAR</span><b id="ui-drawer-dmg" class="font-tech text-red-400">12</b></div>
+                <div class="bg-slate-900/80 rounded px-1 py-0.5"><span class="text-slate-400 block text-[8px]">HIZ</span><b id="ui-drawer-spd" class="font-tech text-amber-400">1.00</b></div>
+                <div class="bg-slate-900/80 rounded px-1 py-0.5"><span class="text-slate-400 block text-[8px]">KRİTİK</span><b id="ui-drawer-crit" class="font-tech text-purple-400">%5</b></div>
+                <div class="bg-slate-900/80 rounded px-1 py-0.5"><span class="text-slate-400 block text-[8px]">ÇOKLU</span><b id="ui-drawer-multi" class="font-tech text-cyan-400">1</b></div>
+            </div>
+
             <!-- Sekmeler -->
             <nav class="grid grid-cols-8 bg-slate-900 border-b border-slate-800 shrink-0 text-[9px] font-medium">
                 <button onclick="switchTab('attack')" id="tab-btn-attack" class="py-2.5 flex flex-col items-center justify-center gap-0.5 tab-active transition hover:bg-slate-800/40"><i class="fa-solid fa-crosshairs text-xs text-red-400"></i><span>Saldırı</span></button>
@@ -297,22 +310,42 @@
                 <div id="tab-attack" class="space-y-2"><div id="attack-upgrades-list" class="space-y-2"></div></div>
                 <div id="tab-defense" class="hidden space-y-2"><div id="defense-upgrades-list" class="space-y-2"></div></div>
                 <div id="tab-economy" class="hidden space-y-2"><div id="economy-upgrades-list" class="space-y-2"></div></div>
-                <div id="tab-companions" class="hidden space-y-2.5"><div id="companions-list" class="space-y-2.5"></div></div>
+                <div id="tab-companions" class="hidden space-y-2.5">
+                    <div class="premium-card p-2.5 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-cyan-400 text-xs"></i>
+                            <div>
+                                <div class="text-[10px] text-slate-400 leading-tight">Aktif Yoldaş Görünümü:</div>
+                                <div id="comp-tab-active-skin" class="font-tech font-bold text-xs text-cyan-300">Siber Dron</div>
+                            </div>
+                        </div>
+                        <button onclick="switchTab('items'); switchInventorySubTab('compskins');" class="px-2.5 py-1 rounded-lg bg-cyan-600/25 hover:bg-cyan-600/40 border border-cyan-500/40 text-cyan-300 font-tech font-bold text-[11px] transition">
+                            Skin Değiştir
+                        </button>
+                    </div>
+                    <div id="companions-list" class="space-y-2.5"></div>
+                </div>
                 
                 <div id="tab-items" class="hidden space-y-3">
-                    <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
-                        <button onclick="switchInventorySubTab('gear')" id="inv-sub-gear" class="py-1.5 rounded-lg font-tech font-bold text-xs bg-blue-600 text-white transition"><i class="fa-solid fa-toolbox mr-1"></i>Eşyalar</button>
-                        <button onclick="switchInventorySubTab('skins')" id="inv-sub-skins" class="py-1.5 rounded-lg font-tech font-bold text-xs text-slate-400 hover:text-white transition"><i class="fa-solid fa-chess-rook mr-1"></i>Kule Skinleri (<span id="owned-skins-count">1/26</span>)</button>
+                    <div class="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                        <button onclick="switchInventorySubTab('gear')" id="inv-sub-gear" class="py-1.5 rounded-lg font-tech font-bold text-[11px] bg-blue-600 text-white transition"><i class="fa-solid fa-toolbox mr-1"></i>Eşyalar</button>
+                        <button onclick="switchInventorySubTab('skins')" id="inv-sub-skins" class="py-1.5 rounded-lg font-tech font-bold text-[11px] text-slate-400 hover:text-white transition"><i class="fa-solid fa-chess-rook mr-1"></i>Kule (<span id="owned-skins-count">1/26</span>)</button>
+                        <button onclick="switchInventorySubTab('compskins')" id="inv-sub-compskins" class="py-1.5 rounded-lg font-tech font-bold text-[11px] text-slate-400 hover:text-white transition"><i class="fa-solid fa-satellite mr-1"></i>Yoldaş (<span id="owned-compskins-count">1/10</span>)</button>
                     </div>
 
                     <div id="inv-panel-gear" class="space-y-3">
                         <div class="premium-card p-3">
                             <h4 class="font-tech font-bold text-xs text-yellow-400 uppercase mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-star"></i> Kuşanılan Eşyalar (Maks 3)</h4>
-                            <div id="equipped-items-list" class="grid grid-cols-3 gap-2 min-h-[70px] bg-slate-900/50 p-2 rounded-lg border border-white/5"></div>
+                            <div id="equipped-items-list" class="grid grid-cols-3 gap-2 min-h-[78px] bg-slate-900/50 p-2 rounded-lg border border-white/5"></div>
                         </div>
                         <div>
-                            <h4 class="font-tech font-bold text-xs text-slate-300 uppercase mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-box"></i> Envanterdeki Tüm Eşyalar</h4>
-                            <div id="inventory-items-list" class="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1"></div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <h4 class="font-tech font-bold text-xs text-slate-300 uppercase flex items-center gap-1.5"><i class="fa-solid fa-box"></i> Envanterdeki Eşyalar</h4>
+                                <button onclick="toggleRaritySortOrder()" id="btn-sort-rarity" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 border border-white/10 text-[10px] font-tech font-bold text-amber-300 transition flex items-center gap-1">
+                                    <i class="fa-solid fa-arrow-down-wide-short"></i> <span id="sort-rarity-label">Nadirlik: En Yüksek</span>
+                                </button>
+                            </div>
+                            <div id="inventory-items-list" class="grid grid-cols-2 gap-2 max-h-[310px] overflow-y-auto pr-1"></div>
                         </div>
                     </div>
 
@@ -326,13 +359,25 @@
                         </div>
                         <div id="skins-inventory-list" class="grid grid-cols-2 gap-2 max-h-[340px] overflow-y-auto pr-1"></div>
                     </div>
+
+                    <div id="inv-panel-compskins" class="hidden space-y-3">
+                        <div class="premium-card p-3 flex items-center justify-between">
+                            <div>
+                                <div class="text-[10px] text-cyan-400 font-tech uppercase font-bold">Aktif Yoldaş Görünümü</div>
+                                <div id="active-compskin-title" class="text-sm font-tech font-bold text-white">Siber Dron</div>
+                            </div>
+                            <span class="px-2 py-1 rounded bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-[10px] font-tech font-bold">AKTİF</span>
+                        </div>
+                        <div id="compskins-inventory-list" class="grid grid-cols-2 gap-2 max-h-[340px] overflow-y-auto pr-1"></div>
+                    </div>
                 </div>
 
                 <div id="tab-lootbox" class="hidden space-y-3">
-                    <div class="premium-card bg-gradient-to-br from-pink-950/50 via-slate-900 to-indigo-950/50 p-3.5 shadow-lg text-center">
+                    <div class="premium-card bg-gradient-to-br from-pink-950/50 via-slate-900 to-indigo-950/50 p-3.5 shadow-lg text-center relative overflow-hidden">
+                        <div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-pink-500 text-white font-tech font-bold text-[9px] uppercase">Özel İkonlu Eşyalar!</div>
                         <div class="w-11 h-11 rounded-2xl bg-pink-500/20 border border-pink-500/40 flex items-center justify-center mx-auto mb-2 text-pink-400 text-xl"><i class="fa-solid fa-cube"></i></div>
                         <h3 class="font-tech font-bold text-base text-pink-300 mb-0.5">Eşya & Kuantum Sandığı</h3>
-                        <p class="text-[11px] text-slate-300 mb-2.5">Kuleye yüzdelik güç veren eşyalar düşür! (Kopya eşyalar +15 💎 iade eder)</p>
+                        <p class="text-[11px] text-slate-300 mb-2.5"><b class="text-amber-300">Trajedi Maskesi</b>, <b class="text-pink-300">Sisifos'un Kayası</b>, <b class="text-cyan-300">Kader Daktilosu</b>, <b class="text-red-300">Kanlı Kum Saati</b> ve özel eşyalar düşür!</p>
                         <div class="flex justify-center gap-2">
                             <button onclick="openLootbox(1)" class="px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 25 Kristal (1'li)</button>
                             <button onclick="openLootbox(5)" class="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 110 Kristal (5'li)</button>
@@ -340,13 +385,24 @@
                     </div>
 
                     <div class="premium-card bg-gradient-to-br from-amber-950/60 via-slate-900 to-yellow-950/40 p-3.5 shadow-lg text-center relative overflow-hidden">
-                        <div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-tech font-bold text-[9px] uppercase">Yeni Skinler!</div>
+                        <div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-tech font-bold text-[9px] uppercase">Kule Skinleri!</div>
                         <div class="w-11 h-11 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center mx-auto mb-2 text-amber-400 text-xl"><i class="fa-solid fa-crown"></i></div>
                         <h3 class="font-tech font-bold text-base text-amber-300 mb-0.5">Kule Skin Kutusu</h3>
                         <p class="text-[11px] text-slate-300 mb-2.5">Efsanevi <b class="text-yellow-300">Kurt Kaan</b>, <b class="text-yellow-300">DGDVRN</b>, <b class="text-pink-300">Balonlu Sakız</b> ve 25 özel Kule Skini içerir!</p>
                         <div class="flex justify-center gap-2">
                             <button onclick="openSkinBox(1)" class="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 25 Kristal (1'li)</button>
                             <button onclick="openSkinBox(5)" class="px-3 py-2 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 110 Kristal (5'li)</button>
+                        </div>
+                    </div>
+
+                    <div class="premium-card bg-gradient-to-br from-cyan-950/60 via-slate-900 to-blue-950/40 p-3.5 shadow-lg text-center relative overflow-hidden">
+                        <div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-cyan-400 text-slate-950 font-tech font-bold text-[9px] uppercase">Yeni Yoldaşlar!</div>
+                        <div class="w-11 h-11 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center mx-auto mb-2 text-cyan-400 text-xl"><i class="fa-solid fa-satellite"></i></div>
+                        <h3 class="font-tech font-bold text-base text-cyan-300 mb-0.5">Yoldaş Skin Kutusu</h3>
+                        <p class="text-[11px] text-slate-300 mb-2.5">Yörüngedeki yoldaşların için <b class="text-amber-300">Bozkurt Ruhu</b>, <b class="text-purple-300">Tutulma Hilali</b>, <b class="text-pink-300">Gölge Kunai</b> ve <b class="text-sky-300">Origami Turna</b> görünümleri!</p>
+                        <div class="flex justify-center gap-2">
+                            <button onclick="openCompanionSkinBox(1)" class="px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 20 Kristal (1'li)</button>
+                            <button onclick="openCompanionSkinBox(5)" class="px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 90 Kristal (5'li)</button>
                         </div>
                     </div>
 
@@ -624,7 +680,33 @@
             toilet: { id: 'toilet', name: 'Altın Porselen', rarity: 'rare', emoji: '🚽', desc: 'Girdaplı porselen mizahi kule skini.', projColor: '#60a5fa', critColor: '#facc15' }
         };
 
+        const COMPANION_SKIN_DATABASE = {
+            default_tech: { id: 'default_tech', name: 'Siber Taktik Dronu', rarity: 'rare', emoji: '🛸', desc: 'Göz yormayan, zarif kanatlı standart taktik yoldaş dronu.' },
+            origami_crane: { id: 'origami_crane', name: 'Origami Turna', rarity: 'rare', emoji: '🕊️', desc: 'Minimalist katlanmış kağıt turna kuşu yoldaş görünümü.' },
+            cyber_prism: { id: 'cyber_prism', name: 'Kuantum Prizma', rarity: 'super_rare', emoji: '💠', desc: 'Yumuşak neon hatlı, sakin dönen geometrik enerji kristali.' },
+            ghost_wisp: { id: 'ghost_wisp', name: 'Hayalet Ruh Küresi', rarity: 'super_rare', emoji: '👻', desc: 'Dingin mavi-mor ruh halkasıyla süzülen mistik küre.' },
+            shadow_kunai: { id: 'shadow_kunai', name: 'Gölge Shuriken', rarity: 'epic', emoji: '🥷', desc: 'Yörüngede sessizce süzülen mat çelik ninja yıldızı.' },
+            crimson_sand: { id: 'crimson_sand', name: 'Kızıl Kum Sarkacı', rarity: 'epic', emoji: '⏳', desc: 'Zamanı büken mini kızıl kum saati uyduları.' },
+            drama_mask: { id: 'drama_mask', name: 'Tiyatro Maskeleri', rarity: 'epic', emoji: '🎭', desc: 'Trajedi ve Komedi sanatını yansıtan zarif ikili maske.' },
+            valkyrie_halo: { id: 'valkyrie_halo', name: 'Valkür Kanatları', rarity: 'mythic', emoji: '🪽', desc: 'Altın halesi ve zarif tüylü kanatlarıyla koruyucu melek uydusu.' },
+            eclipse_crescent: { id: 'eclipse_crescent', name: 'Tutulma Hilali', rarity: 'mythic', emoji: '🌙', desc: 'Karanlık güneş tutulması ve altın hilal yörünge uydusu.' },
+            kurt_spirit: { id: 'kurt_spirit', name: 'Bozkurt Ruhu (Alfa)', rarity: 'legendary', emoji: '🐺', desc: 'Gök mavisi ve altın hilal izi bırakan efsanevi Bozkurt totemi.' }
+        };
+
+        const RARITY_ORDER = { legendary: 5, mythic: 4, epic: 3, super_rare: 2, rare: 1 };
+        let raritySortDescending = true;
+
         const ITEM_DATABASE = {
+            // Kullanıcının gönderdiği 8 özel görsel eşyası + mevcut eşyalar
+            legendary_persona_masks: { id: 'legendary_persona_masks', name: 'Trajedi & Komedi Maskesi', rarity: 'legendary', type: 'damage_mult', val: 2.25, desc: 'İki yüzlü sahne tılsımı: Tüm kule hasarını +%225 (x3.25) katlar!', icon: 'fa-solid fa-masks-theater', customArt: 'masks' },
+            mythic_sisyphus_boulder: { id: 'mythic_sisyphus_boulder', name: 'Sisifos\'un Ebedi Kayası', rarity: 'mythic', type: 'hp', val: 1.65, desc: 'Durmaksızın zirveye taşınan kaya: Maksimum canı +%165 artırır.', icon: 'fa-solid fa-mountain', customArt: 'sisyphus' },
+            mythic_fate_typewriter: { id: 'mythic_fate_typewriter', name: 'Kader Daktilosu', rarity: 'mythic', type: 'critMult', val: 1.45, desc: 'Geleceği yazan yeşil daktilo: Kritik hasar çarpanını +1.45x artırır.', icon: 'fa-solid fa-keyboard', customArt: 'typewriter' },
+            epic_crimson_hourglass: { id: 'epic_crimson_hourglass', name: 'Kanlı Kum Saati', rarity: 'epic', type: 'speed', val: 0.42, desc: 'Kızıl kumları çatlaklardan sızan saat: Atış hızını +0.42/sn artırır.', icon: 'fa-solid fa-hourglass-end', customArt: 'crimson_hourglass' },
+            epic_crimson_archer: { id: 'epic_crimson_archer', name: 'Kızıl Yaylı Gölge Okçu', rarity: 'epic', type: 'damage', val: 0.80, desc: 'Uzun kızıl yaylı avcı ruhu: Tüm kule hasarını +%80 artırır.', icon: 'fa-solid fa-bow-arrow', customArt: 'archer' },
+            epic_void_rope: { id: 'epic_void_rope', name: 'Hiçlik Çukuru İpi', rarity: 'epic', type: 'lifesteal', val: 0.03, desc: 'Karanlık delikten çıkış halatı: Can çalma oranını +%3 artırır.', icon: 'fa-solid fa-circle-dot', customArt: 'void_rope' },
+            epic_future_letter: { id: 'epic_future_letter', name: 'Yırtık Gelecek Mektubu', rarity: 'epic', type: 'gold', val: 0.55, desc: 'Üzerinde "Gelecek" yazan kadim parşömen: Altın kazancını +%55 artırır.', icon: 'fa-solid fa-scroll', customArt: 'future_letter' },
+            srare_tracker_steps: { id: 'srare_tracker_steps', name: 'İz Sürücü Adımları', rarity: 'super_rare', type: 'range', val: 35, desc: 'Gizemli ayak izleri: Kule radar menzilini +35 piksel artırır.', icon: 'fa-solid fa-shoe-prints', customArt: 'footsteps' },
+
             rare_bow_shard: { id: 'rare_bow_shard', name: 'Kırık Yay Parçası', rarity: 'rare', type: 'damage', val: 0.12, desc: 'Tüm kule hasarını +%12 artırır.', icon: 'fa-solid fa-feather' },
             rare_copper_coin: { id: 'rare_copper_coin', name: 'Bakır Ganimet', rarity: 'rare', type: 'gold', val: 0.15, desc: 'Altın kazancını +%15 artırır.', icon: 'fa-solid fa-coins' },
             rare_iron_nail: { id: 'rare_iron_nail', name: 'Demir Çivi', rarity: 'rare', type: 'armor', val: 0.12, desc: 'Zırh değerini +%12 artırır.', icon: 'fa-solid fa-hammer' },
@@ -645,9 +727,9 @@
             srare_energy_cell: { id: 'srare_energy_cell', name: 'Enerji Hücresi', rarity: 'super_rare', type: 'shield', val: 0.30, desc: 'Plazma kalkanını +%30 artırır.', icon: 'fa-solid fa-battery-full' },
             srare_frost_core: { id: 'srare_frost_core', name: 'Sıfır Noktası Modülü', rarity: 'super_rare', type: 'regen', val: 0.32, desc: 'Can yenilemesini +%32 artırır.', icon: 'fa-solid fa-snowflake' },
             srare_sniper_scope: { id: 'srare_sniper_scope', name: 'Termal Lazer Dürbünü', rarity: 'super_rare', type: 'critMult', val: 0.55, desc: 'Kritik çarpanını +0.55x artırır.', icon: 'fa-solid fa-crosshairs' },
-            epic_shadow_bow: { id: 'epic_shadow_bow', name: 'Gölge Avcısı Yayı', rarity: 'epic', type: 'damage', val: 0.60, desc: 'Tüm kule hasarını +%60 artırır.', icon: 'fa-solid fa-bow-arrow' },
+            epic_shadow_bow: { id: 'epic_shadow_bow', name: 'Gölge Avcısı Yayı', rarity: 'epic', type: 'damage', val: 0.60, desc: 'Tüm kule hasarını +%60 artırır.', icon: 'fa-solid fa-bow-arrow', customArt: 'archer' },
             epic_dragon_scale: { id: 'epic_dragon_scale', name: 'Ejderha Pul Zırhı', rarity: 'epic', type: 'hp', val: 0.65, desc: 'Maksimum canı +%65 artırır.', icon: 'fa-solid fa-shield' },
-            epic_chronos_sand: { id: 'epic_chronos_sand', name: 'Zaman Kumları', rarity: 'epic', type: 'speed', val: 0.35, desc: 'Atış hızını +0.35/sn artırır.', icon: 'fa-solid fa-hourglass-half' },
+            epic_chronos_sand: { id: 'epic_chronos_sand', name: 'Zaman Kumları', rarity: 'epic', type: 'speed', val: 0.35, desc: 'Atış hızını +0.35/sn artırır.', icon: 'fa-solid fa-hourglass-half', customArt: 'crimson_hourglass' },
             epic_vampire_fang: { id: 'epic_vampire_fang', name: 'Vampir Dişi', rarity: 'epic', type: 'lifesteal', val: 0.02, desc: 'Can çalma oranını +%2 artırır.', icon: 'fa-solid fa-droplet' },
             epic_plasma_core: { id: 'epic_plasma_core', name: 'Kararsız Plazma Çekirdeği', rarity: 'epic', type: 'critMult', val: 1.10, desc: 'Kritik çarpanını +1.10x artırır.', icon: 'fa-solid fa-atom' },
             epic_cyber_katana: { id: 'epic_cyber_katana', name: 'Muramasa Plazma Kılıcı', rarity: 'epic', type: 'damage', val: 0.75, desc: 'Tüm kule hasarını +%75 artırır.', icon: 'fa-solid fa-khanda' },
@@ -662,6 +744,126 @@
             legendary_infinity_bow: { id: 'legendary_infinity_bow', name: 'Sonsuzluk Efsanevi Yayı', rarity: 'legendary', type: 'multishot_buff', val: 1, desc: 'Ekstra +1 Çoklu Atış hedefi sağlar!', icon: 'fa-solid fa-infinity' },
             legendary_kurt_totem: { id: 'legendary_kurt_totem', name: 'Kurt Kaan\'ın Ebedi Totemi', rarity: 'legendary', type: 'damage_mult', val: 2.50, desc: 'Tüm kule hasarını +%250 (x3.5) çarpanla katlar!', icon: 'fa-solid fa-paw' }
         };
+
+        // Gönderilen görsellerin ve özel eşyaların birebir vektörel (SVG) ikon çizimleri
+        function renderItemIconHTML(item, sizeClass = 'w-11 h-11') {
+            if (!item) return '';
+            const art = item.customArt || item.id;
+            let svgContent = '';
+
+            switch (art) {
+                case 'void_rope': // Kara delikten halatla tırmanan takım elbiseli adam
+                    svgContent = `<svg viewBox="0 0 64 64" class="w-full h-full">
+                        <rect width="64" height="64" rx="12" fill="#f8fafc"/>
+                        <ellipse cx="32" cy="54" rx="22" ry="6.5" fill="#090d16" stroke="#0f172a" stroke-width="2"/>
+                        <ellipse cx="32" cy="54" rx="18" ry="4.5" fill="none" stroke="#ffffff" stroke-width="1.5"/>
+                        <line x1="33" y1="2" x2="33" y2="48" stroke="#9a5b32" stroke-width="3.2" stroke-dasharray="3,1"/>
+                        <path d="M22 24 L32 18 L38 28 L34 40 L25 36 Z" fill="#0f172a"/>
+                        <circle cx="25" cy="15" r="5.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.8"/>
+                        <path d="M20 13 Q24 8 29 12" fill="#0f172a"/>
+                        <circle cx="33" cy="10" r="2.6" fill="#ffffff" stroke="#0f172a" stroke-width="1.4"/>
+                        <circle cx="33" cy="23" r="2.6" fill="#ffffff" stroke="#0f172a" stroke-width="1.4"/>
+                    </svg>`;
+                    break;
+                case 'footsteps': // Siyah ve kahverengi çapraz ayak izleri
+                    svgContent = `<svg viewBox="0 0 64 64" class="w-full h-full">
+                        <rect width="64" height="64" rx="12" fill="#f8fafc"/>
+                        <g transform="rotate(-25 32 32)">
+                            <ellipse cx="24" cy="48" rx="4.5" ry="7" fill="#334155"/>
+                            <ellipse cx="34" cy="40" rx="4.5" ry="7" fill="#334155"/>
+                            <ellipse cx="24" cy="28" rx="4.5" ry="7" fill="#7c4a2d"/>
+                            <ellipse cx="34" cy="20" rx="4.5" ry="7" fill="#7c4a2d"/>
+                            <ellipse cx="25" cy="9" rx="4" ry="6" fill="#334155"/>
+                        </g>
+                    </svg>`;
+                    break;
+                case 'future_letter': // Yırtık "Gelecek" yazılı parşömen mektup
+                    svgContent = `<svg viewBox="0 0 64 64" class="w-full h-full">
+                        <rect width="64" height="64" rx="12" fill="#f8fafc"/>
+                        <rect x="12" y="10" width="38" height="44" transform="rotate(-8 31 32)" fill="#bfa06d" stroke="#1e293b" stroke-width="1.3"/>
+                        <path d="M14 12 L50 12 L52 52 L34 52 L32 35 L29 52 L13 52 Z" fill="#ffffff" stroke="#0f172a" stroke-width="1.8"/>
+                        <path d="M21 21 Q27 16 32 21 T43 20" fill="none" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round"/>
+                        <line x1="19" y1="29" x2="45" y2="29" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="4,2"/>
+                        <line x1="19" y1="35" x2="44" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="3,2"/>
+                        <line x1="19" y1="41" x2="42" y2="41" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5,2"/>
+                        <circle cx="24" cy="33" r="2.2" fill="#64748b" opacity="0.6"/>
+                    </svg>`;
+                    break;
+                case 'typewriter': // Ahşap masa üzerinde yeşil daktilo ve buruşuk kağıtlar
+                    svgContent = `<svg viewBox="0 0 64 64" class="w-full h-full">
+                        <rect width="64" height="64" rx="12" fill="#f8fafc"/>
+                        <polygon points="6,36 48,20 58,42 22,58" fill="#e2e8f0" stroke="#1e293b" stroke-width="1.5"/>
+                        <rect x="23" y="12" width="18" height="16" transform="rotate(-15 32 20)" fill="#ffffff" stroke="#0f172a" stroke-width="1.4"/>
+                        <rect x="18" y="25" width="28" height="20" rx="4" transform="rotate(-15 32 35)" fill="#286656" stroke="#0f172a" stroke-width="1.6"/>
+                        <circle cx="26" cy="36" r="1.5" fill="#ffffff"/><circle cx="31" cy="35" r="1.5" fill="#ffffff"/><circle cx="36" cy="34" r="1.5" fill="#ffffff"/>
+                        <circle cx="28" cy="40" r="1.5" fill="#ffffff"/><circle cx="33" cy="39" r="1.5" fill="#ffffff"/><circle cx="38" cy="38" r="1.5" fill="#ffffff"/>
+                    </svg>`;
+                    break;
+                case 'archer': // Uzun kızıl yaylı siyah silüet okçu
+                    svgContent = `<svg viewBox="0 0 64 64" class="w-full h-full">
+                        <rect width="64" height="64" rx="12" fill="#f8fafc"/>
+                        <path d="M22 6 C10 22 10 42 22 56" fill="none" stroke="#881313" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="12" y1="28" x2="36" y2="28" stroke="#0f172a" stroke-width="1.5"/>
+                        <circle cx="36" cy="24" r="4.5" fill="#0f172a"/>
+                        <path d="M28 28 L44 27 L40 42 L32 42 Z" fill="#0f172a"/>
+                        <line x1="26" y1="44" x2="46" y2="33" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
+                        <line x1="35" y1="42" x2="35" y2="58" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round"/>
+                    </svg>`;
+                    break;
+                case 'crimson_hourglass': // Kan kırmızısı kum saati
+                    svgContent = `<svg viewBox="0 0 64 64" class="w-full h-full">
+                        <rect width="64" height="64" rx="12" fill="#f8fafc"/>
+                        <ellipse cx="32" cy="10" rx="17" ry="4" fill="#e2e8f0" stroke="#0f172a" stroke-width="1.8"/>
+                        <ellipse cx="32" cy="54" rx="17" ry="4" fill="#e2e8f0" stroke="#0f172a" stroke-width="1.8"/>
+                        <line x1="17" y1="12" x2="17" y2="52" stroke="#334155" stroke-width="2"/>
+                        <line x1="47" y1="12" x2="47" y2="52" stroke="#334155" stroke-width="2"/>
+                        <path d="M19 13 C19 26 30 30 32 32 C34 30 45 26 45 13 Z" fill="none" stroke="#0f172a" stroke-width="1.6"/>
+                        <path d="M21 19 C22 26 30 29 32 32 C34 29 42 26 43 19 Z" fill="#650614"/>
+                        <path d="M19 51 C19 38 30 34 32 32 C34 34 45 38 45 51 Z" fill="none" stroke="#0f172a" stroke-width="1.6"/>
+                        <line x1="32" y1="32" x2="32" y2="48" stroke="#650614" stroke-width="1.6" stroke-dasharray="2,1"/>
+                        <path d="M20 51 Q26 47 32 51 Q38 47 44 51 Z" fill="#650614"/>
+                    </svg>`;
+                    break;
+                case 'sisyphus': // Dev kayayı yokuş yukarı iten Sisifos çizimi
+                    svgContent = `<svg viewBox="0 0 64 64" class="w-full h-full">
+                        <rect width="64" height="64" rx="12" fill="#f8fafc"/>
+                        <line x1="8" y1="36" x2="56" y2="58" stroke="#334155" stroke-width="1.8" stroke-dasharray="4,2"/>
+                        <circle cx="26" cy="26" r="15" fill="#cbd5e1" stroke="#0f172a" stroke-width="2"/>
+                        <path d="M15 22 L35 30 M18 35 L33 15 M20 14 L36 26" stroke="#1e293b" stroke-width="1.2"/>
+                        <circle cx="43" cy="31" r="3" fill="#0f172a"/>
+                        <path d="M36 32 L43 35 L39 44 L46 51" fill="none" stroke="#0f172a" stroke-width="2.8" stroke-linecap="round"/>
+                    </svg>`;
+                    break;
+                case 'masks': // Trajedi ve Komedi tiyatro maskeleri
+                    svgContent = `<svg viewBox="0 0 64 64" class="w-full h-full">
+                        <rect width="64" height="64" rx="12" fill="#f8fafc"/>
+                        <!-- Trajedi Maskesi (Sol) -->
+                        <path d="M12 16 Q24 12 34 16 Q35 36 23 48 Q12 36 12 16 Z" fill="#ffffff" stroke="#0f172a" stroke-width="2.4"/>
+                        <path d="M17 25 Q20 22 22 25 M26 25 Q29 22 31 25" stroke="#0f172a" stroke-width="2" fill="none"/>
+                        <path d="M19 39 Q23 33 28 39" stroke="#0f172a" stroke-width="2.4" fill="none"/>
+                        <!-- Komedi Maskesi (Sağ) -->
+                        <path d="M29 14 Q42 12 53 18 Q52 40 38 52 Q26 38 29 14 Z" fill="#ffffff" stroke="#0f172a" stroke-width="2.6"/>
+                        <path d="M34 26 Q37 22 40 26 M43 27 Q46 23 49 27" stroke="#0f172a" stroke-width="2.2" fill="none"/>
+                        <path d="M33 34 Q40 45 47 36 Z" fill="#0f172a"/>
+                    </svg>`;
+                    break;
+                default: {
+                    const palette = {
+                        legendary: { bg: '#422006', border: '#facc15', fg: '#fde047' },
+                        mythic: { bg: '#500724', border: '#f472b6', fg: '#fbcfe8' },
+                        epic: { bg: '#3b0764', border: '#c084fc', fg: '#e9d5ff' },
+                        super_rare: { bg: '#083344', border: '#22d3ee', fg: '#cffafe' },
+                        rare: { bg: '#172554', border: '#60a5fa', fg: '#dbeafe' }
+                    }[item.rarity] || { bg: '#1e293b', border: '#60a5fa', fg: '#ffffff' };
+
+                    return `<div class="${sizeClass} rounded-xl flex items-center justify-center shrink-0 relative overflow-hidden shadow-inner" style="background: radial-gradient(circle at 30% 30%, ${palette.border}33, ${palette.bg}); border: 1.5px solid ${palette.border};">
+                        <i class="${item.icon} text-base sm:text-lg drop-shadow" style="color: ${palette.fg}"></i>
+                    </div>`;
+                }
+            }
+
+            return `<div class="${sizeClass} rounded-xl overflow-hidden shrink-0 border-2 border-white/20 shadow-md bg-white flex items-center justify-center">${svgContent}</div>`;
+        }
 
         const UPGRADE_DEFS = {
             damage: { category: 'attack', name: 'Plazma Hasarı', icon: 'fa-solid fa-explosion', color: 'text-red-400', desc: 'Her 10 ve 25 Sv. ekstra çarpan verir.', baseCost: 10, costScale: 1.115, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerDamage())} Hasar` },
@@ -760,6 +962,7 @@
                     missileBot: { unlocked: false, level: 0 }, repairDrone: { unlocked: false, level: 0 }, plasmaSatellite: { unlocked: false, level: 0 }
                 },
                 inventory: [], equippedItems: [], ownedSkins: ['default_cyber'], activeSkin: 'default_cyber',
+                ownedCompanionSkins: ['default_tech'], activeCompanionSkin: 'default_tech',
                 lootboxBonuses: { extraDamagePct: 0, extraGoldPct: 0, totalOpened: 0 },
                 prestigeUpgrades: { permDamage: 0, permGold: 0, companionBoost: 0, costDiscount: 0, startWave: 0 },
                 lastSaveTime: Date.now()
@@ -781,6 +984,29 @@
             if (!drawer) return;
             if (isDrawerOpen) drawer.classList.remove('-translate-x-full');
             else drawer.classList.add('-translate-x-full');
+            syncHudPositionsWithDrawer();
+        }
+
+        function syncHudPositionsWithDrawer() {
+            const topBar = document.getElementById('hud-top-bar');
+            const quickStats = document.getElementById('hud-quick-stats');
+            if (!topBar || !quickStats) return;
+
+            if (isDrawerOpen) {
+                // Sistem paneli solda açıldığında (430px) üstteki ve alttaki bilgi kartlarını sağ tarafa kaydır
+                topBar.classList.remove('left-2', 'sm:left-3');
+                topBar.classList.add('left-2', 'sm:left-[442px]');
+
+                quickStats.classList.remove('left-2', 'bottom-2');
+                quickStats.classList.add('right-2', 'bottom-11', 'sm:left-[442px]', 'sm:right-auto', 'sm:bottom-2');
+            } else {
+                // Sistem paneli kapandığında orijinal yerlerine geri getir
+                topBar.classList.remove('sm:left-[442px]');
+                topBar.classList.add('left-2', 'sm:left-3');
+
+                quickStats.classList.remove('right-2', 'bottom-11', 'sm:left-[442px]', 'sm:right-auto', 'sm:bottom-2');
+                quickStats.classList.add('left-2', 'bottom-2');
+            }
         }
 
         function setDeviceMode(mode) {
@@ -1874,6 +2100,147 @@
             }
         }
 
+        function drawCustomCompanionSkin(c, skinId, compKey, star, angle, pastel, nowTime) {
+            const colorMap = {
+                laserDrone: pastel ? '#fda4af' : '#f43f5e',
+                frostOrb: pastel ? '#7dd3fc' : '#38bdf8',
+                missileBot: pastel ? '#fdba74' : '#fb923c',
+                repairDrone: pastel ? '#6ee7b7' : '#10b981',
+                plasmaSatellite: pastel ? '#d8b4fe' : '#a855f7'
+            };
+            const accent = colorMap[compKey] || '#38bdf8';
+            const scale = 0.88 + star * 0.05;
+
+            c.save();
+            c.scale(scale, scale);
+
+            // 4★ ve 5★ yoldaşlar için göz yormayan ince zarif yörünge halkası
+            if (star >= 4) {
+                c.save();
+                c.strokeStyle = star === 5 ? 'rgba(250, 204, 21, 0.45)' : 'rgba(255, 255, 255, 0.25)';
+                c.lineWidth = 1.2;
+                c.setLineDash([4, 4]);
+                c.rotate(nowTime * 0.002);
+                c.beginPath(); c.arc(0, 0, 12.5, 0, Math.PI * 2); c.stroke();
+                c.restore();
+            }
+
+            switch (skinId) {
+                case 'origami_crane': {
+                    c.rotate(angle + Math.PI / 2);
+                    c.fillStyle = '#f8fafc'; c.strokeStyle = accent; c.lineWidth = 1.4;
+                    // Sol ve sağ origami kanatları
+                    c.beginPath(); c.moveTo(0, -2); c.lineTo(-12, -5); c.lineTo(-4, 4); c.closePath(); c.fill(); c.stroke();
+                    c.beginPath(); c.moveTo(0, -2); c.lineTo(12, -5); c.lineTo(4, 4); c.closePath(); c.fill(); c.stroke();
+                    // Origami gövde ve baş
+                    c.beginPath(); c.moveTo(0, -10); c.lineTo(3.5, 2); c.lineTo(0, 9); c.lineTo(-3.5, 2); c.closePath(); c.fill(); c.stroke();
+                    break;
+                }
+                case 'cyber_prism': {
+                    c.rotate(nowTime * 0.0025);
+                    c.fillStyle = '#0f172a'; c.strokeStyle = accent; c.lineWidth = 1.8;
+                    c.beginPath();
+                    c.moveTo(0, -10); c.lineTo(9, 0); c.lineTo(0, 10); c.lineTo(-9, 0);
+                    c.closePath(); c.fill(); c.stroke();
+                    c.fillStyle = accent;
+                    c.beginPath(); c.arc(0, 0, 3.2, 0, Math.PI * 2); c.fill();
+                    break;
+                }
+                case 'ghost_wisp': {
+                    const pulse = Math.sin(nowTime * 0.005) * 1.2;
+                    c.fillStyle = 'rgba(192, 132, 252, 0.22)';
+                    c.beginPath(); c.arc(0, 0, 10 + pulse, 0, Math.PI * 2); c.fill();
+                    c.fillStyle = '#e0e7ff'; c.strokeStyle = accent; c.lineWidth = 1.5;
+                    c.beginPath(); c.arc(0, -1, 6.5, Math.PI, 0);
+                    c.lineTo(6.5, 6); c.lineTo(3, 3.5); c.lineTo(0, 6.5); c.lineTo(-3, 3.5); c.lineTo(-6.5, 6);
+                    c.closePath(); c.fill(); c.stroke();
+                    c.fillStyle = '#0f172a';
+                    c.beginPath(); c.arc(-2.2, -1, 1.2, 0, Math.PI * 2); c.arc(2.2, -1, 1.2, 0, Math.PI * 2); c.fill();
+                    break;
+                }
+                case 'shadow_kunai': {
+                    c.rotate(nowTime * 0.006);
+                    c.fillStyle = '#1e293b'; c.strokeStyle = accent; c.lineWidth = 1.4;
+                    for (let i = 0; i < 4; i++) {
+                        c.rotate(Math.PI / 2);
+                        c.beginPath(); c.moveTo(0, -2); c.lineTo(3, -10); c.lineTo(0, -7); c.lineTo(-3, -10); c.closePath(); c.fill(); c.stroke();
+                    }
+                    c.fillStyle = '#f8fafc';
+                    c.beginPath(); c.arc(0, 0, 2.5, 0, Math.PI * 2); c.fill();
+                    break;
+                }
+                case 'crimson_sand': {
+                    c.rotate(angle * 0.25);
+                    c.fillStyle = '#1e293b'; c.strokeStyle = '#cbd5e1'; c.lineWidth = 1.4;
+                    c.beginPath();
+                    c.moveTo(-6, -8); c.lineTo(6, -8); c.lineTo(1, 0); c.lineTo(6, 8); c.lineTo(-6, 8); c.lineTo(-1, 0);
+                    c.closePath(); c.fill(); c.stroke();
+                    c.fillStyle = '#dc2626';
+                    c.beginPath(); c.moveTo(-4, -5); c.lineTo(4, -5); c.lineTo(0, 0); c.closePath(); c.fill();
+                    c.beginPath(); c.moveTo(-4, 7); c.lineTo(4, 7); c.lineTo(0, 3); c.closePath(); c.fill();
+                    break;
+                }
+                case 'drama_mask': {
+                    c.fillStyle = '#ffffff'; c.strokeStyle = '#0f172a'; c.lineWidth = 1.6;
+                    c.beginPath();
+                    c.moveTo(-6, -7); c.quadraticCurveTo(0, -9, 6, -7);
+                    c.quadraticCurveTo(7, 3, 0, 9);
+                    c.quadraticCurveTo(-7, 3, -6, -7);
+                    c.closePath(); c.fill(); c.stroke();
+                    c.fillStyle = '#0f172a';
+                    c.beginPath(); c.arc(-2.3, -2, 1.2, 0, Math.PI * 2); c.arc(2.3, -2, 1.2, 0, Math.PI * 2); c.fill();
+                    c.beginPath(); c.arc(0, 2, 3, 0, Math.PI); c.stroke();
+                    break;
+                }
+                case 'valkyrie_halo': {
+                    c.rotate(angle + Math.PI / 2);
+                    // Zarif beyaz-altın kanatlar
+                    c.fillStyle = '#f8fafc'; c.strokeStyle = '#fbbf24'; c.lineWidth = 1.3;
+                    c.beginPath(); c.moveTo(-2, 0); c.quadraticCurveTo(-11, -6, -9, 5); c.quadraticCurveTo(-5, 4, -2, 2); c.closePath(); c.fill(); c.stroke();
+                    c.beginPath(); c.moveTo(2, 0); c.quadraticCurveTo(11, -6, 9, 5); c.quadraticCurveTo(5, 4, 2, 2); c.closePath(); c.fill(); c.stroke();
+                    // Merkez çekirdek
+                    c.fillStyle = accent; c.beginPath(); c.arc(0, 0, 4.2, 0, Math.PI * 2); c.fill();
+                    c.strokeStyle = '#fef08a'; c.lineWidth = 1.2; c.beginPath(); c.arc(0, -6, 3.2, 0, Math.PI * 2); c.stroke();
+                    break;
+                }
+                case 'eclipse_crescent': {
+                    c.rotate(angle);
+                    c.fillStyle = '#fbbf24';
+                    c.beginPath(); c.arc(0, 0, 8.5, 0, Math.PI * 2); c.fill();
+                    c.fillStyle = '#0f172a';
+                    c.beginPath(); c.arc(3, -1, 7, 0, Math.PI * 2); c.fill();
+                    c.fillStyle = accent;
+                    c.beginPath(); c.arc(4, 0, 2.2, 0, Math.PI * 2); c.fill();
+                    break;
+                }
+                case 'kurt_spirit': {
+                    c.rotate(angle + Math.PI / 2);
+                    // Minimalist Bozkurt başı & altın hilal
+                    c.fillStyle = '#1e293b'; c.strokeStyle = '#38bdf8'; c.lineWidth = 1.5;
+                    c.beginPath();
+                    c.moveTo(0, -10); c.lineTo(6, -2); c.lineTo(7, -8); c.lineTo(8, 3); c.lineTo(0, 8);
+                    c.lineTo(-8, 3); c.lineTo(-7, -8); c.lineTo(-6, -2);
+                    c.closePath(); c.fill(); c.stroke();
+                    c.fillStyle = '#facc15';
+                    c.beginPath(); c.arc(-2.5, -1, 1.3, 0, Math.PI * 2); c.arc(2.5, -1, 1.3, 0, Math.PI * 2); c.fill();
+                    break;
+                }
+                case 'default_tech':
+                default: {
+                    // Göz yormayan ama havalı teknolojik kanatlı dron
+                    c.rotate(angle + Math.PI / 2);
+                    c.fillStyle = '#1e293b'; c.strokeStyle = accent; c.lineWidth = 1.5;
+                    c.beginPath();
+                    c.moveTo(0, -9); c.lineTo(9, 3); c.lineTo(4, 5); c.lineTo(0, 2); c.lineTo(-4, 5); c.lineTo(-9, 3);
+                    c.closePath(); c.fill(); c.stroke();
+                    c.fillStyle = accent;
+                    c.beginPath(); c.arc(0, -1, 3, 0, Math.PI * 2); c.fill();
+                    break;
+                }
+            }
+            c.restore();
+        }
+
         function updateCompanions(simDt) {
             for (const [key, st] of Object.entries(game.companions)) {
                 const star = Math.min(5, Math.max(0, st.unlocked ? (st.level || 1) : 0));
@@ -2148,18 +2515,14 @@
                 ctx.stroke(); ctx.restore();
             }
 
+            const activeCompSkin = game.activeCompanionSkin || 'default_tech';
+            const nowCompTime = performance.now();
             for (const [key, st] of Object.entries(game.companions)) {
-                if (!st.unlocked || !st.x) continue; const def = COMPANION_DEFS[key];
+                if (!st.unlocked || !st.x) continue;
                 const star = Math.min(5, Math.max(1, st.level || 1));
-                ctx.save(); ctx.translate(st.x, st.y);
-                if (pastel) ctx.fillStyle = def.badgeClass.includes('red') ? '#fda4af' : (def.badgeClass.includes('sky') ? '#bae6fd' : (def.badgeClass.includes('orange') ? '#fdba74' : (def.badgeClass.includes('emerald') ? '#a7f3d0' : '#ddd6fe')));
-                else ctx.fillStyle = def.badgeClass.includes('red') ? '#ef4444' : (def.badgeClass.includes('sky') ? '#38bdf8' : (def.badgeClass.includes('orange') ? '#f97316' : (def.badgeClass.includes('emerald') ? '#10b981' : '#a855f7')));
-                ctx.beginPath(); ctx.arc(0, 0, 6.5 + star * 0.6, 0, Math.PI * 2); ctx.fill();
-                if (star >= 3) {
-                    ctx.strokeStyle = star === 5 ? '#facc15' : 'rgba(255,255,255,0.6)';
-                    ctx.lineWidth = 1.5;
-                    ctx.beginPath(); ctx.arc(0, 0, 9.5 + star * 0.6, 0, Math.PI * 2); ctx.stroke();
-                }
+                ctx.save();
+                ctx.translate(st.x, st.y);
+                drawCustomCompanionSkin(ctx, activeCompSkin, key, star, st.angle || 0, pastel, nowCompTime);
                 ctx.restore();
             }
 
@@ -2299,6 +2662,10 @@
 
         function buildCompanionsUI() {
             const list = document.getElementById('companions-list'); if (!list) return; list.innerHTML = '';
+            const compSkinDef = COMPANION_SKIN_DATABASE[game.activeCompanionSkin || 'default_tech'] || COMPANION_SKIN_DATABASE.default_tech;
+            const compSkinLabel = document.getElementById('comp-tab-active-skin');
+            if (compSkinLabel) compSkinLabel.textContent = `${compSkinDef.emoji} ${compSkinDef.name}`;
+
             for (const [key, def] of Object.entries(COMPANION_DEFS)) {
                 const st = game.companions[key];
                 const star = st.unlocked ? Math.min(5, Math.max(1, st.level || 1)) : 0;
@@ -2653,6 +3020,41 @@
             startLootboxModalAnimation('skin', count, droppedEntries, refundCrystals);
         }
 
+        function openCompanionSkinBox(count) {
+            const cost = count === 5 ? 90 : count * 20;
+            if (game.crystals < cost) { showToast('Yeterli kristalin yok!'); return; }
+            game.crystals -= cost;
+            if (!Array.isArray(game.ownedCompanionSkins)) game.ownedCompanionSkins = ['default_tech'];
+
+            let droppedEntries = [];
+            let refundCrystals = 0;
+            const allCompSkins = Object.values(COMPANION_SKIN_DATABASE).filter(s => s.id !== 'default_tech');
+
+            for (let i = 0; i < count; i++) {
+                const roll = Math.random() * 100;
+                let rarity = 'rare';
+                if (roll < 3.5) rarity = 'legendary';
+                else if (roll < 15) rarity = 'mythic';
+                else if (roll < 38) rarity = 'epic';
+                else if (roll < 68) rarity = 'super_rare';
+
+                let pool = allCompSkins.filter(s => s.rarity === rarity);
+                if (pool.length === 0) pool = allCompSkins;
+                const cSkin = pool[Math.floor(Math.random() * pool.length)];
+                const isDuplicate = game.ownedCompanionSkins.includes(cSkin.id);
+
+                if (!isDuplicate) game.ownedCompanionSkins.push(cSkin.id);
+                else refundCrystals += 12;
+
+                droppedEntries.push({ kind: 'compskin', data: cSkin, isDuplicate });
+            }
+
+            if (refundCrystals > 0) game.crystals += refundCrystals;
+            buildInventoryUI(); buildCompanionsUI(); updateHUD(); saveGame(true);
+
+            startLootboxModalAnimation('compskin', count, droppedEntries, refundCrystals);
+        }
+
         function startLootboxModalAnimation(boxType, count, entries, refundCrystals) {
             currentLootSession = { boxType, count, entries, refundCrystals };
             clearTimeout(lootboxAnimTimer);
@@ -2670,6 +3072,9 @@
             if (boxType === 'skin') {
                 chestIcon.className = 'fa-solid fa-crown text-6xl text-amber-300 drop-shadow-[0_0_20px_rgba(250,204,21,0.9)]';
                 chestSubtitle.textContent = count > 1 ? '5x KULE SKİN KUTUSU AÇILIYOR...' : 'KULE SKİN KUTUSU AÇILIYOR...';
+            } else if (boxType === 'compskin') {
+                chestIcon.className = 'fa-solid fa-satellite text-6xl text-cyan-300 drop-shadow-[0_0_20px_rgba(34,211,238,0.9)]';
+                chestSubtitle.textContent = count > 1 ? '5x YOLDAŞ SKİN KUTUSU AÇILIYOR...' : 'YOLDAŞ SKİN KUTUSU AÇILIYOR...';
             } else {
                 chestIcon.className = 'fa-solid fa-cube text-6xl text-pink-400 drop-shadow-[0_0_20px_rgba(236,72,153,0.9)]';
                 chestSubtitle.textContent = count > 1 ? '5x KUANTUM EŞYA SANDIĞI AÇILIYOR...' : 'KUANTUM EŞYA SANDIĞI AÇILIYOR...';
@@ -2706,7 +3111,8 @@
             void flashBurst.offsetWidth;
             flashBurst.style.animation = 'flashBurst 0.55s ease-out forwards';
 
-            reopenLabel.textContent = `Tekrar Aç (${count === 5 ? 110 : count * 25} 💎)`;
+            const boxCost = boxType === 'compskin' ? (count === 5 ? 90 : count * 20) : (count === 5 ? 110 : count * 25);
+            reopenLabel.textContent = `Tekrar Aç (${boxCost} 💎)`;
 
             if (refundCrystals > 0) {
                 refundBanner.classList.remove('hidden');
@@ -2724,15 +3130,15 @@
                 const cardSizeCls = isSingle ? 'w-64 p-5' : 'w-36 sm:w-40 p-3';
 
                 const statusBadge = entry.isDuplicate
-                    ? `<span class="px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-cyan-300 text-[9px] font-tech font-bold">+15 💎 KOPYA</span>`
+                    ? `<span class="px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-cyan-300 text-[9px] font-tech font-bold">+${entry.kind === 'compskin' ? 12 : 15} 💎 KOPYA</span>`
                     : `<span class="px-2 py-0.5 rounded-full bg-emerald-500/25 border border-emerald-400/60 text-emerald-300 text-[9px] font-tech font-bold animate-pulse">✨ YENİ!</span>`;
 
-                const visualCenter = entry.kind === 'skin'
+                const visualCenter = (entry.kind === 'skin' || entry.kind === 'compskin')
                     ? `<div class="my-2 flex flex-col items-center justify-center loot-float">
                            <canvas id="loot-skin-canvas-${idx}" width="76" height="76" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-950/90 border border-white/15 shadow-inner"></canvas>
                        </div>`
-                    : `<div class="my-3 w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl bg-slate-950/90 border border-white/15 flex items-center justify-center text-2xl sm:text-3xl ${rb.cls.split(' ')[0]} loot-float">
-                           <i class="${d.icon}"></i>
+                    : `<div class="my-3 flex items-center justify-center loot-float">
+                           ${renderItemIconHTML(d, 'w-16 h-16 sm:w-20 sm:h-20')}
                        </div>`;
 
                 return `
@@ -2753,15 +3159,21 @@
             // Skin önizleme canvaslarını çiz
             const pastel = isPastelMode();
             entries.forEach((entry, idx) => {
-                if (entry.kind === 'skin') {
+                if (entry.kind === 'skin' || entry.kind === 'compskin') {
                     const cEl = document.getElementById(`loot-skin-canvas-${idx}`);
                     if (cEl) {
                         const cCtx = cEl.getContext('2d');
                         cCtx.clearRect(0, 0, cEl.width, cEl.height);
                         cCtx.save();
-                        cCtx.translate(cEl.width / 2 - 2, cEl.height / 2);
-                        cCtx.scale(1.15, 1.15);
-                        drawCustomTowerSkin(cCtx, entry.data.id, 0, 0, 1, pastel, performance.now());
+                        if (entry.kind === 'skin') {
+                            cCtx.translate(cEl.width / 2 - 2, cEl.height / 2);
+                            cCtx.scale(1.15, 1.15);
+                            drawCustomTowerSkin(cCtx, entry.data.id, 0, 0, 1, pastel, performance.now());
+                        } else {
+                            cCtx.translate(cEl.width / 2, cEl.height / 2);
+                            cCtx.scale(2.1, 2.1);
+                            drawCustomCompanionSkin(cCtx, entry.data.id, 'laserDrone', 5, -Math.PI / 2, pastel, performance.now());
+                        }
                         cCtx.restore();
                     }
                 }
@@ -2778,6 +3190,7 @@
             if (!currentLootSession) return;
             const { boxType, count } = currentLootSession;
             if (boxType === 'skin') openSkinBox(count);
+            else if (boxType === 'compskin') openCompanionSkinBox(count);
             else openLootbox(count);
         }
 
@@ -2787,10 +3200,32 @@
             buildInventoryUI(); saveGame(true);
         }
 
+        function selectCompanionSkin(skinId) {
+            if (!Array.isArray(game.ownedCompanionSkins)) game.ownedCompanionSkins = ['default_tech'];
+            if (!game.ownedCompanionSkins.includes(skinId)) return;
+            game.activeCompanionSkin = skinId;
+            const cSkin = COMPANION_SKIN_DATABASE[skinId];
+            showToast(`Yoldaş Skini Kuşanıldı: ${cSkin.emoji} ${cSkin.name}`);
+            buildInventoryUI(); buildCompanionsUI(); saveGame(true);
+        }
+
         function switchInventorySubTab(sub) {
-            document.getElementById('inv-panel-gear').classList.toggle('hidden', sub !== 'gear'); document.getElementById('inv-panel-skins').classList.toggle('hidden', sub !== 'skins');
-            document.getElementById('inv-sub-gear').className = sub === 'gear' ? 'py-1.5 rounded-lg font-tech font-bold text-xs bg-blue-600 text-white transition' : 'py-1.5 rounded-lg font-tech font-bold text-xs text-slate-400 hover:text-white transition';
-            document.getElementById('inv-sub-skins').className = sub === 'skins' ? 'py-1.5 rounded-lg font-tech font-bold text-xs bg-amber-600 text-white transition' : 'py-1.5 rounded-lg font-tech font-bold text-xs text-slate-400 hover:text-white transition';
+            document.getElementById('inv-panel-gear').classList.toggle('hidden', sub !== 'gear');
+            document.getElementById('inv-panel-skins').classList.toggle('hidden', sub !== 'skins');
+            const compPanel = document.getElementById('inv-panel-compskins');
+            if (compPanel) compPanel.classList.toggle('hidden', sub !== 'compskins');
+
+            document.getElementById('inv-sub-gear').className = sub === 'gear' ? 'py-1.5 rounded-lg font-tech font-bold text-[11px] bg-blue-600 text-white transition' : 'py-1.5 rounded-lg font-tech font-bold text-[11px] text-slate-400 hover:text-white transition';
+            document.getElementById('inv-sub-skins').className = sub === 'skins' ? 'py-1.5 rounded-lg font-tech font-bold text-[11px] bg-amber-600 text-white transition' : 'py-1.5 rounded-lg font-tech font-bold text-[11px] text-slate-400 hover:text-white transition';
+            const compBtn = document.getElementById('inv-sub-compskins');
+            if (compBtn) compBtn.className = sub === 'compskins' ? 'py-1.5 rounded-lg font-tech font-bold text-[11px] bg-cyan-600 text-white transition' : 'py-1.5 rounded-lg font-tech font-bold text-[11px] text-slate-400 hover:text-white transition';
+            buildInventoryUI();
+        }
+
+        function toggleRaritySortOrder() {
+            raritySortDescending = !raritySortDescending;
+            const label = document.getElementById('sort-rarity-label');
+            if (label) label.textContent = raritySortDescending ? 'Nadirlik: En Yüksek' : 'Nadirlik: En Düşük';
             buildInventoryUI();
         }
 
@@ -2808,8 +3243,13 @@
         }
 
         function buildInventoryUI() {
-            if (!Array.isArray(game.equippedItems)) game.equippedItems = []; if (!Array.isArray(game.inventory)) game.inventory = []; if (!Array.isArray(game.ownedSkins)) game.ownedSkins = ['default_cyber'];
-            const badge = document.getElementById('badge-equipped-count'); if (badge) badge.textContent = `${game.equippedItems.length}/3`;
+            if (!Array.isArray(game.equippedItems)) game.equippedItems = [];
+            if (!Array.isArray(game.inventory)) game.inventory = [];
+            if (!Array.isArray(game.ownedSkins)) game.ownedSkins = ['default_cyber'];
+            if (!Array.isArray(game.ownedCompanionSkins)) game.ownedCompanionSkins = ['default_tech'];
+
+            const badge = document.getElementById('badge-equipped-count');
+            if (badge) badge.textContent = `${game.equippedItems.length}/3`;
 
             const eqList = document.getElementById('equipped-items-list');
             if (eqList) {
@@ -2818,22 +3258,53 @@
                     const itemId = game.equippedItems[i], item = ITEM_DATABASE[itemId];
                     if (item) {
                         const rb = getRarityBadge(item.rarity);
-                        eqList.innerHTML += `<div onclick="toggleEquipItem('${item.id}')" class="cursor-pointer p-2 rounded-lg border ${rb.cls} flex flex-col items-center justify-center text-center relative hover:opacity-80 transition"><i class="${item.icon} text-sm mb-1"></i><div class="font-tech font-bold text-[10px] leading-tight line-clamp-1">${item.name}</div><span class="text-[8px] opacity-75">Çıkar</span></div>`;
-                    } else eqList.innerHTML += `<div class="p-2 rounded-lg border border-dashed border-slate-700 flex items-center justify-center text-[10px] text-slate-500">Boş Slot</div>`;
+                        eqList.innerHTML += `
+                            <div onclick="toggleEquipItem('${item.id}')" class="cursor-pointer p-2 rounded-lg border ${rb.cls} flex flex-col items-center justify-center text-center relative hover:opacity-80 transition gap-1">
+                                ${renderItemIconHTML(item, 'w-9 h-9')}
+                                <div class="font-tech font-bold text-[10px] leading-tight line-clamp-1">${item.name}</div>
+                                <span class="text-[8px] opacity-75">Çıkar</span>
+                            </div>`;
+                    } else {
+                        eqList.innerHTML += `<div class="p-2 rounded-lg border border-dashed border-slate-700 flex items-center justify-center text-[10px] text-slate-500">Boş Slot</div>`;
+                    }
                 }
             }
 
             const invList = document.getElementById('inventory-items-list');
             if (invList) {
-                if (game.inventory.length === 0) invList.innerHTML = `<div class="col-span-2 text-center py-6 text-xs text-slate-500">Henüz eşyan yok. Kutular sekmesinden sandık aç!</div>`;
-                else invList.innerHTML = game.inventory.map(id => {
-                    const item = ITEM_DATABASE[id]; if (!item) return '';
-                    const isEq = game.equippedItems.includes(id), rb = getRarityBadge(item.rarity);
-                    return `<div onclick="toggleEquipItem('${item.id}')" class="cursor-pointer p-2.5 rounded-xl border ${isEq ? 'border-yellow-400 bg-yellow-500/10' : 'border-slate-800 bg-slate-900/50'} hover:border-slate-600 transition flex flex-col justify-between"><div class="flex items-center justify-between mb-1"><span class="px-1.5 py-0.5 rounded text-[8px] font-tech font-bold border ${rb.cls}">${rb.text}</span>${isEq ? '<span class="text-[9px] text-yellow-300 font-bold">TAKILI</span>' : ''}</div><div class="font-tech font-bold text-xs text-white flex items-center gap-1.5 mb-0.5"><i class="${item.icon}"></i> ${item.name}</div><div class="text-[10px] text-slate-400">${item.desc}</div></div>`;
-                }).join('');
+                if (game.inventory.length === 0) {
+                    invList.innerHTML = `<div class="col-span-2 text-center py-6 text-xs text-slate-500">Henüz eşyan yok. Kutular sekmesinden sandık aç!</div>`;
+                } else {
+                    const sortedIds = [...game.inventory].filter(id => ITEM_DATABASE[id]).sort((a, b) => {
+                        const itemA = ITEM_DATABASE[a], itemB = ITEM_DATABASE[b];
+                        const rA = RARITY_ORDER[itemA.rarity] || 0, rB = RARITY_ORDER[itemB.rarity] || 0;
+                        if (rA !== rB) return raritySortDescending ? (rB - rA) : (rA - rB);
+                        return itemA.name.localeCompare(itemB.name, 'tr');
+                    });
+
+                    invList.innerHTML = sortedIds.map(id => {
+                        const item = ITEM_DATABASE[id];
+                        const isEq = game.equippedItems.includes(id), rb = getRarityBadge(item.rarity);
+                        return `
+                            <div onclick="toggleEquipItem('${item.id}')" class="cursor-pointer p-2.5 rounded-xl border ${isEq ? 'border-yellow-400 bg-yellow-500/10' : 'border-slate-800 bg-slate-900/50'} hover:border-slate-600 transition flex flex-col justify-between gap-1.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-1.5 py-0.5 rounded text-[8px] font-tech font-bold border ${rb.cls}">${rb.text}</span>
+                                    ${isEq ? '<span class="text-[9px] text-yellow-300 font-bold">TAKILI</span>' : ''}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    ${renderItemIconHTML(item, 'w-11 h-11')}
+                                    <div class="min-w-0">
+                                        <div class="font-tech font-bold text-xs text-white leading-tight truncate">${item.name}</div>
+                                        <div class="text-[10px] text-slate-400 leading-tight line-clamp-2 mt-0.5">${item.desc}</div>
+                                    </div>
+                                </div>
+                            </div>`;
+                    }).join('');
+                }
             }
 
-            const allSkins = Object.values(SKIN_DATABASE);
+            // Kule Skinleri (Nadirliğe göre sıralı)
+            const allSkins = Object.values(SKIN_DATABASE).sort((a, b) => (RARITY_ORDER[b.rarity] || 0) - (RARITY_ORDER[a.rarity] || 0));
             document.getElementById('owned-skins-count').textContent = `${game.ownedSkins.length}/${allSkins.length}`;
             const activeSkinDef = SKIN_DATABASE[game.activeSkin] || SKIN_DATABASE.default_cyber;
             document.getElementById('active-skin-title').textContent = `${activeSkinDef.emoji} ${activeSkinDef.name}`;
@@ -2845,7 +3316,6 @@
                     return `<div onclick="${owned ? `selectTowerSkin('${skin.id}')` : ''}" class="${owned ? 'cursor-pointer hover:border-amber-500/50' : 'opacity-45 cursor-not-allowed'} p-2.5 rounded-xl border ${isActive ? 'border-amber-400 bg-amber-500/10' : 'border-slate-800 bg-slate-900/50'} transition flex flex-col justify-between"><div class="flex items-center justify-between mb-1"><span class="px-1.5 py-0.5 rounded text-[8px] font-tech font-bold border ${rb.cls}">${rb.text}</span><span class="text-[9px] font-tech font-bold ${isActive ? 'text-amber-300' : (owned ? 'text-emerald-400' : 'text-slate-500')}">${isActive ? 'AKTİF' : (owned ? 'SAHİP' : 'KİLİTLİ')}</span></div><div class="flex items-center gap-2 my-1"><canvas id="skin-preview-${skin.id}" width="52" height="52" class="w-[46px] h-[46px] rounded-lg bg-slate-950/80 border border-white/10 shrink-0"></canvas><div class="min-w-0"><div class="font-tech font-bold text-xs text-white truncate">${skin.name}</div><div class="text-[10px] text-slate-400 leading-tight line-clamp-2">${skin.desc}</div></div></div></div>`;
                 }).join('');
 
-                // Her skin kartındaki önizleme canvas'ına kulenin gerçek özel çizimini aktar
                 const pastel = isPastelMode();
                 allSkins.forEach(skin => {
                     const pCanvas = document.getElementById(`skin-preview-${skin.id}`);
@@ -2856,6 +3326,36 @@
                         pCtx.translate(pCanvas.width / 2 - 2, pCanvas.height / 2);
                         pCtx.scale(0.82, 0.82);
                         drawCustomTowerSkin(pCtx, skin.id, 0, 0, 1, pastel, 0);
+                        pCtx.restore();
+                    }
+                });
+            }
+
+            // Yoldaş Skinleri (Nadirliğe göre sıralı)
+            const allCompSkins = Object.values(COMPANION_SKIN_DATABASE).sort((a, b) => (RARITY_ORDER[b.rarity] || 0) - (RARITY_ORDER[a.rarity] || 0));
+            const compCountEl = document.getElementById('owned-compskins-count');
+            if (compCountEl) compCountEl.textContent = `${game.ownedCompanionSkins.length}/${allCompSkins.length}`;
+            const activeCompSkinDef = COMPANION_SKIN_DATABASE[game.activeCompanionSkin] || COMPANION_SKIN_DATABASE.default_tech;
+            const activeCompTitle = document.getElementById('active-compskin-title');
+            if (activeCompTitle) activeCompTitle.textContent = `${activeCompSkinDef.emoji} ${activeCompSkinDef.name}`;
+
+            const compSkinsListEl = document.getElementById('compskins-inventory-list');
+            if (compSkinsListEl) {
+                compSkinsListEl.innerHTML = allCompSkins.map(cSkin => {
+                    const owned = game.ownedCompanionSkins.includes(cSkin.id), isActive = game.activeCompanionSkin === cSkin.id, rb = getRarityBadge(cSkin.rarity);
+                    return `<div onclick="${owned ? `selectCompanionSkin('${cSkin.id}')` : ''}" class="${owned ? 'cursor-pointer hover:border-cyan-500/50' : 'opacity-45 cursor-not-allowed'} p-2.5 rounded-xl border ${isActive ? 'border-cyan-400 bg-cyan-500/10' : 'border-slate-800 bg-slate-900/50'} transition flex flex-col justify-between"><div class="flex items-center justify-between mb-1"><span class="px-1.5 py-0.5 rounded text-[8px] font-tech font-bold border ${rb.cls}">${rb.text}</span><span class="text-[9px] font-tech font-bold ${isActive ? 'text-cyan-300' : (owned ? 'text-emerald-400' : 'text-slate-500')}">${isActive ? 'AKTİF' : (owned ? 'SAHİP' : 'KİLİTLİ')}</span></div><div class="flex items-center gap-2 my-1"><canvas id="compskin-preview-${cSkin.id}" width="52" height="52" class="w-[46px] h-[46px] rounded-lg bg-slate-950/80 border border-white/10 shrink-0"></canvas><div class="min-w-0"><div class="font-tech font-bold text-xs text-white truncate">${cSkin.name}</div><div class="text-[10px] text-slate-400 leading-tight line-clamp-2">${cSkin.desc}</div></div></div></div>`;
+                }).join('');
+
+                const pastel = isPastelMode();
+                allCompSkins.forEach(cSkin => {
+                    const pCanvas = document.getElementById(`compskin-preview-${cSkin.id}`);
+                    if (pCanvas) {
+                        const pCtx = pCanvas.getContext('2d');
+                        pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+                        pCtx.save();
+                        pCtx.translate(pCanvas.width / 2, pCanvas.height / 2);
+                        pCtx.scale(1.65, 1.65);
+                        drawCustomCompanionSkin(pCtx, cSkin.id, 'laserDrone', 5, -Math.PI / 2, pastel, 0);
                         pCtx.restore();
                     }
                 });
@@ -2886,6 +3386,18 @@
             document.getElementById('ui-Quick-spd').textContent = getTowerFireRate().toFixed(2);
             document.getElementById('ui-Quick-crit').textContent = `%${getTowerCritChance()}`;
             document.getElementById('ui-Quick-multi').textContent = getEffectiveMultishot();
+
+            // Mobil çekmece içi canlı özet değerleri
+            const dHp = document.getElementById('ui-drawer-hp');
+            if (dHp) {
+                dHp.textContent = formatNumber(tower.hp);
+                document.getElementById('ui-drawer-armor').textContent = formatNumber(getTowerArmor());
+                document.getElementById('ui-drawer-dmg').textContent = formatNumber(getTowerDamage());
+                document.getElementById('ui-drawer-spd').textContent = getTowerFireRate().toFixed(2);
+                document.getElementById('ui-drawer-crit').textContent = `%${getTowerCritChance()}`;
+                const dMulti = document.getElementById('ui-drawer-multi');
+                if (dMulti) dMulti.textContent = getEffectiveMultishot();
+            }
         }
 
         function switchTab(tab) {
@@ -2940,7 +3452,20 @@
             try {
                 const raw = localStorage.getItem(SAVE_KEY); if (!raw) return;
                 const parsed = JSON.parse(raw), def = getDefaultState();
-                game = { ...def, ...parsed, stats: { ...def.stats, ...(parsed.stats || {}) }, settings: { ...def.settings, ...(parsed.settings || {}) }, upgrades: { ...def.upgrades, ...(parsed.upgrades || {}) }, companions: { ...def.companions, ...(parsed.companions || {}) }, prestigeUpgrades: { ...def.prestigeUpgrades, ...(parsed.prestigeUpgrades || {}) }, inventory: Array.isArray(parsed.inventory) ? parsed.inventory : [], equippedItems: Array.isArray(parsed.equippedItems) ? parsed.equippedItems : [], ownedSkins: Array.isArray(parsed.ownedSkins) ? parsed.ownedSkins : ['default_cyber'], activeSkin: parsed.activeSkin || 'default_cyber' };
+                game = {
+                    ...def, ...parsed,
+                    stats: { ...def.stats, ...(parsed.stats || {}) },
+                    settings: { ...def.settings, ...(parsed.settings || {}) },
+                    upgrades: { ...def.upgrades, ...(parsed.upgrades || {}) },
+                    companions: { ...def.companions, ...(parsed.companions || {}) },
+                    prestigeUpgrades: { ...def.prestigeUpgrades, ...(parsed.prestigeUpgrades || {}) },
+                    inventory: Array.isArray(parsed.inventory) ? parsed.inventory : [],
+                    equippedItems: Array.isArray(parsed.equippedItems) ? parsed.equippedItems : [],
+                    ownedSkins: Array.isArray(parsed.ownedSkins) ? parsed.ownedSkins : ['default_cyber'],
+                    activeSkin: parsed.activeSkin || 'default_cyber',
+                    ownedCompanionSkins: Array.isArray(parsed.ownedCompanionSkins) ? parsed.ownedCompanionSkins : ['default_tech'],
+                    activeCompanionSkin: parsed.activeCompanionSkin || 'default_tech'
+                };
                 // Eski kayıtlardaki yoldaş seviyelerini 1-5 Yıldız sınırına uyarla
                 for (const key of Object.keys(COMPANION_DEFS)) {
                     if (game.companions[key]) {
