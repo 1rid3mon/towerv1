@@ -332,10 +332,10 @@
                     <div class="premium-card bg-gradient-to-br from-pink-950/50 via-slate-900 to-indigo-950/50 p-3.5 shadow-lg text-center">
                         <div class="w-11 h-11 rounded-2xl bg-pink-500/20 border border-pink-500/40 flex items-center justify-center mx-auto mb-2 text-pink-400 text-xl"><i class="fa-solid fa-cube"></i></div>
                         <h3 class="font-tech font-bold text-base text-pink-300 mb-0.5">Eşya & Kuantum Sandığı</h3>
-                        <p class="text-[11px] text-slate-300 mb-2.5">Kuleye pasif güç veren eşyalar düşür! (Kopya eşyalar +2 💎 iade eder)</p>
+                        <p class="text-[11px] text-slate-300 mb-2.5">Kuleye yüzdelik güç veren eşyalar düşür! (Kopya eşyalar +15 💎 iade eder)</p>
                         <div class="flex justify-center gap-2">
-                            <button onclick="openLootbox(1)" class="px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 5 Kristal (1'li)</button>
-                            <button onclick="openLootbox(5)" class="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 25 Kristal (5'li)</button>
+                            <button onclick="openLootbox(1)" class="px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 25 Kristal (1'li)</button>
+                            <button onclick="openLootbox(5)" class="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 110 Kristal (5'li)</button>
                         </div>
                     </div>
 
@@ -345,8 +345,8 @@
                         <h3 class="font-tech font-bold text-base text-amber-300 mb-0.5">Kule Skin Kutusu</h3>
                         <p class="text-[11px] text-slate-300 mb-2.5">Efsanevi <b class="text-yellow-300">Kurt Kaan</b>, <b class="text-yellow-300">DGDVRN</b>, <b class="text-pink-300">Balonlu Sakız</b> ve 25 özel Kule Skini içerir!</p>
                         <div class="flex justify-center gap-2">
-                            <button onclick="openSkinBox(1)" class="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 5 Kristal (1'li)</button>
-                            <button onclick="openSkinBox(5)" class="px-3 py-2 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 25 Kristal (5'li)</button>
+                            <button onclick="openSkinBox(1)" class="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 25 Kristal (1'li)</button>
+                            <button onclick="openSkinBox(5)" class="px-3 py-2 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 110 Kristal (5'li)</button>
                         </div>
                     </div>
 
@@ -625,86 +625,127 @@
         };
 
         const ITEM_DATABASE = {
-            rare_bow_shard: { id: 'rare_bow_shard', name: 'Kırık Yay Parçası', rarity: 'rare', type: 'damage', val: 5, desc: 'Hasarı +5 artırır.', icon: 'fa-solid fa-feather' },
-            rare_copper_coin: { id: 'rare_copper_coin', name: 'Bakır Ganimet', rarity: 'rare', type: 'gold', val: 0.08, desc: 'Altın kazancını +%8 artırır.', icon: 'fa-solid fa-coins' },
-            rare_iron_nail: { id: 'rare_iron_nail', name: 'Demir Çivi', rarity: 'rare', type: 'armor', val: 2, desc: 'Zırh değerini +2 artırır.', icon: 'fa-solid fa-hammer' },
-            rare_soft_feather: { id: 'rare_soft_feather', name: 'Hafif Tüy', rarity: 'rare', type: 'speed', val: 0.04, desc: 'Atış hızını +%4 artırır.', icon: 'fa-solid fa-wind' },
-            rare_small_gem: { id: 'rare_small_gem', name: 'Minik Safir', rarity: 'rare', type: 'crit', val: 2, desc: 'Kritik şansını +%2 artırır.', icon: 'fa-solid fa-gem' },
-            rare_sturdy_wood: { id: 'rare_sturdy_wood', name: 'Sağlam Meşe', rarity: 'rare', type: 'hp', val: 25, desc: 'Maksimum canı +25 artırır.', icon: 'fa-solid fa-tree' },
-            rare_rusty_gear: { id: 'rare_rusty_gear', name: 'Paslı Dişli', rarity: 'rare', type: 'regen', val: 0.5, desc: 'Can yenilemesini +0.5/sn artırır.', icon: 'fa-solid fa-gear' },
-            rare_sharp_arrow: { id: 'rare_sharp_arrow', name: 'Ucu Sivri Ok', rarity: 'rare', type: 'critMult', val: 0.1, desc: 'Kritik çarpanını +0.1 artırır.', icon: 'fa-solid fa-crosshairs' },
-            rare_glass_shard: { id: 'rare_glass_shard', name: 'Kristal Parçası', rarity: 'rare', type: 'crystal', val: 0.005, desc: 'Kristal düşme şansını +%0.5 artırır.', icon: 'fa-solid fa-diamond' },
-            rare_leather_grip: { id: 'rare_leather_grip', name: 'Deri Kabza', rarity: 'rare', type: 'range', val: 10, desc: 'Menzili +10 piksel artırır.', icon: 'fa-solid fa-hand-fist' },
-            rare_wolf_fang: { id: 'rare_wolf_fang', name: 'Bozkurt Dişi', rarity: 'rare', type: 'crit', val: 3, desc: 'Kritik şansını +%3 artırır.', icon: 'fa-solid fa-tooth' },
-            rare_radar_lens: { id: 'rare_radar_lens', name: 'Optik Radar Merceği', rarity: 'rare', type: 'range', val: 18, desc: 'Menzili +18 piksel artırır.', icon: 'fa-solid fa-magnifying-glass' },
-            srare_silver_quiver: { id: 'srare_silver_quiver', name: 'Gümüş Sadak', rarity: 'super_rare', type: 'damage', val: 18, desc: 'Hasarı +18 artırır.', icon: 'fa-solid fa-bullseye' },
-            srare_gold_ring: { id: 'srare_gold_ring', name: 'Tüccar Yüzüğü', rarity: 'super_rare', type: 'gold', val: 0.20, desc: 'Altın kazancını +%20 artırır.', icon: 'fa-solid fa-ring' },
-            srare_titanium_plate: { id: 'srare_titanium_plate', name: 'Titanyum Levha', rarity: 'super_rare', type: 'armor', val: 8, desc: 'Zırh değerini +8 artırır.', icon: 'fa-solid fa-shield-halved' },
-            srare_wind_charm: { id: 'srare_wind_charm', name: 'Rüzgar Tılsımı', rarity: 'super_rare', type: 'speed', val: 0.10, desc: 'Atış hızını +%10 artırır.', icon: 'fa-solid fa-tornado' },
-            srare_ruby_eye: { id: 'srare_ruby_eye', name: 'Yakut Göz', rarity: 'super_rare', type: 'crit', val: 6, desc: 'Kritik şansını +%6 artırır.', icon: 'fa-solid fa-eye' },
-            srare_energy_cell: { id: 'srare_energy_cell', name: 'Enerji Hücresi', rarity: 'super_rare', type: 'shield', val: 50, desc: 'Plazma kalkanını +50 artırır.', icon: 'fa-solid fa-battery-full' },
-            srare_frost_core: { id: 'srare_frost_core', name: 'Sıfır Noktası Modülü', rarity: 'super_rare', type: 'regen', val: 3.5, desc: 'Can yenilemesini +3.5/sn artırır.', icon: 'fa-solid fa-snowflake' },
-            srare_sniper_scope: { id: 'srare_sniper_scope', name: 'Termal Lazer Dürbünü', rarity: 'super_rare', type: 'critMult', val: 0.25, desc: 'Kritik çarpanını +0.25 artırır.', icon: 'fa-solid fa-crosshairs' },
-            epic_shadow_bow: { id: 'epic_shadow_bow', name: 'Gölge Avcısı Yayı', rarity: 'epic', type: 'damage', val: 55, desc: 'Hasarı +55 artırır.', icon: 'fa-solid fa-bow-arrow' },
-            epic_dragon_scale: { id: 'epic_dragon_scale', name: 'Ejderha Pul Zırhı', rarity: 'epic', type: 'hp', val: 200, desc: 'Maksimum canı +200 artırır.', icon: 'fa-solid fa-shield' },
-            epic_chronos_sand: { id: 'epic_chronos_sand', name: 'Zaman Kumları', rarity: 'epic', type: 'speed', val: 0.18, desc: 'Atış hızını +%18 artırır.', icon: 'fa-solid fa-hourglass-half' },
-            epic_vampire_fang: { id: 'epic_vampire_fang', name: 'Vampir Dişi', rarity: 'epic', type: 'lifesteal', val: 0.01, desc: 'Can çalma oranını +%1 artırır.', icon: 'fa-solid fa-droplet' },
-            epic_plasma_core: { id: 'epic_plasma_core', name: 'Kararsız Plazma Çekirdeği', rarity: 'epic', type: 'critMult', val: 0.4, desc: 'Kritik çarpanını +0.4 artırır.', icon: 'fa-solid fa-atom' },
-            epic_cyber_katana: { id: 'epic_cyber_katana', name: 'Muramasa Plazma Kılıcı', rarity: 'epic', type: 'damage', val: 75, desc: 'Hasarı +75 artırır.', icon: 'fa-solid fa-khanda' },
-            epic_aegis_barrier: { id: 'epic_aegis_barrier', name: 'Aegis Yansıtıcı Kalkan', rarity: 'epic', type: 'shield', val: 160, desc: 'Plazma kalkanını +160 artırır.', icon: 'fa-solid fa-user-shield' },
-            epic_crystal_magnet: { id: 'epic_crystal_magnet', name: 'Kuantum Mıknatısı', rarity: 'epic', type: 'crystal', val: 0.015, desc: 'Kristal düşme şansını +%1.5 artırır.', icon: 'fa-solid fa-magnet' },
-            mythic_valkyrie_wing: { id: 'mythic_valkyrie_wing', name: 'Valkür Kanadı', rarity: 'mythic', type: 'damage', val: 140, desc: 'Hasarı muazzam biçimde (+140) artırır.', icon: 'fa-solid fa-feather-pointed' },
-            mythic_eternal_heart: { id: 'mythic_eternal_heart', name: 'Ebedi Yaşam Kalbi', rarity: 'mythic', type: 'hp', val: 650, desc: 'Kule canını +650 artırır.', icon: 'fa-solid fa-heart-pulse' },
-            mythic_god_crown: { id: 'mythic_god_crown', name: 'Tanrısal Hükümdar Tacı', rarity: 'mythic', type: 'gold', val: 0.50, desc: 'Altın kazancını +%50 artırır.', icon: 'fa-solid fa-crown' },
-            mythic_blood_chalice: { id: 'mythic_blood_chalice', name: 'Ölümsüzlük Kadehi', rarity: 'mythic', type: 'lifesteal', val: 0.025, desc: 'Can çalma oranını +%2.5 artırır.', icon: 'fa-solid fa-wine-glass' },
-            mythic_hyper_turbine: { id: 'mythic_hyper_turbine', name: 'Hiper-Türbin Motoru', rarity: 'mythic', type: 'speed', val: 0.35, desc: 'Atış hızını +%35 artırır.', icon: 'fa-solid fa-fan' },
-            legendary_cosmos_shard: { id: 'legendary_cosmos_shard', name: 'Kozmik Tekillik Çekirdeği', rarity: 'legendary', type: 'damage_mult', val: 0.35, desc: 'Tüm kule hasarını +%35 çarpanla katlar!', icon: 'fa-solid fa-sun' },
+            rare_bow_shard: { id: 'rare_bow_shard', name: 'Kırık Yay Parçası', rarity: 'rare', type: 'damage', val: 0.12, desc: 'Tüm kule hasarını +%12 artırır.', icon: 'fa-solid fa-feather' },
+            rare_copper_coin: { id: 'rare_copper_coin', name: 'Bakır Ganimet', rarity: 'rare', type: 'gold', val: 0.15, desc: 'Altın kazancını +%15 artırır.', icon: 'fa-solid fa-coins' },
+            rare_iron_nail: { id: 'rare_iron_nail', name: 'Demir Çivi', rarity: 'rare', type: 'armor', val: 0.12, desc: 'Zırh değerini +%12 artırır.', icon: 'fa-solid fa-hammer' },
+            rare_soft_feather: { id: 'rare_soft_feather', name: 'Hafif Tüy', rarity: 'rare', type: 'speed', val: 0.08, desc: 'Atış hızını +0.08/sn artırır.', icon: 'fa-solid fa-wind' },
+            rare_small_gem: { id: 'rare_small_gem', name: 'Minik Safir', rarity: 'rare', type: 'crit', val: 4, desc: 'Kritik şansını +%4 artırır.', icon: 'fa-solid fa-gem' },
+            rare_sturdy_wood: { id: 'rare_sturdy_wood', name: 'Sağlam Meşe', rarity: 'rare', type: 'hp', val: 0.15, desc: 'Maksimum canı +%15 artırır.', icon: 'fa-solid fa-tree' },
+            rare_rusty_gear: { id: 'rare_rusty_gear', name: 'Paslı Dişli', rarity: 'rare', type: 'regen', val: 0.15, desc: 'Can yenilemesini +%15 artırır.', icon: 'fa-solid fa-gear' },
+            rare_sharp_arrow: { id: 'rare_sharp_arrow', name: 'Ucu Sivri Ok', rarity: 'rare', type: 'critMult', val: 0.25, desc: 'Kritik çarpanını +0.25x artırır.', icon: 'fa-solid fa-crosshairs' },
+            rare_glass_shard: { id: 'rare_glass_shard', name: 'Kristal Parçası', rarity: 'rare', type: 'crystal', val: 0.015, desc: 'Kristal düşme şansını +%1.5 artırır.', icon: 'fa-solid fa-diamond' },
+            rare_leather_grip: { id: 'rare_leather_grip', name: 'Deri Kabza', rarity: 'rare', type: 'range', val: 15, desc: 'Menzili +15 piksel artırır.', icon: 'fa-solid fa-hand-fist' },
+            rare_wolf_fang: { id: 'rare_wolf_fang', name: 'Bozkurt Dişi', rarity: 'rare', type: 'crit', val: 5, desc: 'Kritik şansını +%5 artırır.', icon: 'fa-solid fa-tooth' },
+            rare_radar_lens: { id: 'rare_radar_lens', name: 'Optik Radar Merceği', rarity: 'rare', type: 'range', val: 22, desc: 'Menzili +22 piksel artırır.', icon: 'fa-solid fa-magnifying-glass' },
+            srare_silver_quiver: { id: 'srare_silver_quiver', name: 'Gümüş Sadak', rarity: 'super_rare', type: 'damage', val: 0.28, desc: 'Tüm kule hasarını +%28 artırır.', icon: 'fa-solid fa-bullseye' },
+            srare_gold_ring: { id: 'srare_gold_ring', name: 'Tüccar Yüzüğü', rarity: 'super_rare', type: 'gold', val: 0.35, desc: 'Altın kazancını +%35 artırır.', icon: 'fa-solid fa-ring' },
+            srare_titanium_plate: { id: 'srare_titanium_plate', name: 'Titanyum Levha', rarity: 'super_rare', type: 'armor', val: 0.28, desc: 'Zırh değerini +%28 artırır.', icon: 'fa-solid fa-shield-halved' },
+            srare_wind_charm: { id: 'srare_wind_charm', name: 'Rüzgar Tılsımı', rarity: 'super_rare', type: 'speed', val: 0.18, desc: 'Atış hızını +0.18/sn artırır.', icon: 'fa-solid fa-tornado' },
+            srare_ruby_eye: { id: 'srare_ruby_eye', name: 'Yakut Göz', rarity: 'super_rare', type: 'crit', val: 8, desc: 'Kritik şansını +%8 artırır.', icon: 'fa-solid fa-eye' },
+            srare_energy_cell: { id: 'srare_energy_cell', name: 'Enerji Hücresi', rarity: 'super_rare', type: 'shield', val: 0.30, desc: 'Plazma kalkanını +%30 artırır.', icon: 'fa-solid fa-battery-full' },
+            srare_frost_core: { id: 'srare_frost_core', name: 'Sıfır Noktası Modülü', rarity: 'super_rare', type: 'regen', val: 0.32, desc: 'Can yenilemesini +%32 artırır.', icon: 'fa-solid fa-snowflake' },
+            srare_sniper_scope: { id: 'srare_sniper_scope', name: 'Termal Lazer Dürbünü', rarity: 'super_rare', type: 'critMult', val: 0.55, desc: 'Kritik çarpanını +0.55x artırır.', icon: 'fa-solid fa-crosshairs' },
+            epic_shadow_bow: { id: 'epic_shadow_bow', name: 'Gölge Avcısı Yayı', rarity: 'epic', type: 'damage', val: 0.60, desc: 'Tüm kule hasarını +%60 artırır.', icon: 'fa-solid fa-bow-arrow' },
+            epic_dragon_scale: { id: 'epic_dragon_scale', name: 'Ejderha Pul Zırhı', rarity: 'epic', type: 'hp', val: 0.65, desc: 'Maksimum canı +%65 artırır.', icon: 'fa-solid fa-shield' },
+            epic_chronos_sand: { id: 'epic_chronos_sand', name: 'Zaman Kumları', rarity: 'epic', type: 'speed', val: 0.35, desc: 'Atış hızını +0.35/sn artırır.', icon: 'fa-solid fa-hourglass-half' },
+            epic_vampire_fang: { id: 'epic_vampire_fang', name: 'Vampir Dişi', rarity: 'epic', type: 'lifesteal', val: 0.02, desc: 'Can çalma oranını +%2 artırır.', icon: 'fa-solid fa-droplet' },
+            epic_plasma_core: { id: 'epic_plasma_core', name: 'Kararsız Plazma Çekirdeği', rarity: 'epic', type: 'critMult', val: 1.10, desc: 'Kritik çarpanını +1.10x artırır.', icon: 'fa-solid fa-atom' },
+            epic_cyber_katana: { id: 'epic_cyber_katana', name: 'Muramasa Plazma Kılıcı', rarity: 'epic', type: 'damage', val: 0.75, desc: 'Tüm kule hasarını +%75 artırır.', icon: 'fa-solid fa-khanda' },
+            epic_aegis_barrier: { id: 'epic_aegis_barrier', name: 'Aegis Yansıtıcı Kalkan', rarity: 'epic', type: 'shield', val: 0.70, desc: 'Plazma kalkanını +%70 artırır.', icon: 'fa-solid fa-user-shield' },
+            epic_crystal_magnet: { id: 'epic_crystal_magnet', name: 'Kuantum Mıknatısı', rarity: 'epic', type: 'crystal', val: 0.035, desc: 'Kristal düşme şansını +%3.5 artırır.', icon: 'fa-solid fa-magnet' },
+            mythic_valkyrie_wing: { id: 'mythic_valkyrie_wing', name: 'Valkür Kanadı', rarity: 'mythic', type: 'damage', val: 1.35, desc: 'Tüm kule hasarını +%135 artırır.', icon: 'fa-solid fa-feather-pointed' },
+            mythic_eternal_heart: { id: 'mythic_eternal_heart', name: 'Ebedi Yaşam Kalbi', rarity: 'mythic', type: 'hp', val: 1.40, desc: 'Maksimum kule canını +%140 artırır.', icon: 'fa-solid fa-heart-pulse' },
+            mythic_god_crown: { id: 'mythic_god_crown', name: 'Tanrısal Hükümdar Tacı', rarity: 'mythic', type: 'gold', val: 1.00, desc: 'Altın kazancını +%100 artırır.', icon: 'fa-solid fa-crown' },
+            mythic_blood_chalice: { id: 'mythic_blood_chalice', name: 'Ölümsüzlük Kadehi', rarity: 'mythic', type: 'lifesteal', val: 0.045, desc: 'Can çalma oranını +%4.5 artırır.', icon: 'fa-solid fa-wine-glass' },
+            mythic_hyper_turbine: { id: 'mythic_hyper_turbine', name: 'Hiper-Türbin Motoru', rarity: 'mythic', type: 'speed', val: 0.65, desc: 'Atış hızını +0.65/sn artırır.', icon: 'fa-solid fa-fan' },
+            legendary_cosmos_shard: { id: 'legendary_cosmos_shard', name: 'Kozmik Tekillik Çekirdeği', rarity: 'legendary', type: 'damage_mult', val: 2.00, desc: 'Tüm kule hasarını +%200 (x3) çarpanla katlar!', icon: 'fa-solid fa-sun' },
             legendary_infinity_bow: { id: 'legendary_infinity_bow', name: 'Sonsuzluk Efsanevi Yayı', rarity: 'legendary', type: 'multishot_buff', val: 1, desc: 'Ekstra +1 Çoklu Atış hedefi sağlar!', icon: 'fa-solid fa-infinity' },
-            legendary_kurt_totem: { id: 'legendary_kurt_totem', name: 'Kurt Kaan\'ın Ebedi Totemi', rarity: 'legendary', type: 'damage_mult', val: 0.50, desc: 'Tüm kule hasarını +%50 çarpanla katlar!', icon: 'fa-solid fa-paw' }
+            legendary_kurt_totem: { id: 'legendary_kurt_totem', name: 'Kurt Kaan\'ın Ebedi Totemi', rarity: 'legendary', type: 'damage_mult', val: 2.50, desc: 'Tüm kule hasarını +%250 (x3.5) çarpanla katlar!', icon: 'fa-solid fa-paw' }
         };
 
         const UPGRADE_DEFS = {
-            damage: { category: 'attack', name: 'Plazma Hasarı', icon: 'fa-solid fa-explosion', color: 'text-red-400', desc: 'Silah hasarını artırır.', baseCost: 12, costScale: 1.25, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerDamage())} Hasar` },
-            attackSpeed: { category: 'attack', name: 'Atış Hızı', icon: 'fa-solid fa-gauge-high', color: 'text-amber-400', desc: 'Atış sıklığı.', baseCost: 38, costScale: 1.28, maxLevel: 40, getValueText: (lvl) => `${getTowerFireRate().toFixed(2)}/sn` },
-            range: { category: 'attack', name: 'Radar Menzili', icon: 'fa-solid fa-bullseye', color: 'text-blue-400', desc: 'Nişancı menzili.', baseCost: 28, costScale: 1.26, maxLevel: 40, getValueText: (lvl) => `${Math.round(getTowerRange())} px` },
-            critChance: { category: 'attack', name: 'Kritik Şansı', icon: 'fa-solid fa-bolt', color: 'text-purple-400', desc: 'Kritik vuruş şansı (Maks %75).', baseCost: 50, costScale: 1.30, maxLevel: 70, getValueText: (lvl) => `%${getTowerCritChance()}` },
-            critMult: { category: 'attack', name: 'Kritik Çarpanı', icon: 'fa-solid fa-skull-crossbones', color: 'text-pink-400', desc: 'Kritik hasar katı.', baseCost: 65, costScale: 1.28, maxLevel: 80, getValueText: (lvl) => `x${getTowerCritMult().toFixed(2)}` },
-            multishot: { category: 'attack', name: 'Çoklu Atış', icon: 'fa-solid fa-arrows-split-up-and-left', color: 'text-cyan-400', desc: 'Dalga kilidine bağlı çoklu hedef.', baseCost: 1200, costScale: 3.2, maxLevel: 5, getValueText: (lvl) => `${getEffectiveMultishot()} Hedef` },
-            bounce: { category: 'attack', name: 'Sekme (Zincir)', icon: 'fa-solid fa-share-nodes', color: 'text-indigo-400', desc: 'Merminin sekmesi.', baseCost: 1000, costScale: 3.0, maxLevel: 4, getValueText: (lvl) => `${lvl} Sekme` },
-            knockback: { category: 'attack', name: 'Şok Dalgası', icon: 'fa-solid fa-wind', color: 'text-teal-400', desc: 'Düşmanı hafif iter.', baseCost: 3500, costScale: 5.0, maxLevel: 3, getValueText: (lvl) => lvl === 0 ? 'Kapalı' : `Sv.${lvl}` },
+            damage: { category: 'attack', name: 'Plazma Hasarı', icon: 'fa-solid fa-explosion', color: 'text-red-400', desc: 'Her 10 ve 25 Sv. ekstra çarpan verir.', baseCost: 10, costScale: 1.115, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerDamage())} Hasar` },
+            attackSpeed: { category: 'attack', name: 'Atış Hızı', icon: 'fa-solid fa-gauge-high', color: 'text-amber-400', desc: 'Saniyedeki mermi sayısı (Maks 60 Sv).', baseCost: 30, costScale: 1.14, maxLevel: 60, getValueText: (lvl) => `${getTowerFireRate().toFixed(2)}/sn` },
+            range: { category: 'attack', name: 'Radar Menzili', icon: 'fa-solid fa-bullseye', color: 'text-blue-400', desc: 'Kule nişancı menzili.', baseCost: 24, costScale: 1.13, maxLevel: 45, getValueText: (lvl) => `${Math.round(getTowerRange())} px` },
+            critChance: { category: 'attack', name: 'Kritik Şansı', icon: 'fa-solid fa-bolt', color: 'text-purple-400', desc: 'Her seviye +%2 kritik şansı (Maks %85).', baseCost: 35, costScale: 1.15, maxLevel: 35, getValueText: (lvl) => `%${getTowerCritChance()}` },
+            critMult: { category: 'attack', name: 'Kritik Çarpanı', icon: 'fa-solid fa-skull-crossbones', color: 'text-pink-400', desc: 'Kritik vuruş hasar katı.', baseCost: 45, costScale: 1.135, maxLevel: 150, getValueText: (lvl) => `x${getTowerCritMult().toFixed(2)}` },
+            multishot: { category: 'attack', name: 'Çoklu Atış', icon: 'fa-solid fa-arrows-split-up-and-left', color: 'text-cyan-400', desc: 'Aynı anda vurulan hedef sayısı.', baseCost: 600, costScale: 3.5, maxLevel: 5, getValueText: (lvl) => `${getEffectiveMultishot()} Hedef` },
+            bounce: { category: 'attack', name: 'Sekme (Zincir)', icon: 'fa-solid fa-share-nodes', color: 'text-indigo-400', desc: 'Merminin yakındaki düşmana sekmesi.', baseCost: 450, costScale: 3.2, maxLevel: 5, getValueText: (lvl) => `${lvl} Sekme` },
+            knockback: { category: 'attack', name: 'Şok Dalgası', icon: 'fa-solid fa-wind', color: 'text-teal-400', desc: 'Düşmanları geri iter.', baseCost: 1200, costScale: 4.0, maxLevel: 3, getValueText: (lvl) => lvl === 0 ? 'Kapalı' : `Sv.${lvl}` },
 
-            maxHp: { category: 'defense', name: 'Titanyum Gövde', icon: 'fa-solid fa-heart', color: 'text-emerald-400', desc: 'Kulenin maksimum canı.', baseCost: 12, costScale: 1.20, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerMaxHp())} HP` },
-            hpRegen: { category: 'defense', name: 'Nano Onarım', icon: 'fa-solid fa-notes-medical', color: 'text-green-400', desc: 'Saniyede otomatik iyileşme.', baseCost: 22, costScale: 1.22, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerRegen())}/sn` },
-            armor: { category: 'defense', name: 'Reaktif Zırh', icon: 'fa-solid fa-shield', color: 'text-slate-300', desc: 'Alınan hasarı azaltır.', baseCost: 25, costScale: 1.24, maxLevel: 9999, getValueText: (lvl) => `-${formatNumber(getTowerArmor())} Hasar` },
-            shield: { category: 'defense', name: 'Plazma Kalkanı', icon: 'fa-solid fa-shield-virus', color: 'text-sky-400', desc: 'Darbeleri emen kalkan.', baseCost: 70, costScale: 1.25, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerMaxShield())} Kalkan` },
-            lifesteal: { category: 'defense', name: 'Can Çalma', icon: 'fa-solid fa-droplet', color: 'text-rose-500', desc: 'Verilen hasardan can kazan.', baseCost: 220, costScale: 1.38, maxLevel: 25, getValueText: (lvl) => `%${(getTowerLifesteal()*100).toFixed(1)}` },
-            thorns: { category: 'defense', name: 'Dikenli Zırh', icon: 'fa-solid fa-burst', color: 'text-rose-400', desc: 'Saldırana hasar yansıt.', baseCost: 45, costScale: 1.24, maxLevel: 40, getValueText: (lvl) => `%${getTowerThorns()}` },
+            maxHp: { category: 'defense', name: 'Titanyum Gövde', icon: 'fa-solid fa-heart', color: 'text-emerald-400', desc: 'Her 10 ve 25 Sv. ekstra can çarpanı.', baseCost: 10, costScale: 1.11, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerMaxHp())} HP` },
+            hpRegen: { category: 'defense', name: 'Nano Onarım', icon: 'fa-solid fa-notes-medical', color: 'text-green-400', desc: 'Saniyede otomatik can yenileme.', baseCost: 18, costScale: 1.115, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerRegen())}/sn` },
+            armor: { category: 'defense', name: 'Reaktif Zırh', icon: 'fa-solid fa-shield', color: 'text-slate-300', desc: 'Düşman hasarını doğrudan emer.', baseCost: 22, costScale: 1.115, maxLevel: 9999, getValueText: (lvl) => `-${formatNumber(getTowerArmor())} Hasar` },
+            shield: { category: 'defense', name: 'Plazma Kalkanı', icon: 'fa-solid fa-shield-virus', color: 'text-sky-400', desc: 'Hızla yenilenen enerji kalkanı.', baseCost: 50, costScale: 1.12, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerMaxShield())} Kalkan` },
+            lifesteal: { category: 'defense', name: 'Can Çalma', icon: 'fa-solid fa-droplet', color: 'text-rose-500', desc: 'Verilen hasardan can yeniler.', baseCost: 150, costScale: 1.20, maxLevel: 25, getValueText: (lvl) => `%${(getTowerLifesteal()*100).toFixed(1)}` },
+            thorns: { category: 'defense', name: 'Dikenli Zırh', icon: 'fa-solid fa-burst', color: 'text-rose-400', desc: 'Saldırana hasarı geri yansıtır.', baseCost: 40, costScale: 1.15, maxLevel: 30, getValueText: (lvl) => `%${getTowerThorns()}` },
 
-            goldBonus: { category: 'economy', name: 'Ganimet Çarpanı', icon: 'fa-solid fa-sack-dollar', color: 'text-amber-400', desc: 'Düşmanlardan altın kazancı.', baseCost: 35, costScale: 1.30, maxLevel: 9999, getValueText: (lvl) => `+%${Math.round(getGoldMultiplier()*100 - 100)}` },
-            waveGold: { category: 'economy', name: 'Dalga İkramiyesi', icon: 'fa-solid fa-award', color: 'text-yellow-400', desc: 'Dalga sonu altın ödülü.', baseCost: 60, costScale: 1.38, maxLevel: 9999, getValueText: (lvl) => `+${formatNumber(getWaveBonusPreview(lvl))}` },
-            crystalChance: { category: 'economy', name: 'Kristal Sondajı', icon: 'fa-solid fa-gem', color: 'text-cyan-400', desc: 'Düşmandan kristal şansı.', baseCost: 200, costScale: 1.42, maxLevel: 25, getValueText: (lvl) => `%${(1.5 + lvl * 0.4 + getItemStatBonus('crystal') * 100).toFixed(1)}` },
-            interest: { category: 'economy', name: 'Kuantum Bankası', icon: 'fa-solid fa-piggy-bank', color: 'text-emerald-400', desc: 'Dalga sonu faiz.', baseCost: 400, costScale: 1.55, maxLevel: 10, getValueText: (lvl) => `%${(lvl * 0.4).toFixed(1)}` }
+            goldBonus: { category: 'economy', name: 'Ganimet Çarpanı', icon: 'fa-solid fa-sack-dollar', color: 'text-amber-400', desc: 'Tüm altın kazancını katlar (10 Sv. bonuslu).', baseCost: 25, costScale: 1.12, maxLevel: 9999, getValueText: (lvl) => `x${getGoldMultiplier().toFixed(2)} Altın` },
+            waveGold: { category: 'economy', name: 'Dalga İkramiyesi', icon: 'fa-solid fa-award', color: 'text-yellow-400', desc: 'Dalga gücüne oranlı dev altın ödülü.', baseCost: 40, costScale: 1.13, maxLevel: 9999, getValueText: (lvl) => `+${formatNumber(getWaveBonusPreview(lvl))}` },
+            crystalChance: { category: 'economy', name: 'Kristal Sondajı', icon: 'fa-solid fa-gem', color: 'text-cyan-400', desc: 'Kristal şansını ve miktarını artırır.', baseCost: 90, costScale: 1.18, maxLevel: 35, getValueText: (lvl) => `%${getCrystalDropChance(lvl).toFixed(1)} (x${getCrystalDropMult(lvl).toFixed(1)})` },
+            interest: { category: 'economy', name: 'Kuantum Bankası', icon: 'fa-solid fa-piggy-bank', color: 'text-emerald-400', desc: 'Dalga sonu kasa faizi (Dalgayla büyür).', baseCost: 200, costScale: 1.25, maxLevel: 15, getValueText: (lvl) => `%${(lvl * 0.8).toFixed(1)} Faiz` }
         };
 
         const COMPANION_DEFS = {
-            laserDrone: { name: 'Lazer Dronu', icon: 'fa-solid fa-crosshairs', badgeClass: 'text-red-400 bg-red-500/10 border-red-500/30', desc: 'Lazer atar.', unlockCost: 8, baseUpgradeCost: 6, costScale: 1.4, orbitRadius: 65, orbitSpeed: 1.6 },
-            frostOrb: { name: 'Buzul Küresi', icon: 'fa-solid fa-snowflake', badgeClass: 'text-sky-400 bg-sky-500/10 border-sky-500/30', desc: 'Yavaşlatır.', unlockCost: 18, baseUpgradeCost: 10, costScale: 1.45, orbitRadius: 85, orbitSpeed: -1.1 },
-            missileBot: { name: 'Füze Bataryası', icon: 'fa-solid fa-rocket', badgeClass: 'text-orange-400 bg-orange-500/10 border-orange-500/30', desc: 'Alan hasarı.', unlockCost: 35, baseUpgradeCost: 18, costScale: 1.48, orbitRadius: 105, orbitSpeed: 0.85 },
-            repairDrone: { name: 'Onarım Mekaniği', icon: 'fa-solid fa-screwdriver-wrench', badgeClass: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30', desc: 'Can yeniler.', unlockCost: 55, baseUpgradeCost: 28, costScale: 1.52, orbitRadius: 48, orbitSpeed: -2.0 },
-            plasmaSatellite: { name: 'Plazma Uydusu', icon: 'fa-solid fa-satellite-dish', badgeClass: 'text-purple-400 bg-purple-500/10 border-purple-500/30', desc: 'Yıldırım.', unlockCost: 100, baseUpgradeCost: 45, costScale: 1.6, orbitRadius: 125, orbitSpeed: 0.6 }
+            laserDrone: {
+                name: 'Lazer Dronu', icon: 'fa-solid fa-crosshairs', badgeClass: 'text-red-400 bg-red-500/10 border-red-500/30',
+                desc: 'Seri plazma lazeri (5★ kritik vurur).',
+                starCosts: [100, 500, 1250, 2500, 5000],
+                damageMults: [0.40, 0.75, 1.25, 2.00, 3.20],
+                cooldowns: [0.60, 0.50, 0.42, 0.34, 0.25],
+                orbitRadius: 65, orbitSpeed: 1.6,
+                getStarSummary: (star) => star === 0 ? '1★: %40 Kule Hasarı (0.60sn)' : `%${Math.round([0.40, 0.75, 1.25, 2.00, 3.20][star-1]*100)} Hasar | ${[0.60, 0.50, 0.42, 0.34, 0.25][star-1]}sn`
+            },
+            frostOrb: {
+                name: 'Buzul Küresi', icon: 'fa-solid fa-snowflake', badgeClass: 'text-sky-400 bg-sky-500/10 border-sky-500/30',
+                desc: 'Alan yavaşlatma ve dondurucu şok.',
+                starCosts: [100, 500, 1250, 2500, 5000],
+                slowPcts: [25, 35, 45, 55, 65],
+                damageMults: [0.25, 0.50, 0.85, 1.35, 2.10],
+                orbitRadius: 85, orbitSpeed: -1.1,
+                getStarSummary: (star) => star === 0 ? '1★: %25 Yavaşlatma + %25 Alan Hasarı' : `%${[25, 35, 45, 55, 65][star-1]} Yavaşlatma | %${Math.round([0.25, 0.50, 0.85, 1.35, 2.10][star-1]*100)} Alan Hasarı`
+            },
+            missileBot: {
+                name: 'Füze Bataryası', icon: 'fa-solid fa-rocket', badgeClass: 'text-orange-400 bg-orange-500/10 border-orange-500/30',
+                desc: 'Yüksek patlayıcılı alan (AoE) füzesi.',
+                starCosts: [100, 500, 1250, 2500, 5000],
+                damageMults: [0.85, 1.50, 2.40, 3.60, 5.50],
+                splashRadii: [50, 62, 75, 90, 110],
+                cooldowns: [2.0, 1.8, 1.6, 1.4, 1.15],
+                orbitRadius: 105, orbitSpeed: 0.85,
+                getStarSummary: (star) => star === 0 ? '1★: %85 AoE Hasar (50px Çap)' : `%${Math.round([0.85, 1.50, 2.40, 3.60, 5.50][star-1]*100)} AoE Hasar | ${[50, 62, 75, 90, 110][star-1]}px Patlama`
+            },
+            repairDrone: {
+                name: 'Onarım Mekaniği', icon: 'fa-solid fa-screwdriver-wrench', badgeClass: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
+                desc: 'Can ve Plazma Kalkanını yüzdelik onarır.',
+                starCosts: [100, 500, 1250, 2500, 5000],
+                healPcts: [3.0, 5.5, 8.5, 12.5, 18.0],
+                orbitRadius: 48, orbitSpeed: -2.0,
+                getStarSummary: (star) => star === 0 ? '1★: Her 2sn +%3 Can & Kalkan' : `Her 2sn +%${[3.0, 5.5, 8.5, 12.5, 18.0][star-1]} Can & Kalkan`
+            },
+            plasmaSatellite: {
+                name: 'Plazma Uydusu', icon: 'fa-solid fa-satellite-dish', badgeClass: 'text-purple-400 bg-purple-500/10 border-purple-500/30',
+                desc: 'Çoklu hedefe zincirleme yıldırım + %Can hasarı.',
+                starCosts: [100, 500, 1250, 2500, 5000],
+                damageMults: [0.65, 1.15, 1.85, 2.80, 4.25],
+                chainCounts: [1, 2, 3, 4, 5],
+                maxHpPcts: [0.5, 1.0, 1.5, 2.2, 3.5],
+                orbitRadius: 125, orbitSpeed: 0.6,
+                getStarSummary: (star) => star === 0 ? '1★: 1 Hedef | %65 Hasar + %0.5 MaksHP' : `${[1, 2, 3, 4, 5][star-1]} Hedef | %${Math.round([0.65, 1.15, 1.85, 2.80, 4.25][star-1]*100)} + %${[0.5, 1.0, 1.5, 2.2, 3.5][star-1]} MaksHP`
+            }
         };
 
         const PRESTIGE_DEFS = {
-            permDamage: { name: 'Antik Çekirdek', icon: 'fa-solid fa-fire', desc: 'Tüm hasarı artırır.', baseCost: 1, costScale: 1.5, maxLevel: 999, getEffectText: (lvl) => `+%${lvl * 25}` },
-            permGold: { name: 'Altın Simyası', icon: 'fa-solid fa-coins', desc: 'Altın kazancını artırır.', baseCost: 1, costScale: 1.5, maxLevel: 999, getEffectText: (lvl) => `+%${lvl * 30}` },
-            companionBoost: { name: 'Senkronize Yörünge', icon: 'fa-solid fa-satellite', desc: 'Yoldaş gücü.', baseCost: 2, costScale: 1.6, maxLevel: 999, getEffectText: (lvl) => `+%${lvl * 35}` },
-            costDiscount: { name: 'Mühendislik Verimi', icon: 'fa-solid fa-tags', desc: 'Maliyeti düşürür.', baseCost: 3, costScale: 1.8, maxLevel: 25, getEffectText: (lvl) => `-%${lvl * 2}` },
-            startWave: { name: 'Zaman Sıçraması', icon: 'fa-solid fa-forward', desc: 'İleri dalgadan başla (Evrim için +10).', baseCost: 5, costScale: 2.2, maxLevel: 25, getEffectText: (lvl) => `Başlangıç: Dalga ${getStartWaveLevel(lvl)}` }
+            permDamage: { name: 'Antik Çekirdek', icon: 'fa-solid fa-fire', desc: 'Tüm kule ve yoldaş hasarını katlar.', baseCost: 1, costScale: 1.45, maxLevel: 999, getEffectText: (lvl) => `+%${lvl * 35}` },
+            permGold: { name: 'Altın Simyası', icon: 'fa-solid fa-coins', desc: 'Tüm altın kazancını kalıcı artırır.', baseCost: 1, costScale: 1.45, maxLevel: 999, getEffectText: (lvl) => `+%${lvl * 40}` },
+            companionBoost: { name: 'Senkronize Yörünge', icon: 'fa-solid fa-satellite', desc: 'Yıldızlı yoldaşların gücünü katlar.', baseCost: 2, costScale: 1.5, maxLevel: 999, getEffectText: (lvl) => `+%${lvl * 45}` },
+            costDiscount: { name: 'Mühendislik Verimi', icon: 'fa-solid fa-tags', desc: 'Yükseltme altın maliyetini düşürür.', baseCost: 2, costScale: 1.65, maxLevel: 30, getEffectText: (lvl) => `-%${lvl * 2}` },
+            startWave: { name: 'Zaman Sıçraması', icon: 'fa-solid fa-forward', desc: 'İleri dalgadan başla (Başlangıç altını verir).', baseCost: 4, costScale: 1.9, maxLevel: 40, getEffectText: (lvl) => `Başlangıç: Dalga ${getStartWaveLevel(lvl)}` }
         };
 
         function getDefaultState() {
             return {
-                gold: 100, crystals: 15, souls: 0, wave: 1, highestWave: 1, waveKills: 0, waveTargetKills: 15,
+                gold: 120, crystals: 100, souls: 0, wave: 1, highestWave: 1, waveKills: 0, waveTargetKills: 15,
                 holdWave: false, holdWaveTimer: 0, consecutiveDefeats: 0, consecutiveHoldWins: 0,
                 deviceMode: 'pc',
                 stats: { totalKills: 0, bossKills: 0, prestiges: 0, playTimeSeconds: 0 },
@@ -715,8 +756,8 @@
                     goldBonus: 0, waveGold: 0, crystalChance: 0, interest: 0
                 },
                 companions: {
-                    laserDrone: { unlocked: false, level: 1 }, frostOrb: { unlocked: false, level: 1 },
-                    missileBot: { unlocked: false, level: 1 }, repairDrone: { unlocked: false, level: 1 }, plasmaSatellite: { unlocked: false, level: 1 }
+                    laserDrone: { unlocked: false, level: 0 }, frostOrb: { unlocked: false, level: 0 },
+                    missileBot: { unlocked: false, level: 0 }, repairDrone: { unlocked: false, level: 0 }, plasmaSatellite: { unlocked: false, level: 0 }
                 },
                 inventory: [], equippedItems: [], ownedSkins: ['default_cyber'], activeSkin: 'default_cyber',
                 lootboxBonuses: { extraDamagePct: 0, extraGoldPct: 0, totalOpened: 0 },
@@ -726,12 +767,18 @@
         }
 
         let game = getDefaultState();
-        let buyMultiplier = 1; let currentTab = 'attack'; let gameSpeed = 1;
-        let isPaused = false; let isDefeated = false; let defeatTimer = 0; let isDrawerOpen = false;
+        let buyMultiplier = 1;
+        let currentTab = 'attack';
+        let gameSpeed = 1;
+        let isPaused = false;
+        let isDefeated = false;
+        let defeatTimer = 0;
+        let isDrawerOpen = false;
 
         function toggleUpgradeDrawer() {
             isDrawerOpen = !isDrawerOpen;
             const drawer = document.getElementById('upgrade-drawer');
+            if (!drawer) return;
             if (isDrawerOpen) drawer.classList.remove('-translate-x-full');
             else drawer.classList.add('-translate-x-full');
         }
@@ -750,6 +797,7 @@
 
         function applyBodyClasses() {
             const body = document.getElementById('main-body');
+            if (!body) return;
             const dev = game.deviceMode || 'pc';
             const col = isPastelMode() ? 'color-pastel' : 'color-classic';
             body.className = `h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-${dev} ${col}`;
@@ -790,15 +838,15 @@
             return pastel ? { color: '#4ade80', secColor: '#dcfce7' } : { color: '#22c55e', secColor: '#bbf7d0' };
         }
 
-        function getStartWaveLevel(lvl = (game.prestigeUpgrades?.startWave || 0)) { return 1 + lvl * 2; }
+        function getStartWaveLevel(lvl = (game.prestigeUpgrades?.startWave || 0)) { return 1 + lvl * 3; }
         function getMinPrestigeWave() { return Math.max(10, getStartWaveLevel() + 10); }
-        function getDiscountMultiplier() { return Math.max(0.5, 1 - (game.prestigeUpgrades.costDiscount * 0.02)); }
+        function getDiscountMultiplier() { return Math.max(0.4, 1 - (game.prestigeUpgrades.costDiscount * 0.02)); }
         function getSingleUpgradeCost(key, level) {
             const def = UPGRADE_DEFS[key];
-            return Math.max(1, Math.floor(def.baseCost * Math.pow(def.costScale, level) * getDiscountMultiplier()));
+            return Math.max(1, Math.floor(def.baseCost * Math.pow(def.costScale, level) * (1 + level * 0.05) * getDiscountMultiplier()));
         }
 
-        const MULTISHOT_WAVE_REQS = [10, 25, 45, 70, 95];
+        const MULTISHOT_WAVE_REQS = [8, 22, 42, 68, 95];
         function getMultishotRequiredWave(nextLevelIndex) { return MULTISHOT_WAVE_REQS[nextLevelIndex] || 999; }
 
         function getItemStatBonus(type) {
@@ -847,53 +895,107 @@
             return { count, totalCost, canAfford: game.gold >= totalCost && count > 0, maxed: false, lockedReason: null };
         }
 
+        function getLevelMilestoneMult(lvl) {
+            return Math.pow(1.22, Math.floor(lvl / 10)) * Math.pow(1.40, Math.floor(lvl / 25));
+        }
+
         function getPermDamageMult() { 
-            const itemBonus = 1 + getItemStatBonus('damage_mult');
-            return (1 + game.prestigeUpgrades.permDamage * 0.20) * (1 + game.souls * 0.04) * (1 + (game.lootboxBonuses.extraDamagePct || 0) / 100) * itemBonus; 
+            const itemMultBonus = (1 + getItemStatBonus('damage')) * (1 + getItemStatBonus('damage_mult'));
+            return (1 + game.prestigeUpgrades.permDamage * 0.35) * (1 + game.souls * 0.06) * (1 + (game.lootboxBonuses.extraDamagePct || 0) / 100) * itemMultBonus; 
         }
+
         function getTowerDamage() {
-            const lvl = game.upgrades.damage; const milestone = Math.pow(1.08, Math.floor(lvl / 10));
-            const flatItemDmg = getItemStatBonus('damage');
-            return Math.round(((9 * Math.pow(1.08, lvl - 1) + (lvl - 1) * 2) + flatItemDmg) * milestone * getPermDamageMult() * (game.wave <= 3 ? 1.4 : 1.0));
+            const lvl = Math.max(1, game.upgrades.damage);
+            const base = (12 + (lvl - 1) * 4.5) * Math.pow(1.105, lvl - 1);
+            const milestone = getLevelMilestoneMult(lvl);
+            return Math.round(base * milestone * getPermDamageMult() * (game.wave <= 3 ? 1.25 : 1.0));
         }
-        function getTowerFireRate() { return 1.0 + (game.upgrades.attackSpeed - 1) * 0.08 + getItemStatBonus('speed'); }
-        function getTowerRange() { return 130 + (game.upgrades.range - 1) * 4.5 + getItemStatBonus('range'); }
-        function getTowerCritChance() { return Math.min(85, 5 + Math.min(80, game.upgrades.critChance || 0) * 1.0 + getItemStatBonus('crit')); }
-        function getTowerCritMult() { return 2.0 + (game.upgrades.critMult - 1) * 0.12 + getItemStatBonus('critMult'); }
-        function getTowerKnockback() { const lvl = Math.min(3, game.upgrades.knockback || 0); return lvl <= 0 ? 0 : 6 + lvl * 3.0; }
+
+        function getTowerFireRate() {
+            const lvl = Math.min(60, Math.max(1, game.upgrades.attackSpeed));
+            return 1.0 + (lvl - 1) * 0.085 + getItemStatBonus('speed');
+        }
+
+        function getTowerRange() {
+            const lvl = Math.min(45, Math.max(1, game.upgrades.range));
+            return 135 + (lvl - 1) * 4.5 + getItemStatBonus('range');
+        }
+
+        function getTowerCritChance() {
+            const lvl = Math.min(35, Math.max(0, game.upgrades.critChance || 0));
+            return Math.min(85, Math.round(5 + lvl * 2.0 + getItemStatBonus('crit')));
+        }
+
+        function getTowerCritMult() {
+            const lvl = Math.max(1, game.upgrades.critMult || 1);
+            return 2.0 + (lvl - 1) * 0.15 + Math.floor(lvl / 15) * 0.25 + getItemStatBonus('critMult');
+        }
+
+        function getTowerKnockback() { const lvl = Math.min(3, game.upgrades.knockback || 0); return lvl <= 0 ? 0 : 7 + lvl * 3.5; }
+
         function getTowerMaxHp() {
-            const lvl = game.upgrades.maxHp; const milestone = Math.pow(1.15, Math.floor(lvl / 10));
-            return Math.round(((130 * Math.pow(1.12, lvl - 1) + (lvl - 1) * 30) + getItemStatBonus('hp')) * milestone);
+            const lvl = Math.max(1, game.upgrades.maxHp);
+            const base = (140 + (lvl - 1) * 38) * Math.pow(1.102, lvl - 1);
+            const milestone = getLevelMilestoneMult(lvl);
+            return Math.round(base * milestone * (1 + getItemStatBonus('hp')));
         }
+
         function getTowerRegen() {
-            const lvl = game.upgrades.hpRegen; const itemRegen = getItemStatBonus('regen');
-            if (lvl === 0 && itemRegen === 0) return 0;
-            return Math.round(((3.5 * Math.pow(1.12, Math.max(0, lvl - 1)) + lvl * 2.0) + itemRegen) * 10) / 10;
+            const lvl = game.upgrades.hpRegen || 0;
+            const itemRegenPct = getItemStatBonus('regen');
+            if (lvl === 0 && itemRegenPct === 0) return 0;
+            const base = (4.0 + lvl * 2.8) * Math.pow(1.102, Math.max(0, lvl - 1)) * getLevelMilestoneMult(lvl);
+            return Math.round(base * (1 + itemRegenPct) * 10) / 10;
         }
+
         function getTowerArmor() {
-            const lvl = game.upgrades.armor; const itemArmor = getItemStatBonus('armor');
-            if (lvl === 0 && itemArmor === 0) return 0;
-            return Math.round(3.5 * Math.pow(1.11, Math.max(0, lvl - 1)) + lvl * 2.5 + itemArmor);
+            const lvl = game.upgrades.armor || 0;
+            const itemArmorPct = getItemStatBonus('armor');
+            if (lvl === 0 && itemArmorPct === 0) return 0;
+            const base = (3.5 + lvl * 2.5) * Math.pow(1.098, Math.max(0, lvl - 1)) * Math.pow(1.18, Math.floor(lvl / 10));
+            return Math.round(base * (1 + itemArmorPct));
         }
-        function getTowerThorns() { return game.upgrades.thorns * 5; }
+
+        function getTowerThorns() { return Math.min(30, game.upgrades.thorns || 0) * 5; }
+
         function getTowerMaxShield() {
-            const lvl = game.upgrades.shield; const itemShield = getItemStatBonus('shield');
-            if (lvl === 0 && itemShield === 0) return 0;
-            return Math.round(80 * Math.pow(1.12, Math.max(0, lvl - 1)) + lvl * 25 + itemShield);
+            const lvl = game.upgrades.shield || 0;
+            const itemShieldPct = getItemStatBonus('shield');
+            if (lvl === 0 && itemShieldPct === 0) return 0;
+            const base = (85 + lvl * 32) * Math.pow(1.104, Math.max(0, lvl - 1)) * getLevelMilestoneMult(lvl);
+            return Math.round(base * (1 + itemShieldPct));
         }
-        function getTowerLifesteal() { return (game.upgrades.lifesteal || 0) * 0.005 + getItemStatBonus('lifesteal'); }
+
+        function getTowerLifesteal() { return Math.min(25, game.upgrades.lifesteal || 0) * 0.006 + getItemStatBonus('lifesteal'); }
+
+        function getWaveBaseGold(w = game.wave) {
+            return (5 + w * 2.5) * Math.pow(1.112, w - 1) * Math.pow(1.18, Math.floor(w / 10));
+        }
 
         function getGoldMultiplier() {
-            return (1 + game.upgrades.goldBonus * 0.10 + getItemStatBonus('gold')) * (1 + game.prestigeUpgrades.permGold * 0.20) * (1 + (game.lootboxBonuses.extraGoldPct || 0) / 100) * (game.holdWave ? 0.20 : 1.0);
+            const lvl = game.upgrades.goldBonus || 0;
+            const upgMult = (1 + lvl * 0.14) * Math.pow(1.15, Math.floor(lvl / 10));
+            return upgMult * (1 + getItemStatBonus('gold')) * (1 + game.prestigeUpgrades.permGold * 0.40) * (1 + (game.lootboxBonuses.extraGoldPct || 0) / 100) * (game.holdWave ? 0.35 : 1.0);
         }
+
         function getWaveBonusPreview(lvl) {
             if (lvl === 0 || game.holdWave) return 0;
-            return Math.round(lvl * 5 * (1 + game.wave * 0.06) * (1 + game.upgrades.goldBonus * 0.05));
+            return Math.round(getWaveBaseGold(game.wave) * (2.5 + lvl * 1.45) * getGoldMultiplier());
         }
-        function getCompanionBoost() { return 1 + game.prestigeUpgrades.companionBoost * 0.30; }
+
+        function getCrystalDropChance(lvl = (game.upgrades.crystalChance || 0)) {
+            return Math.min(35, 3.0 + lvl * 0.65 + getItemStatBonus('crystal') * 100);
+        }
+
+        function getCrystalDropMult(lvl = (game.upgrades.crystalChance || 0)) {
+            return (1 + Math.floor(game.wave / 15) * 0.5) * (1 + lvl * 0.12);
+        }
+
+        function getCompanionBoost() { return (1 + game.prestigeUpgrades.companionBoost * 0.45) * (1 + Math.floor(game.wave / 20) * 0.15); }
+
         function calculatePendingSouls() {
             if (game.wave < getMinPrestigeWave()) return 0;
-            return Math.max(1, Math.floor(Math.floor(Math.pow(game.wave - 8, 1.28)) * Math.min(1, Math.max(1, game.wave - getStartWaveLevel()) / 12)));
+            return Math.max(1, Math.floor(Math.pow(game.wave - 7, 1.38) * (1 + Math.floor(game.wave / 25) * 0.35)));
         }
 
         const canvas = document.getElementById('gameCanvas');
@@ -905,7 +1007,7 @@
         let particles = [];
         let floatingTexts = [];
         let lightningBeams = [];
-        let rings = []; // YENİ: Düşman ölünce çıkan yumuşak patlama şok dalgaları
+        let rings = [];
 
         let bgStars = []; let snowFlakes = [];
         function initStars() {
@@ -918,6 +1020,7 @@
 
         function resizeCanvas() {
             const container = document.getElementById('canvas-container');
+            if (!container) return;
             canvas.width = container.clientWidth; canvas.height = container.clientHeight;
             tower.x = canvas.width / 2; tower.y = canvas.height / 2;
         }
@@ -930,21 +1033,25 @@
             const y = tower.y + Math.sin(angle) * spawnDist;
 
             const w = game.wave;
-            const earlyBuffer = w <= 3 ? 0.55 : (w <= 5 ? 0.75 : 1.0);
-            const baseHp = (14 * Math.pow(1.13, w - 1) + Math.pow(w, 1.85) * 3.0) * earlyBuffer;
-            const baseDmg = (4.5 * Math.pow(1.10, w - 1) + Math.pow(w, 1.45) * 1.3) * earlyBuffer;
-            const baseGold = (3.0 + w * 1.3 + Math.pow(w, 1.1)) * getGoldMultiplier();
+            const earlyBuffer = w <= 3 ? 0.65 : (w <= 6 ? 0.82 : 1.0);
+            const tierMult = Math.pow(1.20, Math.floor(w / 10)) * Math.pow(1.30, Math.floor(w / 25));
 
-            let type = 'green', name = 'Yeşil Xenomorph', radius = 13, speed = 40 + Math.min(22, w * 0.16);
+            const baseHp = (18 + w * 5.5) * Math.pow(1.106, w - 1) * tierMult * earlyBuffer;
+            const baseDmg = (5.0 + w * 1.8) * Math.pow(1.096, w - 1) * Math.pow(1.15, Math.floor(w / 10)) * earlyBuffer;
+            const baseGold = getWaveBaseGold(w) * getGoldMultiplier();
+
+            let type = 'green', name = 'Yeşil Xenomorph', radius = 13, speed = 40 + Math.min(28, w * 0.15);
             let hp = baseHp, dmg = baseDmg, isRanged = false, isTeleporter = false, gold = baseGold;
 
             if (isBoss) {
                 type = 'boss'; name = 'Kozmik Leviathan'; radius = 32; speed = 25;
-                hp = baseHp * (w % 10 === 0 ? 9.0 : 6.0); dmg = baseDmg * 2.2; gold = baseGold * (game.holdWave ? 1.5 : 3.0);
+                hp = baseHp * (w % 10 === 0 ? 8.5 : 5.5);
+                dmg = baseDmg * 2.1;
+                gold = baseGold * (game.holdWave ? 3.5 : 8.0);
             } else {
                 const roll = Math.random();
-                if (w >= 3 && roll < 0.25) { type = 'teleporter'; name = 'Sarı Psişik'; radius = 11; speed = 50; hp = baseHp * 0.6; dmg = baseDmg * 0.8; isTeleporter = true; }
-                else if (w >= 2 && roll < 0.55) { type = 'ranged'; name = 'Mavi Nişancı'; radius = 12; speed = 30; hp = baseHp * 0.75; dmg = baseDmg * 1.0; isRanged = true; }
+                if (w >= 3 && roll < 0.25) { type = 'teleporter'; name = 'Sarı Psişik'; radius = 11; speed = 50; hp = baseHp * 0.62; dmg = baseDmg * 0.85; isTeleporter = true; gold = baseGold * 1.15; }
+                else if (w >= 2 && roll < 0.55) { type = 'ranged'; name = 'Mavi Nişancı'; radius = 12; speed = 30; hp = baseHp * 0.78; dmg = baseDmg * 0.95; isRanged = true; gold = baseGold * 1.10; }
                 else { type = 'green'; name = 'Yeşil Xenomorph'; radius = 13; speed = 42; hp = baseHp * 1.0; dmg = baseDmg * 1.0; }
             }
 
@@ -1050,8 +1157,22 @@
                         if (p.hitList && p.hitList.includes(e)) continue;
 
                         if (Math.hypot(p.x - e.x, p.y - e.y) <= e.radius + p.radius) {
-                            dealDamageToEnemy(e, p.damage, p.isCrit, p.isCrit ? '#c084fc' : '#60a5fa', true);
-                            createParticles(p.x, p.y, p.color, 5, 50);
+                            if (p.splashRadius && p.splashRadius > 0) {
+                                // Füze Bataryası Alan (AoE) Patlama Hasarı
+                                rings.push({ x: e.x, y: e.y, radius: 10, color: '#f97316', life: 0.9 });
+                                createParticles(e.x, e.y, '#f97316', 12, 90);
+                                for (let k = enemies.length - 1; k >= 0; k--) {
+                                    const aoeEnemy = enemies[k];
+                                    const distAoe = Math.hypot(aoeEnemy.x - e.x, aoeEnemy.y - e.y);
+                                    if (distAoe <= p.splashRadius + aoeEnemy.radius) {
+                                        const falloff = distAoe < 15 ? 1.0 : 0.75;
+                                        dealDamageToEnemy(aoeEnemy, Math.round(p.damage * falloff), p.isCrit, '#fb923c', false);
+                                    }
+                                }
+                            } else {
+                                dealDamageToEnemy(e, p.damage, p.isCrit, p.isCrit ? '#c084fc' : '#60a5fa', true);
+                                createParticles(p.x, p.y, p.color, 5, 50);
+                            }
 
                             const kb = getTowerKnockback();
                             if (kb > 0 && e && enemies.includes(e) && e.kbCount < Math.min(2, game.upgrades.knockback || 0) && e.kbImmunityTimer <= 0) {
@@ -1755,26 +1876,87 @@
 
         function updateCompanions(simDt) {
             for (const [key, st] of Object.entries(game.companions)) {
-                if (!st.unlocked) continue; const def = COMPANION_DEFS[key];
+                const star = Math.min(5, Math.max(0, st.unlocked ? (st.level || 1) : 0));
+                if (star <= 0) continue;
+                const def = COMPANION_DEFS[key];
+                const idx = star - 1;
+
                 if (!st.angle) st.angle = Math.random() * Math.PI * 2;
                 st.angle += def.orbitSpeed * simDt;
-                st.x = tower.x + Math.cos(st.angle) * def.orbitRadius; st.y = tower.y + Math.sin(st.angle) * def.orbitRadius;
+                st.x = tower.x + Math.cos(st.angle) * def.orbitRadius;
+                st.y = tower.y + Math.sin(st.angle) * def.orbitRadius;
 
-                if (!st.cooldown) st.cooldown = 0; st.cooldown -= simDt; if (st.cooldown > 0) continue;
+                if (!st.cooldown) st.cooldown = 0;
+                st.cooldown -= simDt;
+                if (st.cooldown > 0) continue;
+
+                const compBoost = getCompanionBoost();
+                const towerDmg = getTowerDamage();
 
                 if (key === 'laserDrone' && enemies.length > 0) {
-                    const target = getClosestEnemy(st.x, st.y, 160);
-                    if (target) { st.cooldown = 0.5; const dmg = Math.round(getTowerDamage() * (0.25 + st.level * 0.12) * getCompanionBoost()); dealDamageToEnemy(target, dmg, false, '#ef4444'); lightningBeams.push({ x1: st.x, y1: st.y, x2: target.x, y2: target.y, color: '#ef4444', life: 0.1 }); }
+                    const target = getClosestEnemy(st.x, st.y, 190 + star * 15);
+                    if (target) {
+                        st.cooldown = def.cooldowns[idx];
+                        const isCrit = star >= 5 && (Math.random() * 100 < getTowerCritChance() * 0.5);
+                        let dmg = Math.round(towerDmg * def.damageMults[idx] * compBoost);
+                        if (isCrit) dmg = Math.round(dmg * getTowerCritMult());
+                        dealDamageToEnemy(target, dmg, isCrit, isCrit ? '#facc15' : '#ef4444');
+                        lightningBeams.push({ x1: st.x, y1: st.y, x2: target.x, y2: target.y, color: isCrit ? '#facc15' : '#ef4444', life: 0.11 });
+                    }
                 } else if (key === 'frostOrb' && enemies.length > 0) {
-                    st.cooldown = 1.6; for (const e of enemies) { if (Math.hypot(e.x - st.x, e.y - st.y) <= 130) { e.slowFactor = Math.max(0.4, 0.75 - st.level * 0.025); e.slowTimer = 2.2; } }
+                    st.cooldown = Math.max(1.0, 1.7 - star * 0.12);
+                    const frostRadius = 135 + star * 18;
+                    const slowRatio = 1 - (def.slowPcts[idx] / 100);
+                    const frostDmg = Math.round(towerDmg * def.damageMults[idx] * compBoost);
+                    let hitAny = false;
+                    for (let i = enemies.length - 1; i >= 0; i--) {
+                        const e = enemies[i];
+                        if (Math.hypot(e.x - st.x, e.y - st.y) <= frostRadius) {
+                            e.slowFactor = Math.min(e.slowFactor, slowRatio);
+                            e.slowTimer = 2.4 + star * 0.3;
+                            dealDamageToEnemy(e, frostDmg, false, '#38bdf8');
+                            hitAny = true;
+                        }
+                    }
+                    if (hitAny) rings.push({ x: st.x, y: st.y, radius: 15, color: '#38bdf8', life: 0.65 });
                 } else if (key === 'missileBot' && enemies.length > 0) {
-                    const target = getClosestEnemy(st.x, st.y, 220);
-                    if (target) { st.cooldown = 2.2; const ang = Math.atan2(target.y - st.y, target.x - st.x); const dmg = Math.round(getTowerDamage() * (0.6 + st.level * 0.2) * getCompanionBoost()); projectiles.push({ x: st.x, y: st.y, vx: Math.cos(ang) * 240, vy: Math.sin(ang) * 240, radius: 5, color: '#f97316', damage: dmg, isCrit: false, bouncesLeft: 0, hitList: [], life: 2.2, fromEnemy: false }); }
+                    const target = getClosestEnemy(st.x, st.y, 260);
+                    if (target) {
+                        st.cooldown = def.cooldowns[idx];
+                        const ang = Math.atan2(target.y - st.y, target.x - st.x);
+                        const dmg = Math.round(towerDmg * def.damageMults[idx] * compBoost);
+                        projectiles.push({
+                            x: st.x, y: st.y, vx: Math.cos(ang) * 270, vy: Math.sin(ang) * 270,
+                            radius: 5.5 + star * 0.5, color: '#f97316', damage: dmg,
+                            splashRadius: def.splashRadii[idx], isCrit: false, bouncesLeft: 0, hitList: [], life: 2.5, fromEnemy: false
+                        });
+                    }
                 } else if (key === 'repairDrone') {
-                    st.cooldown = 2.0; if (tower.hp < tower.maxHp) { const heal = Math.round(tower.maxHp * ((1.2 + st.level * 0.5) / 100)); tower.hp = Math.min(tower.maxHp, tower.hp + heal); addFloatingText(tower.x, tower.y - 18, `+${formatNumber(heal)} HP`, '#10b981', 12); }
+                    st.cooldown = 2.0;
+                    const healPct = def.healPcts[idx] / 100;
+                    if (tower.hp < tower.maxHp) {
+                        const heal = Math.max(1, Math.round(tower.maxHp * healPct));
+                        tower.hp = Math.min(tower.maxHp, tower.hp + heal);
+                        addFloatingText(tower.x, tower.y - 18, `+${formatNumber(heal)} HP`, '#10b981', 12);
+                    }
+                    if (tower.maxShield > 0 && tower.shield < tower.maxShield) {
+                        const sHeal = Math.max(1, Math.round(tower.maxShield * healPct));
+                        tower.shield = Math.min(tower.maxShield, tower.shield + sHeal);
+                    }
                 } else if (key === 'plasmaSatellite' && enemies.length > 0) {
-                    const target = getClosestEnemy(st.x, st.y, 220);
-                    if (target) { st.cooldown = 1.8; const dmg = Math.round(getTowerDamage() * (0.4 + st.level * 0.18) * getCompanionBoost()); dealDamageToEnemy(target, dmg, false, '#c084fc'); lightningBeams.push({ x1: st.x, y1: st.y, x2: target.x, y2: target.y, color: '#a855f7', life: 0.14 }); }
+                    const chainCount = def.chainCounts[idx];
+                    const sorted = [...enemies].sort((a, b) => Math.hypot(a.x - st.x, a.y - st.y) - Math.hypot(b.x - st.x, b.y - st.y)).slice(0, chainCount);
+                    if (sorted.length > 0 && Math.hypot(sorted[0].x - st.x, sorted[0].y - st.y) <= 280) {
+                        st.cooldown = Math.max(1.1, 1.8 - star * 0.12);
+                        let prevX = st.x, prevY = st.y;
+                        for (const target of sorted) {
+                            const maxHpBonusDmg = Math.round(target.maxHp * (def.maxHpPcts[idx] / 100));
+                            const dmg = Math.round(towerDmg * def.damageMults[idx] * compBoost) + maxHpBonusDmg;
+                            lightningBeams.push({ x1: prevX, y1: prevY, x2: target.x, y2: target.y, color: '#a855f7', life: 0.16 });
+                            prevX = target.x; prevY = target.y;
+                            dealDamageToEnemy(target, dmg, false, '#c084fc');
+                        }
+                    }
                 }
             }
         }
@@ -1811,12 +1993,19 @@
             const goldEarned = Math.max(1, Math.round(enemy.gold)); game.gold += goldEarned;
             addFloatingText(enemy.x, enemy.y - 10, `+${formatNumber(goldEarned)} 🪙`, '#fbbf24', 11);
 
-            const crystalChance = (1.5 + game.upgrades.crystalChance * 0.4 + getItemStatBonus('crystal') * 100) * (game.holdWave ? 0.15 : 1.0);
+            const crystalChance = getCrystalDropChance() * (game.holdWave ? 0.35 : 1.0);
+            const crystalMult = getCrystalDropMult();
             if (enemy.type === 'boss') {
-                const c = game.holdWave ? 1 : (2 + Math.floor(game.wave / 8));
+                const baseBossCrystals = Math.round((8 + Math.floor(game.wave * 1.2)) * crystalMult);
+                const c = game.holdWave ? Math.max(2, Math.round(baseBossCrystals * 0.35)) : baseBossCrystals;
                 game.crystals += c; game.stats.bossKills++;
-                addFloatingText(enemy.x, enemy.y - 24, `+${c} 💎`, '#22d3ee', 15); showToast(`Kozmik Leviathan İmha Edildi! +${c} Kristal!`);
-            } else if (Math.random() * 100 < crystalChance) { game.crystals += 1; addFloatingText(enemy.x, enemy.y - 22, `+1 💎`, '#22d3ee', 13); }
+                addFloatingText(enemy.x, enemy.y - 24, `+${formatNumber(c)} 💎`, '#22d3ee', 15);
+                showToast(`Kozmik Leviathan İmha Edildi! +${formatNumber(c)} Kristal!`);
+            } else if (Math.random() * 100 < crystalChance) {
+                const cAmt = Math.max(1, Math.round(crystalMult));
+                game.crystals += cAmt;
+                addFloatingText(enemy.x, enemy.y - 22, `+${cAmt} 💎`, '#22d3ee', 13);
+            }
 
             createParticles(enemy.x, enemy.y, enemy.color, enemy.type === 'boss' ? 24 : 10, 85);
             rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 0.5, color: enemy.color, life: 1.0 }); // Premium Şok Dalgası
@@ -1827,8 +2016,14 @@
         }
 
         function damageTower(rawDamage, attacker) {
-            const reduced = Math.max(Math.ceil(rawDamage * 0.15), rawDamage - getTowerArmor());
-            if (attacker && game.upgrades.thorns > 0) { const ref = Math.round(rawDamage * (getTowerThorns() / 100)); if (ref > 0) dealDamageToEnemy(attacker, ref, false, '#fb7185'); }
+            const armorVal = getTowerArmor();
+            // Hem düz zırh azaltması hem de yüksek dalgalarda %65'e kadar zırh sönümlemesi
+            const flatReduced = Math.max(rawDamage * 0.22, rawDamage - armorVal);
+            const reduced = Math.max(1, Math.round(flatReduced));
+            if (attacker && game.upgrades.thorns > 0) {
+                const ref = Math.round((rawDamage + armorVal * 0.5) * (getTowerThorns() / 100));
+                if (ref > 0) dealDamageToEnemy(attacker, ref, false, '#fb7185');
+            }
 
             let rem = reduced;
             if (tower.shield > 0) { if (tower.shield >= rem) { tower.shield -= rem; rem = 0; } else { rem -= tower.shield; tower.shield = 0; } }
@@ -1838,17 +2033,28 @@
 
         function completeWave() {
             if (!game.holdWave) {
-                const total = Math.round(getWaveBonusPreview(game.upgrades.waveGold) + Math.min(Math.round(100 * Math.pow(1.2, game.wave)), Math.floor(game.gold * (game.upgrades.interest * 0.004))));
+                const interestCap = Math.round(getWaveBaseGold(game.wave) * 45 * getGoldMultiplier());
+                const interestGold = Math.min(interestCap, Math.floor(game.gold * (game.upgrades.interest * 0.008)));
+                const total = Math.round(getWaveBonusPreview(game.upgrades.waveGold) + interestGold);
                 if (total > 0) { game.gold += total; addFloatingText(tower.x, tower.y - 35, `Dalga Ödülü: +${formatNumber(total)} 🪙`, '#f59e0b', 14); }
 
                 const prevHighest = game.highestWave; game.wave++;
-                if (game.wave > game.highestWave) { game.highestWave = game.wave; if (prevHighest < 30 && game.highestWave >= 30) showToast('❄️ 30. Dalga! Kar Teması Açıldı!'); else if (prevHighest < 60 && game.highestWave >= 60) showToast('🚀 60. Dalga! Uzay Teması Açıldı!'); }
+                if (game.wave > game.highestWave) {
+                    game.highestWave = game.wave;
+                    if (game.highestWave % 10 === 0) {
+                        const milestoneCrystals = 25 + Math.floor(game.highestWave * 1.5);
+                        game.crystals += milestoneCrystals;
+                        showToast(`🏆 Dalga ${game.highestWave} Rekor Ödülü: +${milestoneCrystals} 💎 Kristal!`);
+                    }
+                    if (prevHighest < 30 && game.highestWave >= 30) showToast('❄️ 30. Dalga! Kar Teması Açıldı!');
+                    else if (prevHighest < 60 && game.highestWave >= 60) showToast('🚀 60. Dalga! Uzay Teması Açıldı!');
+                }
                 game.consecutiveDefeats = 0;
             } else {
                 game.holdWaveTimer = 0; game.consecutiveHoldWins++; addFloatingText(tower.x, tower.y - 35, `Farm Modu (${game.consecutiveHoldWins}/4)`, '#38bdf8', 11);
                 if (game.consecutiveHoldWins >= 4) { game.holdWave = false; game.consecutiveHoldWins = 0; updateHoldWaveButton(); showToast('Farm modunda 4 dalga geçildi! Otomatik İlerleme aktif.'); }
             }
-            game.waveKills = 0; game.waveTargetKills = Math.min(50, 15 + Math.floor(game.wave * 0.38)); tower.hp = Math.min(tower.maxHp, tower.hp + tower.maxHp * 0.15);
+            game.waveKills = 0; game.waveTargetKills = Math.min(45, 14 + Math.floor(game.wave * 0.25)); tower.hp = Math.min(tower.maxHp, tower.hp + tower.maxHp * 0.20);
             if (!game.holdWave && game.wave % 5 === 0 && !enemies.some(e => e.type === 'boss')) spawnEnemy(true);
             updatePrestigeUI(); refreshUpgradeButtonsState(); saveGame(true);
         }
@@ -1944,10 +2150,17 @@
 
             for (const [key, st] of Object.entries(game.companions)) {
                 if (!st.unlocked || !st.x) continue; const def = COMPANION_DEFS[key];
+                const star = Math.min(5, Math.max(1, st.level || 1));
                 ctx.save(); ctx.translate(st.x, st.y);
                 if (pastel) ctx.fillStyle = def.badgeClass.includes('red') ? '#fda4af' : (def.badgeClass.includes('sky') ? '#bae6fd' : (def.badgeClass.includes('orange') ? '#fdba74' : (def.badgeClass.includes('emerald') ? '#a7f3d0' : '#ddd6fe')));
                 else ctx.fillStyle = def.badgeClass.includes('red') ? '#ef4444' : (def.badgeClass.includes('sky') ? '#38bdf8' : (def.badgeClass.includes('orange') ? '#f97316' : (def.badgeClass.includes('emerald') ? '#10b981' : '#a855f7')));
-                ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+                ctx.beginPath(); ctx.arc(0, 0, 6.5 + star * 0.6, 0, Math.PI * 2); ctx.fill();
+                if (star >= 3) {
+                    ctx.strokeStyle = star === 5 ? '#facc15' : 'rgba(255,255,255,0.6)';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath(); ctx.arc(0, 0, 9.5 + star * 0.6, 0, Math.PI * 2); ctx.stroke();
+                }
+                ctx.restore();
             }
 
             for (const b of lightningBeams) { ctx.save(); ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2); ctx.strokeStyle = b.color; ctx.lineWidth = 2.5; ctx.stroke(); ctx.restore(); }
@@ -2049,8 +2262,17 @@
 
         function buyUpgrade(key) {
             const info = getBulkUpgradeInfo(key); if (info.maxed || info.lockedReason || !info.canAfford) return;
+            const prevMaxHp = getTowerMaxHp();
             game.gold -= info.totalCost; game.upgrades[key] += info.count;
-            if (key === 'maxHp') tower.hp += 25 * info.count; if (key === 'shield') tower.shield = getTowerMaxShield();
+            if (key === 'maxHp') {
+                const newMaxHp = getTowerMaxHp();
+                tower.maxHp = newMaxHp;
+                tower.hp = Math.min(newMaxHp, tower.hp + Math.max(0, newMaxHp - prevMaxHp));
+            }
+            if (key === 'shield') {
+                tower.maxShield = getTowerMaxShield();
+                tower.shield = tower.maxShield;
+            }
             refreshUpgradeButtonsState(); updateHUD(); saveGame(true);
         }
 
@@ -2066,30 +2288,67 @@
             buildCompanionsUI(); updatePrestigeUI();
         }
 
+        function renderCompanionStars(starCount) {
+            let html = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= starCount) html += `<i class="fa-solid fa-star text-amber-400 text-[10px] drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]"></i>`;
+                else html += `<i class="fa-regular fa-star text-slate-600 text-[10px]"></i>`;
+            }
+            return html;
+        }
+
         function buildCompanionsUI() {
             const list = document.getElementById('companions-list'); if (!list) return; list.innerHTML = '';
             for (const [key, def] of Object.entries(COMPANION_DEFS)) {
-                const st = game.companions[key]; const cost = st.unlocked ? Math.floor(def.baseUpgradeCost * Math.pow(def.costScale, st.level - 1)) : def.unlockCost;
+                const st = game.companions[key];
+                const star = st.unlocked ? Math.min(5, Math.max(1, st.level || 1)) : 0;
+                const isMaxed = star >= 5;
+                const cost = isMaxed ? 0 : def.starCosts[star];
+                const nextStar = star + 1;
+
                 list.innerHTML += `
-                    <div class="premium-card p-3 flex items-center justify-between gap-2">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-xl border flex items-center justify-center ${def.badgeClass}"><i class="${def.icon}"></i></div>
-                            <div>
-                                <div class="font-tech font-bold text-xs sm:text-sm text-white">${def.name} <span class="text-[10px] text-cyan-400">${st.unlocked ? `Sv.${st.level}` : 'Kilitli'}</span></div>
-                                <div class="text-[10px] text-slate-400">${def.desc}</div>
+                    <div class="premium-card p-3 flex items-center justify-between gap-2 ${isMaxed ? 'border-amber-500/40' : ''}">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${def.badgeClass}">
+                                <i class="${def.icon} text-sm"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="font-tech font-bold text-xs sm:text-sm text-white">${def.name}</span>
+                                    <div class="flex items-center gap-0.5 bg-slate-950/80 px-1.5 py-0.5 rounded border border-white/5">
+                                        ${renderCompanionStars(star)}
+                                    </div>
+                                </div>
+                                <div class="text-[10px] text-slate-400 truncate">${def.desc}</div>
+                                <div class="text-[10px] font-tech font-bold ${star > 0 ? 'text-cyan-300' : 'text-amber-300'}">${def.getStarSummary(star)}</div>
                             </div>
                         </div>
-                        <button onclick="buyCompanion('${key}')" ${game.crystals < cost ? 'disabled' : ''} class="upgrade-btn px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs">${st.unlocked ? 'Geliştir' : 'Aç'} (${cost} 💎)</button>
+                        <button onclick="buyCompanion('${key}')" ${(isMaxed || game.crystals < cost) ? 'disabled' : ''} class="upgrade-btn px-3 py-2 rounded-xl ${isMaxed ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300' : 'bg-cyan-600 hover:bg-cyan-500 text-white'} font-tech font-bold text-xs shrink-0 min-w-[92px] text-center">
+                            ${isMaxed ? '5★ MAKS' : `<div>${star === 0 ? '1★ Aç' : `${nextStar}★ Yükselt`}</div><div class="text-[10px] text-cyan-100">${formatNumber(cost)} 💎</div>`}
+                        </button>
                     </div>
                 `;
             }
         }
 
         function buyCompanion(key) {
-            const def = COMPANION_DEFS[key]; const st = game.companions[key];
-            const cost = st.unlocked ? Math.floor(def.baseUpgradeCost * Math.pow(def.costScale, st.level - 1)) : def.unlockCost;
+            const def = COMPANION_DEFS[key];
+            const st = game.companions[key];
+            const star = st.unlocked ? Math.min(5, Math.max(1, st.level || 1)) : 0;
+            if (star >= 5) return;
+
+            const cost = def.starCosts[star];
             if (game.crystals < cost) return;
-            game.crystals -= cost; if (!st.unlocked) st.unlocked = true; else st.level++;
+
+            game.crystals -= cost;
+            if (!st.unlocked) {
+                st.unlocked = true;
+                st.level = 1;
+                showToast(`⭐ ${def.name} (1★) yörüngeye yerleşti!`);
+            } else {
+                st.level = Math.min(5, star + 1);
+                showToast(`🌟 ${def.name} ${st.level}★ seviyesine yükseldi!`);
+            }
             buildCompanionsUI(); updateHUD(); saveGame(true);
         }
 
@@ -2158,7 +2417,8 @@
                 game.wave = getStartWaveLevel();
                 game.highestWave = Math.max(game.highestWave, game.wave);
                 game.waveKills = 0;
-                game.gold = 100 + (game.prestigeUpgrades.permGold * 50);
+                // İleri dalgadan başlandığında o dalganın ekonomisine uygun başlangıç altını verilir
+                game.gold = Math.round(120 + getWaveBaseGold(game.wave) * 12 * getGoldMultiplier());
                 
                 game.upgrades = {
                     damage: 1, attackSpeed: 1, range: 1, critChance: 0, critMult: 1, multishot: 0, bounce: 0, knockback: 0,
@@ -2326,7 +2586,7 @@
         let currentLootSession = null;
 
         function openLootbox(count) {
-            const cost = count * 5;
+            const cost = count === 5 ? 110 : count * 25;
             if (game.crystals < cost) { showToast('Yeterli kristalin yok!'); return; }
             game.crystals -= cost;
             game.lootboxBonuses.totalOpened += count;
@@ -2347,7 +2607,7 @@
                 const isDuplicate = game.inventory.includes(item.id);
 
                 if (!isDuplicate) game.inventory.push(item.id);
-                else refundCrystals += 2;
+                else refundCrystals += 15;
 
                 droppedEntries.push({ kind: 'item', data: item, isDuplicate });
             }
@@ -2359,7 +2619,7 @@
         }
 
         function openSkinBox(count) {
-            const cost = count * 5;
+            const cost = count === 5 ? 110 : count * 25;
             if (game.crystals < cost) { showToast('Yeterli kristalin yok!'); return; }
             game.crystals -= cost;
             if (!Array.isArray(game.ownedSkins)) game.ownedSkins = ['default_cyber'];
@@ -2382,7 +2642,7 @@
                 const isDuplicate = game.ownedSkins.includes(skin.id);
 
                 if (!isDuplicate) game.ownedSkins.push(skin.id);
-                else refundCrystals += 2;
+                else refundCrystals += 15;
 
                 droppedEntries.push({ kind: 'skin', data: skin, isDuplicate });
             }
@@ -2446,7 +2706,7 @@
             void flashBurst.offsetWidth;
             flashBurst.style.animation = 'flashBurst 0.55s ease-out forwards';
 
-            reopenLabel.textContent = `Tekrar Aç (${count * 5} 💎)`;
+            reopenLabel.textContent = `Tekrar Aç (${count === 5 ? 110 : count * 25} 💎)`;
 
             if (refundCrystals > 0) {
                 refundBanner.classList.remove('hidden');
@@ -2464,7 +2724,7 @@
                 const cardSizeCls = isSingle ? 'w-64 p-5' : 'w-36 sm:w-40 p-3';
 
                 const statusBadge = entry.isDuplicate
-                    ? `<span class="px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-cyan-300 text-[9px] font-tech font-bold">+2 💎 KOPYA</span>`
+                    ? `<span class="px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-cyan-300 text-[9px] font-tech font-bold">+15 💎 KOPYA</span>`
                     : `<span class="px-2 py-0.5 rounded-full bg-emerald-500/25 border border-emerald-400/60 text-emerald-300 text-[9px] font-tech font-bold animate-pulse">✨ YENİ!</span>`;
 
                 const visualCenter = entry.kind === 'skin'
@@ -2681,6 +2941,16 @@
                 const raw = localStorage.getItem(SAVE_KEY); if (!raw) return;
                 const parsed = JSON.parse(raw), def = getDefaultState();
                 game = { ...def, ...parsed, stats: { ...def.stats, ...(parsed.stats || {}) }, settings: { ...def.settings, ...(parsed.settings || {}) }, upgrades: { ...def.upgrades, ...(parsed.upgrades || {}) }, companions: { ...def.companions, ...(parsed.companions || {}) }, prestigeUpgrades: { ...def.prestigeUpgrades, ...(parsed.prestigeUpgrades || {}) }, inventory: Array.isArray(parsed.inventory) ? parsed.inventory : [], equippedItems: Array.isArray(parsed.equippedItems) ? parsed.equippedItems : [], ownedSkins: Array.isArray(parsed.ownedSkins) ? parsed.ownedSkins : ['default_cyber'], activeSkin: parsed.activeSkin || 'default_cyber' };
+                // Eski kayıtlardaki yoldaş seviyelerini 1-5 Yıldız sınırına uyarla
+                for (const key of Object.keys(COMPANION_DEFS)) {
+                    if (game.companions[key]) {
+                        if (game.companions[key].unlocked) {
+                            game.companions[key].level = Math.min(5, Math.max(1, game.companions[key].level || 1));
+                        } else {
+                            game.companions[key].level = 0;
+                        }
+                    }
+                }
             } catch (e) {}
         }
         function exportSaveCode() { try { document.getElementById('save-code-textarea').value = btoa(unescape(encodeURIComponent(JSON.stringify(game)))); document.getElementById('save-code-textarea').select(); document.execCommand('copy'); showToast('Kayıt kodu kopyalandı!'); } catch (e) { showToast('Hata!'); } }
