@@ -1,4 +1,3 @@
-data.js
 const SAVE_KEY = 'CoreTowerDefense_Save_v11';
 
 const THEME_DEFS = {
@@ -61,7 +60,6 @@ const ITEM_DATABASE = {
     epic_void_rope: { id: 'epic_void_rope', name: 'Hiçlik Çukuru İpi', rarity: 'epic', type: 'lifesteal', val: 0.03, desc: 'Karanlık delikten çıkış halatı: Can çalma oranını +%3 artırır.', icon: 'fa-solid fa-circle-dot', customArt: 'void_rope' },
     epic_future_letter: { id: 'epic_future_letter', name: 'Yırtık Gelecek Mektubu', rarity: 'epic', type: 'gold', val: 0.55, desc: 'Üzerinde "Gelecek" yazan kadim parşömen: Altın kazancını +%55 artırır.', icon: 'fa-solid fa-scroll', customArt: 'future_letter' },
     srare_tracker_steps: { id: 'srare_tracker_steps', name: 'İz Sürücü Adımları', rarity: 'super_rare', type: 'range', val: 35, desc: 'Gizemli ayak izleri: Kule radar menzilini +35 piksel artırır.', icon: 'fa-solid fa-shoe-prints', customArt: 'footsteps' },
-
     rare_bow_shard: { id: 'rare_bow_shard', name: 'Kırık Yay Parçası', rarity: 'rare', type: 'damage', val: 0.12, desc: 'Tüm kule hasarını +%12 artırır.', icon: 'fa-solid fa-feather' },
     rare_copper_coin: { id: 'rare_copper_coin', name: 'Bakır Ganimet', rarity: 'rare', type: 'gold', val: 0.15, desc: 'Altın kazancını +%15 artırır.', icon: 'fa-solid fa-coins' },
     rare_iron_nail: { id: 'rare_iron_nail', name: 'Demir Çivi', rarity: 'rare', type: 'armor', val: 0.12, desc: 'Zırh değerini +%12 artırır.', icon: 'fa-solid fa-hammer' },
@@ -179,3 +177,213 @@ const PRESTIGE_DEFS = {
     costDiscount: { name: 'Mühendislik Verimi', icon: 'fa-solid fa-tags', desc: 'Yükseltme altın maliyetini düşürür.', baseCost: 2, costScale: 1.65, maxLevel: 30, getEffectText: (lvl) => `-%${lvl * 2}` },
     startWave: { name: 'Zaman Sıçraması', icon: 'fa-solid fa-forward', desc: 'İleri dalgadan başla (Başlangıç altını verir).', baseCost: 4, costScale: 1.9, maxLevel: 40, getEffectText: (lvl) => `Başlangıç: Dalga ${getStartWaveLevel(lvl)}` }
 };
+
+function getDefaultState() {
+    return {
+        gold: 120, crystals: 100, souls: 0, wave: 1, highestWave: 1, waveKills: 0, waveTargetKills: 15,
+        holdWave: false, holdWaveTimer: 0, consecutiveDefeats: 0, consecutiveHoldWins: 0,
+        deviceMode: 'pc',
+        stats: { totalKills: 0, bossKills: 0, prestiges: 0, playTimeSeconds: 0 },
+        settings: { showRange: true, showDamageText: true, activeTheme: 'cyber' },
+        upgrades: {
+            damage: 1, attackSpeed: 1, range: 1, critChance: 0, critMult: 1, multishot: 0, bounce: 0, knockback: 0,
+            maxHp: 1, hpRegen: 1, armor: 0, thorns: 0, shield: 0, lifesteal: 0,
+            goldBonus: 0, waveGold: 0, crystalChance: 0, interest: 0
+        },
+        companions: {
+            laserDrone: { unlocked: false, level: 0 }, frostOrb: { unlocked: false, level: 0 },
+            missileBot: { unlocked: false, level: 0 }, repairDrone: { unlocked: false, level: 0 }, plasmaSatellite: { unlocked: false, level: 0 }
+        },
+        inventory: [], equippedItems: [], ownedSkins: ['default_cyber'], activeSkin: 'default_cyber',
+        ownedCompanionSkins: ['default_tech'], activeCompanionSkin: 'default_tech',
+        lootboxBonuses: { extraDamagePct: 0, extraGoldPct: 0, totalOpened: 0 },
+        prestigeUpgrades: { permDamage: 0, permGold: 0, companionBoost: 0, costDiscount: 0, startWave: 0 },
+        lastSaveTime: Date.now()
+    };
+}
+
+let game = getDefaultState();
+let buyMultiplier = 1;
+let currentTab = 'attack';
+let gameSpeed = 1;
+let isPaused = false;
+let isDefeated = false;
+let defeatTimer = 0;
+let isDrawerOpen = false;
+
+function getEnemyColors(type) {
+    if (type === 'boss') return { color: '#a78bfa', secColor: '#ede9fe' };
+    if (type === 'teleporter') return { color: '#fbbf24', secColor: '#fef3c7' };
+    if (type === 'ranged') return { color: '#60a5fa', secColor: '#dbeafe' };
+    return { color: '#4ade80', secColor: '#dcfce7' };
+}
+
+function getStartWaveLevel(lvl = (game.prestigeUpgrades?.startWave || 0)) { return 1 + lvl * 3; }
+function getMinPrestigeWave() { return Math.max(10, getStartWaveLevel() + 10); }
+function getDiscountMultiplier() { return Math.max(0.4, 1 - (game.prestigeUpgrades.costDiscount * 0.02)); }
+function getSingleUpgradeCost(key, level) {
+    const def = UPGRADE_DEFS[key];
+    return Math.max(1, Math.floor(def.baseCost * Math.pow(def.costScale, level) * (1 + level * 0.05) * getDiscountMultiplier()));
+}
+
+const MULTISHOT_WAVE_REQS = [8, 22, 42, 68, 95];
+function getMultishotRequiredWave(nextLevelIndex) { return MULTISHOT_WAVE_REQS[nextLevelIndex] || 999; }
+
+function getItemStatBonus(type) {
+    let total = 0;
+    for (const itemId of (game.equippedItems || [])) {
+        const item = ITEM_DATABASE[itemId];
+        if (item && item.type === type) total += item.val;
+    }
+    return total;
+}
+
+function getEffectiveMultishot() {
+    let base = 1 + game.upgrades.multishot;
+    for (const itemId of (game.equippedItems || [])) {
+        const item = ITEM_DATABASE[itemId];
+        if (item && item.type === 'multishot_buff') base += item.val;
+    }
+    return base;
+}
+
+function getBulkUpgradeInfo(key) {
+    const def = UPGRADE_DEFS[key];
+    const currentLvl = game.upgrades[key];
+    const maxLvl = def.maxLevel;
+    if (currentLvl >= maxLvl) return { count: 0, totalCost: 0, maxed: true, lockedReason: null };
+
+    if (key === 'multishot') {
+        const reqWave = getMultishotRequiredWave(currentLvl);
+        if (Math.max(game.wave, game.highestWave) < reqWave) {
+            return { count: 1, totalCost: getSingleUpgradeCost(key, currentLvl), canAfford: false, maxed: false, lockedReason: `Dalga ${reqWave}` };
+        }
+    }
+
+    let targetCount = buyMultiplier === 'MAX' ? 9999 : buyMultiplier;
+    targetCount = Math.min(targetCount, maxLvl - currentLvl);
+    let count = 0, totalCost = 0, tempGold = game.gold;
+    
+    for (let i = 0; i < targetCount; i++) {
+        if (key === 'multishot' && Math.max(game.wave, game.highestWave) < getMultishotRequiredWave(currentLvl + i)) break;
+        const stepCost = getSingleUpgradeCost(key, currentLvl + i);
+        if (buyMultiplier === 'MAX') {
+            if (tempGold >= stepCost) { tempGold -= stepCost; totalCost += stepCost; count++; } else break;
+        } else { totalCost += stepCost; count++; }
+    }
+    if (count === 0) return { count: 1, totalCost: getSingleUpgradeCost(key, currentLvl), canAfford: false, maxed: false, lockedReason: null };
+    return { count, totalCost, canAfford: game.gold >= totalCost && count > 0, maxed: false, lockedReason: null };
+}
+
+function getLevelMilestoneMult(lvl) {
+    return Math.pow(1.22, Math.floor(lvl / 10)) * Math.pow(1.40, Math.floor(lvl / 25));
+}
+
+function getPermDamageMult() { 
+    const itemMultBonus = (1 + getItemStatBonus('damage')) * (1 + getItemStatBonus('damage_mult'));
+    return (1 + game.prestigeUpgrades.permDamage * 0.35) * (1 + game.souls * 0.06) * (1 + (game.lootboxBonuses.extraDamagePct || 0) / 100) * itemMultBonus; 
+}
+
+function getTowerDamage() {
+    const lvl = Math.max(1, game.upgrades.damage);
+    const base = (12 + (lvl - 1) * 4.5) * Math.pow(1.105, lvl - 1);
+    const milestone = getLevelMilestoneMult(lvl);
+    return Math.round(base * milestone * getPermDamageMult() * (game.wave <= 3 ? 1.25 : 1.0));
+}
+
+function getTowerFireRate() {
+    const lvl = Math.min(60, Math.max(1, game.upgrades.attackSpeed));
+    return 1.0 + (lvl - 1) * 0.085 + getItemStatBonus('speed');
+}
+
+function getTowerRange() {
+    const lvl = Math.min(45, Math.max(1, game.upgrades.range));
+    return 135 + (lvl - 1) * 4.5 + getItemStatBonus('range');
+}
+
+function getTowerCritChance() {
+    const lvl = Math.min(35, Math.max(0, game.upgrades.critChance || 0));
+    return Math.min(85, Math.round(5 + lvl * 2.0 + getItemStatBonus('crit')));
+}
+
+function getTowerCritMult() {
+    const lvl = Math.max(1, game.upgrades.critMult || 1);
+    return 2.0 + (lvl - 1) * 0.15 + Math.floor(lvl / 15) * 0.25 + getItemStatBonus('critMult');
+}
+
+function getTowerKnockback() { const lvl = Math.min(3, game.upgrades.knockback || 0); return lvl <= 0 ? 0 : 7 + lvl * 3.5; }
+
+function getTowerMaxHp() {
+    const lvl = Math.max(1, game.upgrades.maxHp);
+    const base = (140 + (lvl - 1) * 38) * Math.pow(1.102, lvl - 1);
+    const milestone = getLevelMilestoneMult(lvl);
+    return Math.round(base * milestone * (1 + getItemStatBonus('hp')));
+}
+
+function getTowerRegen() {
+    const lvl = game.upgrades.hpRegen || 0;
+    const itemRegenPct = getItemStatBonus('regen');
+    if (lvl === 0 && itemRegenPct === 0) return 0;
+    const base = (4.0 + lvl * 2.8) * Math.pow(1.102, Math.max(0, lvl - 1)) * getLevelMilestoneMult(lvl);
+    return Math.round(base * (1 + itemRegenPct) * 10) / 10;
+}
+
+function getTowerArmor() {
+    const lvl = game.upgrades.armor || 0;
+    const itemArmorPct = getItemStatBonus('armor');
+    if (lvl === 0 && itemArmorPct === 0) return 0;
+    const base = (3.5 + lvl * 2.5) * Math.pow(1.098, Math.max(0, lvl - 1)) * Math.pow(1.18, Math.floor(lvl / 10));
+    return Math.round(base * (1 + itemArmorPct));
+}
+
+function getTowerThorns() { return Math.min(30, game.upgrades.thorns || 0) * 5; }
+
+function getTowerMaxShield() {
+    const lvl = game.upgrades.shield || 0;
+    const itemShieldPct = getItemStatBonus('shield');
+    if (lvl === 0 && itemShieldPct === 0) return 0;
+    const base = (85 + lvl * 32) * Math.pow(1.104, Math.max(0, lvl - 1)) * getLevelMilestoneMult(lvl);
+    return Math.round(base * (1 + itemShieldPct));
+}
+
+function getTowerLifesteal() { return Math.min(25, game.upgrades.lifesteal || 0) * 0.006 + getItemStatBonus('lifesteal'); }
+
+function getWaveBaseGold(w = game.wave) {
+    return (5 + w * 2.5) * Math.pow(1.112, w - 1) * Math.pow(1.18, Math.floor(w / 10));
+}
+
+function getGoldMultiplier() {
+    const lvl = game.upgrades.goldBonus || 0;
+    const upgMult = (1 + lvl * 0.14) * Math.pow(1.15, Math.floor(lvl / 10));
+    return upgMult * (1 + getItemStatBonus('gold')) * (1 + game.prestigeUpgrades.permGold * 0.40) * (1 + (game.lootboxBonuses.extraGoldPct || 0) / 100) * (game.holdWave ? 0.35 : 1.0);
+}
+
+function getWaveBonusPreview(lvl) {
+    if (lvl === 0 || game.holdWave) return 0;
+    return Math.round(getWaveBaseGold(game.wave) * (2.5 + lvl * 1.45) * getGoldMultiplier());
+}
+
+function getCrystalDropChance(lvl = (game.upgrades.crystalChance || 0)) {
+    return Math.min(35, 3.0 + lvl * 0.65 + getItemStatBonus('crystal') * 100);
+}
+
+function getCrystalDropMult(lvl = (game.upgrades.crystalChance || 0)) {
+    return (1 + Math.floor(game.wave / 15) * 0.5) * (1 + lvl * 0.12);
+}
+
+function getCompanionBoost() { return (1 + game.prestigeUpgrades.companionBoost * 0.45) * (1 + Math.floor(game.wave / 20) * 0.15); }
+
+function calculatePendingSouls() {
+    if (game.wave < getMinPrestigeWave()) return 0;
+    return Math.max(1, Math.floor(Math.pow(game.wave - 7, 1.38) * (1 + Math.floor(game.wave / 25) * 0.35)));
+}
+
+function formatNumber(num) {
+    if (num === null || num === undefined || isNaN(num)) return '0';
+    const abs = Math.abs(num);
+    if (abs >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+    if (abs >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+    if (abs >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+    if (abs >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+    return Math.floor(num).toString();
+}
