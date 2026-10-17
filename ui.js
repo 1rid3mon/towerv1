@@ -1,4 +1,3 @@
-ui.js
 function toggleUpgradeDrawer() {
     isDrawerOpen = !isDrawerOpen;
     const drawer = document.getElementById('upgrade-drawer');
