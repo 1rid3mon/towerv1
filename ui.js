@@ -1,3 +1,50 @@
+ui.js
+function toggleUpgradeDrawer() {
+    isDrawerOpen = !isDrawerOpen;
+    const drawer = document.getElementById('upgrade-drawer');
+    if (!drawer) return;
+    if (isDrawerOpen) drawer.classList.remove('-translate-x-full');
+    else drawer.classList.add('-translate-x-full');
+    syncHudPositionsWithDrawer();
+}
+
+function syncHudPositionsWithDrawer() {
+    const topBar = document.getElementById('hud-top-bar');
+    const quickStats = document.getElementById('hud-quick-stats');
+    if (!topBar || !quickStats) return;
+
+    if (isDrawerOpen) {
+        topBar.classList.remove('left-2', 'sm:left-3');
+        topBar.classList.add('left-2', 'sm:left-[442px]');
+
+        quickStats.classList.remove('left-2', 'bottom-2');
+        quickStats.classList.add('right-2', 'bottom-11', 'sm:left-[442px]', 'sm:right-auto', 'sm:bottom-2');
+    } else {
+        topBar.classList.remove('sm:left-[442px]');
+        topBar.classList.add('left-2', 'sm:left-3');
+
+        quickStats.classList.remove('right-2', 'bottom-11', 'sm:left-[442px]', 'sm:right-auto', 'sm:bottom-2');
+        quickStats.classList.add('left-2', 'bottom-2');
+    }
+}
+
+function setDeviceMode(mode) {
+    game.deviceMode = mode; applyBodyClasses();
+    ['phone', 'tablet', 'pc'].forEach(m => {
+        const btn = document.getElementById(`dev-${m}`);
+        if (btn) btn.className = m === mode ? 'py-2 rounded-xl bg-blue-600 text-white text-xs font-tech font-bold border border-blue-500 transition' : 'py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-tech font-bold border border-slate-700 transition';
+    });
+    showToast(`Cihaz modu: ${mode.toUpperCase()} olarak ayarlandı.`);
+    resizeCanvas();
+}
+
+function applyBodyClasses() {
+    const body = document.getElementById('main-body');
+    if (!body) return;
+    const dev = game.deviceMode || 'pc';
+    body.className = `h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-${dev} color-pastel`;
+}
+
 function buildUpgradesUI() {
     const categories = { attack: 'attack-upgrades-list', defense: 'defense-upgrades-list', economy: 'economy-upgrades-list' };
     for (const [cat, containerId] of Object.entries(categories)) {
@@ -160,14 +207,14 @@ function updatePrestigeUI() {
     const pendingEl = document.getElementById('ui-pending-souls');
     const minWaveEl = document.getElementById('ui-prestige-min-wave');
     const actionBtn = document.getElementById('btn-prestige-action');
-    
+
     if (countEl) countEl.textContent = game.stats.prestiges;
     const minWave = getMinPrestigeWave();
     if (minWaveEl) minWaveEl.textContent = `Gereken: Dalga ${minWave}`;
-    
+
     const pending = calculatePendingSouls();
     if (pendingEl) pendingEl.textContent = `+${formatNumber(pending)} Ruh`;
-    
+
     if (actionBtn) {
         if (game.wave >= minWave) {
             actionBtn.disabled = false;
@@ -194,21 +241,21 @@ function openPrestigeConfirm() {
         game.highestWave = Math.max(game.highestWave, game.wave);
         game.waveKills = 0;
         game.gold = Math.round(120 + getWaveBaseGold(game.wave) * 12 * getGoldMultiplier());
-        
+
         game.upgrades = {
             damage: 1, attackSpeed: 1, range: 1, critChance: 0, critMult: 1, multishot: 0, bounce: 0, knockback: 0,
             maxHp: 1, hpRegen: 1, armor: 0, thorns: 0, shield: 0, lifesteal: 0,
             goldBonus: 0, waveGold: 0, crystalChance: 0, interest: 0
         };
-        
+
         tower.maxHp = getTowerMaxHp();
         tower.hp = tower.maxHp;
         tower.maxShield = getTowerMaxShield();
         tower.shield = tower.maxShield;
-        
+
         enemies = [];
         projectiles = [];
-        
+
         buildUpgradesUI();
         updateHUD();
         saveGame(true);
@@ -220,12 +267,12 @@ function buyPrestigeUpgrade(key) {
     const def = PRESTIGE_DEFS[key];
     const lvl = game.prestigeUpgrades[key] || 0;
     const cost = Math.floor(def.baseCost * Math.pow(def.costScale, lvl));
-    
+
     if (lvl >= def.maxLevel || game.souls < cost) return;
-    
+
     game.souls -= cost;
     game.prestigeUpgrades[key] = lvl + 1;
-    
+
     buildPrestigeUI();
     refreshUpgradeButtonsState();
     updateHUD();
@@ -835,5 +882,35 @@ function showToast(msg) {
     txt.textContent = msg; el.classList.remove('opacity-0'); clearTimeout(toastTimeout); toastTimeout = setTimeout(() => el.classList.add('opacity-0'), 2600);
 }
 
+function saveGame(silent = false) { try { game.lastSaveTime = Date.now(); localStorage.setItem(SAVE_KEY, JSON.stringify(game)); } catch (e) {} }
+function loadGame() {
+    try {
+        const raw = localStorage.getItem(SAVE_KEY); if (!raw) return;
+        const parsed = JSON.parse(raw), def = getDefaultState();
+        game = {
+            ...def, ...parsed,
+            stats: { ...def.stats, ...(parsed.stats || {}) },
+            settings: { ...def.settings, ...(parsed.settings || {}) },
+            upgrades: { ...def.upgrades, ...(parsed.upgrades || {}) },
+            companions: { ...def.companions, ...(parsed.companions || {}) },
+            prestigeUpgrades: { ...def.prestigeUpgrades, ...(parsed.prestigeUpgrades || {}) },
+            inventory: Array.isArray(parsed.inventory) ? parsed.inventory : [],
+            equippedItems: Array.isArray(parsed.equippedItems) ? parsed.equippedItems : [],
+            ownedSkins: Array.isArray(parsed.ownedSkins) ? parsed.ownedSkins : ['default_cyber'],
+            activeSkin: parsed.activeSkin || 'default_cyber',
+            ownedCompanionSkins: Array.isArray(parsed.ownedCompanionSkins) ? parsed.ownedCompanionSkins : ['default_tech'],
+            activeCompanionSkin: parsed.activeCompanionSkin || 'default_tech'
+        };
+        for (const key of Object.keys(COMPANION_DEFS)) {
+            if (game.companions[key]) {
+                if (game.companions[key].unlocked) {
+                    game.companions[key].level = Math.min(5, Math.max(1, game.companions[key].level || 1));
+                } else {
+                    game.companions[key].level = 0;
+                }
+            }
+        }
+    } catch (e) {}
+}
 function exportSaveCode() { try { document.getElementById('save-code-textarea').value = btoa(unescape(encodeURIComponent(JSON.stringify(game)))); document.getElementById('save-code-textarea').select(); document.execCommand('copy'); showToast('Kayıt kodu kopyalandı!'); } catch (e) { showToast('Hata!'); } }
 function importSaveCode() { try { const code = document.getElementById('save-code-textarea').value.trim(); if (!code) return; localStorage.setItem(SAVE_KEY, decodeURIComponent(escape(atob(code)))); loadGame(); applyBodyClasses(); buildUpgradesUI(); buildInventoryUI(); updateHUD(); showToast('Kod yüklendi!'); } catch (e) { showToast('Geçersiz kod!'); } }
