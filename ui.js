@@ -1,1 +1,839 @@
+function buildUpgradesUI() {
+    const categories = { attack: 'attack-upgrades-list', defense: 'defense-upgrades-list', economy: 'economy-upgrades-list' };
+    for (const [cat, containerId] of Object.entries(categories)) {
+        const container = document.getElementById(containerId); if (!container) continue; container.innerHTML = '';
+        for (const [key, def] of Object.entries(UPGRADE_DEFS)) {
+            if (def.category !== cat) continue; const lvl = game.upgrades[key] || 0; const info = getBulkUpgradeInfo(key);
+            let btnLabel = info.maxed ? 'MAKS' : (info.lockedReason ? info.lockedReason : `${formatNumber(info.totalCost)} 🪙`);
+            let subLabel = (!info.maxed && !info.lockedReason && info.count > 1) ? `+${info.count} Sv` : '';
 
+            container.innerHTML += `
+                <div class="premium-card p-2.5 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-9 h-9 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center shrink-0 ${def.color}">
+                            <i class="${def.icon} text-sm"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-tech font-bold text-xs sm:text-sm text-white truncate">${def.name}</span>
+                                <span id="upg-lvl-${key}" class="text-[10px] font-tech px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">Sv.${lvl}</span>
+                            </div>
+                            <div class="text-[10px] text-slate-400 truncate">${def.desc}</div>
+                            <div id="upg-val-${key}" class="text-[11px] font-tech font-bold text-blue-300">${def.getValueText(lvl)}</div>
+                        </div>
+                    </div>
+                    <button id="upg-btn-${key}" onclick="buyUpgrade('${key}')" ${(!info.canAfford || info.maxed || info.lockedReason) ? 'disabled' : ''} class="upgrade-btn px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-tech font-bold text-xs shrink-0 min-w-[82px] text-center">
+                        <div id="upg-cost-${key}">${btnLabel}</div>
+                        <div id="upg-sub-${key}" class="text-[9px] text-blue-200">${subLabel}</div>
+                    </button>
+                </div>
+            `;
+        }
+    }
+    buildCompanionsUI(); buildPrestigeUI();
+}
+
+function buyUpgrade(key) {
+    const info = getBulkUpgradeInfo(key); if (info.maxed || info.lockedReason || !info.canAfford) return;
+    const prevMaxHp = getTowerMaxHp();
+    game.gold -= info.totalCost; game.upgrades[key] += info.count;
+    if (key === 'maxHp') {
+        const newMaxHp = getTowerMaxHp();
+        tower.maxHp = newMaxHp;
+        tower.hp = Math.min(newMaxHp, tower.hp + Math.max(0, newMaxHp - prevMaxHp));
+    }
+    if (key === 'shield') {
+        tower.maxShield = getTowerMaxShield();
+        tower.shield = tower.maxShield;
+    }
+    refreshUpgradeButtonsState(); updateHUD(); saveGame(true);
+}
+
+function refreshUpgradeButtonsState() {
+    for (const [key, def] of Object.entries(UPGRADE_DEFS)) {
+        const lvl = game.upgrades[key] || 0; const info = getBulkUpgradeInfo(key);
+        const btn = document.getElementById(`upg-btn-${key}`), lvlEl = document.getElementById(`upg-lvl-${key}`), valEl = document.getElementById(`upg-val-${key}`), costEl = document.getElementById(`upg-cost-${key}`), subEl = document.getElementById(`upg-sub-${key}`);
+        if (lvlEl) lvlEl.textContent = `Sv.${lvl}`; if (valEl) valEl.textContent = def.getValueText(lvl);
+        if (costEl) costEl.textContent = info.maxed ? 'MAKS' : (info.lockedReason ? info.lockedReason : `${formatNumber(info.totalCost)} 🪙`);
+        if (subEl) subEl.textContent = (!info.maxed && !info.lockedReason && info.count > 1) ? `+${info.count} Sv` : '';
+        if (btn) btn.disabled = !info.canAfford || info.maxed || Boolean(info.lockedReason);
+    }
+    buildCompanionsUI(); updatePrestigeUI();
+}
+
+function renderCompanionStars(starCount) {
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+        if (i <= starCount) html += `<i class="fa-solid fa-star text-amber-400 text-[10px] drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]"></i>`;
+        else html += `<i class="fa-regular fa-star text-slate-600 text-[10px]"></i>`;
+    }
+    return html;
+}
+
+function buildCompanionsUI() {
+    const list = document.getElementById('companions-list'); if (!list) return; list.innerHTML = '';
+    const compSkinDef = COMPANION_SKIN_DATABASE[game.activeCompanionSkin || 'default_tech'] || COMPANION_SKIN_DATABASE.default_tech;
+    const compSkinLabel = document.getElementById('comp-tab-active-skin');
+    if (compSkinLabel) compSkinLabel.textContent = `${compSkinDef.emoji} ${compSkinDef.name}`;
+
+    for (const [key, def] of Object.entries(COMPANION_DEFS)) {
+        const st = game.companions[key];
+        const star = st.unlocked ? Math.min(5, Math.max(1, st.level || 1)) : 0;
+        const isMaxed = star >= 5;
+        const cost = isMaxed ? 0 : def.starCosts[star];
+        const nextStar = star + 1;
+
+        list.innerHTML += `
+            <div class="premium-card p-3 flex items-center justify-between gap-2 ${isMaxed ? 'border-amber-500/40' : ''}">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${def.badgeClass}">
+                        <i class="${def.icon} text-sm"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="font-tech font-bold text-xs sm:text-sm text-white">${def.name}</span>
+                            <div class="flex items-center gap-0.5 bg-slate-950/80 px-1.5 py-0.5 rounded border border-white/5">
+                                ${renderCompanionStars(star)}
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-slate-400 truncate">${def.desc}</div>
+                        <div class="text-[10px] font-tech font-bold ${star > 0 ? 'text-cyan-300' : 'text-amber-300'}">${def.getStarSummary(star)}</div>
+                    </div>
+                </div>
+                <button onclick="buyCompanion('${key}')" ${(isMaxed || game.crystals < cost) ? 'disabled' : ''} class="upgrade-btn px-3 py-2 rounded-xl ${isMaxed ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300' : 'bg-cyan-600 hover:bg-cyan-500 text-white'} font-tech font-bold text-xs shrink-0 min-w-[92px] text-center">
+                    ${isMaxed ? '5★ MAKS' : `<div>${star === 0 ? '1★ Aç' : `${nextStar}★ Yükselt`}</div><div class="text-[10px] text-cyan-100">${formatNumber(cost)} 💎</div>`}
+                </button>
+            </div>
+        `;
+    }
+}
+
+function buyCompanion(key) {
+    const def = COMPANION_DEFS[key];
+    const st = game.companions[key];
+    const star = st.unlocked ? Math.min(5, Math.max(1, st.level || 1)) : 0;
+    if (star >= 5) return;
+
+    const cost = def.starCosts[star];
+    if (game.crystals < cost) return;
+
+    game.crystals -= cost;
+    if (!st.unlocked) {
+        st.unlocked = true;
+        st.level = 1;
+        showToast(`⭐ ${def.name} (1★) yörüngeye yerleşti!`);
+    } else {
+        st.level = Math.min(5, star + 1);
+        showToast(`🌟 ${def.name} ${st.level}★ seviyesine yükseldi!`);
+    }
+    buildCompanionsUI(); updateHUD(); saveGame(true);
+}
+
+function buildPrestigeUI() {
+    const list = document.getElementById('prestige-upgrades-list'); if (!list) return; list.innerHTML = '';
+    for (const [key, def] of Object.entries(PRESTIGE_DEFS)) {
+        const lvl = game.prestigeUpgrades[key] || 0; const cost = Math.floor(def.baseCost * Math.pow(def.costScale, lvl)); const maxed = lvl >= def.maxLevel;
+        list.innerHTML += `
+            <div class="premium-card p-2.5 flex items-center justify-between gap-2">
+                <div>
+                    <div class="font-tech font-bold text-xs text-white"><i class="${def.icon} text-purple-400 mr-1"></i>${def.name} <span class="text-[10px] text-purple-300">Sv.${lvl}</span></div>
+                    <div class="text-[10px] text-slate-400">${def.desc}</div>
+                    <div class="text-[10px] font-tech text-purple-300">${def.getEffectText(lvl)}</div>
+                </div>
+                <button onclick="buyPrestigeUpgrade('${key}')" ${maxed || game.souls < cost ? 'disabled' : ''} class="upgrade-btn px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-tech font-bold text-xs shrink-0">${maxed ? 'MAKS' : `${cost} 🔥`}</button>
+            </div>
+        `;
+    } updatePrestigeUI();
+}
+
+function setBuyMultiplier(val) {
+    buyMultiplier = val;
+    [1, 5, 10, 'MAX'].forEach(m => {
+        const btn = document.getElementById(`mult-${m}`);
+        if (btn) btn.className = m === val ? 'px-2.5 py-0.5 rounded text-xs font-tech font-bold bg-blue-600 text-white transition' : 'px-2.5 py-0.5 rounded text-xs font-tech font-bold text-slate-400 hover:text-white transition';
+    });
+    refreshUpgradeButtonsState();
+}
+
+function updatePrestigeUI() {
+    const countEl = document.getElementById('ui-prestige-count');
+    const pendingEl = document.getElementById('ui-pending-souls');
+    const minWaveEl = document.getElementById('ui-prestige-min-wave');
+    const actionBtn = document.getElementById('btn-prestige-action');
+    
+    if (countEl) countEl.textContent = game.stats.prestiges;
+    const minWave = getMinPrestigeWave();
+    if (minWaveEl) minWaveEl.textContent = `Gereken: Dalga ${minWave}`;
+    
+    const pending = calculatePendingSouls();
+    if (pendingEl) pendingEl.textContent = `+${formatNumber(pending)} Ruh`;
+    
+    if (actionBtn) {
+        if (game.wave >= minWave) {
+            actionBtn.disabled = false;
+            actionBtn.classList.remove('bg-slate-700', 'text-slate-400');
+            actionBtn.classList.add('bg-purple-600', 'hover:bg-purple-500', 'text-white');
+        } else {
+            actionBtn.disabled = true;
+            actionBtn.classList.add('bg-slate-700', 'text-slate-400');
+            actionBtn.classList.remove('bg-purple-600', 'hover:bg-purple-500', 'text-white');
+        }
+    }
+}
+
+function openPrestigeConfirm() {
+    const pending = calculatePendingSouls();
+    if (pending <= 0) {
+        showToast(`Evrim için en az Dalga ${getMinPrestigeWave()} olmalısın.`);
+        return;
+    }
+    openConfirmModal('Sıfırlama (Prestij)', `Dalgan ${getStartWaveLevel()}'e dönecek ancak ${formatNumber(pending)} Ruh Taşı kazanacaksın. Onaylıyor musun?`, () => {
+        game.souls += pending;
+        game.stats.prestiges++;
+        game.wave = getStartWaveLevel();
+        game.highestWave = Math.max(game.highestWave, game.wave);
+        game.waveKills = 0;
+        game.gold = Math.round(120 + getWaveBaseGold(game.wave) * 12 * getGoldMultiplier());
+        
+        game.upgrades = {
+            damage: 1, attackSpeed: 1, range: 1, critChance: 0, critMult: 1, multishot: 0, bounce: 0, knockback: 0,
+            maxHp: 1, hpRegen: 1, armor: 0, thorns: 0, shield: 0, lifesteal: 0,
+            goldBonus: 0, waveGold: 0, crystalChance: 0, interest: 0
+        };
+        
+        tower.maxHp = getTowerMaxHp();
+        tower.hp = tower.maxHp;
+        tower.maxShield = getTowerMaxShield();
+        tower.shield = tower.maxShield;
+        
+        enemies = [];
+        projectiles = [];
+        
+        buildUpgradesUI();
+        updateHUD();
+        saveGame(true);
+        showToast(`Evrimleşildi! +${formatNumber(pending)} Ruh Taşı kazanıldı.`);
+    });
+}
+
+function buyPrestigeUpgrade(key) {
+    const def = PRESTIGE_DEFS[key];
+    const lvl = game.prestigeUpgrades[key] || 0;
+    const cost = Math.floor(def.baseCost * Math.pow(def.costScale, lvl));
+    
+    if (lvl >= def.maxLevel || game.souls < cost) return;
+    
+    game.souls -= cost;
+    game.prestigeUpgrades[key] = lvl + 1;
+    
+    buildPrestigeUI();
+    refreshUpgradeButtonsState();
+    updateHUD();
+    saveGame(true);
+}
+
+let activeMiniGame = 'roulette'; let bjState = { playerHand: [], dealerHand: [], active: false };
+const ROULETTE_SECTORS = [{ num: '0', color: 'green', hex: '#10b981' }, { num: '32', color: 'red', hex: '#dc2626' }, { num: '15', color: 'black', hex: '#1e293b' }, { num: '19', color: 'red', hex: '#dc2626' }, { num: '4', color: 'black', hex: '#1e293b' }, { num: '21', color: 'red', hex: '#dc2626' }, { num: '2', color: 'black', hex: '#1e293b' }, { num: '25', color: 'red', hex: '#dc2626' }, { num: '17', color: 'black', hex: '#1e293b' }, { num: '34', color: 'red', hex: '#dc2626' }, { num: '6', color: 'black', hex: '#1e293b' }, { num: '27', color: 'red', hex: '#dc2626' }, { num: '13', color: 'black', hex: '#1e293b' }, { num: '36', color: 'red', hex: '#dc2626' }, { num: '11', color: 'black', hex: '#1e293b' }];
+let rouletteAnim = { spinning: false, wheelAngle: 0, ballAngle: 0, ballRadius: 72, startTime: 0, duration: 2800, startWheelAngle: 0, targetWheelAngle: 0, startBallAngle: 0, targetBallAngle: 0, winningSector: null, userChoice: null, betAmount: 0 };
+
+function drawRouletteWheel() {
+    const rCanvas = document.getElementById('rouletteCanvas'); if (!rCanvas) return; const rCtx = rCanvas.getContext('2d');
+    const cx = rCanvas.width / 2, cy = rCanvas.height / 2, outerR = 85, innerR = 32, sliceAngle = (Math.PI * 2) / ROULETTE_SECTORS.length;
+    rCtx.clearRect(0, 0, rCanvas.width, rCanvas.height);
+    rCtx.beginPath(); rCtx.arc(cx, cy, outerR + 3, 0, Math.PI * 2); rCtx.fillStyle = '#78350f'; rCtx.fill();
+    rCtx.save(); rCtx.translate(cx, cy); rCtx.rotate(rouletteAnim.wheelAngle);
+    for (let i = 0; i < ROULETTE_SECTORS.length; i++) {
+        const sec = ROULETTE_SECTORS[i], startA = i * sliceAngle, endA = startA + sliceAngle;
+        rCtx.beginPath(); rCtx.moveTo(0, 0); rCtx.arc(0, 0, outerR, startA, endA); rCtx.closePath(); rCtx.fillStyle = sec.hex; rCtx.fill(); rCtx.strokeStyle = '#fbbf24'; rCtx.lineWidth = 1; rCtx.stroke();
+        rCtx.save(); rCtx.rotate(startA + sliceAngle / 2); rCtx.fillStyle = '#ffffff'; rCtx.font = "bold 9px 'Rajdhani', sans-serif"; rCtx.textAlign = 'center'; rCtx.textBaseline = 'middle'; rCtx.fillText(sec.num, outerR - 14, 0); rCtx.restore();
+    }
+    rCtx.beginPath(); rCtx.arc(0, 0, innerR, 0, Math.PI * 2); rCtx.fillStyle = '#0f172a'; rCtx.fill(); rCtx.strokeStyle = '#f59e0b'; rCtx.lineWidth = 2.5; rCtx.stroke();
+    rCtx.strokeStyle = '#fbbf24'; rCtx.lineWidth = 2; rCtx.beginPath(); rCtx.moveTo(-18, 0); rCtx.lineTo(18, 0); rCtx.moveTo(0, -18); rCtx.lineTo(0, 18); rCtx.stroke();
+    rCtx.beginPath(); rCtx.arc(0, 0, 6, 0, Math.PI * 2); rCtx.fillStyle = '#fbbf24'; rCtx.fill(); rCtx.restore();
+    rCtx.save(); rCtx.translate(cx, cy); const bx = Math.cos(rouletteAnim.ballAngle) * rouletteAnim.ballRadius, by = Math.sin(rouletteAnim.ballAngle) * rouletteAnim.ballRadius;
+    rCtx.shadowColor = '#ffffff'; rCtx.shadowBlur = 6; rCtx.beginPath(); rCtx.arc(bx, by, 5.5, 0, Math.PI * 2); rCtx.fillStyle = '#f8fafc'; rCtx.fill(); rCtx.strokeStyle = '#94a3b8'; rCtx.lineWidth = 1; rCtx.stroke(); rCtx.restore();
+}
+
+function updateRouletteAnimation(now) {
+    if (!rouletteAnim.spinning) return;
+    const elapsed = now - rouletteAnim.startTime, t = Math.min(1, elapsed / rouletteAnim.duration), ease = 1 - Math.pow(1 - t, 3);
+    rouletteAnim.wheelAngle = rouletteAnim.startWheelAngle + (rouletteAnim.targetWheelAngle - rouletteAnim.startWheelAngle) * ease;
+    rouletteAnim.ballAngle = rouletteAnim.startBallAngle + (rouletteAnim.targetBallAngle - rouletteAnim.startBallAngle) * ease;
+    rouletteAnim.ballRadius = 76 - ease * 18;
+    drawRouletteWheel();
+    if (t >= 1) { rouletteAnim.spinning = false; finishRouletteSpin(); }
+}
+
+function switchMiniGame(gameType) {
+    activeMiniGame = gameType; document.getElementById('mg-roulette').classList.toggle('hidden', gameType !== 'roulette'); document.getElementById('mg-blackjack').classList.toggle('hidden', gameType !== 'blackjack');
+    document.getElementById('mg-btn-roulette').className = gameType === 'roulette' ? 'py-2 rounded-xl bg-amber-600 text-white font-tech font-bold text-xs transition' : 'py-2 rounded-xl bg-slate-800 text-slate-300 font-tech font-bold text-xs transition';
+    document.getElementById('mg-btn-blackjack').className = gameType === 'blackjack' ? 'py-2 rounded-xl bg-amber-600 text-white font-tech font-bold text-xs transition' : 'py-2 rounded-xl bg-slate-800 text-slate-300 font-tech font-bold text-xs transition';
+    if (gameType === 'roulette') drawRouletteWheel();
+}
+function setCasinoBetVal(val) { document.getElementById('casino-bet').value = val; }
+
+function playRoulette(choice) {
+    if (rouletteAnim.spinning) { showToast('Çark zaten dönüyor!'); return; }
+    const bet = parseInt(document.getElementById('casino-bet').value) || 0; if (bet <= 0 || bet > game.crystals) { showToast('Yeterli kristalin yok!'); return; }
+    game.crystals -= bet; updateHUD();
+    const winIndex = Math.floor(Math.random() * ROULETTE_SECTORS.length), winSec = ROULETTE_SECTORS[winIndex], sliceAngle = (Math.PI * 2) / ROULETTE_SECTORS.length;
+    rouletteAnim.spinning = true; rouletteAnim.startTime = performance.now(); rouletteAnim.duration = 2600; rouletteAnim.userChoice = choice; rouletteAnim.betAmount = bet; rouletteAnim.winningSector = winSec;
+    rouletteAnim.startWheelAngle = rouletteAnim.wheelAngle % (Math.PI * 2); rouletteAnim.targetWheelAngle = (-Math.PI / 2 - (winIndex * sliceAngle + sliceAngle / 2)) + Math.PI * 2 * 5;
+    rouletteAnim.startBallAngle = rouletteAnim.ballAngle % (Math.PI * 2); rouletteAnim.targetBallAngle = -Math.PI / 2 - Math.PI * 2 * 6;
+    document.getElementById('roulette-wheel-display').textContent = 'ÇARK DÖNÜYOR...'; document.getElementById('roulette-result').innerHTML = '<span class="text-amber-300 animate-pulse">Top dönüyor, bol şans!</span>';
+    ['red', 'green', 'black'].forEach(c => { const b = document.getElementById(`btn-roul-${c}`); if (b) b.disabled = true; });
+}
+
+function finishRouletteSpin() {
+    ['red', 'green', 'black'].forEach(c => { const b = document.getElementById(`btn-roul-${c}`); if (b) b.disabled = false; });
+    const winSec = rouletteAnim.winningSector, resultColor = winSec.color, mult = resultColor === 'green' ? 14 : 2;
+    const display = document.getElementById('roulette-wheel-display'), resText = document.getElementById('roulette-result');
+    display.textContent = `${resultColor === 'green' ? 'YEŞİL' : (resultColor === 'red' ? 'KIRMIZI' : 'SİYAH')} (${winSec.num})`;
+    display.className = `font-tech font-bold text-sm py-1 px-3 rounded-lg border border-slate-800 shadow-inner ${resultColor === 'green' ? 'text-emerald-400 bg-emerald-950/40' : (resultColor === 'red' ? 'text-red-400 bg-red-950/40' : 'text-slate-200 bg-slate-950')}`;
+    if (rouletteAnim.userChoice === resultColor) {
+        const win = rouletteAnim.betAmount * mult; game.crystals += win; resText.innerHTML = `<span class="text-emerald-400 font-bold">KAZANDIN! +${win} 💎</span>`; showToast(`Rulet Kazancı: +${win} Kristal!`);
+    } else resText.innerHTML = `<span class="text-red-400 font-bold">KAYBETTİN! -${rouletteAnim.betAmount} 💎</span>`;
+    updateHUD(); refreshUpgradeButtonsState(); saveGame(true);
+}
+
+function drawCard() {
+    const suits = ['♠', '♥', '♦', '♣'], vals = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+    const v = vals[Math.floor(Math.random() * vals.length)], s = suits[Math.floor(Math.random() * suits.length)];
+    return { v, s, score: ['J','Q','K'].includes(v) ? 10 : (v === 'A' ? 11 : parseInt(v)), isRed: s === '♥' || s === '♦' };
+}
+function calcHand(hand) {
+    let sum = hand.reduce((a, c) => a + c.score, 0), aces = hand.filter(c => c.v === 'A').length;
+    while (sum > 21 && aces > 0) { sum -= 10; aces--; } return sum;
+}
+function renderCardHTML(card, hidden = false) {
+    if (hidden) return `<div class="playing-card bg-indigo-900 border-indigo-700 text-indigo-300 items-center justify-center font-bold text-lg">?</div>`;
+    return `<div class="playing-card ${card.isRed ? 'card-red' : ''}"><span>${card.v}</span><span class="text-center text-sm">${card.s}</span><span class="self-end rotate-180">${card.v}</span></div>`;
+}
+
+function startBlackjack() {
+    const bet = parseInt(document.getElementById('casino-bet').value) || 0; if (bet <= 0 || bet > game.crystals) { showToast('Yeterli kristalin yok!'); return; }
+    game.crystals -= bet; bjState = { bet, active: true, playerHand: [drawCard(), drawCard()], dealerHand: [drawCard(), drawCard()] };
+    document.getElementById('bj-actions-start').classList.add('hidden'); document.getElementById('bj-actions-play').classList.remove('hidden');
+    updateBlackjackUI(false); updateHUD();
+}
+
+function hitBlackjack() {
+    if (!bjState.active) return; bjState.playerHand.push(drawCard());
+    if (calcHand(bjState.playerHand) > 21) endBlackjack('Bust! 21\'i geçtin, kaybettin.'); else updateBlackjackUI(false);
+}
+
+function standBlackjack() {
+    if (!bjState.active) return; let dSum = calcHand(bjState.dealerHand);
+    while (dSum < 17) { bjState.dealerHand.push(drawCard()); dSum = calcHand(bjState.dealerHand); }
+    const pSum = calcHand(bjState.playerHand);
+    if (dSum > 21 || pSum > dSum) { const win = bjState.bet * 2; game.crystals += win; endBlackjack(`KAZANDIN! +${win} 💎`); }
+    else if (pSum === dSum) { game.crystals += bjState.bet; endBlackjack('BERABERE! Kristal iade edildi.'); }
+    else endBlackjack(`KAYBETTİN! Bot kazandı.`);
+}
+
+function endBlackjack(msg) {
+    bjState.active = false; updateBlackjackUI(true);
+    document.getElementById('bj-status').innerHTML = `<span class="font-bold text-amber-300">${msg}</span>`;
+    document.getElementById('bj-actions-start').classList.remove('hidden'); document.getElementById('bj-actions-play').classList.add('hidden');
+    updateHUD(); refreshUpgradeButtonsState(); saveGame(true);
+}
+
+function updateBlackjackUI(showAllDealer) {
+    document.getElementById('bj-player-cards').innerHTML = bjState.playerHand.map(c => renderCardHTML(c, false)).join('');
+    document.getElementById('bj-player-score').textContent = `Toplam: ${calcHand(bjState.playerHand)}`;
+    const dCardsEl = document.getElementById('bj-dealer-cards');
+    if (showAllDealer) { dCardsEl.innerHTML = bjState.dealerHand.map(c => renderCardHTML(c, false)).join(''); document.getElementById('bj-dealer-score').textContent = `Toplam: ${calcHand(bjState.dealerHand)}`; }
+    else { dCardsEl.innerHTML = renderCardHTML(bjState.dealerHand[0], false) + renderCardHTML(null, true); document.getElementById('bj-dealer-score').textContent = `Toplam: ${bjState.dealerHand[0].score} + ?`; document.getElementById('bj-status').textContent = 'Kart Çek (Hit) veya Kal (Stand)'; }
+}
+
+let lootboxAnimTimer = null;
+let currentLootSession = null;
+
+function openLootbox(count) {
+    const cost = count === 5 ? 110 : count * 25;
+    if (game.crystals < cost) { showToast('Yeterli kristalin yok!'); return; }
+    game.crystals -= cost;
+    game.lootboxBonuses.totalOpened += count;
+
+    let droppedEntries = [];
+    let refundCrystals = 0;
+
+    for (let i = 0; i < count; i++) {
+        const roll = Math.random() * 100;
+        let rarity = 'rare';
+        if (roll < 1.5) rarity = 'legendary';
+        else if (roll < 6) rarity = 'mythic';
+        else if (roll < 19) rarity = 'epic';
+        else if (roll < 47) rarity = 'super_rare';
+
+        const pool = Object.values(ITEM_DATABASE).filter(item => item.rarity === rarity);
+        const item = pool[Math.floor(Math.random() * pool.length)];
+        const isDuplicate = game.inventory.includes(item.id);
+
+        if (!isDuplicate) game.inventory.push(item.id);
+        else refundCrystals += 15;
+
+        droppedEntries.push({ kind: 'item', data: item, isDuplicate });
+    }
+
+    if (refundCrystals > 0) game.crystals += refundCrystals;
+    buildInventoryUI(); updateHUD(); saveGame(true);
+
+    startLootboxModalAnimation('item', count, droppedEntries, refundCrystals);
+}
+
+function openSkinBox(count) {
+    const cost = count === 5 ? 110 : count * 25;
+    if (game.crystals < cost) { showToast('Yeterli kristalin yok!'); return; }
+    game.crystals -= cost;
+    if (!Array.isArray(game.ownedSkins)) game.ownedSkins = ['default_cyber'];
+
+    let droppedEntries = [];
+    let refundCrystals = 0;
+    const allBoxSkins = Object.values(SKIN_DATABASE).filter(s => s.id !== 'default_cyber');
+
+    for (let i = 0; i < count; i++) {
+        const roll = Math.random() * 100;
+        let rarity = 'rare';
+        if (roll < 2.8) rarity = 'legendary';
+        else if (roll < 13) rarity = 'mythic';
+        else if (roll < 34) rarity = 'epic';
+        else if (roll < 62) rarity = 'super_rare';
+
+        let pool = allBoxSkins.filter(s => s.rarity === rarity);
+        if (pool.length === 0) pool = allBoxSkins;
+        const skin = pool[Math.floor(Math.random() * pool.length)];
+        const isDuplicate = game.ownedSkins.includes(skin.id);
+
+        if (!isDuplicate) game.ownedSkins.push(skin.id);
+        else refundCrystals += 15;
+
+        droppedEntries.push({ kind: 'skin', data: skin, isDuplicate });
+    }
+
+    if (refundCrystals > 0) game.crystals += refundCrystals;
+    buildInventoryUI(); updateHUD(); saveGame(true);
+
+    startLootboxModalAnimation('skin', count, droppedEntries, refundCrystals);
+}
+
+function openCompanionSkinBox(count) {
+    const cost = count === 5 ? 90 : count * 20;
+    if (game.crystals < cost) { showToast('Yeterli kristalin yok!'); return; }
+    game.crystals -= cost;
+    if (!Array.isArray(game.ownedCompanionSkins)) game.ownedCompanionSkins = ['default_tech'];
+
+    let droppedEntries = [];
+    let refundCrystals = 0;
+    const allCompSkins = Object.values(COMPANION_SKIN_DATABASE).filter(s => s.id !== 'default_tech');
+
+    for (let i = 0; i < count; i++) {
+        const roll = Math.random() * 100;
+        let rarity = 'rare';
+        if (roll < 3.5) rarity = 'legendary';
+        else if (roll < 15) rarity = 'mythic';
+        else if (roll < 38) rarity = 'epic';
+        else if (roll < 68) rarity = 'super_rare';
+
+        let pool = allCompSkins.filter(s => s.rarity === rarity);
+        if (pool.length === 0) pool = allCompSkins;
+        const cSkin = pool[Math.floor(Math.random() * pool.length)];
+        const isDuplicate = game.ownedCompanionSkins.includes(cSkin.id);
+
+        if (!isDuplicate) game.ownedCompanionSkins.push(cSkin.id);
+        else refundCrystals += 12;
+
+        droppedEntries.push({ kind: 'compskin', data: cSkin, isDuplicate });
+    }
+
+    if (refundCrystals > 0) game.crystals += refundCrystals;
+    buildInventoryUI(); buildCompanionsUI(); updateHUD(); saveGame(true);
+
+    startLootboxModalAnimation('compskin', count, droppedEntries, refundCrystals);
+}
+
+function startLootboxModalAnimation(boxType, count, entries, refundCrystals) {
+    currentLootSession = { boxType, count, entries, refundCrystals };
+    clearTimeout(lootboxAnimTimer);
+
+    const modal = document.getElementById('lootbox-anim-modal');
+    const stageChest = document.getElementById('loot-stage-chest');
+    const stageReveal = document.getElementById('loot-stage-reveal');
+    const chestIcon = document.getElementById('loot-chest-icon');
+    const chestSubtitle = document.getElementById('loot-chest-subtitle');
+
+    modal.classList.remove('hidden');
+    stageChest.classList.remove('hidden');
+    stageReveal.classList.add('hidden');
+
+    if (boxType === 'skin') {
+        chestIcon.className = 'fa-solid fa-crown text-6xl text-amber-300 drop-shadow-[0_0_20px_rgba(250,204,21,0.9)]';
+        chestSubtitle.textContent = count > 1 ? '5x KULE SKİN KUTUSU AÇILIYOR...' : 'KULE SKİN KUTUSU AÇILIYOR...';
+    } else if (boxType === 'compskin') {
+        chestIcon.className = 'fa-solid fa-satellite text-6xl text-cyan-300 drop-shadow-[0_0_20px_rgba(34,211,238,0.9)]';
+        chestSubtitle.textContent = count > 1 ? '5x YOLDAŞ SKİN KUTUSU AÇILIYOR...' : 'YOLDAŞ SKİN KUTUSU AÇILIYOR...';
+    } else {
+        chestIcon.className = 'fa-solid fa-cube text-6xl text-pink-400 drop-shadow-[0_0_20px_rgba(236,72,153,0.9)]';
+        chestSubtitle.textContent = count > 1 ? '5x KUANTUM EŞYA SANDIĞI AÇILIYOR...' : 'KUANTUM EŞYA SANDIĞI AÇILIYOR...';
+    }
+
+    lootboxAnimTimer = setTimeout(() => {
+        revealLootboxCards();
+    }, 950);
+}
+
+function skipLootboxAnim() {
+    clearTimeout(lootboxAnimTimer);
+    revealLootboxCards();
+}
+
+function revealLootboxCards() {
+    if (!currentLootSession) return;
+    const { boxType, count, entries, refundCrystals } = currentLootSession;
+
+    const stageChest = document.getElementById('loot-stage-chest');
+    const stageReveal = document.getElementById('loot-stage-reveal');
+    const flashBurst = document.getElementById('loot-flash-burst');
+    const cardsContainer = document.getElementById('loot-cards-container');
+    const refundBanner = document.getElementById('loot-refund-banner');
+    const refundText = document.getElementById('loot-refund-text');
+    const reopenLabel = document.getElementById('loot-reopen-label');
+
+    stageChest.classList.add('hidden');
+    stageReveal.classList.remove('hidden');
+
+    flashBurst.classList.remove('hidden');
+    flashBurst.style.animation = 'none';
+    void flashBurst.offsetWidth;
+    flashBurst.style.animation = 'flashBurst 0.55s ease-out forwards';
+
+    const boxCost = boxType === 'compskin' ? (count === 5 ? 90 : count * 20) : (count === 5 ? 110 : count * 25);
+    reopenLabel.textContent = `Tekrar Aç (${boxCost} 💎)`;
+
+    if (refundCrystals > 0) {
+        refundBanner.classList.remove('hidden');
+        refundText.textContent = `Kopya ödüllerden +${refundCrystals} 💎 Kristal iade edildi!`;
+    } else {
+        refundBanner.classList.add('hidden');
+    }
+
+    cardsContainer.innerHTML = entries.map((entry, idx) => {
+        const d = entry.data;
+        const rb = getRarityBadge(d.rarity);
+        const glowClass = `rarity-glow-${d.rarity}`;
+        const delayMs = idx * 110;
+        const isSingle = entries.length === 1;
+        const cardSizeCls = isSingle ? 'w-64 p-5' : 'w-36 sm:w-40 p-3';
+
+        const statusBadge = entry.isDuplicate
+            ? `<span class="px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-cyan-300 text-[9px] font-tech font-bold">+${entry.kind === 'compskin' ? 12 : 15} 💎 KOPYA</span>`
+            : `<span class="px-2 py-0.5 rounded-full bg-emerald-500/25 border border-emerald-400/60 text-emerald-300 text-[9px] font-tech font-bold animate-pulse">✨ YENİ!</span>`;
+
+        const visualCenter = (entry.kind === 'skin' || entry.kind === 'compskin')
+            ? `<div class="my-2 flex flex-col items-center justify-center loot-float">
+                   <canvas id="loot-skin-canvas-${idx}" width="76" height="76" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-950/90 border border-white/15 shadow-inner"></canvas>
+               </div>`
+            : `<div class="my-3 flex items-center justify-center loot-float">
+                   ${renderItemIconHTML(d, 'w-16 h-16 sm:w-20 sm:h-20')}
+               </div>`;
+
+        return `
+            <div style="animation-delay: ${delayMs}ms" class="loot-card-anim ${cardSizeCls} rounded-2xl bg-slate-900/95 border-2 ${rb.cls} ${glowClass} flex flex-col items-center justify-between text-center relative overflow-hidden">
+                <div class="w-full flex items-center justify-between gap-1 mb-1">
+                    <span class="px-2 py-0.5 rounded text-[9px] font-tech font-bold border ${rb.cls}">${rb.text}</span>
+                    ${statusBadge}
+                </div>
+                ${visualCenter}
+                <div>
+                    <div class="font-tech font-bold ${isSingle ? 'text-base' : 'text-xs'} text-white leading-tight mb-1">${d.emoji ? d.emoji + ' ' : ''}${d.name}</div>
+                    <div class="text-[10px] text-slate-300 leading-snug line-clamp-2">${d.desc}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    entries.forEach((entry, idx) => {
+        if (entry.kind === 'skin' || entry.kind === 'compskin') {
+            const cEl = document.getElementById(`loot-skin-canvas-${idx}`);
+            if (cEl) {
+                const cCtx = cEl.getContext('2d');
+                cCtx.clearRect(0, 0, cEl.width, cEl.height);
+                cCtx.save();
+                if (entry.kind === 'skin') {
+                    cCtx.translate(cEl.width / 2 - 2, cEl.height / 2);
+                    cCtx.scale(1.15, 1.15);
+                    drawCustomTowerSkin(cCtx, entry.data.id, 0, 0, 1, performance.now());
+                } else {
+                    cCtx.translate(cEl.width / 2, cEl.height / 2);
+                    cCtx.scale(2.1, 2.1);
+                    drawCustomCompanionSkin(cCtx, entry.data.id, 'laserDrone', 5, -Math.PI / 2, performance.now());
+                }
+                cCtx.restore();
+            }
+        }
+    });
+}
+
+function closeLootboxModal() {
+    clearTimeout(lootboxAnimTimer);
+    document.getElementById('lootbox-anim-modal').classList.add('hidden');
+    currentLootSession = null;
+}
+
+function reopenLastBox() {
+    if (!currentLootSession) return;
+    const { boxType, count } = currentLootSession;
+    if (boxType === 'skin') openSkinBox(count);
+    else if (boxType === 'compskin') openCompanionSkinBox(count);
+    else openLootbox(count);
+}
+
+function selectTowerSkin(skinId) {
+    if (!game.ownedSkins.includes(skinId)) return; game.activeSkin = skinId;
+    const skin = SKIN_DATABASE[skinId]; showToast(`Kule Skini Kuşanıldı: ${skin.emoji} ${skin.name}`);
+    buildInventoryUI(); saveGame(true);
+}
+
+function selectCompanionSkin(skinId) {
+    if (!Array.isArray(game.ownedCompanionSkins)) game.ownedCompanionSkins = ['default_tech'];
+    if (!game.ownedCompanionSkins.includes(skinId)) return;
+    game.activeCompanionSkin = skinId;
+    const cSkin = COMPANION_SKIN_DATABASE[skinId];
+    showToast(`Yoldaş Skini Kuşanıldı: ${cSkin.emoji} ${cSkin.name}`);
+    buildInventoryUI(); buildCompanionsUI(); saveGame(true);
+}
+
+function switchInventorySubTab(sub) {
+    document.getElementById('inv-panel-gear').classList.toggle('hidden', sub !== 'gear');
+    document.getElementById('inv-panel-skins').classList.toggle('hidden', sub !== 'skins');
+    const compPanel = document.getElementById('inv-panel-compskins');
+    if (compPanel) compPanel.classList.toggle('hidden', sub !== 'compskins');
+
+    document.getElementById('inv-sub-gear').className = sub === 'gear' ? 'py-1.5 rounded-lg font-tech font-bold text-[11px] bg-blue-600 text-white transition' : 'py-1.5 rounded-lg font-tech font-bold text-[11px] text-slate-400 hover:text-white transition';
+    document.getElementById('inv-sub-skins').className = sub === 'skins' ? 'py-1.5 rounded-lg font-tech font-bold text-[11px] bg-amber-600 text-white transition' : 'py-1.5 rounded-lg font-tech font-bold text-[11px] text-slate-400 hover:text-white transition';
+    const compBtn = document.getElementById('inv-sub-compskins');
+    if (compBtn) compBtn.className = sub === 'compskins' ? 'py-1.5 rounded-lg font-tech font-bold text-[11px] bg-cyan-600 text-white transition' : 'py-1.5 rounded-lg font-tech font-bold text-[11px] text-slate-400 hover:text-white transition';
+    buildInventoryUI();
+}
+
+function toggleRaritySortOrder() {
+    raritySortDescending = !raritySortDescending;
+    const label = document.getElementById('sort-rarity-label');
+    if (label) label.textContent = raritySortDescending ? 'Nadirlik: En Yüksek' : 'Nadirlik: En Düşük';
+    buildInventoryUI();
+}
+
+function toggleEquipItem(itemId) {
+    if (!Array.isArray(game.equippedItems)) game.equippedItems = [];
+    const idx = game.equippedItems.indexOf(itemId);
+    if (idx > -1) { game.equippedItems.splice(idx, 1); showToast('Eşya çıkarıldı.'); }
+    else { if (game.equippedItems.length >= 3) { showToast('En fazla 3 eşya kuşanabilirsin!'); return; } game.equippedItems.push(itemId); showToast('Eşya kuşanıldı!'); }
+    buildInventoryUI(); buildUpgradesUI(); updateHUD(); saveGame(true);
+}
+
+function getRarityBadge(rarity) {
+    const map = { rare: { text: 'RARE', cls: 'text-blue-300 border-blue-500/30 bg-blue-500/10' }, super_rare: { text: 'S.RARE', cls: 'text-cyan-300 border-cyan-500/30 bg-cyan-500/10' }, epic: { text: 'EPIC', cls: 'text-purple-300 border-purple-500/30 bg-purple-500/10' }, mythic: { text: 'MYTHIC', cls: 'text-pink-300 border-pink-500/30 bg-pink-500/10' }, legendary: { text: 'LEGENDARY', cls: 'text-amber-300 border-amber-500/40 bg-amber-500/15' } };
+    return map[rarity] || map.rare;
+}
+
+function buildInventoryUI() {
+    if (!Array.isArray(game.equippedItems)) game.equippedItems = [];
+    if (!Array.isArray(game.inventory)) game.inventory = [];
+    if (!Array.isArray(game.ownedSkins)) game.ownedSkins = ['default_cyber'];
+    if (!Array.isArray(game.ownedCompanionSkins)) game.ownedCompanionSkins = ['default_tech'];
+
+    const badge = document.getElementById('badge-equipped-count');
+    if (badge) badge.textContent = `${game.equippedItems.length}/3`;
+
+    const eqList = document.getElementById('equipped-items-list');
+    if (eqList) {
+        eqList.innerHTML = '';
+        for (let i = 0; i < 3; i++) {
+            const itemId = game.equippedItems[i], item = ITEM_DATABASE[itemId];
+            if (item) {
+                const rb = getRarityBadge(item.rarity);
+                eqList.innerHTML += `
+                    <div onclick="toggleEquipItem('${item.id}')" class="cursor-pointer p-2 rounded-lg border ${rb.cls} flex flex-col items-center justify-center text-center relative hover:opacity-80 transition gap-1">
+                        ${renderItemIconHTML(item, 'w-9 h-9')}
+                        <div class="font-tech font-bold text-[10px] leading-tight line-clamp-1">${item.name}</div>
+                        <span class="text-[8px] opacity-75">Çıkar</span>
+                    </div>`;
+            } else {
+                eqList.innerHTML += `<div class="p-2 rounded-lg border border-dashed border-slate-700 flex items-center justify-center text-[10px] text-slate-500">Boş Slot</div>`;
+            }
+        }
+    }
+
+    const invList = document.getElementById('inventory-items-list');
+    if (invList) {
+        if (game.inventory.length === 0) {
+            invList.innerHTML = `<div class="col-span-2 text-center py-6 text-xs text-slate-500">Henüz eşyan yok. Kutular sekmesinden sandık aç!</div>`;
+        } else {
+            const sortedIds = [...game.inventory].filter(id => ITEM_DATABASE[id]).sort((a, b) => {
+                const itemA = ITEM_DATABASE[a], itemB = ITEM_DATABASE[b];
+                const rA = RARITY_ORDER[itemA.rarity] || 0, rB = RARITY_ORDER[itemB.rarity] || 0;
+                if (rA !== rB) return raritySortDescending ? (rB - rA) : (rA - rB);
+                return itemA.name.localeCompare(itemB.name, 'tr');
+            });
+
+            invList.innerHTML = sortedIds.map(id => {
+                const item = ITEM_DATABASE[id];
+                const isEq = game.equippedItems.includes(id), rb = getRarityBadge(item.rarity);
+                return `
+                    <div onclick="toggleEquipItem('${item.id}')" class="cursor-pointer p-2.5 rounded-xl border ${isEq ? 'border-yellow-400 bg-yellow-500/10' : 'border-slate-800 bg-slate-900/50'} hover:border-slate-600 transition flex flex-col justify-between gap-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="px-1.5 py-0.5 rounded text-[8px] font-tech font-bold border ${rb.cls}">${rb.text}</span>
+                            ${isEq ? '<span class="text-[9px] text-yellow-300 font-bold">TAKILI</span>' : ''}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            ${renderItemIconHTML(item, 'w-11 h-11')}
+                            <div class="min-w-0">
+                                <div class="font-tech font-bold text-xs text-white leading-tight truncate">${item.name}</div>
+                                <div class="text-[10px] text-slate-400 leading-tight line-clamp-2 mt-0.5">${item.desc}</div>
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+    }
+
+    const allSkins = Object.values(SKIN_DATABASE).sort((a, b) => (RARITY_ORDER[b.rarity] || 0) - (RARITY_ORDER[a.rarity] || 0));
+    document.getElementById('owned-skins-count').textContent = `${game.ownedSkins.length}/${allSkins.length}`;
+    const activeSkinDef = SKIN_DATABASE[game.activeSkin] || SKIN_DATABASE.default_cyber;
+    document.getElementById('active-skin-title').textContent = `${activeSkinDef.emoji} ${activeSkinDef.name}`;
+
+    const skinsListEl = document.getElementById('skins-inventory-list');
+    if (skinsListEl) {
+        skinsListEl.innerHTML = allSkins.map(skin => {
+            const owned = game.ownedSkins.includes(skin.id), isActive = game.activeSkin === skin.id, rb = getRarityBadge(skin.rarity);
+            return `<div onclick="${owned ? `selectTowerSkin('${skin.id}')` : ''}" class="${owned ? 'cursor-pointer hover:border-amber-500/50' : 'opacity-45 cursor-not-allowed'} p-2.5 rounded-xl border ${isActive ? 'border-amber-400 bg-amber-500/10' : 'border-slate-800 bg-slate-900/50'} transition flex flex-col justify-between"><div class="flex items-center justify-between mb-1"><span class="px-1.5 py-0.5 rounded text-[8px] font-tech font-bold border ${rb.cls}">${rb.text}</span><span class="text-[9px] font-tech font-bold ${isActive ? 'text-amber-300' : (owned ? 'text-emerald-400' : 'text-slate-500')}">${isActive ? 'AKTİF' : (owned ? 'SAHİP' : 'KİLİTLİ')}</span></div><div class="flex items-center gap-2 my-1"><canvas id="skin-preview-${skin.id}" width="52" height="52" class="w-[46px] h-[46px] rounded-lg bg-slate-950/80 border border-white/10 shrink-0"></canvas><div class="min-w-0"><div class="font-tech font-bold text-xs text-white truncate">${skin.name}</div><div class="text-[10px] text-slate-400 leading-tight line-clamp-2">${skin.desc}</div></div></div></div>`;
+        }).join('');
+
+        allSkins.forEach(skin => {
+            const pCanvas = document.getElementById(`skin-preview-${skin.id}`);
+            if (pCanvas) {
+                const pCtx = pCanvas.getContext('2d');
+                pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+                pCtx.save();
+                pCtx.translate(pCanvas.width / 2 - 2, pCanvas.height / 2);
+                pCtx.scale(0.82, 0.82);
+                drawCustomTowerSkin(pCtx, skin.id, 0, 0, 1, 0);
+                pCtx.restore();
+            }
+        });
+    }
+
+    const allCompSkins = Object.values(COMPANION_SKIN_DATABASE).sort((a, b) => (RARITY_ORDER[b.rarity] || 0) - (RARITY_ORDER[a.rarity] || 0));
+    const compCountEl = document.getElementById('owned-compskins-count');
+    if (compCountEl) compCountEl.textContent = `${game.ownedCompanionSkins.length}/${allCompSkins.length}`;
+    const activeCompSkinDef = COMPANION_SKIN_DATABASE[game.activeCompanionSkin] || COMPANION_SKIN_DATABASE.default_tech;
+    const activeCompTitle = document.getElementById('active-compskin-title');
+    if (activeCompTitle) activeCompTitle.textContent = `${activeCompSkinDef.emoji} ${activeCompSkinDef.name}`;
+
+    const compSkinsListEl = document.getElementById('compskins-inventory-list');
+    if (compSkinsListEl) {
+        compSkinsListEl.innerHTML = allCompSkins.map(cSkin => {
+            const owned = game.ownedCompanionSkins.includes(cSkin.id), isActive = game.activeCompanionSkin === cSkin.id, rb = getRarityBadge(cSkin.rarity);
+            return `<div onclick="${owned ? `selectCompanionSkin('${cSkin.id}')` : ''}" class="${owned ? 'cursor-pointer hover:border-cyan-500/50' : 'opacity-45 cursor-not-allowed'} p-2.5 rounded-xl border ${isActive ? 'border-cyan-400 bg-cyan-500/10' : 'border-slate-800 bg-slate-900/50'} transition flex flex-col justify-between"><div class="flex items-center justify-between mb-1"><span class="px-1.5 py-0.5 rounded text-[8px] font-tech font-bold border ${rb.cls}">${rb.text}</span><span class="text-[9px] font-tech font-bold ${isActive ? 'text-cyan-300' : (owned ? 'text-emerald-400' : 'text-slate-500')}">${isActive ? 'AKTİF' : (owned ? 'SAHİP' : 'KİLİTLİ')}</span></div><div class="flex items-center gap-2 my-1"><canvas id="compskin-preview-${cSkin.id}" width="52" height="52" class="w-[46px] h-[46px] rounded-lg bg-slate-950/80 border border-white/10 shrink-0"></canvas><div class="min-w-0"><div class="font-tech font-bold text-xs text-white truncate">${cSkin.name}</div><div class="text-[10px] text-slate-400 leading-tight line-clamp-2">${cSkin.desc}</div></div></div></div>`;
+        }).join('');
+
+        allCompSkins.forEach(cSkin => {
+            const pCanvas = document.getElementById(`compskin-preview-${cSkin.id}`);
+            if (pCanvas) {
+                const pCtx = pCanvas.getContext('2d');
+                pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+                pCtx.save();
+                pCtx.translate(pCanvas.width / 2, pCanvas.height / 2);
+                pCtx.scale(1.65, 1.65);
+                drawCustomCompanionSkin(pCtx, cSkin.id, 'laserDrone', 5, -Math.PI / 2, 0);
+                pCtx.restore();
+            }
+        });
+    }
+}
+
+function updateHUD() {
+    document.getElementById('ui-gold').textContent = formatNumber(game.gold);
+    document.getElementById('ui-crystals').textContent = formatNumber(game.crystals);
+    document.getElementById('ui-souls').textContent = formatNumber(game.souls);
+    document.getElementById('ui-hp-text').textContent = `${formatNumber(tower.hp)} / ${formatNumber(tower.maxHp)}`;
+    document.getElementById('ui-hp-bar').style.width = `${Math.max(0, Math.min(100, (tower.hp / Math.max(1, tower.maxHp)) * 100))}%`;
+    const shieldCont = document.getElementById('shield-container');
+    if (tower.maxShield > 0) {
+        shieldCont.classList.remove('hidden');
+        document.getElementById('ui-shield-text').textContent = `${formatNumber(tower.shield)} / ${formatNumber(tower.maxShield)}`;
+        document.getElementById('ui-shield-bar').style.width = `${Math.max(0, Math.min(100, (tower.shield / tower.maxShield) * 100))}%`;
+    } else shieldCont.classList.add('hidden');
+    document.getElementById('ui-hud-regen').textContent = `${formatNumber(getTowerRegen())}/sn`;
+    document.getElementById('ui-hud-armor').textContent = formatNumber(getTowerArmor());
+    document.getElementById('ui-wave-badge').textContent = `DALGA ${game.wave}`;
+    document.getElementById('ui-boss-warning').classList.toggle('hidden', game.wave % 5 !== 0);
+    document.getElementById('ui-wave-progress-text').textContent = `${game.waveKills} / ${game.waveTargetKills}`;
+    document.getElementById('ui-wave-bar').style.width = `${Math.min(100, (game.waveKills / Math.max(1, game.waveTargetKills)) * 100)}%`;
+    document.getElementById('ui-active-enemies').textContent = enemies.length;
+    document.getElementById('ui-Quick-dmg').textContent = formatNumber(getTowerDamage());
+    document.getElementById('ui-Quick-spd').textContent = getTowerFireRate().toFixed(2);
+    document.getElementById('ui-Quick-crit').textContent = `%${getTowerCritChance()}`;
+    document.getElementById('ui-Quick-multi').textContent = getEffectiveMultishot();
+
+    const dHp = document.getElementById('ui-drawer-hp');
+    if (dHp) {
+        dHp.textContent = formatNumber(tower.hp);
+        document.getElementById('ui-drawer-armor').textContent = formatNumber(getTowerArmor());
+        document.getElementById('ui-drawer-dmg').textContent = formatNumber(getTowerDamage());
+        document.getElementById('ui-drawer-spd').textContent = getTowerFireRate().toFixed(2);
+        document.getElementById('ui-drawer-crit').textContent = `%${getTowerCritChance()}`;
+        const dMulti = document.getElementById('ui-drawer-multi');
+        if (dMulti) dMulti.textContent = getEffectiveMultishot();
+    }
+}
+
+function switchTab(tab) {
+    currentTab = tab; const tabs = ['attack', 'defense', 'economy', 'companions', 'items', 'lootbox', 'prestige', 'casino'];
+    tabs.forEach(t => {
+        const content = document.getElementById(`tab-${t}`), btn = document.getElementById(`tab-btn-${t}`);
+        if (content) content.classList.toggle('hidden', t !== tab);
+        if (btn) { if (t === tab) btn.classList.add('tab-active'); else btn.classList.remove('tab-active'); }
+    });
+    if (tab === 'items') buildInventoryUI(); if (tab === 'prestige') buildPrestigeUI(); if (tab === 'casino' && activeMiniGame === 'roulette') drawRouletteWheel();
+}
+
+function toggleGameSpeed() { gameSpeed = gameSpeed === 1 ? 2 : (gameSpeed === 2 ? 3 : 1); document.getElementById('ui-speed').textContent = `${gameSpeed}x`; }
+function togglePause() { isPaused = !isPaused; document.getElementById('icon-pause').className = isPaused ? 'fa-solid fa-play w-3 text-center' : 'fa-solid fa-pause w-3 text-center'; }
+function toggleRangeCircle() { game.settings.showRange = !game.settings.showRange; saveGame(true); }
+function toggleDamageText() { game.settings.showDamageText = !game.settings.showDamageText; saveGame(true); }
+
+function openThemeModal() {
+    document.getElementById('theme-list').innerHTML = Object.values(THEME_DEFS).map(t => {
+        const unlocked = game.highestWave >= t.reqWave, active = game.settings.activeTheme === t.id;
+        return `<div onclick="${unlocked ? `selectTheme('${t.id}')` : ''}" class="${unlocked ? 'cursor-pointer hover:border-indigo-400' : 'opacity-50 cursor-not-allowed'} premium-card p-3 flex items-center justify-between"><div class="flex items-center gap-3"><i class="${t.icon} text-lg ${t.color}"></i><div><div class="font-tech font-bold text-sm text-white">${t.name}</div><div class="text-[11px] text-slate-400">${t.desc}</div></div></div><span class="text-xs font-tech font-bold ${active ? 'text-indigo-300' : 'text-slate-400'}">${active ? 'AKTİF' : (unlocked ? 'SEÇ' : `Dalga ${t.reqWave}`)}</span></div>`;
+    }).join('');
+    document.getElementById('theme-modal').classList.remove('hidden');
+}
+function closeThemeModal() { document.getElementById('theme-modal').classList.add('hidden'); }
+function selectTheme(id) { const def = THEME_DEFS[id]; if (!def || game.highestWave < def.reqWave) return; game.settings.activeTheme = id; document.getElementById('ui-theme-name').textContent = def.name.split(' ')[0]; openThemeModal(); saveGame(true); }
+
+function openSettingsModal() {
+    document.getElementById('stat-total-kills').textContent = formatNumber(game.stats.totalKills);
+    document.getElementById('stat-boss-kills').textContent = formatNumber(game.stats.bossKills);
+    document.getElementById('stat-max-wave').textContent = game.highestWave;
+    applyBodyClasses(); document.getElementById('settings-modal').classList.remove('hidden');
+}
+function closeSettingsModal() { document.getElementById('settings-modal').classList.add('hidden'); }
+function openConfirmModal(title, desc, onYes) { document.getElementById('confirm-title').textContent = title; document.getElementById('confirm-desc').textContent = desc; document.getElementById('confirm-yes-btn').onclick = () => { closeConfirmModal(); onYes(); }; document.getElementById('confirm-modal').classList.remove('hidden'); }
+function closeConfirmModal() { document.getElementById('confirm-modal').classList.add('hidden'); }
+function openHardResetConfirm() {
+    openConfirmModal('Oyunu Sıfırla', 'Tüm ilerlemen kalıcı olarak sıfırlanacak. Emin misin?', () => {
+        localStorage.removeItem(SAVE_KEY); game = getDefaultState(); enemies = []; projectiles = [];
+        tower.hp = getTowerMaxHp(); tower.shield = 0; applyBodyClasses(); buildUpgradesUI(); buildInventoryUI(); updateHUD(); closeSettingsModal(); showToast('Oyun tamamen sıfırlandı.');
+    });
+}
+
+let toastTimeout = null;
+function showToast(msg) {
+    const el = document.getElementById('toast-msg'), txt = document.getElementById('toast-text'); if (!el || !txt) return;
+    txt.textContent = msg; el.classList.remove('opacity-0'); clearTimeout(toastTimeout); toastTimeout = setTimeout(() => el.classList.add('opacity-0'), 2600);
+}
+
+function exportSaveCode() { try { document.getElementById('save-code-textarea').value = btoa(unescape(encodeURIComponent(JSON.stringify(game)))); document.getElementById('save-code-textarea').select(); document.execCommand('copy'); showToast('Kayıt kodu kopyalandı!'); } catch (e) { showToast('Hata!'); } }
+function importSaveCode() { try { const code = document.getElementById('save-code-textarea').value.trim(); if (!code) return; localStorage.setItem(SAVE_KEY, decodeURIComponent(escape(atob(code)))); loadGame(); applyBodyClasses(); buildUpgradesUI(); buildInventoryUI(); updateHUD(); showToast('Kod yüklendi!'); } catch (e) { showToast('Geçersiz kod!'); } }
