@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-dark: #0b0f19;
-            --panel-bg: #111827;
+            --bg-dark: #181926;
+            --panel-bg: #222436;
             --accent-blue: #3b82f6;
             --accent-purple: #8b5cf6;
             --accent-gold: #f59e0b;
@@ -19,7 +19,7 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-dark);
-            color: #f3f4f6;
+            color: #e2e8f0;
             overflow: hidden;
             user-select: none;
             -webkit-user-select: none;
@@ -29,17 +29,13 @@
         ::-webkit-scrollbar-track { background: #111827; }
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
         
-        .neon-text-gold { text-shadow: 0 0 8px rgba(245, 158, 11, 0.6); }
-        .neon-text-cyan { text-shadow: 0 0 8px rgba(6, 182, 212, 0.6); }
-        .neon-text-purple { text-shadow: 0 0 8px rgba(168, 85, 247, 0.6); }
-        
         .upgrade-btn { transition: all 0.15s ease; }
         .upgrade-btn:active:not(:disabled) { transform: scale(0.96); }
         .upgrade-btn:disabled { opacity: 0.45; cursor: not-allowed; }
         
         .tab-active {
-            background: linear-gradient(180deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.0) 100%);
-            border-bottom: 2px solid #3b82f6; color: #60a5fa;
+            background: linear-gradient(180deg, rgba(165, 180, 252, 0.16) 0%, rgba(165, 180, 252, 0.0) 100%);
+            border-bottom: 2px solid #a5b4fc; color: #c7d2fe;
         }
         #upgrade-drawer { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         #hud-top-bar, #hud-hp-card, #hud-wave-card, #hud-quick-stats, #hud-bottom-controls {
@@ -58,43 +54,24 @@
         body.device-phone .text-shrink { font-size: 11px !important; }
         body.device-tablet .tablet-compact { padding: 8px !important; }
 
-        /* YENİ (PASTEL / PREMIUM MAT) GÖRÜNÜM MODU VE PREMIUM KARTLAR */
-        body.color-pastel {
-            --bg-dark: #181926; --panel-bg: #222436;
-            background-color: #181926 !important; color: #e2e8f0;
-        }
-        body.color-pastel .neon-text-gold, body.color-pastel .neon-text-cyan, body.color-pastel .neon-text-purple {
-            text-shadow: none !important;
-        }
-        body.color-pastel header, body.color-pastel #upgrade-drawer, body.color-pastel #settings-modal > div,
-        body.color-pastel #theme-modal > div, body.color-pastel #confirm-modal > div {
+        header, #upgrade-drawer, #settings-modal > div, #theme-modal > div, #confirm-modal > div {
             background-color: rgba(30, 32, 48, 0.95) !important;
             border-color: rgba(255, 255, 255, 0.06) !important;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
         }
-        body.color-pastel .bg-slate-900 { background-color: rgba(34, 36, 54, 0.92) !important; border-color: rgba(255, 255, 255, 0.05) !important; }
-        body.color-pastel .tab-active {
-            background: linear-gradient(180deg, rgba(165, 180, 252, 0.16) 0%, rgba(165, 180, 252, 0.0) 100%) !important;
-            border-bottom: 2px solid #a5b4fc !important; color: #c7d2fe !important;
-        }
+        .bg-slate-900 { background-color: rgba(34, 36, 54, 0.92) !important; border-color: rgba(255, 255, 255, 0.05) !important; }
         
-        /* PREMIUM KART STİLLERİ (Part 2 Özel Geliştirme) */
         .premium-card {
-            background-color: rgba(15, 23, 42, 0.85); /* Varsayılan Neon arka planı */
-            border: 1px solid rgba(51, 65, 85, 0.9);
-            border-radius: 0.75rem;
-        }
-        body.color-pastel .premium-card {
-            background: linear-gradient(145deg, rgba(38, 41, 58, 0.8), rgba(30, 32, 48, 0.9)) !important;
-            border: 1px solid rgba(255, 255, 255, 0.06) !important;
-            border-radius: 1rem !important; /* Daha yumuşak köşeler */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+            background: linear-gradient(145deg, rgba(38, 41, 58, 0.8), rgba(30, 32, 48, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             transition: all 0.2s ease;
         }
-        body.color-pastel .premium-card:hover {
-            background: linear-gradient(145deg, rgba(45, 48, 68, 0.9), rgba(35, 38, 55, 0.95)) !important;
-            border-color: rgba(255, 255, 255, 0.12) !important;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+        .premium-card:hover {
+            background: linear-gradient(145deg, rgba(45, 48, 68, 0.9), rgba(35, 38, 55, 0.95));
+            border-color: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
 
         @keyframes chestShake {
@@ -162,10 +139,6 @@
         </div>
 
         <div class="flex items-center space-x-1 sm:space-x-2">
-            <button onclick="toggleColorMode()" id="btn-color-mode" class="px-2 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/30 text-rose-200 font-tech font-bold text-xs transition flex items-center gap-1" title="Renk Modu: Yeni (Pastel) / Eski (Neon)">
-                <i class="fa-solid fa-swatchbook text-xs"></i>
-                <span id="ui-color-mode-label" class="hidden md:inline">Yeni (Pastel)</span>
-            </button>
             <button onclick="openThemeModal()" class="px-2 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-tech font-bold text-xs transition flex items-center gap-1">
                 <i id="ui-theme-icon" class="fa-solid fa-palette text-xs"></i>
                 <span id="ui-theme-name" class="hidden lg:inline">Siber</span>
@@ -539,19 +512,6 @@
                     <button onclick="setDeviceMode('tablet')" id="dev-tablet" class="py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-tech font-bold border border-slate-700 transition">Tablet</button>
                     <button onclick="setDeviceMode('pc')" id="dev-pc" class="py-2 rounded-xl bg-blue-600 text-white text-xs font-tech font-bold border border-blue-500 transition">PC</button>
                 </div>
-            </div>
-
-            <div class="space-y-1.5">
-                <label class="text-xs font-semibold text-slate-300 block">Renk & Görünüm Sistemi:</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="setColorMode('pastel')" id="colmode-pastel" class="py-2 px-3 rounded-xl bg-blue-600 text-white text-xs font-tech font-bold border border-blue-400/50 transition flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Yeni (Pastel Tonlar)
-                    </button>
-                    <button onclick="setColorMode('classic')" id="colmode-classic" class="py-2 px-3 rounded-xl bg-slate-800 text-slate-300 text-xs font-tech font-bold border border-slate-700 transition flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-bolt"></i> Eski (Klasik Neon)
-                    </button>
-                </div>
-                <p class="text-[10px] text-slate-400">Yeni mod premium ve yuvarlatılmış gölgeli bir yapı, Eski mod keskin ve klasik neon görünüm sunar.</p>
             </div>
 
             <div class="bg-slate-950/80 border border-white/5 rounded-xl p-3 space-y-1.5 text-xs">
@@ -951,7 +911,7 @@
                 holdWave: false, holdWaveTimer: 0, consecutiveDefeats: 0, consecutiveHoldWins: 0,
                 deviceMode: 'pc',
                 stats: { totalKills: 0, bossKills: 0, prestiges: 0, playTimeSeconds: 0 },
-                settings: { showRange: true, showDamageText: true, activeTheme: 'cyber', colorMode: 'pastel' },
+                settings: { showRange: true, showDamageText: true, activeTheme: 'cyber' },
                 upgrades: {
                     damage: 1, attackSpeed: 1, range: 1, critChance: 0, critMult: 1, multishot: 0, bounce: 0, knockback: 0,
                     maxHp: 1, hpRegen: 1, armor: 0, thorns: 0, shield: 0, lifesteal: 0,
@@ -1019,49 +979,18 @@
             resizeCanvas();
         }
 
-        function isPastelMode() { return (game.settings?.colorMode || 'pastel') === 'pastel'; }
-
         function applyBodyClasses() {
             const body = document.getElementById('main-body');
             if (!body) return;
             const dev = game.deviceMode || 'pc';
-            const col = isPastelMode() ? 'color-pastel' : 'color-classic';
-            body.className = `h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-${dev} ${col}`;
-
-            const label = document.getElementById('ui-color-mode-label');
-            if (label) label.textContent = isPastelMode() ? 'Yeni (Pastel)' : 'Eski (Neon)';
-
-            const btnPastel = document.getElementById('colmode-pastel');
-            const btnClassic = document.getElementById('colmode-classic');
-            if (btnPastel && btnClassic) {
-                btnPastel.className = isPastelMode()
-                    ? 'py-2 px-3 rounded-xl bg-blue-600 text-white text-xs font-tech font-bold border border-blue-400/50 transition flex items-center justify-center gap-1.5'
-                    : 'py-2 px-3 rounded-xl bg-slate-800 text-slate-300 text-xs font-tech font-bold border border-white/5 transition flex items-center justify-center gap-1.5';
-                btnClassic.className = !isPastelMode()
-                    ? 'py-2 px-3 rounded-xl bg-blue-600 text-white text-xs font-tech font-bold border border-blue-400/50 transition flex items-center justify-center gap-1.5'
-                    : 'py-2 px-3 rounded-xl bg-slate-800 text-slate-300 text-xs font-tech font-bold border border-white/5 transition flex items-center justify-center gap-1.5';
-            }
-        }
-
-        function setColorMode(mode) {
-            if (!game.settings) game.settings = {};
-            game.settings.colorMode = mode; applyBodyClasses();
-            enemies.forEach(e => { const pal = getEnemyColors(e.type); e.color = pal.color; e.secColor = pal.secColor; });
-            showToast(mode === 'pastel' ? '🎨 Yeni (Pastel) Mod Aktif: Premium Kartlar & Mat Tonlar' : '⚡ Eski (Klasik Neon) Mod Aktif!');
-            saveGame(true);
-            buildUpgradesUI(); buildInventoryUI();
-        }
-
-        function toggleColorMode() {
-            setColorMode(isPastelMode() ? 'classic' : 'pastel');
+            body.className = `h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-${dev} color-pastel`;
         }
 
         function getEnemyColors(type) {
-            const pastel = isPastelMode();
-            if (type === 'boss') return pastel ? { color: '#a78bfa', secColor: '#ede9fe' } : { color: '#a855f7', secColor: '#f3e8ff' };
-            if (type === 'teleporter') return pastel ? { color: '#fbbf24', secColor: '#fef3c7' } : { color: '#eab308', secColor: '#fef08a' };
-            if (type === 'ranged') return pastel ? { color: '#60a5fa', secColor: '#dbeafe' } : { color: '#06b6d4', secColor: '#cffafe' };
-            return pastel ? { color: '#4ade80', secColor: '#dcfce7' } : { color: '#22c55e', secColor: '#bbf7d0' };
+            if (type === 'boss') return { color: '#a78bfa', secColor: '#ede9fe' };
+            if (type === 'teleporter') return { color: '#fbbf24', secColor: '#fef3c7' };
+            if (type === 'ranged') return { color: '#60a5fa', secColor: '#dbeafe' };
+            return { color: '#4ade80', secColor: '#dcfce7' };
         }
 
         function getStartWaveLevel(lvl = (game.prestigeUpgrades?.startWave || 0)) { return 1 + lvl * 3; }
@@ -1503,7 +1432,7 @@
             projectiles.push({ x: spawnX, y: spawnY, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, radius: isCrit ? 5 : 3.8, color: projColor, damage: dmg, isCrit, bouncesLeft: game.upgrades.bounce, hitList: [], life: 2.0, fromEnemy: false });
         }
 
-        function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, pastel, nowTime) {
+        function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
             function drawBarrels(fillCol, strokeCol, muzzleCol, length = 19, thickness = 7, shape = 'rect') {
                 c.save();
                 c.rotate(angle);
@@ -1549,11 +1478,9 @@
                 c.restore();
             }
 
-            if (pastel) {
-                c.shadowColor = 'rgba(0,0,0,0.45)';
-                c.shadowBlur = 8;
-                c.shadowOffsetY = 3;
-            }
+            c.shadowColor = 'rgba(0,0,0,0.45)';
+            c.shadowBlur = 8;
+            c.shadowOffsetY = 3;
 
             switch (skinId) {
                 case 'kurt_kaan': {
@@ -2079,7 +2006,7 @@
                 }
                 case 'default_cyber':
                 default: {
-                    drawBarrels(pastel ? '#818cf8' : '#2563eb', pastel ? '#e0e7ff' : '#93c5fd', pastel ? '#fbcfe8' : '#38bdf8', 19, 7.5);
+                    drawBarrels('#818cf8', '#e0e7ff', '#fbcfe8', 19, 7.5);
                     c.beginPath();
                     for (let i = 0; i < 8; i++) {
                         const a = (i * Math.PI) / 4;
@@ -2087,26 +2014,25 @@
                         if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
                     }
                     c.closePath();
-                    const baseColor = pastel ? '#2b2d42' : '#1e293b';
                     const grad = c.createRadialGradient(-4, -4, 2, 0, 0, 18);
-                    grad.addColorStop(0, pastel ? '#4b4d6a' : '#334155'); grad.addColorStop(1, baseColor);
-                    c.fillStyle = grad; c.strokeStyle = pastel ? '#a5b4fc' : '#3b82f6'; c.lineWidth = 2.5;
+                    grad.addColorStop(0, '#4b4d6a'); grad.addColorStop(1, '#2b2d42');
+                    c.fillStyle = grad; c.strokeStyle = '#a5b4fc'; c.lineWidth = 2.5;
                     c.fill(); c.stroke();
                     c.beginPath(); c.arc(0, 0, 9, 0, Math.PI * 2);
-                    c.fillStyle = pastel ? '#a5b4fc' : '#3b82f6'; c.fill();
-                    c.strokeStyle = pastel ? '#f5f3ff' : '#93c5fd'; c.lineWidth = 1.5; c.stroke();
+                    c.fillStyle = '#a5b4fc'; c.fill();
+                    c.strokeStyle = '#f5f3ff'; c.lineWidth = 1.5; c.stroke();
                     break;
                 }
             }
         }
 
-        function drawCustomCompanionSkin(c, skinId, compKey, star, angle, pastel, nowTime) {
+        function drawCustomCompanionSkin(c, skinId, compKey, star, angle, nowTime) {
             const colorMap = {
-                laserDrone: pastel ? '#fda4af' : '#f43f5e',
-                frostOrb: pastel ? '#7dd3fc' : '#38bdf8',
-                missileBot: pastel ? '#fdba74' : '#fb923c',
-                repairDrone: pastel ? '#6ee7b7' : '#10b981',
-                plasmaSatellite: pastel ? '#d8b4fe' : '#a855f7'
+                laserDrone: '#fda4af',
+                frostOrb: '#7dd3fc',
+                missileBot: '#fdba74',
+                repairDrone: '#6ee7b7',
+                plasmaSatellite: '#d8b4fe'
             };
             const accent = colorMap[compKey] || '#38bdf8';
             const scale = 0.88 + star * 0.05;
@@ -2446,47 +2372,43 @@
         }
 
         function renderGame() {
-            const theme = game.settings.activeTheme || 'cyber'; const pastel = isPastelMode();
+            const theme = game.settings.activeTheme || 'cyber';
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             if (theme === 'snow') {
                 const grad = ctx.createRadialGradient(tower.x, tower.y, 40, tower.x, tower.y, Math.max(canvas.width, canvas.height) * 0.75);
-                if (pastel) { grad.addColorStop(0, '#232d3f'); grad.addColorStop(0.6, '#1a2230'); grad.addColorStop(1, '#131822'); }
-                else { grad.addColorStop(0, '#0f2942'); grad.addColorStop(0.6, '#081a2e'); grad.addColorStop(1, '#040d1a'); }
+                grad.addColorStop(0, '#232d3f'); grad.addColorStop(0.6, '#1a2230'); grad.addColorStop(1, '#131822');
                 ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.strokeStyle = pastel ? 'rgba(226, 232, 240, 0.05)' : 'rgba(186, 230, 253, 0.07)'; ctx.lineWidth = 1.5;
+                ctx.strokeStyle = 'rgba(226, 232, 240, 0.05)'; ctx.lineWidth = 1.5;
                 for (let r = 80; r < 500; r += 90) { ctx.beginPath(); ctx.arc(tower.x, tower.y, r, 0, Math.PI * 2); ctx.stroke(); }
                 for (const sf of snowFlakes) { ctx.fillStyle = `rgba(241, 245, 249, ${sf.alpha})`; ctx.beginPath(); ctx.arc(sf.x, sf.y, sf.r, 0, Math.PI * 2); ctx.fill(); }
             } else if (theme === 'space') {
                 const grad = ctx.createRadialGradient(tower.x, tower.y, 20, tower.x, tower.y, Math.max(canvas.width, canvas.height) * 0.8);
-                if (pastel) { grad.addColorStop(0, '#2a2438'); grad.addColorStop(0.5, '#1f1b2c'); grad.addColorStop(1, '#15121e'); }
-                else { grad.addColorStop(0, '#2e1065'); grad.addColorStop(0.45, '#170c3a'); grad.addColorStop(1, '#050312'); }
+                grad.addColorStop(0, '#2a2438'); grad.addColorStop(0.5, '#1f1b2c'); grad.addColorStop(1, '#15121e');
                 ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
                 for (const st of bgStars) {
                     const sx = st.x % canvas.width, sy = st.y % canvas.height;
-                    ctx.fillStyle = pastel ? '#ddd6fe' : '#e2e8f0'; ctx.globalAlpha = st.alpha * (pastel ? 0.7 : 1);
+                    ctx.fillStyle = '#ddd6fe'; ctx.globalAlpha = st.alpha * 0.7;
                     ctx.beginPath(); ctx.arc(sx, sy, st.size * 1.1, 0, Math.PI * 2); ctx.fill();
                 } ctx.globalAlpha = 1;
             } else {
-                if (pastel) {
-                    const grad = ctx.createRadialGradient(tower.x, tower.y, 30, tower.x, tower.y, Math.max(canvas.width, canvas.height) * 0.8);
-                    grad.addColorStop(0, '#222436'); grad.addColorStop(0.6, '#191b29'); grad.addColorStop(1, '#131420');
-                    ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.strokeStyle = 'rgba(203, 213, 225, 0.04)'; ctx.lineWidth = 1;
-                    for (let r = 90; r < 550; r += 90) { ctx.beginPath(); ctx.arc(tower.x, tower.y, r, 0, Math.PI * 2); ctx.stroke(); }
-                }
+                const grad = ctx.createRadialGradient(tower.x, tower.y, 30, tower.x, tower.y, Math.max(canvas.width, canvas.height) * 0.8);
+                grad.addColorStop(0, '#222436'); grad.addColorStop(0.6, '#191b29'); grad.addColorStop(1, '#131420');
+                ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = 'rgba(203, 213, 225, 0.04)'; ctx.lineWidth = 1;
+                for (let r = 90; r < 550; r += 90) { ctx.beginPath(); ctx.arc(tower.x, tower.y, r, 0, Math.PI * 2); ctx.stroke(); }
                 for (const st of bgStars) {
                     const sx = st.x % canvas.width, sy = st.y % canvas.height;
-                    ctx.fillStyle = pastel ? `rgba(203, 213, 225, ${st.alpha * 0.55})` : `rgba(148, 163, 184, ${st.alpha})`;
+                    ctx.fillStyle = `rgba(203, 213, 225, ${st.alpha * 0.55})`;
                     ctx.beginPath(); ctx.arc(sx, sy, st.size, 0, Math.PI * 2); ctx.fill();
                 }
             }
 
             if (game.settings.showRange) {
                 const r = getTowerRange(); ctx.beginPath(); ctx.arc(tower.x, tower.y, r, 0, Math.PI * 2);
-                ctx.strokeStyle = pastel ? 'rgba(199, 210, 254, 0.25)' : (theme === 'snow' ? 'rgba(125, 211, 252, 0.35)' : (theme === 'space' ? 'rgba(192, 132, 252, 0.35)' : 'rgba(59, 130, 246, 0.28)'));
+                ctx.strokeStyle = 'rgba(199, 210, 254, 0.25)';
                 ctx.lineWidth = 1.5; ctx.setLineDash([8, 6]); ctx.stroke(); ctx.setLineDash([]);
-                ctx.fillStyle = pastel ? 'rgba(199, 210, 254, 0.025)' : 'rgba(59, 130, 246, 0.03)'; ctx.fill();
+                ctx.fillStyle = 'rgba(199, 210, 254, 0.025)'; ctx.fill();
             }
 
             // Mermi İzleri (Trails)
@@ -2496,13 +2418,12 @@
                     ctx.moveTo(p.x, p.y);
                     for (let i = 0; i < p.history.length; i++) ctx.lineTo(p.history[i].x, p.history[i].y);
                     ctx.strokeStyle = p.color; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-                    ctx.lineWidth = p.radius * (pastel ? 1.5 : 1.2);
-                    ctx.globalAlpha = pastel ? 0.4 : 0.6; // Pastel modda daha yumuşak izler
+                    ctx.lineWidth = p.radius * 1.5;
+                    ctx.globalAlpha = 0.4;
                     ctx.stroke(); ctx.restore();
                 }
-                // Merminin kendisi
                 ctx.save(); ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fillStyle = p.color; 
-                if (pastel) { ctx.shadowColor = p.color; ctx.shadowBlur = 8; }
+                ctx.shadowColor = p.color; ctx.shadowBlur = 8;
                 ctx.fill(); ctx.restore();
             }
 
@@ -2511,7 +2432,7 @@
                 ctx.save(); ctx.beginPath(); ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
                 ctx.strokeStyle = r.color; ctx.globalAlpha = Math.max(0, r.life);
                 ctx.lineWidth = 1 + r.life * 3;
-                if (pastel) { ctx.shadowColor = r.color; ctx.shadowBlur = 10; }
+                ctx.shadowColor = r.color; ctx.shadowBlur = 10;
                 ctx.stroke(); ctx.restore();
             }
 
@@ -2522,7 +2443,7 @@
                 const star = Math.min(5, Math.max(1, st.level || 1));
                 ctx.save();
                 ctx.translate(st.x, st.y);
-                drawCustomCompanionSkin(ctx, activeCompSkin, key, star, st.angle || 0, pastel, nowCompTime);
+                drawCustomCompanionSkin(ctx, activeCompSkin, key, star, st.angle || 0, nowCompTime);
                 ctx.restore();
             }
 
@@ -2538,7 +2459,7 @@
 
             const skinId = game.activeSkin || 'default_cyber';
             const barrelCount = Math.min(7, Math.max(1, getEffectiveMultishot()));
-            drawCustomTowerSkin(ctx, skinId, tower.angle, tower.recoil, barrelCount, pastel, performance.now());
+            drawCustomTowerSkin(ctx, skinId, tower.angle, tower.recoil, barrelCount, nowCompTime);
             ctx.restore();
 
             // DÜŞMAN ÇİZİMİ (3B Küre/Mat Hissi)
@@ -2548,15 +2469,14 @@
 
                 ctx.save(); ctx.rotate(e.rot);
                 let fillStyle = e.color;
-                if (pastel && e.hitFlash <= 0) {
-                    // Düşmanlara yumuşak 3B mat bir his
+                if (e.hitFlash <= 0) {
                     const darkColor = adjustColorBrightness(e.color, -50);
                     const eGrad = ctx.createRadialGradient(-e.radius * 0.3, -e.radius * 0.3, e.radius * 0.1, 0, 0, e.radius);
-                    eGrad.addColorStop(0, '#ffffff'); // Işık yansıması (Highlight)
+                    eGrad.addColorStop(0, '#ffffff');
                     eGrad.addColorStop(0.2, e.color);
-                    eGrad.addColorStop(1, darkColor); // Kenar Gölgeliği
+                    eGrad.addColorStop(1, darkColor);
                     fillStyle = eGrad;
-                    ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2; // Zemin gölgesi
+                    ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
                 }
 
                 ctx.fillStyle = e.hitFlash > 0 ? '#ffffff' : fillStyle;
@@ -2578,7 +2498,7 @@
                 if (e.hp < e.maxHp || e.type === 'boss') {
                     const barW = e.radius * 2; const pct = Math.max(0, e.hp / e.maxHp);
                     ctx.fillStyle = 'rgba(15, 23, 42, 0.85)'; ctx.fillRect(-barW / 2, -e.radius - 11, barW, 3.5);
-                    ctx.fillStyle = e.type === 'boss' ? (pastel ? '#d8b4fe' : '#e879f9') : (pastel ? '#86efac' : '#22c55e');
+                    ctx.fillStyle = e.type === 'boss' ? '#d8b4fe' : '#86efac';
                     ctx.fillRect(-barW / 2, -e.radius - 11, barW * pct, 3.5);
                 }
                 ctx.restore();
@@ -3157,7 +3077,6 @@
             }).join('');
 
             // Skin önizleme canvaslarını çiz
-            const pastel = isPastelMode();
             entries.forEach((entry, idx) => {
                 if (entry.kind === 'skin' || entry.kind === 'compskin') {
                     const cEl = document.getElementById(`loot-skin-canvas-${idx}`);
@@ -3168,11 +3087,11 @@
                         if (entry.kind === 'skin') {
                             cCtx.translate(cEl.width / 2 - 2, cEl.height / 2);
                             cCtx.scale(1.15, 1.15);
-                            drawCustomTowerSkin(cCtx, entry.data.id, 0, 0, 1, pastel, performance.now());
+                            drawCustomTowerSkin(cCtx, entry.data.id, 0, 0, 1, performance.now());
                         } else {
                             cCtx.translate(cEl.width / 2, cEl.height / 2);
                             cCtx.scale(2.1, 2.1);
-                            drawCustomCompanionSkin(cCtx, entry.data.id, 'laserDrone', 5, -Math.PI / 2, pastel, performance.now());
+                            drawCustomCompanionSkin(cCtx, entry.data.id, 'laserDrone', 5, -Math.PI / 2, performance.now());
                         }
                         cCtx.restore();
                     }
@@ -3316,7 +3235,6 @@
                     return `<div onclick="${owned ? `selectTowerSkin('${skin.id}')` : ''}" class="${owned ? 'cursor-pointer hover:border-amber-500/50' : 'opacity-45 cursor-not-allowed'} p-2.5 rounded-xl border ${isActive ? 'border-amber-400 bg-amber-500/10' : 'border-slate-800 bg-slate-900/50'} transition flex flex-col justify-between"><div class="flex items-center justify-between mb-1"><span class="px-1.5 py-0.5 rounded text-[8px] font-tech font-bold border ${rb.cls}">${rb.text}</span><span class="text-[9px] font-tech font-bold ${isActive ? 'text-amber-300' : (owned ? 'text-emerald-400' : 'text-slate-500')}">${isActive ? 'AKTİF' : (owned ? 'SAHİP' : 'KİLİTLİ')}</span></div><div class="flex items-center gap-2 my-1"><canvas id="skin-preview-${skin.id}" width="52" height="52" class="w-[46px] h-[46px] rounded-lg bg-slate-950/80 border border-white/10 shrink-0"></canvas><div class="min-w-0"><div class="font-tech font-bold text-xs text-white truncate">${skin.name}</div><div class="text-[10px] text-slate-400 leading-tight line-clamp-2">${skin.desc}</div></div></div></div>`;
                 }).join('');
 
-                const pastel = isPastelMode();
                 allSkins.forEach(skin => {
                     const pCanvas = document.getElementById(`skin-preview-${skin.id}`);
                     if (pCanvas) {
@@ -3325,7 +3243,7 @@
                         pCtx.save();
                         pCtx.translate(pCanvas.width / 2 - 2, pCanvas.height / 2);
                         pCtx.scale(0.82, 0.82);
-                        drawCustomTowerSkin(pCtx, skin.id, 0, 0, 1, pastel, 0);
+                        drawCustomTowerSkin(pCtx, skin.id, 0, 0, 1, 0);
                         pCtx.restore();
                     }
                 });
@@ -3346,7 +3264,6 @@
                     return `<div onclick="${owned ? `selectCompanionSkin('${cSkin.id}')` : ''}" class="${owned ? 'cursor-pointer hover:border-cyan-500/50' : 'opacity-45 cursor-not-allowed'} p-2.5 rounded-xl border ${isActive ? 'border-cyan-400 bg-cyan-500/10' : 'border-slate-800 bg-slate-900/50'} transition flex flex-col justify-between"><div class="flex items-center justify-between mb-1"><span class="px-1.5 py-0.5 rounded text-[8px] font-tech font-bold border ${rb.cls}">${rb.text}</span><span class="text-[9px] font-tech font-bold ${isActive ? 'text-cyan-300' : (owned ? 'text-emerald-400' : 'text-slate-500')}">${isActive ? 'AKTİF' : (owned ? 'SAHİP' : 'KİLİTLİ')}</span></div><div class="flex items-center gap-2 my-1"><canvas id="compskin-preview-${cSkin.id}" width="52" height="52" class="w-[46px] h-[46px] rounded-lg bg-slate-950/80 border border-white/10 shrink-0"></canvas><div class="min-w-0"><div class="font-tech font-bold text-xs text-white truncate">${cSkin.name}</div><div class="text-[10px] text-slate-400 leading-tight line-clamp-2">${cSkin.desc}</div></div></div></div>`;
                 }).join('');
 
-                const pastel = isPastelMode();
                 allCompSkins.forEach(cSkin => {
                     const pCanvas = document.getElementById(`compskin-preview-${cSkin.id}`);
                     if (pCanvas) {
@@ -3355,7 +3272,7 @@
                         pCtx.save();
                         pCtx.translate(pCanvas.width / 2, pCanvas.height / 2);
                         pCtx.scale(1.65, 1.65);
-                        drawCustomCompanionSkin(pCtx, cSkin.id, 'laserDrone', 5, -Math.PI / 2, pastel, 0);
+                        drawCustomCompanionSkin(pCtx, cSkin.id, 'laserDrone', 5, -Math.PI / 2, 0);
                         pCtx.restore();
                     }
                 });
