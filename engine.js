@@ -30,11 +30,24 @@ function resizeCanvas() {
     const container = document.getElementById('canvas-container');
     if (!container) return;
     canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
+    canvas.height = canvas.clientHeight;
     tower.x = canvas.width / 2;
     tower.y = canvas.height / 2;
 }
 window.addEventListener('resize', resizeCanvas);
+
+// Bir merminin başlangıç (x1,y1) ve bitiş (x2,y2) noktaları arasındaki doğru parçasının düşmana değip değmediğini ölçer (3x hızda içinden geçmeyi %100 önler)
+function distToSegment(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return Math.hypot(px - x1, py - y1);
+    let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+    const projX = x1 + t * dx;
+    const projY = y1 + t * dy;
+    return Math.hypot(px - projX, py - projY);
+}
 
 function spawnEnemy(isBoss = false) {
     const angle = Math.random() * Math.PI * 2;
@@ -61,7 +74,6 @@ function spawnEnemy(isBoss = false) {
         const bossMult = (w % 10 === 0 ? 10.0 : 6.5);
         gold = baseGold * (game.holdWave ? 2.5 : 6.0);
 
-        // Boss Arketipleri: Ağır Tank, Uzaktan Nişancı, Hızlı Suikastçı, Donduran Buz ve Klasik Leviathan
         const bossPool = ['tank_boss', 'ranged_boss', 'speed_boss', 'frost_boss', 'leviathan'];
         const chosenBoss = bossPool[Math.floor(Math.random() * bossPool.length)];
         subType = chosenBoss;
@@ -69,13 +81,13 @@ function spawnEnemy(isBoss = false) {
         if (chosenBoss === 'tank_boss') {
             name = 'Zırhlı Titan Behemoth';
             radius = 40;
-            speed = 14; // Çok ağır ve yavaş
-            hp = baseHp * bossMult * 1.85; // Devasa can
+            speed = 14;
+            hp = baseHp * bossMult * 1.85;
             dmg = baseDmg * 3.1;
-            isRanged = false; // Yakına gelip ezer
-            stopDistOverride = 36;
+            isRanged = false;
+            stopDistOverride = 38;
             attackInterval = 1.65;
-            kbResist = 0.08; // Neredeyse hiç geri itilmez
+            kbResist = 0.08;
             customPal = { color: '#f59e0b', secColor: '#fef08a' };
         } else if (chosenBoss === 'ranged_boss') {
             name = 'Hiperiyon Topçusu';
@@ -83,7 +95,7 @@ function spawnEnemy(isBoss = false) {
             speed = 22;
             hp = baseHp * bossMult * 0.85;
             dmg = baseDmg * 2.15;
-            isRanged = true; // Uzaktan vurur
+            isRanged = true;
             stopDistOverride = Math.max(165, getTowerRange() - 10);
             attackInterval = 0.95;
             projSpeed = 290;
@@ -92,13 +104,13 @@ function spawnEnemy(isBoss = false) {
         } else if (chosenBoss === 'speed_boss') {
             name = 'Kızıl Fırtına Vektörü';
             radius = 24;
-            speed = 62; // Çok hızlı
-            hp = baseHp * bossMult * 0.55; // Canı az
+            speed = 62;
+            hp = baseHp * bossMult * 0.55;
             dmg = baseDmg * 1.75;
             isRanged = false;
-            stopDistOverride = 28;
-            attackInterval = 0.65; // Çok seri vurur
-            dashCooldown = 2.8; // Arada hız patlaması yapar
+            stopDistOverride = 32;
+            attackInterval = 0.65;
+            dashCooldown = 2.8;
             kbResist = 0.35;
             customPal = { color: '#ef4444', secColor: '#fecaca' };
         } else if (chosenBoss === 'frost_boss') {
@@ -108,7 +120,7 @@ function spawnEnemy(isBoss = false) {
             hp = baseHp * bossMult * 1.10;
             dmg = baseDmg * 1.90;
             isRanged = true;
-            isFrost = true; // Kuleyi dondurur
+            isFrost = true;
             freezeDuration = 1.15;
             frostSlowDuration = 4.0;
             stopDistOverride = 135;
@@ -134,13 +146,11 @@ function spawnEnemy(isBoss = false) {
     } else {
         const roll = Math.random();
         if (w >= 5 && roll < 0.14) {
-            // Yeni: Ağır Tank Normal Düşman
             type = 'tank'; subType = 'tank'; name = 'Zırhlı Golem'; radius = 18; speed = 22;
             hp = baseHp * 2.60; dmg = baseDmg * 1.45; gold = baseGold * 1.35;
-            kbResist = 0.35;
+            kbResist = 0.35; stopDistOverride = 34;
             customPal = { color: '#64748b', secColor: '#e2e8f0' };
         } else if (w >= 3 && roll < 0.30) {
-            // Yeni: Kuleyi Donduran Buz Düşmanı
             type = 'frost'; subType = 'frost'; name = 'Buzul Nöbetçisi'; radius = 13; speed = 32;
             hp = baseHp * 0.95; dmg = baseDmg * 0.85; isRanged = true; isFrost = true;
             freezeDuration = 0.85; frostSlowDuration = 3.2;
@@ -148,20 +158,20 @@ function spawnEnemy(isBoss = false) {
             gold = baseGold * 1.25;
             customPal = { color: '#06b6d4', secColor: '#cffafe' };
         } else if (w >= 2 && roll < 0.44) {
-            // Yeni: Canı Az Ama Çok Hızlı Koşucu Düşman
             type = 'runner'; subType = 'runner'; name = 'Gölge Koşucu'; radius = 10; speed = 72;
             hp = baseHp * 0.52; dmg = baseDmg * 0.85; gold = baseGold * 1.10;
-            attackInterval = 0.75;
+            attackInterval = 0.75; stopDistOverride = 30;
             customPal = { color: '#f43f5e', secColor: '#fda4af' };
         } else if (w >= 4 && roll < 0.60) {
             type = 'teleporter'; subType = 'teleporter'; name = 'Sarı Psişik'; radius = 11; speed = 48;
             hp = baseHp * 0.68; dmg = baseDmg * 0.90; isTeleporter = true; gold = baseGold * 1.15;
+            stopDistOverride = 30;
         } else if (w >= 2 && roll < 0.78) {
             type = 'ranged'; subType = 'ranged'; name = 'Mavi Nişancı'; radius = 12; speed = 30;
             hp = baseHp * 0.80; dmg = baseDmg * 0.95; isRanged = true; gold = baseGold * 1.10;
         } else {
             type = 'green'; subType = 'green'; name = 'Yeşil Xenomorph'; radius = 13; speed = 40;
-            hp = baseHp * 1.0; dmg = baseDmg * 1.0;
+            hp = baseHp * 1.0; dmg = baseDmg * 1.0; stopDistOverride = 30;
         }
     }
 
@@ -183,7 +193,6 @@ function spawnEnemy(isBoss = false) {
 
 function applyFrostToTower(freezeDur = 0, slowDur = 3.0) {
     tower.frostSlowTimer = Math.max(tower.frostSlowTimer || 0, slowDur);
-    // Boss her vuruşta, normal buz düşmanı ise %30 ihtimalle kuleyi tamamen dondurur
     if (freezeDur > 0 && (freezeDur >= 1.0 || Math.random() < 0.30)) {
         tower.freezeTimer = Math.max(tower.freezeTimer || 0, freezeDur);
         addFloatingText(tower.x, tower.y - 26, '❄️ KULE DONDU!', '#38bdf8', 13);
@@ -236,7 +245,6 @@ function updateGame(dt) {
     if (tower.maxShield > 0 && tower.shield < tower.maxShield) tower.shield = Math.min(tower.maxShield, tower.shield + (tower.maxShield * 0.05) * simDt);
     if (tower.recoil > 0) tower.recoil = Math.max(0, tower.recoil - simDt * 15);
 
-    // Kule Donma & Buz Yavaşlatma Mekanikleri
     if (tower.freezeTimer > 0) {
         tower.freezeTimer = Math.max(0, tower.freezeTimer - simDt);
         tower.frostVisualTick = (tower.frostVisualTick || 0) + simDt;
@@ -255,7 +263,6 @@ function updateGame(dt) {
         spawnEnemy(false);
     }
 
-    // Kule donmuşsa ateş edemez, buz etkisindeyse atış hızı %45 yavaşlar
     const fireRateFactor = tower.freezeTimer > 0 ? 0 : (tower.frostSlowTimer > 0 ? 0.55 : 1.0);
     tower.fireCooldown -= simDt * fireRateFactor;
 
@@ -281,18 +288,24 @@ function updateGame(dt) {
         }
     }
 
+    // Mermi hareketi ve Swept (Çizgi Taramalı) Çarpışma Kontrolü
     for (let i = projectiles.length - 1; i >= 0; i--) {
         const p = projectiles[i];
-        p.x += p.vx * simDt; p.y += p.vy * simDt; p.life -= simDt;
+        const prevX = p.x;
+        const prevY = p.y;
+
+        p.x += p.vx * simDt;
+        p.y += p.vy * simDt;
+        p.life -= simDt;
         
         if (!p.history) p.history = [];
-        p.history.unshift({x: p.x, y: p.y});
+        p.history.unshift({ x: p.x, y: p.y });
         if (p.history.length > (p.isCrit ? 10 : 6)) p.history.pop();
 
         if (p.life <= 0) { projectiles.splice(i, 1); continue; }
 
         if (p.fromEnemy) {
-            if (Math.hypot(p.x - tower.x, p.y - tower.y) <= 24) {
+            if (distToSegment(tower.x, tower.y, prevX, prevY, p.x, p.y) <= 24) {
                 damageTower(p.damage, null);
                 if (p.isFrost) {
                     applyFrostToTower(p.freezeDuration || 0.8, p.frostSlowDuration || 3.0);
@@ -306,7 +319,9 @@ function updateGame(dt) {
                 const e = enemies[j];
                 if (p.hitList && p.hitList.includes(e)) continue;
 
-                if (Math.hypot(p.x - e.x, p.y - e.y) <= e.radius + p.radius) {
+                // Hem başlangıç-bitiş çizgisine hem de son konuma bak (dibindeki yaratığı asla ıskalamaz)
+                const segDist = distToSegment(e.x, e.y, prevX, prevY, p.x, p.y);
+                if (segDist <= e.radius + p.radius + 2) {
                     if (p.splashRadius && p.splashRadius > 0) {
                         rings.push({ x: e.x, y: e.y, radius: 10, color: '#f97316', life: 0.9 });
                         createParticles(e.x, e.y, '#f97316', 12, 90);
@@ -320,7 +335,7 @@ function updateGame(dt) {
                         }
                     } else {
                         dealDamageToEnemy(e, p.damage, p.isCrit, p.isCrit ? '#c084fc' : '#60a5fa', true);
-                        createParticles(p.x, p.y, p.color, 5, 50);
+                        createParticles(e.x, e.y, p.color, 5, 50);
                     }
 
                     const kb = getTowerKnockback();
@@ -335,11 +350,12 @@ function updateGame(dt) {
 
                     if (p.bouncesLeft > 0) {
                         p.bouncesLeft--; p.damage = Math.max(1, Math.round(p.damage * 0.60)); p.hitList.push(e);
-                        let nextTarget = null, minDist = 130;
+                        let nextTarget = null, minDist = 140;
                         for (const cand of enemies) {
                             if (!p.hitList.includes(cand) && Math.hypot(cand.x - e.x, cand.y - e.y) < minDist) { minDist = Math.hypot(cand.x - e.x, cand.y - e.y); nextTarget = cand; }
                         }
                         if (nextTarget) {
+                            p.x = e.x; p.y = e.y;
                             const ang = Math.atan2(nextTarget.y - p.y, nextTarget.x - p.x);
                             const spd = Math.hypot(p.vx, p.vy); p.vx = Math.cos(ang) * spd; p.vy = Math.sin(ang) * spd;
                         } else { projectiles.splice(i, 1); }
@@ -374,14 +390,13 @@ function updateGame(dt) {
             }
         }
 
-        // Hızlı Boss (Kızıl Fırtına) İleri Atılma (Dash) Yeteneği
         if (e.dashCooldown && e.dashCooldown > 0) {
             e.dashCooldown -= simDt;
             if (e.dashCooldown <= 0) {
                 e.dashCooldown = 2.8 + Math.random() * 1.2;
                 const currDist = Math.hypot(tower.x - e.x, tower.y - e.y);
                 if (currDist > 75) {
-                    const dashDist = Math.min(currDist - 35, 65);
+                    const dashDist = Math.min(currDist - 38, 65);
                     const ang = Math.atan2(tower.y - e.y, tower.x - e.x);
                     e.x += Math.cos(ang) * dashDist; e.y += Math.sin(ang) * dashDist;
                     createParticles(e.x, e.y, '#ef4444', 10, 95);
@@ -394,9 +409,22 @@ function updateGame(dt) {
         const ang = Math.atan2(tower.y - e.y, tower.x - e.x);
 
         if (dist > targetStopDist) {
-            const spd = e.speed * e.slowFactor; e.x += Math.cos(ang) * spd * simDt; e.y += Math.sin(ang) * spd * simDt;
+            // 3x hızda bile düşmanların targetStopDist sınırını delip kulenin içine girmesini engelle
+            const step = Math.min(dist - targetStopDist, e.speed * e.slowFactor * simDt);
+            e.x += Math.cos(ang) * step;
+            e.y += Math.sin(ang) * step;
         } else {
-            if (e.isRanged && dist < targetStopDist - 10) { const spd = e.speed * 0.5 * e.slowFactor; e.x -= Math.cos(ang) * spd * simDt; e.y -= Math.sin(ang) * spd * simDt; }
+            // Eğer bir yakın dövüşçü kulenin içine (targetStopDist'ten daha yakına) sıkıştıysa sınır çizgisine geri çıkar
+            if (!e.isRanged && dist < targetStopDist - 1) {
+                const pushOutAngle = Math.atan2(e.y - tower.y, e.x - tower.x);
+                e.x = tower.x + Math.cos(pushOutAngle) * targetStopDist;
+                e.y = tower.y + Math.sin(pushOutAngle) * targetStopDist;
+            } else if (e.isRanged && dist < targetStopDist - 10) {
+                const spd = e.speed * 0.5 * e.slowFactor;
+                e.x -= Math.cos(ang) * spd * simDt;
+                e.y -= Math.sin(ang) * spd * simDt;
+            }
+
             e.attackCooldown -= simDt;
             if (e.attackCooldown <= 0) {
                 e.attackCooldown = e.attackInterval || (e.isRanged ? 1.35 : 1.05);
@@ -439,21 +467,37 @@ function updateGame(dt) {
 }
 
 function fireTowerProjectile(startX, startY, target, barrelIdx = 0, totalBarrels = 1) {
-    const angle = Math.atan2(target.y - startY, target.x - startX);
-    const speed = 360; const isCrit = Math.random() * 100 < getTowerCritChance();
-    let dmg = getTowerDamage(); if (isCrit) dmg = Math.round(dmg * getTowerCritMult());
+    const baseAngle = Math.atan2(target.y - startY, target.x - startX);
+    const distToTarget = Math.hypot(target.x - startX, target.y - startY);
+    const speed = 360;
+    const isCrit = Math.random() * 100 < getTowerCritChance();
+    let dmg = getTowerDamage();
+    if (isCrit) dmg = Math.round(dmg * getTowerCritMult());
 
     const bCount = Math.min(7, Math.max(1, totalBarrels));
     const norm = barrelIdx < bCount ? (barrelIdx - (bCount - 1) / 2) : 0;
     const perpAngle = tower.angle + Math.PI / 2;
-    const lateralOffset = bCount === 2 ? norm * 9 : norm * 5.5;
-    const spawnX = startX + Math.cos(angle) * 20 + Math.cos(perpAngle) * lateralOffset;
-    const spawnY = startY + Math.sin(angle) * 20 + Math.sin(perpAngle) * lateralOffset;
+
+    // Yakın mesafedeki düşmanların yanından veya arkasından doğmaması için dinamik çıkış noktası
+    const muzzleDist = Math.min(10, distToTarget * 0.35);
+    const lateralScale = Math.min(1, distToTarget / 65);
+    const lateralOffset = (bCount === 2 ? norm * 8 : norm * 4.5) * lateralScale;
+
+    const spawnX = startX + Math.cos(baseAngle) * muzzleDist + Math.cos(perpAngle) * lateralOffset;
+    const spawnY = startY + Math.sin(baseAngle) * muzzleDist + Math.sin(perpAngle) * lateralOffset;
+
+    // Merminin açısını doğrudan doğduğu namlu ucundan hedefin merkezine kilitle
+    const aimAngle = Math.atan2(target.y - spawnY, target.x - spawnX);
 
     const skinDef = SKIN_DATABASE[game.activeSkin] || SKIN_DATABASE.default_cyber;
     const projColor = isCrit ? (skinDef.critColor || '#c084fc') : (skinDef.projColor || '#60a5fa');
 
-    projectiles.push({ x: spawnX, y: spawnY, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, radius: isCrit ? 5 : 3.8, color: projColor, damage: dmg, isCrit, bouncesLeft: game.upgrades.bounce, hitList: [], life: 2.0, fromEnemy: false });
+    projectiles.push({
+        x: spawnX, y: spawnY,
+        vx: Math.cos(aimAngle) * speed, vy: Math.sin(aimAngle) * speed,
+        radius: isCrit ? 5 : 4.0, color: projColor, damage: dmg, isCrit,
+        bouncesLeft: game.upgrades.bounce, hitList: [], life: 2.0, fromEnemy: false
+    });
 }
 
 function updateCompanions(simDt) {
@@ -632,8 +676,24 @@ function completeWave() {
 
 function triggerTowerDefeat() {
     game.consecutiveDefeats++;
-    if (game.consecutiveDefeats >= 2) { isDefeated = true; defeatTimer = 2.5; document.getElementById('defeat-overlay').classList.remove('hidden'); }
-    else { showToast(`Kule ağır hasar aldı! 2. yenilgide farm moduna geçilecek.`); tower.hp = tower.maxHp * 0.5; }
+    if (game.consecutiveDefeats >= 2) {
+        isDefeated = true;
+        defeatTimer = 2.5;
+        document.getElementById('defeat-overlay').classList.remove('hidden');
+    } else {
+        showToast(`Kule ağır hasar aldı! 2. yenilgide farm moduna geçilecek.`);
+        tower.hp = tower.maxHp * 0.5;
+        // İlk yıkılışta kulenin dibindeki düşmanları şok dalgasıyla biraz geri it ki kule nefes alsın
+        rings.push({ x: tower.x, y: tower.y, radius: 15, color: '#ef4444', life: 0.9 });
+        for (const e of enemies) {
+            const d = Math.hypot(e.x - tower.x, e.y - tower.y);
+            if (d < 90) {
+                const pushAng = Math.atan2(e.y - tower.y, e.x - tower.x);
+                e.x = tower.x + Math.cos(pushAng) * 95;
+                e.y = tower.y + Math.sin(pushAng) * 95;
+            }
+        }
+    }
 }
 
 function recoverFromDefeat() {
