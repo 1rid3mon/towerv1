@@ -1,4 +1,8 @@
-function renderItemIconHTML(item, sizeClass = 'w-11 h-11') {
+// ==========================================
+// BÖLÜM: RENDER, SKİN VE MOBİL OPTİMİZASYON
+// ==========================================
+
+function renderItemIconHTML(item, sizeClass = 'w-9 h-9 sm:w-11 sm:h-11') {
     if (!item) return '';
     const art = item.customArt || item.id;
     let svgContent = '';
@@ -107,7 +111,7 @@ function renderItemIconHTML(item, sizeClass = 'w-11 h-11') {
             }[item.rarity] || { bg: '#1e293b', border: '#60a5fa', fg: '#ffffff' };
 
             return `<div class="${sizeClass} rounded-xl flex items-center justify-center shrink-0 relative overflow-hidden shadow-inner" style="background: radial-gradient(circle at 30% 30%, ${palette.border}33, ${palette.bg}); border: 1.5px solid ${palette.border};">
-                <i class="${item.icon} text-base sm:text-lg drop-shadow" style="color: ${palette.fg}"></i>
+                <i class="${item.icon} text-sm sm:text-lg drop-shadow" style="color: ${palette.fg}"></i>
             </div>`;
         }
     }
@@ -243,18 +247,9 @@ function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
             c.fillRect(-4, -21, 10, 2.5); c.fillRect(-4, 18.5, 10, 2.5);
             c.fillStyle = '#475569'; c.strokeStyle = '#94a3b8'; c.lineWidth = 1.8;
             c.beginPath();
-            c.moveTo(22, 0);
-            c.lineTo(5, -5);
-            c.lineTo(-6, -22);
-            c.lineTo(-13, -20);
-            c.lineTo(-10, -7);
-            c.lineTo(-17, -11);
-            c.lineTo(-16, 0);
-            c.lineTo(-17, 11);
-            c.lineTo(-10, 7);
-            c.lineTo(-13, 20);
-            c.lineTo(-6, 22);
-            c.lineTo(5, 5);
+            c.moveTo(22, 0); c.lineTo(5, -5); c.lineTo(-6, -22); c.lineTo(-13, -20);
+            c.lineTo(-10, -7); c.lineTo(-17, -11); c.lineTo(-16, 0); c.lineTo(-17, 11);
+            c.lineTo(-10, 7); c.lineTo(-13, 20); c.lineTo(-6, 22); c.lineTo(5, 5);
             c.closePath(); c.fill(); c.stroke();
             c.fillStyle = '#fbbf24'; c.strokeStyle = '#fef08a'; c.lineWidth = 1;
             c.beginPath(); c.ellipse(4, 0, 7.5, 3, 0, 0, Math.PI * 2); c.fill(); c.stroke();
@@ -765,6 +760,7 @@ function adjustColorBrightness(col, amt) {
 
 function renderGame() {
     const theme = game.settings.activeTheme || 'cyber';
+    const isMobileScreen = window.innerWidth < 768;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (theme === 'snow') {
@@ -794,6 +790,15 @@ function renderGame() {
             ctx.fillStyle = `rgba(203, 213, 225, ${st.alpha * 0.55})`;
             ctx.beginPath(); ctx.arc(sx, sy, st.size, 0, Math.PI * 2); ctx.fill();
         }
+    }
+
+    // Mobil ekranlarda oyun alanını kule merkezli biraz uzaklaştır (HUD ve alt panel arasında ferah kalsın)
+    ctx.save();
+    if (isMobileScreen) {
+        const mobileZoom = window.innerWidth < 420 ? 0.76 : 0.84;
+        ctx.translate(tower.x, tower.y);
+        ctx.scale(mobileZoom, mobileZoom);
+        ctx.translate(-tower.x, -tower.y);
     }
 
     if (game.settings.showRange) {
@@ -872,14 +877,19 @@ function renderGame() {
 
         if (e.type === 'boss') {
             ctx.beginPath();
-            for (let i = 0; i < 6; i++) { const a = (i * Math.PI) / 3; const r = i % 2 === 0 ? e.radius : e.radius * 0.75; const px = Math.cos(a) * r, py = Math.sin(a) * r; if (i === 0) c.moveTo(px, py); else ctx.lineTo(px, py); }
+            for (let i = 0; i < 6; i++) {
+                const a = (i * Math.PI) / 3;
+                const r = i % 2 === 0 ? e.radius : e.radius * 0.75;
+                const px = Math.cos(a) * r, py = Math.sin(a) * r;
+                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
             ctx.closePath(); ctx.fill(); ctx.shadowColor = 'transparent'; ctx.stroke();
         } else if (e.isTeleporter) {
             ctx.beginPath(); ctx.moveTo(0, -e.radius); ctx.lineTo(e.radius, 0); ctx.lineTo(0, e.radius); ctx.lineTo(-e.radius, 0); ctx.closePath(); ctx.fill(); ctx.shadowColor = 'transparent'; ctx.stroke();
         } else if (e.isRanged) {
             ctx.beginPath(); ctx.moveTo(e.radius, 0); ctx.lineTo(-e.radius * 0.8, -e.radius * 0.85); ctx.lineTo(-e.radius * 0.4, 0); ctx.lineTo(-e.radius * 0.8, e.radius * 0.85); ctx.closePath(); ctx.fill(); ctx.shadowColor = 'transparent'; ctx.stroke();
         } else {
-            ctx.beginPath(); ctx.arc(0, 0, e.radius, 0, Math.PI * 2); ctx.fill(); ctx.shadowColor = 'transparent'; ctx.stroke();
+            ctx.beginPath(); ctx.arc(0, 0, e.radius, 0, Math.PI * 2); c?.restore; ctx.fill(); ctx.shadowColor = 'transparent'; ctx.stroke();
         }
         ctx.restore();
 
@@ -893,5 +903,223 @@ function renderGame() {
     }
 
     for (const pt of particles) { ctx.save(); ctx.globalAlpha = pt.alpha; ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fillStyle = pt.color; ctx.fill(); ctx.restore(); }
-    for (const ft of floatingTexts) { ctx.save(); ctx.globalAlpha = Math.max(0, ft.alpha); ctx.font = `bold ${ft.size}px 'Rajdhani', sans-serif`; ctx.fillStyle = ft.color; ctx.textAlign = 'center'; ctx.fillText(ft.text, ft.x, ft.y); ctx.restore(); }
+    for (const ft of floatingTexts) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, ft.alpha);
+        const fontSize = isMobileScreen ? Math.max(10, Math.round(ft.size * 0.82)) : ft.size;
+        ctx.font = `bold ${fontSize}px 'Rajdhani', sans-serif`;
+        ctx.fillStyle = ft.color;
+        ctx.textAlign = 'center';
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.restore();
+    }
+
+    ctx.restore(); // Mobil zoom transformasyonunu kapat
 }
+
+// =======================================================
+// OTOMATİK MOBİL UI / HUD VE YÜKSELTME PANELİ OPTİMİZASYONU
+// (HTML dosyasını değiştirmeden DOM üzerinden otomatik düzeltir)
+// =======================================================
+(function initMobileOptimizer() {
+    function injectMobileStylesAndFixes() {
+        if (document.getElementById('mobile-auto-optimizer-style')) return;
+
+        const style = document.createElement('style');
+        style.id = 'mobile-auto-optimizer-style';
+        style.textContent = `
+            @media (max-width: 768px) {
+                /* 1. Mobil tarayıcı adres çubuğu taşmasını önle (100vh yerine 100dvh) */
+                html, body {
+                    height: 100dvh !important;
+                    max-height: 100dvh !important;
+                    overflow: hidden !important;
+                    position: fixed !important;
+                    width: 100vw !important;
+                    user-select: none;
+                    -webkit-user-select: none;
+                }
+
+                /* 2. Üst HUD (Can, Dalga, Seviye, Altın barları) kompaktlaştırma */
+                .mobile-hud-compact {
+                    transform: scale(0.82) !important;
+                    transform-origin: top center !important;
+                    padding: 4px 6px !important;
+                    gap: 4px !important;
+                    max-height: 88px !important;
+                }
+                .mobile-hud-compact * {
+                    font-size: 90% !important;
+                    line-height: 1.15 !important;
+                }
+
+                /* Genel üst bar / HUD kapsayıcılarını otomatik küçült */
+                header, #hud, #topHud, #top-bar, #statsPanel, .hud-container,
+                body > div > div:first-child:not(canvas) {
+                    padding-top: 4px !important;
+                    padding-bottom: 4px !important;
+                    gap: 4px !important;
+                }
+
+                /* Can ve Seviye (XP/HP) çubuklarının devasa yüksekliğini kıs */
+                #hpBar, #xpBar, .hp-bar, .xp-bar, [id*="hp" i][class*="h-"], [id*="level" i] {
+                    max-height: 14px !important;
+                }
+
+                /* 3. Alt Yükseltme Paneli: Kaydırılabilir ve en alttaki butonlara erişilebilir yap */
+                .mobile-upgrade-scrollable {
+                    max-height: 38dvh !important;
+                    overflow-y: auto !important;
+                    overflow-x: hidden !important;
+                    -webkit-overflow-scrolling: touch !important;
+                    touch-action: pan-y !important;
+                    overscroll-behavior: contain !important;
+                    padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 54px) !important;
+                    transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease !important;
+                }
+
+                /* Yükseltme paneli tam açıldığında (Altta kalanları rahat görmek için) */
+                .mobile-upgrade-scrollable.mobile-panel-expanded {
+                    max-height: 68dvh !important;
+                }
+
+                /* Yükseltme paneli gizlendiğinde (Tam ekran savaş alanı görmek için) */
+                .mobile-upgrade-scrollable.mobile-panel-collapsed {
+                    max-height: 0px !important;
+                    padding-top: 0 !important;
+                    padding-bottom: 0 !important;
+                    opacity: 0 !important;
+                    pointer-events: none !important;
+                }
+
+                /* Yükseltme kartlarını/butonlarını mobilde biraz sıkıştır ki ekrana daha çok sığsın */
+                .mobile-upgrade-scrollable button,
+                .mobile-upgrade-scrollable .upgrade-card {
+                    padding: 6px 8px !important;
+                    min-height: 44px !important;
+                }
+
+                /* Sağ alt mobil hızlı görünüm değiştirici buton */
+                #mobilePanelToggleBtn {
+                    position: fixed;
+                    right: 10px;
+                    bottom: calc(env(safe-area-inset-bottom, 8px) + 8px);
+                    z-index: 9999;
+                    background: rgba(15, 23, 42, 0.92);
+                    border: 1.5px solid #38bdf8;
+                    color: #e0f2fe;
+                    font-family: 'Rajdhani', sans-serif;
+                    font-weight: 700;
+                    font-size: 12px;
+                    padding: 6px 11px;
+                    border-radius: 999px;
+                    box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+                    backdrop-filter: blur(6px);
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                    cursor: pointer;
+                }
+            }
+
+            @media (min-width: 769px) {
+                #mobilePanelToggleBtn {
+                    display: none !important;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        scanAndTagMobileElements();
+    }
+
+    function scanAndTagMobileElements() {
+        if (window.innerWidth > 768) return;
+
+        const allDivs = Array.from(document.querySelectorAll('div, section, aside, footer, header'));
+
+        // 1. Üstteki Can / Seviye / Dalga HUD kutularını bul ve küçült
+        for (const el of allDivs) {
+            const rect = el.getBoundingClientRect();
+            const text = (el.innerText || '').toLowerCase();
+            const isTopOverlay = rect.top >= 0 && rect.top < 110 && rect.height > 45 && rect.height < window.innerHeight * 0.45;
+
+            if (isTopOverlay && (text.includes('can') || text.includes('hp') || text.includes('seviye') || text.includes('lvl') || text.includes('dalga') || text.includes('wave'))) {
+                // İçinde canvas olmayan üst HUD konteynerini küçült
+                if (!el.querySelector('canvas') && !el.classList.contains('mobile-hud-compact')) {
+                    el.classList.add('mobile-hud-compact');
+                }
+            }
+        }
+
+        // 2. Alttaki Yükseltme (Upgrade) panelini bul ve kaydırılabilir yap
+        let upgradeContainer = document.querySelector('#upgradePanel, #upgrades, #bottomPanel, #shopPanel, [id*="upgrade" i], [class*="upgrade-panel" i]');
+
+        if (!upgradeContainer) {
+            // Eğer özel bir ID yoksa ekranın alt yarısında yer alan ve içinde birden fazla buton bulunan ana kutuyu tespit et
+            const candidates = allDivs.filter(el => {
+                if (el.querySelector('canvas')) return false;
+                const rect = el.getBoundingClientRect();
+                const btnCount = el.querySelectorAll('button').length;
+                return rect.bottom > window.innerHeight * 0.65 && rect.height >= 90 && btnCount >= 3;
+            });
+            // En spesifik kapsayıcıyı seç
+            if (candidates.length > 0) {
+                upgradeContainer = candidates.sort((a, b) => a.querySelectorAll('button').length - b.querySelectorAll('button').length)[0];
+            }
+        }
+
+        if (upgradeContainer && !upgradeContainer.classList.contains('mobile-upgrade-scrollable')) {
+            upgradeContainer.classList.add('mobile-upgrade-scrollable');
+
+            // Üst ebeveynlerde overflow:hidden yüzünden kaydırmayı kilitleyen varsa aç
+            let parent = upgradeContainer.parentElement;
+            while (parent && parent !== document.body) {
+                const pRect = parent.getBoundingClientRect();
+                if (pRect.bottom > window.innerHeight) {
+                    parent.style.maxHeight = '100dvh';
+                }
+                parent = parent.parentElement;
+            }
+        }
+
+        // 3. Mobilde Yükseltme Panelini Büyüt / Küçült / Gizle butonu ekle
+        if (!document.getElementById('mobilePanelToggleBtn')) {
+            const btn = document.createElement('button');
+            btn.id = 'mobilePanelToggleBtn';
+            let mode = 0; // 0: Normal, 1: Geniş (Tüm yükseltmeleri gör), 2: Gizli (Tam ekran oyun)
+            btn.innerHTML = '🔼 Yükseltmeleri Büyüt';
+
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                scanAndTagMobileElements();
+                const panel = document.querySelector('.mobile-upgrade-scrollable');
+                if (!panel) return;
+
+                mode = (mode + 1) % 3;
+                panel.classList.remove('mobile-panel-expanded', 'mobile-panel-collapsed');
+
+                if (mode === 1) {
+                    panel.classList.add('mobile-panel-expanded');
+                    btn.innerHTML = '🔽 Paneli Gizle';
+                } else if (mode === 2) {
+                    panel.classList.add('mobile-panel-collapsed');
+                    btn.innerHTML = '🛠️ Yükseltmeleri Aç';
+                } else {
+                    btn.innerHTML = '🔼 Yükseltmeleri Büyüt';
+                }
+            });
+
+            document.body.appendChild(btn);
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', injectMobileStylesAndFixes);
+    } else {
+        injectMobileStylesAndFixes();
+    }
+
+    window.addEventListener('resize', scanAndTagMobileElements);
+    // Oyun başladıktan veya sekme değiştikten sonra yeni açılan panelleri de yakalaması için periyodik kontrol
+    setInterval(scanAndTagMobileElements, 1500);
+})();
