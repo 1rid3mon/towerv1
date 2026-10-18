@@ -239,7 +239,8 @@ function openPrestigeConfirm() {
         game.wave = getStartWaveLevel();
         game.highestWave = Math.max(game.highestWave, game.wave);
         game.waveKills = 0;
-        game.gold = Math.round(120 + getWaveBaseGold(game.wave) * 12 * getGoldMultiplier());
+        // Prestij sonrası başlangıç altını yeni ekonomiye göre dengelendi (1. dalgada 25 altın, Zaman Sıçraması varsa dalga başına makul harçlık)
+        game.gold = game.wave === 1 ? 25 : Math.round(25 + getWaveBaseGold(game.wave) * 6 * getGoldMultiplier());
 
         game.upgrades = {
             damage: 1, attackSpeed: 1, range: 1, critChance: 0, critMult: 1, multishot: 0, bounce: 0, knockback: 0,
@@ -407,17 +408,17 @@ function openLootbox(count) {
     for (let i = 0; i < count; i++) {
         const roll = Math.random() * 100;
         let rarity = 'rare';
-        if (roll < 1.5) rarity = 'legendary';
-        else if (roll < 6) rarity = 'mythic';
-        else if (roll < 19) rarity = 'epic';
-        else if (roll < 47) rarity = 'super_rare';
+        if (roll < 1.2) rarity = 'legendary';
+        else if (roll < 5.0) rarity = 'mythic';
+        else if (roll < 17) rarity = 'epic';
+        else if (roll < 45) rarity = 'super_rare';
 
         const pool = Object.values(ITEM_DATABASE).filter(item => item.rarity === rarity);
         const item = pool[Math.floor(Math.random() * pool.length)];
         const isDuplicate = game.inventory.includes(item.id);
 
         if (!isDuplicate) game.inventory.push(item.id);
-        else refundCrystals += 15;
+        else refundCrystals += 10;
 
         droppedEntries.push({ kind: 'item', data: item, isDuplicate });
     }
@@ -441,10 +442,10 @@ function openSkinBox(count) {
     for (let i = 0; i < count; i++) {
         const roll = Math.random() * 100;
         let rarity = 'rare';
-        if (roll < 2.8) rarity = 'legendary';
-        else if (roll < 13) rarity = 'mythic';
-        else if (roll < 34) rarity = 'epic';
-        else if (roll < 62) rarity = 'super_rare';
+        if (roll < 2.2) rarity = 'legendary';
+        else if (roll < 11) rarity = 'mythic';
+        else if (roll < 32) rarity = 'epic';
+        else if (roll < 60) rarity = 'super_rare';
 
         let pool = allBoxSkins.filter(s => s.rarity === rarity);
         if (pool.length === 0) pool = allBoxSkins;
@@ -452,7 +453,7 @@ function openSkinBox(count) {
         const isDuplicate = game.ownedSkins.includes(skin.id);
 
         if (!isDuplicate) game.ownedSkins.push(skin.id);
-        else refundCrystals += 15;
+        else refundCrystals += 10;
 
         droppedEntries.push({ kind: 'skin', data: skin, isDuplicate });
     }
@@ -476,10 +477,10 @@ function openCompanionSkinBox(count) {
     for (let i = 0; i < count; i++) {
         const roll = Math.random() * 100;
         let rarity = 'rare';
-        if (roll < 3.5) rarity = 'legendary';
-        else if (roll < 15) rarity = 'mythic';
-        else if (roll < 38) rarity = 'epic';
-        else if (roll < 68) rarity = 'super_rare';
+        if (roll < 3.0) rarity = 'legendary';
+        else if (roll < 13) rarity = 'mythic';
+        else if (roll < 35) rarity = 'epic';
+        else if (roll < 65) rarity = 'super_rare';
 
         let pool = allCompSkins.filter(s => s.rarity === rarity);
         if (pool.length === 0) pool = allCompSkins;
@@ -487,7 +488,7 @@ function openCompanionSkinBox(count) {
         const isDuplicate = game.ownedCompanionSkins.includes(cSkin.id);
 
         if (!isDuplicate) game.ownedCompanionSkins.push(cSkin.id);
-        else refundCrystals += 12;
+        else refundCrystals += 8;
 
         droppedEntries.push({ kind: 'compskin', data: cSkin, isDuplicate });
     }
@@ -572,7 +573,7 @@ function revealLootboxCards() {
         const cardSizeCls = isSingle ? 'w-64 p-5' : 'w-36 sm:w-40 p-3';
 
         const statusBadge = entry.isDuplicate
-            ? `<span class="px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-cyan-300 text-[9px] font-tech font-bold">+${entry.kind === 'compskin' ? 12 : 15} 💎 KOPYA</span>`
+            ? `<span class="px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-cyan-300 text-[9px] font-tech font-bold">+${entry.kind === 'compskin' ? 8 : 10} 💎 KOPYA</span>`
             : `<span class="px-2 py-0.5 rounded-full bg-emerald-500/25 border border-emerald-400/60 text-emerald-300 text-[9px] font-tech font-bold animate-pulse">✨ YENİ!</span>`;
 
         const visualCenter = (entry.kind === 'skin' || entry.kind === 'compskin')
