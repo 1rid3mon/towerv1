@@ -1,5 +1,5 @@
 // ==========================================
-// BÖLÜM: RENDER, SKİN VE MOBİL OPTİMİZASYON
+// BÖLÜM: RENDER, SKİN, ÖZEL DÜŞMAN/BOSS ÇİZİMLERİ VE MOBİL OPTİMİZASYON
 // ==========================================
 
 function renderItemIconHTML(item, sizeClass = 'w-9 h-9 sm:w-11 sm:h-11') {
@@ -758,6 +758,464 @@ function adjustColorBrightness(col, amt) {
     return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16).padStart(6, '0');
 }
 
+// =======================================================
+// ÖZEL DÜŞMAN VE BOSS GÖRSEL ÇİZİM MOTORU
+// =======================================================
+function drawCustomEnemy(c, e, tx, ty, nowTime) {
+    const r = e.radius;
+    const isHit = e.hitFlash > 0;
+    const faceAngle = Math.atan2(ty - e.y, tx - e.x);
+    const kind = e.subType || (e.type === 'boss' ? 'leviathan' : (e.isTeleporter ? 'teleporter' : (e.isRanged ? 'ranged' : e.type)));
+
+    c.shadowColor = 'rgba(0, 0, 0, 0.45)';
+    c.shadowBlur = e.type === 'boss' ? 10 : 5;
+    c.shadowOffsetY = 2;
+
+    switch (kind) {
+        // 1. AĞIR TANK BOSS (Zırhlı Titan Behemoth)
+        case 'tank_boss': {
+            // Dönen dış ezici dişli çember
+            c.save();
+            c.rotate(nowTime * 0.0012);
+            c.fillStyle = isHit ? '#ffffff' : '#78350f';
+            c.strokeStyle = '#facc15';
+            c.lineWidth = 2.2;
+            c.beginPath();
+            for (let i = 0; i < 24; i++) {
+                const a = (i * Math.PI) / 12;
+                const rad = i % 2 === 0 ? r * 1.12 : r * 0.88;
+                const px = Math.cos(a) * rad, py = Math.sin(a) * rad;
+                if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+            }
+            c.closePath(); c.fill(); c.stroke();
+            c.restore();
+
+            // Kuleye bakan zırhlı gövde ve koçbaşı kalkanı
+            c.save();
+            c.rotate(faceAngle);
+            c.fillStyle = isHit ? '#ffffff' : '#1e293b';
+            c.strokeStyle = '#f59e0b';
+            c.lineWidth = 2.5;
+            c.beginPath();
+            for (let i = 0; i < 8; i++) {
+                const a = (i * Math.PI) / 4 + Math.PI / 8;
+                const px = Math.cos(a) * (r * 0.82), py = Math.sin(a) * (r * 0.82);
+                if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+            }
+            c.closePath(); c.fill(); c.stroke();
+
+            // Omuz zırh plakaları
+            c.fillStyle = isHit ? '#ffffff' : '#b45309';
+            c.strokeStyle = '#fef08a';
+            c.lineWidth = 1.6;
+            c.fillRect(-r * 0.35, -r * 0.85, r * 0.65, r * 0.32);
+            c.strokeRect(-r * 0.35, -r * 0.85, r * 0.65, r * 0.32);
+            c.fillRect(-r * 0.35, r * 0.53, r * 0.65, r * 0.32);
+            c.strokeRect(-r * 0.35, r * 0.53, r * 0.65, r * 0.32);
+
+            // Ön ağır koçbaşı tamponu
+            c.fillStyle = '#facc15';
+            c.beginPath();
+            c.moveTo(r * 0.98, 0);
+            c.lineTo(r * 0.55, -r * 0.58);
+            c.lineTo(r * 0.38, -r * 0.35);
+            c.lineTo(r * 0.38, r * 0.35);
+            c.lineTo(r * 0.55, r * 0.58);
+            c.closePath(); c.fill(); c.stroke();
+
+            // Merkez turuncu reaktör çekirdeği
+            const corePulse = r * 0.32 + Math.sin(nowTime * 0.008) * 2.5;
+            c.fillStyle = '#f97316';
+            c.beginPath(); c.arc(0, 0, corePulse, 0, Math.PI * 2); c.fill();
+            c.fillStyle = '#fef08a';
+            c.beginPath(); c.arc(0, 0, corePulse * 0.5, 0, Math.PI * 2); c.fill();
+            c.restore();
+            break;
+        }
+
+        // 2. UZAKTAN VURAN NİŞANCI BOSS (Hiperiyon Topçusu)
+        case 'ranged_boss': {
+            c.save();
+            c.rotate(faceAngle);
+
+            // Lazer nişangah çizgisi
+            c.save();
+            c.strokeStyle = 'rgba(244, 63, 94, 0.35)';
+            c.lineWidth = 1.4;
+            c.setLineDash([6, 6]);
+            c.beginPath(); c.moveTo(r * 0.8, 0); c.lineTo(r * 3.8, 0); c.stroke();
+            c.restore();
+
+            // Çift uzun Railgun (Plazma Topu) namluları
+            c.fillStyle = isHit ? '#ffffff' : '#334155';
+            c.strokeStyle = '#f472b6';
+            c.lineWidth = 2;
+            c.fillRect(r * 0.15, -r * 0.56, r * 1.15, r * 0.26);
+            c.strokeRect(r * 0.15, -r * 0.56, r * 1.15, r * 0.26);
+            c.fillRect(r * 0.15, r * 0.30, r * 1.15, r * 0.26);
+            c.strokeRect(r * 0.15, r * 0.30, r * 1.15, r * 0.26);
+
+            // Namlu uçlarındaki enerji parlaması
+            c.fillStyle = '#38bdf8';
+            c.beginPath();
+            c.arc(r * 1.3, -r * 0.43, r * 0.14, 0, Math.PI * 2);
+            c.arc(r * 1.3, r * 0.43, r * 0.14, 0, Math.PI * 2);
+            c.fill();
+
+            // Kanatlı ana topçu gövdesi
+            c.fillStyle = isHit ? '#ffffff' : '#500724';
+            c.strokeStyle = '#fbcfe8';
+            c.lineWidth = 2.2;
+            c.beginPath();
+            c.moveTo(r * 0.65, 0);
+            c.lineTo(-r * 0.15, -r * 1.08);
+            c.lineTo(-r * 0.90, -r * 0.72);
+            c.lineTo(-r * 0.60, 0);
+            c.lineTo(-r * 0.90, r * 0.72);
+            c.lineTo(-r * 0.15, r * 1.08);
+            c.closePath(); c.fill(); c.stroke();
+
+            // Merkez radar ve hedefleme gözü
+            c.fillStyle = '#ec4899';
+            c.beginPath(); c.arc(-r * 0.05, 0, r * 0.42, 0, Math.PI * 2); c.fill(); c.stroke();
+            c.fillStyle = '#fef08a';
+            c.beginPath(); c.arc(r * 0.08, 0, r * 0.18, 0, Math.PI * 2); c.fill();
+            c.restore();
+            break;
+        }
+
+        // 3. HIZLI SUİKASTÇI BOSS (Kızıl Fırtına Vektörü)
+        case 'speed_boss': {
+            c.save();
+            c.rotate(faceAngle);
+
+            // Çift roket egzoz alevi
+            const flameLen = r * (0.65 + Math.sin(nowTime * 0.04) * 0.28);
+            c.fillStyle = '#f97316';
+            c.beginPath();
+            c.moveTo(-r * 0.65, -r * 0.35); c.lineTo(-r * 0.65 - flameLen, -r * 0.22); c.lineTo(-r * 0.65, -r * 0.08);
+            c.moveTo(-r * 0.65, r * 0.08); c.lineTo(-r * 0.65 - flameLen, r * 0.22); c.lineTo(-r * 0.65, r * 0.35);
+            c.closePath(); c.fill();
+
+            // Çift tırpan kanatlı aerodinamik gövde
+            c.fillStyle = isHit ? '#ffffff' : '#7f1d1d';
+            c.strokeStyle = '#fca5a5';
+            c.lineWidth = 2.2;
+            c.beginPath();
+            c.moveTo(r * 1.30, 0);
+            c.lineTo(r * 0.20, -r * 0.42);
+            c.lineTo(-r * 0.35, -r * 1.18);
+            c.lineTo(-r * 0.95, -r * 0.85);
+            c.lineTo(-r * 0.50, -r * 0.25);
+            c.lineTo(-r * 0.80, 0);
+            c.lineTo(-r * 0.50, r * 0.25);
+            c.lineTo(-r * 0.95, r * 0.85);
+            c.lineTo(-r * 0.35, r * 1.18);
+            c.lineTo(r * 0.20, r * 0.42);
+            c.closePath(); c.fill(); c.stroke();
+
+            // İç kızıl bıçak deseni ve parlayan gözler
+            c.fillStyle = '#ef4444';
+            c.beginPath();
+            c.moveTo(r * 0.9, 0); c.lineTo(-r * 0.3, -r * 0.35); c.lineTo(-r * 0.15, 0); c.lineTo(-r * 0.3, r * 0.35);
+            c.closePath(); c.fill();
+
+            c.fillStyle = '#fef08a';
+            c.beginPath();
+            c.arc(r * 0.35, -r * 0.14, 2.5, 0, Math.PI * 2);
+            c.arc(r * 0.35, r * 0.14, 2.5, 0, Math.PI * 2);
+            c.fill();
+            c.restore();
+            break;
+        }
+
+        // 4. DONDURAN BUZ BOSS (Kutup Hükümdarı Kryos)
+        case 'frost_boss': {
+            // Dondurucu fırtına aurası
+            c.fillStyle = 'rgba(56, 189, 248, 0.18)';
+            c.beginPath(); c.arc(0, 0, r * 1.25 + Math.sin(nowTime * 0.006) * 3, 0, Math.PI * 2); c.fill();
+
+            // Dış dönen 8 kollu buz tacı
+            c.save();
+            c.rotate(nowTime * 0.0018);
+            c.fillStyle = isHit ? '#ffffff' : '#0284c7';
+            c.strokeStyle = '#e0f2fe';
+            c.lineWidth = 2;
+            c.beginPath();
+            for (let i = 0; i < 16; i++) {
+                const a = (i * Math.PI) / 8;
+                const rad = i % 2 === 0 ? r * 1.15 : r * 0.55;
+                const px = Math.cos(a) * rad, py = Math.sin(a) * rad;
+                if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+            }
+            c.closePath(); c.fill(); c.stroke();
+            c.restore();
+
+            // Ters yöne dönen iç kristal yıldız
+            c.save();
+            c.rotate(-nowTime * 0.0025);
+            c.fillStyle = isHit ? '#ffffff' : '#38bdf8';
+            c.strokeStyle = '#ffffff';
+            c.lineWidth = 1.8;
+            c.beginPath();
+            for (let i = 0; i < 12; i++) {
+                const a = (i * Math.PI) / 6;
+                const rad = i % 2 === 0 ? r * 0.78 : r * 0.38;
+                const px = Math.cos(a) * rad, py = Math.sin(a) * rad;
+                if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+            }
+            c.closePath(); c.fill(); c.stroke();
+            c.restore();
+
+            // Merkez buz çekirdeği ve gözler
+            c.fillStyle = '#f0f9ff';
+            c.beginPath(); c.arc(0, 0, r * 0.30, 0, Math.PI * 2); c.fill();
+            c.fillStyle = '#0369a1';
+            c.beginPath();
+            c.arc(-4, -2, 2.2, 0, Math.PI * 2);
+            c.arc(4, -2, 2.2, 0, Math.PI * 2);
+            c.fill();
+            break;
+        }
+
+        // 5. KLASİK BOSS (Kozmik Leviathan)
+        case 'leviathan':
+        case 'boss': {
+            // Dönen hiçlik halkası
+            c.save();
+            c.rotate(-nowTime * 0.002);
+            c.fillStyle = isHit ? '#ffffff' : '#3b0764';
+            c.strokeStyle = '#d8b4fe';
+            c.lineWidth = 2.2;
+            c.beginPath();
+            for (let i = 0; i < 16; i++) {
+                const a = (i * Math.PI) / 8;
+                const rad = i % 2 === 0 ? r * 1.10 : r * 0.72;
+                const px = Math.cos(a) * rad, py = Math.sin(a) * rad;
+                if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+            }
+            c.closePath(); c.fill(); c.stroke();
+            c.restore();
+
+            // Kuleye bakan kıskaçlı ve 3 gözlü kozmik gövde
+            c.save();
+            c.rotate(faceAngle);
+            c.fillStyle = isHit ? '#ffffff' : '#581c87';
+            c.strokeStyle = '#f0abfc';
+            c.lineWidth = 2;
+            c.beginPath();
+            c.moveTo(r * 1.15, -r * 0.28);
+            c.lineTo(r * 0.55, -r * 0.12);
+            c.lineTo(r * 0.55, r * 0.12);
+            c.lineTo(r * 1.15, r * 0.28);
+            c.lineTo(r * 0.45, r * 0.72);
+            c.lineTo(-r * 0.75, r * 0.60);
+            c.lineTo(-r * 0.90, 0);
+            c.lineTo(-r * 0.75, -r * 0.60);
+            c.lineTo(r * 0.45, -r * 0.72);
+            c.closePath(); c.fill(); c.stroke();
+
+            // 3 Kozmik Göz
+            c.fillStyle = '#facc15';
+            c.beginPath();
+            c.arc(r * 0.28, -r * 0.26, 3.2, 0, Math.PI * 2);
+            c.arc(r * 0.28, r * 0.26, 3.2, 0, Math.PI * 2);
+            c.arc(r * 0.42, 0, 4.0, 0, Math.PI * 2);
+            c.fill();
+            c.restore();
+            break;
+        }
+
+        // 6. NORMAL AĞIR TANK (Zırhlı Golem)
+        case 'tank': {
+            c.save();
+            c.rotate(faceAngle);
+            c.fillStyle = isHit ? '#ffffff' : '#334155';
+            c.strokeStyle = '#e2e8f0';
+            c.lineWidth = 2;
+            c.beginPath();
+            for (let i = 0; i < 8; i++) {
+                const a = (i * Math.PI) / 4 + Math.PI / 8;
+                const px = Math.cos(a) * r, py = Math.sin(a) * r;
+                if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+            }
+            c.closePath(); c.fill(); c.stroke();
+
+            // Ön ağır kalkan plakası
+            c.fillStyle = '#94a3b8';
+            c.strokeStyle = '#f8fafc';
+            c.lineWidth = 1.5;
+            c.beginPath();
+            c.roundRect(r * 0.35, -r * 0.75, r * 0.45, r * 1.5, 3);
+            c.fill(); c.stroke();
+
+            // Turuncu Golem vizörü
+            c.fillStyle = '#f97316';
+            c.fillRect(-r * 0.15, -r * 0.38, r * 0.28, r * 0.76);
+            c.restore();
+            break;
+        }
+
+        // 7. NORMAL DONDURAN BUZ DÜŞMANI (Buzul Nöbetçisi)
+        case 'frost': {
+            c.save();
+            c.rotate(e.rot);
+            c.fillStyle = isHit ? '#ffffff' : '#0891b2';
+            c.strokeStyle = '#cffafe';
+            c.lineWidth = 1.8;
+            // 6 kollu buz kristali yıldızı
+            c.beginPath();
+            for (let i = 0; i < 12; i++) {
+                const a = (i * Math.PI) / 6;
+                const rad = i % 2 === 0 ? r * 1.15 : r * 0.48;
+                const px = Math.cos(a) * rad, py = Math.sin(a) * rad;
+                if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+            }
+            c.closePath(); c.fill(); c.stroke();
+
+            c.fillStyle = '#e0f2fe';
+            c.beginPath(); c.arc(0, 0, r * 0.35, 0, Math.PI * 2); c.fill();
+            c.restore();
+            break;
+        }
+
+        // 8. NORMAL HIZLI KOŞUCU (Gölge Koşucu)
+        case 'runner': {
+            c.save();
+            c.rotate(faceAngle);
+            // Motor alevi
+            const jet = r * (0.55 + Math.sin(nowTime * 0.04) * 0.25);
+            c.fillStyle = '#fb923c';
+            c.beginPath();
+            c.moveTo(-r * 0.6, -r * 0.28); c.lineTo(-r * 0.6 - jet, 0); c.lineTo(-r * 0.6, r * 0.28);
+            c.closePath(); c.fill();
+
+            // Sivri hançer/ok gövde
+            c.fillStyle = isHit ? '#ffffff' : '#e11d48';
+            c.strokeStyle = '#fda4af';
+            c.lineWidth = 1.6;
+            c.beginPath();
+            c.moveTo(r * 1.25, 0);
+            c.lineTo(-r * 0.65, -r * 0.90);
+            c.lineTo(-r * 0.30, 0);
+            c.lineTo(-r * 0.65, r * 0.90);
+            c.closePath(); c.fill(); c.stroke();
+
+            c.fillStyle = '#fef08a';
+            c.beginPath(); c.arc(r * 0.25, 0, r * 0.22, 0, Math.PI * 2); c.fill();
+            c.restore();
+            break;
+        }
+
+        // 9. NORMAL IŞINLANAN (Sarı Psişik)
+        case 'teleporter': {
+            c.save();
+            c.rotate(e.rot);
+            c.fillStyle = isHit ? '#ffffff' : '#ca8a04';
+            c.strokeStyle = '#fef08a';
+            c.lineWidth = 1.6;
+            // 4 kollu mistik şuriken/yıldız
+            c.beginPath();
+            for (let i = 0; i < 8; i++) {
+                const a = (i * Math.PI) / 4;
+                const rad = i % 2 === 0 ? r * 1.18 : r * 0.42;
+                const px = Math.cos(a) * rad, py = Math.sin(a) * rad;
+                if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+            }
+            c.closePath(); c.fill(); c.stroke();
+            c.restore();
+
+            // Merkezde kuleye bakan psişik göz
+            c.fillStyle = '#ffffff';
+            c.beginPath(); c.arc(0, 0, r * 0.42, 0, Math.PI * 2); c.fill();
+            c.fillStyle = '#7c2d12';
+            c.beginPath();
+            c.arc(Math.cos(faceAngle) * 1.5, Math.sin(faceAngle) * 1.5, r * 0.20, 0, Math.PI * 2);
+            c.fill();
+            break;
+        }
+
+        // 10. NORMAL UZAKTAN VURAN (Mavi Nişancı)
+        case 'ranged': {
+            c.save();
+            c.rotate(faceAngle);
+            // Uzun nişancı namlusu
+            c.fillStyle = '#1e293b';
+            c.strokeStyle = '#38bdf8';
+            c.lineWidth = 1.5;
+            c.fillRect(r * 0.2, -2.2, r * 1.05, 4.4);
+            c.strokeRect(r * 0.2, -2.2, r * 1.05, 4.4);
+
+            // Kanatlı nişancı dronu gövdesi
+            c.fillStyle = isHit ? '#ffffff' : '#0284c7';
+            c.strokeStyle = '#bae6fd';
+            c.lineWidth = 1.6;
+            c.beginPath();
+            c.moveTo(r * 0.55, 0);
+            c.lineTo(-r * 0.45, -r * 0.95);
+            c.lineTo(-r * 0.85, -r * 0.55);
+            c.lineTo(-r * 0.50, 0);
+            c.lineTo(-r * 0.85, r * 0.55);
+            c.lineTo(-r * 0.45, r * 0.95);
+            c.closePath(); c.fill(); c.stroke();
+
+            // Kırmızı hedefleme merceği
+            c.fillStyle = '#f43f5e';
+            c.beginPath(); c.arc(0, 0, r * 0.28, 0, Math.PI * 2); c.fill();
+            c.restore();
+            break;
+        }
+
+        // 11. STANDART YAKIN DÖVÜŞÇÜ (Yeşil Xenomorph Böceği)
+        case 'green':
+        default: {
+            c.save();
+            c.rotate(faceAngle);
+            const bite = Math.sin(e.animPhase || nowTime * 0.01) * 1.8;
+
+            // Ön kıskaçlar (Çene)
+            c.strokeStyle = '#bbf7d0';
+            c.lineWidth = 2;
+            c.beginPath();
+            c.moveTo(r * 0.5, -r * 0.35); c.lineTo(r * 1.15, -r * 0.15 - bite);
+            c.moveTo(r * 0.5, r * 0.35); c.lineTo(r * 1.15, r * 0.15 + bite);
+            c.stroke();
+
+            // Yan böcek ayakları
+            c.strokeStyle = '#15803d';
+            c.lineWidth = 1.6;
+            c.beginPath();
+            c.moveTo(0, -r * 0.6); c.lineTo(-r * 0.2, -r * 1.05);
+            c.moveTo(-r * 0.4, -r * 0.5); c.lineTo(-r * 0.65, -r * 0.95);
+            c.moveTo(0, r * 0.6); c.lineTo(-r * 0.2, r * 1.05);
+            c.moveTo(-r * 0.4, r * 0.5); c.lineTo(-r * 0.65, r * 0.95);
+            c.stroke();
+
+            // Zırhlı böcek gövdesi
+            c.fillStyle = isHit ? '#ffffff' : (e.color || '#16a34a');
+            c.strokeStyle = e.secColor || '#86efac';
+            c.lineWidth = 1.6;
+            c.beginPath();
+            c.ellipse(0, 0, r * 0.92, r * 0.72, 0, 0, Math.PI * 2);
+            c.fill(); c.stroke();
+
+            // Sırt çizgisi ve parlayan sarı gözler
+            c.strokeStyle = 'rgba(15, 23, 42, 0.45)';
+            c.beginPath();
+            c.arc(-r * 0.2, 0, r * 0.45, -Math.PI * 0.4, Math.PI * 0.4);
+            c.stroke();
+
+            c.fillStyle = '#fef08a';
+            c.beginPath();
+            c.arc(r * 0.42, -r * 0.25, 1.8, 0, Math.PI * 2);
+            c.arc(r * 0.42, r * 0.25, 1.8, 0, Math.PI * 2);
+            c.fill();
+            c.restore();
+            break;
+        }
+    }
+}
+
 function renderGame() {
     if (!canvas || !ctx) return;
 
@@ -861,50 +1319,57 @@ function renderGame() {
     const skinId = game.activeSkin || 'default_cyber';
     const barrelCount = Math.min(7, Math.max(1, getEffectiveMultishot()));
     drawCustomTowerSkin(ctx, skinId, tower.angle, tower.recoil, barrelCount, nowCompTime);
+
+    // Kule Buz / Donma Görsel Efekti
+    if (tower.freezeTimer && tower.freezeTimer > 0) {
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.38)';
+        ctx.strokeStyle = '#e0f2fe';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i < 8; i++) {
+            const a = (i * Math.PI) / 4;
+            const rad = i % 2 === 0 ? 27 : 21;
+            const px = Math.cos(a) * rad, py = Math.sin(a) * rad;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+    } else if (tower.frostSlowTimer && tower.frostSlowTimer > 0) {
+        ctx.strokeStyle = 'rgba(125, 211, 252, 0.65)';
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.arc(0, 0, 26, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
+    }
     ctx.restore();
 
+    // Düşmanların ve Bossların Özel Tasarımlarla Çizimi
     for (const e of enemies) {
-        ctx.save(); ctx.translate(e.x, e.y);
-        if (e.slowTimer > 0) { ctx.beginPath(); ctx.arc(0, 0, e.radius + 4, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(56, 189, 248, 0.65)'; ctx.lineWidth = 1.5; ctx.stroke(); }
+        ctx.save();
+        ctx.translate(e.x, e.y);
 
-        ctx.save(); ctx.rotate(e.rot);
-        let fillStyle = e.color;
-        if (e.hitFlash <= 0) {
-            const darkColor = adjustColorBrightness(e.color, -50);
-            const eGrad = ctx.createRadialGradient(-e.radius * 0.3, -e.radius * 0.3, e.radius * 0.1, 0, 0, e.radius);
-            eGrad.addColorStop(0, '#ffffff');
-            eGrad.addColorStop(0.2, e.color);
-            eGrad.addColorStop(1, darkColor);
-            fillStyle = eGrad;
-            ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
+        if (e.slowTimer > 0) {
+            ctx.beginPath(); ctx.arc(0, 0, e.radius + 5, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.65)'; ctx.lineWidth = 1.5; ctx.stroke();
         }
 
-        ctx.fillStyle = e.hitFlash > 0 ? '#ffffff' : fillStyle;
-        ctx.strokeStyle = e.secColor || '#ffffff'; ctx.lineWidth = e.type === 'boss' ? 3 : 1.5;
-
-        if (e.type === 'boss') {
-            ctx.beginPath();
-            for (let i = 0; i < 6; i++) {
-                const a = (i * Math.PI) / 3;
-                const r = i % 2 === 0 ? e.radius : e.radius * 0.75;
-                const px = Math.cos(a) * r, py = Math.sin(a) * r;
-                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-            }
-            ctx.closePath(); ctx.fill(); ctx.shadowColor = 'transparent'; ctx.stroke();
-        } else if (e.isTeleporter) {
-            ctx.beginPath(); ctx.moveTo(0, -e.radius); ctx.lineTo(e.radius, 0); ctx.lineTo(0, e.radius); ctx.lineTo(-e.radius, 0); ctx.closePath(); ctx.fill(); ctx.shadowColor = 'transparent'; ctx.stroke();
-        } else if (e.isRanged) {
-            ctx.beginPath(); ctx.moveTo(e.radius, 0); ctx.lineTo(-e.radius * 0.8, -e.radius * 0.85); ctx.lineTo(-e.radius * 0.4, 0); ctx.lineTo(-e.radius * 0.8, e.radius * 0.85); ctx.closePath(); ctx.fill(); ctx.shadowColor = 'transparent'; ctx.stroke();
-        } else {
-            ctx.beginPath(); ctx.arc(0, 0, e.radius, 0, Math.PI * 2); ctx.fill(); ctx.shadowColor = 'transparent'; ctx.stroke();
-        }
-        ctx.restore();
+        drawCustomEnemy(ctx, e, tx, ty, nowCompTime);
 
         if (e.hp < e.maxHp || e.type === 'boss') {
-            const barW = e.radius * 2; const pct = Math.max(0, e.hp / e.maxHp);
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.85)'; ctx.fillRect(-barW / 2, -e.radius - 11, barW, 3.5);
-            ctx.fillStyle = e.type === 'boss' ? '#d8b4fe' : '#86efac';
-            ctx.fillRect(-barW / 2, -e.radius - 11, barW * pct, 3.5);
+            const barW = Math.max(24, e.radius * 2.1);
+            const pct = Math.max(0, e.hp / e.maxHp);
+            const barY = -e.radius - 12;
+
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+            ctx.fillRect(-barW / 2, barY, barW, 4);
+            ctx.fillStyle = e.type === 'boss' ? (e.color || '#d8b4fe') : '#86efac';
+            ctx.fillRect(-barW / 2, barY, barW * pct, 4);
+
+            if (e.type === 'boss' && e.name) {
+                ctx.font = "bold 9.5px 'Rajdhani', sans-serif";
+                ctx.fillStyle = '#fef08a';
+                ctx.textAlign = 'center';
+                ctx.fillText(e.name, 0, barY - 4);
+            }
         }
         ctx.restore();
     }
@@ -932,14 +1397,12 @@ function renderGame() {
         style.id = 'mobile-auto-optimizer-style';
         style.textContent = `
             @media (max-width: 768px) {
-                /* Üst HUD (Can ve Dalga kutuları) telefonda kuleyi kapatmasın diye küçültülür */
                 .mobile-hud-compact {
                     transform: scale(0.80) !important;
                     padding: 4px 8px !important;
                     opacity: 0.92;
                 }
 
-                /* Yükseltme paneli doğrudan 2. fotoğraftaki geniş boyutta (65dvh) açılır */
                 .mobile-upgrade-scrollable {
                     max-height: 65dvh !important;
                     overflow-y: auto !important;
@@ -951,7 +1414,6 @@ function renderGame() {
                     transition: max-height 0.22s ease, opacity 0.18s ease !important;
                 }
 
-                /* Paneli Gizle'ye basıldığında tamamen kapanır */
                 .mobile-upgrade-scrollable.mobile-panel-collapsed {
                     max-height: 0px !important;
                     padding-top: 0 !important;
@@ -960,7 +1422,6 @@ function renderGame() {
                     pointer-events: none !important;
                 }
 
-                /* Sağ alt hızlı Aç / Gizle butonu */
                 #mobilePanelToggleBtn {
                     position: fixed;
                     right: 12px;
@@ -998,7 +1459,6 @@ function renderGame() {
 
         const allDivs = Array.from(document.querySelectorAll('div, section, aside'));
 
-        // 1. Üstteki Can ve Dalga kutularını bul ve telefonda küçült
         for (const el of allDivs) {
             if (el.querySelector('canvas')) continue;
             const rect = el.getBoundingClientRect();
@@ -1010,7 +1470,6 @@ function renderGame() {
             }
         }
 
-        // 2. Yükseltme listesini bul ve doğrudan 2. fotoğraftaki geniş kaydırılabilir hale getir
         let upgradeContainer = document.querySelector('#upgradePanel, #upgrades, #upgradeList, [id*="upgrade" i]');
         if (!upgradeContainer) {
             const candidates = allDivs.filter(el => {
@@ -1028,7 +1487,6 @@ function renderGame() {
             upgradeContainer.classList.add('mobile-upgrade-scrollable');
         }
 
-        // 3. Tek tıkla Aç / Kapat butonu (Ara küçük mod kaldırıldı, direkt geniş açılır ve kapanır)
         if (!document.getElementById('mobilePanelToggleBtn')) {
             const btn = document.createElement('button');
             btn.id = 'mobilePanelToggleBtn';
