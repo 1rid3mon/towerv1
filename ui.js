@@ -1,3 +1,7 @@
+// ==========================================
+// BÖLÜM: ARAYÜZ (UI), MENÜLER VE MOBİL HUD DÜZENİ
+// ==========================================
+
 function toggleUpgradeDrawer() {
     isDrawerOpen = !isDrawerOpen;
     const drawer = document.getElementById('upgrade-drawer');
@@ -25,6 +29,25 @@ function syncHudPositionsWithDrawer() {
         quickStats.classList.remove('right-2', 'bottom-11', 'sm:left-[442px]', 'sm:right-auto', 'sm:bottom-2');
         quickStats.classList.add('left-2', 'bottom-2');
     }
+}
+
+// Dev sayıların (1e50 gibi) üst barı ve Ayarlar butonunu ekran dışına itmesini engelleyen gelişmiş formatlayıcı
+function formatNumber(num) {
+    if (num === null || num === undefined || isNaN(num)) return '0';
+    if (!Number.isFinite(num)) return '∞';
+    const abs = Math.abs(num);
+    if (abs < 1000) return Math.floor(num).toString();
+
+    const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
+    const tier = Math.floor(Math.log10(abs) / 3);
+
+    if (tier < suffixes.length) {
+        const scaled = num / Math.pow(10, tier * 3);
+        return (scaled >= 100 ? scaled.toFixed(1) : scaled.toFixed(2)) + suffixes[tier];
+    }
+    const exp = Math.floor(Math.log10(abs));
+    const mantissa = (num / Math.pow(10, exp)).toFixed(2);
+    return `${mantissa}e${exp}`;
 }
 
 function setDeviceMode(mode) {
@@ -64,7 +87,7 @@ function buildUpgradesUI() {
                                 <span class="font-tech font-bold text-xs sm:text-sm text-white truncate">${def.name}</span>
                                 <span id="upg-lvl-${key}" class="text-[10px] font-tech px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">Sv.${lvl}</span>
                             </div>
-                            <div class="text-[10px] text-slate-400 truncate">${def.desc}</div>
+                            <div class="text-[10px] text-slate-400 leading-tight">${def.desc}</div>
                             <div id="upg-val-${key}" class="text-[11px] font-tech font-bold text-blue-300">${def.getValueText(lvl)}</div>
                         </div>
                     </div>
@@ -142,7 +165,7 @@ function buildCompanionsUI() {
                                 ${renderCompanionStars(star)}
                             </div>
                         </div>
-                        <div class="text-[10px] text-slate-400 truncate">${def.desc}</div>
+                        <div class="text-[10px] text-slate-400 leading-tight">${def.desc}</div>
                         <div class="text-[10px] font-tech font-bold ${star > 0 ? 'text-cyan-300' : 'text-amber-300'}">${def.getStarSummary(star)}</div>
                     </div>
                 </div>
@@ -239,7 +262,6 @@ function openPrestigeConfirm() {
         game.wave = getStartWaveLevel();
         game.highestWave = Math.max(game.highestWave, game.wave);
         game.waveKills = 0;
-        // Prestij sonrası başlangıç altını yeni ekonomiye göre dengelendi (1. dalgada 25 altın, Zaman Sıçraması varsa dalga başına makul harçlık)
         game.gold = game.wave === 1 ? 25 : Math.round(25 + getWaveBaseGold(game.wave) * 6 * getGoldMultiplier());
 
         game.upgrades = {
@@ -914,3 +936,105 @@ function loadGame() {
 }
 function exportSaveCode() { try { document.getElementById('save-code-textarea').value = btoa(unescape(encodeURIComponent(JSON.stringify(game)))); document.getElementById('save-code-textarea').select(); document.execCommand('copy'); showToast('Kayıt kodu kopyalandı!'); } catch (e) { showToast('Hata!'); } }
 function importSaveCode() { try { const code = document.getElementById('save-code-textarea').value.trim(); if (!code) return; localStorage.setItem(SAVE_KEY, decodeURIComponent(escape(atob(code)))); loadGame(); applyBodyClasses(); buildUpgradesUI(); buildInventoryUI(); updateHUD(); showToast('Kod yüklendi!'); } catch (e) { showToast('Geçersiz kod!'); } }
+
+// =======================================================
+// MOBİL ÖZEL DÜZENLEME: YAN YANA KÜÇÜK CAN/DALGA KUTUSU & AYARLAR BUTONU KORUMASI
+// =======================================================
+(function setupMobileHudAndSettingsFix() {
+    function injectMobileHudCSS() {
+        if (document.getElementById('mobile-hud-side-by-side-css')) return;
+        const st = document.createElement('style');
+        st.id = 'mobile-hud-side-by-side-css';
+        st.textContent = `
+            @media (max-width: 768px) {
+                /* 1. Üst menü çubuğunun sağdaki Ayarlar (⚙️) butonunu dışarı itmesini engelle */
+                header, body > div > header, #main-body > header, #main-body > div:first-child {
+                    position: relative !important;
+                    z-index: 9500 !important;
+                    padding-left: 6px !important;
+                    padding-right: 6px !important;
+                    max-width: 100vw !important;
+                    overflow: hidden !important;
+                }
+
+                /* 2. Can ve Dalga kutularını (#hud-top-bar) telefonda küçültüp YAN YANA 2 sütun yap */
+                #hud-top-bar {
+                    display: grid !important;
+                    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+                    gap: 6px !important;
+                    left: 6px !important;
+                    right: 6px !important;
+                    top: 52px !important;
+                    width: auto !important;
+                    max-width: calc(100vw - 12px) !important;
+                    transform: none !important;
+                    pointer-events: none !important;
+                    z-index: 40 !important;
+                }
+
+                #hud-top-bar > * {
+                    width: 100% !important;
+                    min-width: 0 !important;
+                    padding: 6px 8px !important;
+                    border-radius: 10px !important;
+                    pointer-events: auto !important;
+                    background: rgba(15, 23, 42, 0.86) !important;
+                }
+
+                #hud-top-bar * {
+                    font-size: 10px !important;
+                    line-height: 1.15 !important;
+                }
+
+                #ui-hp-text, #ui-shield-text, #ui-hud-regen, #ui-hud-armor, #ui-wave-progress-text {
+                    white-space: nowrap !important;
+                    overflow: hidden !important;
+                    text-overflow: ellipsis !important;
+                }
+
+                /* 3. Sistem Paneli (#upgrade-drawer) içinde en alttaki yükseltmelere rahatça kaydırılabilsin */
+                #upgrade-drawer {
+                    max-height: 100dvh !important;
+                }
+                #attack-upgrades-list, #defense-upgrades-list, #economy-upgrades-list,
+                #companions-list, #prestige-upgrades-list, #tab-items, #tab-lootbox, #tab-casino {
+                    padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 75px) !important;
+                }
+            }
+        `;
+        document.head.appendChild(st);
+
+        // Ayarlar (⚙️) ve Duraklat butonlarının mobilde her zaman dokunulabilir olmasını garantile
+        const settingsBtn = document.querySelector('[onclick*="openSettingsModal"]') ||
+                            Array.from(document.querySelectorAll('button')).find(b => b.querySelector('.fa-gear, .fa-cog'));
+        if (settingsBtn && !settingsBtn.dataset.mobileFixed) {
+            settingsBtn.dataset.mobileFixed = '1';
+            settingsBtn.style.position = 'relative';
+            settingsBtn.style.zIndex = '9999';
+            settingsBtn.style.pointerEvents = 'auto';
+            settingsBtn.style.flexShrink = '0';
+            settingsBtn.addEventListener('touchend', (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                openSettingsModal();
+            }, { passive: false });
+        }
+
+        // Sağ alttaki hızlı "Paneli Gizle / Aç" butonunu doğrudan oyunun kendi çekmecesine (toggleUpgradeDrawer) bağla
+        const toggleBtn = document.getElementById('mobilePanelToggleBtn');
+        if (toggleBtn) {
+            toggleBtn.onclick = (e) => {
+                e.stopPropagation();
+                toggleUpgradeDrawer();
+                toggleBtn.innerHTML = isDrawerOpen ? '🔽 Paneli Gizle' : '🔼 Yükseltmeleri Aç';
+            };
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', injectMobileHudCSS);
+    } else {
+        injectMobileHudCSS();
+    }
+    setInterval(injectMobileHudCSS, 1000);
+})();
