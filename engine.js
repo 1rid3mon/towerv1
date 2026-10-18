@@ -1,7 +1,11 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-let tower = { x: 0, y: 0, hp: 100, maxHp: 100, shield: 0, maxShield: 0, fireCooldown: 0, angle: 0, recoil: 0 };
+let tower = {
+    x: 0, y: 0, hp: 100, maxHp: 100, shield: 0, maxShield: 0,
+    fireCooldown: 0, angle: 0, recoil: 0,
+    freezeTimer: 0, frostSlowTimer: 0, frostVisualTick: 0
+};
 let enemies = [];
 let projectiles = [];
 let particles = [];
@@ -26,7 +30,7 @@ function resizeCanvas() {
     const container = document.getElementById('canvas-container');
     if (!container) return;
     canvas.width = container.clientWidth;
-    canvas.height = canvas.clientHeight;
+    canvas.height = container.clientHeight;
     tower.x = canvas.width / 2;
     tower.y = canvas.height / 2;
 }
@@ -39,44 +43,155 @@ function spawnEnemy(isBoss = false) {
     const y = tower.y + Math.sin(angle) * spawnDist;
 
     const w = game.wave;
-    // İlk dalgalarda nefes aldırma ama 1. seviyeyle de 20. dalgaya gidilmesini engelleyen yeni büyüme eğrisi
     const earlyBuffer = w === 1 ? 0.80 : (w <= 3 ? 0.90 : 1.0);
     const tierMult = Math.pow(1.22, Math.floor(w / 10)) * Math.pow(1.35, Math.floor(w / 25));
 
-    // Düşman Canı ve Hasarı, oyuncunun yükseltme yapmadığı takdirde ezileceği şekilde ölçeklendi
     const baseHp = (18 + (w - 1) * 7.5) * Math.pow(1.095, w - 1) * tierMult * earlyBuffer;
     const baseDmg = (4.5 + (w - 1) * 1.6) * Math.pow(1.082, w - 1) * Math.pow(1.16, Math.floor(w / 10)) * earlyBuffer;
     const baseGold = getWaveBaseGold(w) * getGoldMultiplier();
 
-    let type = 'green', name = 'Yeşil Xenomorph', radius = 13, speed = 38 + Math.min(30, w * 0.18);
+    let type = 'green', subType = 'normal', name = 'Yeşil Xenomorph', radius = 13, speed = 38 + Math.min(30, w * 0.18);
     let hp = baseHp, dmg = baseDmg, isRanged = false, isTeleporter = false, gold = baseGold;
+    let isFrost = false, freezeDuration = 0, frostSlowDuration = 0;
+    let attackInterval = 1.05, projSpeed = 220, stopDistOverride = null, kbResist = 1.0, dashCooldown = 0;
+    let customPal = null;
 
     if (isBoss) {
-        type = 'boss'; name = 'Kozmik Leviathan'; radius = 32; speed = 24;
-        hp = baseHp * (w % 10 === 0 ? 10.0 : 6.5);
-        dmg = baseDmg * 2.25;
+        type = 'boss';
+        const bossMult = (w % 10 === 0 ? 10.0 : 6.5);
         gold = baseGold * (game.holdWave ? 2.5 : 6.0);
+
+        // Boss Arketipleri: Ağır Tank, Uzaktan Nişancı, Hızlı Suikastçı, Donduran Buz ve Klasik Leviathan
+        const bossPool = ['tank_boss', 'ranged_boss', 'speed_boss', 'frost_boss', 'leviathan'];
+        const chosenBoss = bossPool[Math.floor(Math.random() * bossPool.length)];
+        subType = chosenBoss;
+
+        if (chosenBoss === 'tank_boss') {
+            name = 'Zırhlı Titan Behemoth';
+            radius = 40;
+            speed = 14; // Çok ağır ve yavaş
+            hp = baseHp * bossMult * 1.85; // Devasa can
+            dmg = baseDmg * 3.1;
+            isRanged = false; // Yakına gelip ezer
+            stopDistOverride = 36;
+            attackInterval = 1.65;
+            kbResist = 0.08; // Neredeyse hiç geri itilmez
+            customPal = { color: '#f59e0b', secColor: '#fef08a' };
+        } else if (chosenBoss === 'ranged_boss') {
+            name = 'Hiperiyon Topçusu';
+            radius = 30;
+            speed = 22;
+            hp = baseHp * bossMult * 0.85;
+            dmg = baseDmg * 2.15;
+            isRanged = true; // Uzaktan vurur
+            stopDistOverride = Math.max(165, getTowerRange() - 10);
+            attackInterval = 0.95;
+            projSpeed = 290;
+            kbResist = 0.25;
+            customPal = { color: '#ec4899', secColor: '#fbcfe8' };
+        } else if (chosenBoss === 'speed_boss') {
+            name = 'Kızıl Fırtına Vektörü';
+            radius = 24;
+            speed = 62; // Çok hızlı
+            hp = baseHp * bossMult * 0.55; // Canı az
+            dmg = baseDmg * 1.75;
+            isRanged = false;
+            stopDistOverride = 28;
+            attackInterval = 0.65; // Çok seri vurur
+            dashCooldown = 2.8; // Arada hız patlaması yapar
+            kbResist = 0.35;
+            customPal = { color: '#ef4444', secColor: '#fecaca' };
+        } else if (chosenBoss === 'frost_boss') {
+            name = 'Kutup Hükümdarı Kryos';
+            radius = 33;
+            speed = 20;
+            hp = baseHp * bossMult * 1.10;
+            dmg = baseDmg * 1.90;
+            isRanged = true;
+            isFrost = true; // Kuleyi dondurur
+            freezeDuration = 1.15;
+            frostSlowDuration = 4.0;
+            stopDistOverride = 135;
+            attackInterval = 1.55;
+            projSpeed = 230;
+            kbResist = 0.20;
+            customPal = { color: '#38bdf8', secColor: '#e0f2fe' };
+        } else {
+            name = 'Kozmik Leviathan';
+            radius = 32;
+            speed = 24;
+            hp = baseHp * bossMult;
+            dmg = baseDmg * 2.25;
+            isRanged = true;
+            stopDistOverride = 110;
+            attackInterval = 1.25;
+            kbResist = 0.25;
+        }
+
+        if (typeof showToast === 'function') {
+            showToast(`⚠️ BOSS GELDİ: ${name}!`);
+        }
     } else {
         const roll = Math.random();
-        if (w >= 4 && roll < 0.22) {
-            type = 'teleporter'; name = 'Sarı Psişik'; radius = 11; speed = 48;
+        if (w >= 5 && roll < 0.14) {
+            // Yeni: Ağır Tank Normal Düşman
+            type = 'tank'; subType = 'tank'; name = 'Zırhlı Golem'; radius = 18; speed = 22;
+            hp = baseHp * 2.60; dmg = baseDmg * 1.45; gold = baseGold * 1.35;
+            kbResist = 0.35;
+            customPal = { color: '#64748b', secColor: '#e2e8f0' };
+        } else if (w >= 3 && roll < 0.30) {
+            // Yeni: Kuleyi Donduran Buz Düşmanı
+            type = 'frost'; subType = 'frost'; name = 'Buzul Nöbetçisi'; radius = 13; speed = 32;
+            hp = baseHp * 0.95; dmg = baseDmg * 0.85; isRanged = true; isFrost = true;
+            freezeDuration = 0.85; frostSlowDuration = 3.2;
+            attackInterval = 1.60; stopDistOverride = Math.max(105, getTowerRange() - 25);
+            gold = baseGold * 1.25;
+            customPal = { color: '#06b6d4', secColor: '#cffafe' };
+        } else if (w >= 2 && roll < 0.44) {
+            // Yeni: Canı Az Ama Çok Hızlı Koşucu Düşman
+            type = 'runner'; subType = 'runner'; name = 'Gölge Koşucu'; radius = 10; speed = 72;
+            hp = baseHp * 0.52; dmg = baseDmg * 0.85; gold = baseGold * 1.10;
+            attackInterval = 0.75;
+            customPal = { color: '#f43f5e', secColor: '#fda4af' };
+        } else if (w >= 4 && roll < 0.60) {
+            type = 'teleporter'; subType = 'teleporter'; name = 'Sarı Psişik'; radius = 11; speed = 48;
             hp = baseHp * 0.68; dmg = baseDmg * 0.90; isTeleporter = true; gold = baseGold * 1.15;
-        } else if (w >= 2 && roll < 0.52) {
-            type = 'ranged'; name = 'Mavi Nişancı'; radius = 12; speed = 30;
+        } else if (w >= 2 && roll < 0.78) {
+            type = 'ranged'; subType = 'ranged'; name = 'Mavi Nişancı'; radius = 12; speed = 30;
             hp = baseHp * 0.80; dmg = baseDmg * 0.95; isRanged = true; gold = baseGold * 1.10;
         } else {
-            type = 'green'; name = 'Yeşil Xenomorph'; radius = 13; speed = 40;
+            type = 'green'; subType = 'green'; name = 'Yeşil Xenomorph'; radius = 13; speed = 40;
             hp = baseHp * 1.0; dmg = baseDmg * 1.0;
         }
     }
 
-    const pal = getEnemyColors(type);
+    const fallbackPal = (typeof getEnemyColors === 'function' ? getEnemyColors(type === 'boss' ? 'boss' : (isTeleporter ? 'teleporter' : (isRanged ? 'ranged' : 'green'))) : null) || { color: '#22c55e', secColor: '#ffffff' };
+    const pal = customPal || fallbackPal;
+
     enemies.push({
-        x, y, type, name, radius, speed, hp: Math.round(hp), maxHp: Math.round(hp), dmg: Math.round(dmg * 10) / 10,
+        x, y, type, subType, name, radius, speed,
+        hp: Math.round(hp), maxHp: Math.round(hp), dmg: Math.round(dmg * 10) / 10,
         color: pal.color, secColor: pal.secColor, gold,
-        isRanged, isTeleporter, attackCooldown: 1.0, teleCooldown: 4.0, kbCount: 0, kbImmunityTimer: 0,
-        slowTimer: 0, slowFactor: 1, hitFlash: 0, rot: Math.random() * Math.PI * 2, rotSpeed: (Math.random() - 0.5) * 3, animPhase: Math.random() * Math.PI * 2
+        isRanged, isTeleporter, isFrost, freezeDuration, frostSlowDuration,
+        attackCooldown: 1.0, attackInterval, projSpeed, stopDistOverride, kbResist,
+        teleCooldown: 4.0, dashCooldown,
+        kbCount: 0, kbImmunityTimer: 0,
+        slowTimer: 0, slowFactor: 1, hitFlash: 0,
+        rot: Math.random() * Math.PI * 2, rotSpeed: (Math.random() - 0.5) * 3, animPhase: Math.random() * Math.PI * 2
     });
+}
+
+function applyFrostToTower(freezeDur = 0, slowDur = 3.0) {
+    tower.frostSlowTimer = Math.max(tower.frostSlowTimer || 0, slowDur);
+    // Boss her vuruşta, normal buz düşmanı ise %30 ihtimalle kuleyi tamamen dondurur
+    if (freezeDur > 0 && (freezeDur >= 1.0 || Math.random() < 0.30)) {
+        tower.freezeTimer = Math.max(tower.freezeTimer || 0, freezeDur);
+        addFloatingText(tower.x, tower.y - 26, '❄️ KULE DONDU!', '#38bdf8', 13);
+        rings.push({ x: tower.x, y: tower.y, radius: 18, color: '#38bdf8', life: 0.75 });
+    } else {
+        addFloatingText(tower.x, tower.y - 22, '❄️ BUZ YAVAŞLATMASI', '#7dd3fc', 10);
+    }
+    createParticles(tower.x, tower.y, '#38bdf8', 8, 65);
 }
 
 function createParticles(x, y, color, count = 8, speed = 70) {
@@ -118,9 +233,21 @@ function updateGame(dt) {
 
     tower.maxHp = getTowerMaxHp(); tower.maxShield = getTowerMaxShield();
     if (tower.hp < tower.maxHp) tower.hp = Math.min(tower.maxHp, tower.hp + getTowerRegen() * simDt);
-    // Kalkan yenilenmesi saniyede %10'dan %5'e çekildi (daha dengeli savunma)
     if (tower.maxShield > 0 && tower.shield < tower.maxShield) tower.shield = Math.min(tower.maxShield, tower.shield + (tower.maxShield * 0.05) * simDt);
     if (tower.recoil > 0) tower.recoil = Math.max(0, tower.recoil - simDt * 15);
+
+    // Kule Donma & Buz Yavaşlatma Mekanikleri
+    if (tower.freezeTimer > 0) {
+        tower.freezeTimer = Math.max(0, tower.freezeTimer - simDt);
+        tower.frostVisualTick = (tower.frostVisualTick || 0) + simDt;
+        if (tower.frostVisualTick >= 0.25) {
+            tower.frostVisualTick = 0;
+            createParticles(tower.x, tower.y, '#bae6fd', 3, 35);
+        }
+    }
+    if (tower.frostSlowTimer > 0) {
+        tower.frostSlowTimer = Math.max(0, tower.frostSlowTimer - simDt);
+    }
 
     spawnTimer -= simDt;
     if (spawnTimer <= 0 && enemies.length < Math.min(45, 14 + Math.floor(game.wave / 3))) {
@@ -128,9 +255,12 @@ function updateGame(dt) {
         spawnEnemy(false);
     }
 
-    tower.fireCooldown -= simDt;
+    // Kule donmuşsa ateş edemez, buz etkisindeyse atış hızı %45 yavaşlar
+    const fireRateFactor = tower.freezeTimer > 0 ? 0 : (tower.frostSlowTimer > 0 ? 0.55 : 1.0);
+    tower.fireCooldown -= simDt * fireRateFactor;
+
     const range = getTowerRange();
-    if (tower.fireCooldown <= 0 && enemies.length > 0) {
+    if (tower.freezeTimer <= 0 && tower.fireCooldown <= 0 && enemies.length > 0) {
         const inRange = enemies.map(e => ({ enemy: e, dist: Math.hypot(e.x - tower.x, e.y - tower.y) }))
             .filter(item => item.dist <= range + item.enemy.radius).sort((a, b) => a.dist - b.dist);
         if (inRange.length > 0) {
@@ -164,7 +294,11 @@ function updateGame(dt) {
         if (p.fromEnemy) {
             if (Math.hypot(p.x - tower.x, p.y - tower.y) <= 24) {
                 damageTower(p.damage, null);
-                createParticles(p.x, p.y, '#06b6d4', 4, 40);
+                if (p.isFrost) {
+                    applyFrostToTower(p.freezeDuration || 0.8, p.frostSlowDuration || 3.0);
+                } else {
+                    createParticles(p.x, p.y, p.color || '#06b6d4', 4, 40);
+                }
                 projectiles.splice(i, 1);
             }
         } else {
@@ -192,7 +326,8 @@ function updateGame(dt) {
                     const kb = getTowerKnockback();
                     if (kb > 0 && e && enemies.includes(e) && e.kbCount < Math.min(2, game.upgrades.knockback || 0) && e.kbImmunityTimer <= 0) {
                         const pushAng = Math.atan2(e.y - tower.y, e.x - tower.x);
-                        const actualPush = e.type === 'boss' ? kb * 0.25 : kb;
+                        const resist = e.kbResist !== undefined ? e.kbResist : (e.type === 'boss' ? 0.25 : 1.0);
+                        const actualPush = kb * resist;
                         e.x += Math.cos(pushAng) * actualPush; e.y += Math.sin(pushAng) * actualPush;
                         e.kbCount++; e.kbImmunityTimer = 1.4;
                         addFloatingText(e.x, e.y - 14, 'İTİLDİ', '#2dd4bf', 9);
@@ -223,7 +358,7 @@ function updateGame(dt) {
         e.rot += e.rotSpeed * simDt; e.animPhase = (e.animPhase || 0) + simDt * 5;
         if (e.slowTimer > 0) { e.slowTimer -= simDt; if (e.slowTimer <= 0) e.slowFactor = 1; }
 
-        let targetStopDist = e.isRanged ? Math.max(95, currentTowerRange - 15) : 30;
+        let targetStopDist = e.stopDistOverride || (e.isRanged ? Math.max(95, currentTowerRange - 15) : 30);
 
         if (e.isTeleporter) {
             e.teleCooldown -= simDt;
@@ -239,6 +374,22 @@ function updateGame(dt) {
             }
         }
 
+        // Hızlı Boss (Kızıl Fırtına) İleri Atılma (Dash) Yeteneği
+        if (e.dashCooldown && e.dashCooldown > 0) {
+            e.dashCooldown -= simDt;
+            if (e.dashCooldown <= 0) {
+                e.dashCooldown = 2.8 + Math.random() * 1.2;
+                const currDist = Math.hypot(tower.x - e.x, tower.y - e.y);
+                if (currDist > 75) {
+                    const dashDist = Math.min(currDist - 35, 65);
+                    const ang = Math.atan2(tower.y - e.y, tower.x - e.x);
+                    e.x += Math.cos(ang) * dashDist; e.y += Math.sin(ang) * dashDist;
+                    createParticles(e.x, e.y, '#ef4444', 10, 95);
+                    addFloatingText(e.x, e.y, '⚡ ATILDI!', '#fca5a5', 11);
+                }
+            }
+        }
+
         const dist = Math.hypot(tower.x - e.x, tower.y - e.y);
         const ang = Math.atan2(tower.y - e.y, tower.x - e.x);
 
@@ -248,10 +399,24 @@ function updateGame(dt) {
             if (e.isRanged && dist < targetStopDist - 10) { const spd = e.speed * 0.5 * e.slowFactor; e.x -= Math.cos(ang) * spd * simDt; e.y -= Math.sin(ang) * spd * simDt; }
             e.attackCooldown -= simDt;
             if (e.attackCooldown <= 0) {
-                e.attackCooldown = e.isRanged ? 1.35 : 1.05;
-                if (e.isRanged || e.type === 'boss') {
-                    projectiles.push({ x: e.x, y: e.y, vx: Math.cos(ang) * 220, vy: Math.sin(ang) * 220, radius: e.type === 'boss' ? 6 : 4.5, color: e.color, damage: e.dmg, life: 3.0, fromEnemy: true });
-                } else damageTower(e.dmg, e);
+                e.attackCooldown = e.attackInterval || (e.isRanged ? 1.35 : 1.05);
+                if (e.isRanged) {
+                    const pSpd = e.projSpeed || 220;
+                    projectiles.push({
+                        x: e.x, y: e.y,
+                        vx: Math.cos(ang) * pSpd, vy: Math.sin(ang) * pSpd,
+                        radius: e.type === 'boss' ? 6.5 : 4.5,
+                        color: e.isFrost ? '#38bdf8' : e.color,
+                        damage: e.dmg, life: 3.5, fromEnemy: true,
+                        isFrost: e.isFrost || false,
+                        freezeDuration: e.freezeDuration || 0,
+                        frostSlowDuration: e.frostSlowDuration || 0
+                    });
+                } else {
+                    damageTower(e.dmg, e);
+                    if (e.isFrost) applyFrostToTower(e.freezeDuration, e.frostSlowDuration);
+                    if (e.type === 'boss') rings.push({ x: tower.x, y: tower.y, radius: 14, color: e.color, life: 0.5 });
+                }
             }
         }
     }
@@ -407,7 +572,7 @@ function killEnemy(enemy) {
         const c = game.holdWave ? Math.max(1, Math.round(baseBossCrystals * 0.35)) : baseBossCrystals;
         game.crystals += c; game.stats.bossKills++;
         addFloatingText(enemy.x, enemy.y - 24, `+${formatNumber(c)} 💎`, '#22d3ee', 15);
-        showToast(`Kozmik Leviathan İmha Edildi! +${formatNumber(c)} Kristal!`);
+        showToast(`${enemy.name || 'Boss'} İmha Edildi! +${formatNumber(c)} Kristal!`);
     } else if (Math.random() * 100 < crystalChance) {
         const cAmt = Math.max(1, Math.round(crystalMult));
         game.crystals += cAmt;
@@ -424,7 +589,6 @@ function killEnemy(enemy) {
 
 function damageTower(rawDamage, attacker) {
     const armorVal = getTowerArmor();
-    // Zırh hasarın en fazla %75'ini soğurabilir (eskiden %78'di), böylece ilerleyen dalgalarda zırh tek başına ölümsüz yapmaz
     const flatReduced = Math.max(rawDamage * 0.25, rawDamage - armorVal);
     const reduced = Math.max(1, Math.round(flatReduced));
     if (attacker && game.upgrades.thorns > 0) {
@@ -440,7 +604,6 @@ function damageTower(rawDamage, attacker) {
 
 function completeWave() {
     if (!game.holdWave) {
-        // Kuantum Bankası faiz oranı data.js'teki %0.4/lvl ile eşitlendi ve tavan sınırı dengelendi
         const interestCap = Math.round(getWaveBaseGold(game.wave) * 25 * getGoldMultiplier());
         const interestGold = Math.min(interestCap, Math.floor(game.gold * (game.upgrades.interest * 0.004)));
         const total = Math.round(getWaveBonusPreview(game.upgrades.waveGold) + interestGold);
@@ -475,6 +638,7 @@ function triggerTowerDefeat() {
 
 function recoverFromDefeat() {
     isDefeated = false; document.getElementById('defeat-overlay').classList.add('hidden'); enemies = []; projectiles = [];
+    tower.freezeTimer = 0; tower.frostSlowTimer = 0;
     if (game.wave > 1) { game.wave--; game.holdWave = true; game.holdWaveTimer = 0; game.consecutiveHoldWins = 0; updateHoldWaveButton(); showToast('Üst üste 2 kez yıkıldın! Güvenli dalgaya çekildin.'); }
     game.consecutiveDefeats = 0; game.waveKills = 0; tower.hp = getTowerMaxHp(); tower.shield = getTowerMaxShield(); updateHUD();
 }
