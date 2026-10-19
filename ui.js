@@ -435,7 +435,6 @@ function updateLootboxCollectionCounters() {
     const ownedCompSkins = game.ownedCompanionSkins.filter(id => COMPANION_SKIN_DATABASE && COMPANION_SKIN_DATABASE[id]).length;
     const compSkinsFull = totalCompSkins > 0 && ownedCompSkins >= totalCompSkins;
 
-    // Envanter alt sekme sayaçları
     const ownedItemsCountEl = document.getElementById('owned-items-count');
     if (ownedItemsCountEl) ownedItemsCountEl.textContent = `${ownedItems}/${totalItems}`;
     const invGearHeaderEl = document.getElementById('inv-gear-header-count');
@@ -447,7 +446,6 @@ function updateLootboxCollectionCounters() {
     const ownedCompSkinsCountEl = document.getElementById('owned-compskins-count');
     if (ownedCompSkinsCountEl) ownedCompSkinsCountEl.textContent = `${ownedCompSkins}/${totalCompSkins}`;
 
-    // Kutular sekmesi rozetleri ve ilerleme yazıları
     const itemBadge = document.getElementById('lootbox-item-badge');
     if (itemBadge) itemBadge.textContent = itemsFull ? 'TAMAMLANDI ✓' : `Koleksiyon: ${ownedItems}/${totalItems}`;
     const itemProg = document.getElementById('lootbox-item-progress-info');
@@ -475,7 +473,6 @@ function updateLootboxCollectionCounters() {
             : `Açılan Yoldaş Skini: ${ownedCompSkins} / ${totalCompSkins} (Kalan: ${totalCompSkins - ownedCompSkins})`;
     }
 
-    // Koleksiyon tamamlandıysa kutu açma butonlarını kilitleyip "TAMAMLANDI" yaz
     const btnItem1 = document.getElementById('btn-open-item-1');
     const btnItem5 = document.getElementById('btn-open-item-5');
     if (btnItem1 && btnItem5) {
@@ -915,7 +912,8 @@ function buildInventoryUI() {
 
     const allSkins = Object.values(SKIN_DATABASE).sort((a, b) => (RARITY_ORDER[b.rarity] || 0) - (RARITY_ORDER[a.rarity] || 0));
     const activeSkinDef = SKIN_DATABASE[game.activeSkin] || SKIN_DATABASE.default_cyber;
-    document.getElementById('active-skin-title').textContent = `${activeSkinDef.emoji} ${activeSkinDef.name}`;
+    const activeSkinTitle = document.getElementById('active-skin-title');
+    if (activeSkinTitle) activeSkinTitle.textContent = `${activeSkinDef.emoji} ${activeSkinDef.name}`;
 
     const skinsListEl = document.getElementById('skins-inventory-list');
     if (skinsListEl) {
@@ -1002,7 +1000,8 @@ function updateHUD() {
 }
 
 function switchTab(tab) {
-    currentTab = tab; const tabs = ['attack', 'defense', 'economy', 'companions', 'items', 'lootbox', 'prestige', 'casino'];
+    currentTab = tab;
+    const tabs = ['attack', 'defense', 'economy', 'companions', 'items', 'lootbox', 'prestige', 'casino', 'leaderboard'];
     tabs.forEach(t => {
         const content = document.getElementById(`tab-${t}`), btn = document.getElementById(`tab-btn-${t}`);
         if (content) content.classList.toggle('hidden', t !== tab);
@@ -1011,6 +1010,7 @@ function switchTab(tab) {
     if (tab === 'items' || tab === 'lootbox') buildInventoryUI();
     if (tab === 'prestige') buildPrestigeUI();
     if (tab === 'casino' && activeMiniGame === 'roulette') drawRouletteWheel();
+    if (tab === 'leaderboard') fetchAndRenderLeaderboard(false);
 }
 
 function toggleGameSpeed() { gameSpeed = gameSpeed === 1 ? 2 : (gameSpeed === 2 ? 3 : 1); document.getElementById('ui-speed').textContent = `${gameSpeed}x`; }
@@ -1050,38 +1050,521 @@ function showToast(msg) {
     txt.textContent = msg; el.classList.remove('opacity-0'); clearTimeout(toastTimeout); toastTimeout = setTimeout(() => el.classList.add('opacity-0'), 2600);
 }
 
-function saveGame(silent = false) { try { game.lastSaveTime = Date.now(); localStorage.setItem(SAVE_KEY, JSON.stringify(game)); } catch (e) {} }
+// =======================================================
+// KAYIT SİSTEMİ (LOCALSTORAGE + AKILLI BULUT SENKRONİZASYONU)
+// =======================================================
+function applyParsedGameData(parsed) {
+    const def = getDefaultState();
+    game = {
+        ...def, ...parsed,
+        stats: { ...def.stats, ...(parsed.stats || {}) },
+        settings: { ...def.settings, ...(parsed.settings || {}) },
+        upgrades: { ...def.upgrades, ...(parsed.upgrades || {}) },
+        companions: { ...def.companions, ...(parsed.companions || {}) },
+        prestigeUpgrades: { ...def.prestigeUpgrades, ...(parsed.prestigeUpgrades || {}) },
+        inventory: Array.isArray(parsed.inventory) ? parsed.inventory : [],
+        equippedItems: Array.isArray(parsed.equippedItems) ? parsed.equippedItems : [],
+        ownedSkins: Array.isArray(parsed.ownedSkins) ? parsed.ownedSkins : ['default_cyber'],
+        activeSkin: parsed.activeSkin || 'default_cyber',
+        ownedCompanionSkins: Array.isArray(parsed.ownedCompanionSkins) ? parsed.ownedCompanionSkins : ['default_tech'],
+        activeCompanionSkin: parsed.activeCompanionSkin || 'default_tech'
+    };
+    for (const key of Object.keys(COMPANION_DEFS)) {
+        if (game.companions[key]) {
+            if (game.companions[key].unlocked) {
+                game.companions[key].level = Math.min(5, Math.max(1, game.companions[key].level || 1));
+            } else {
+                game.companions[key].level = 0;
+            }
+        }
+    }
+}
+
+function saveGame(silent = false) {
+    try {
+        game.lastSaveTime = Date.now();
+        localStorage.setItem(SAVE_KEY, JSON.stringify(game));
+        scheduleCloudSave();
+    } catch (e) {}
+}
+
 function loadGame() {
     try {
-        const raw = localStorage.getItem(SAVE_KEY); if (!raw) return;
-        const parsed = JSON.parse(raw), def = getDefaultState();
-        game = {
-            ...def, ...parsed,
-            stats: { ...def.stats, ...(parsed.stats || {}) },
-            settings: { ...def.settings, ...(parsed.settings || {}) },
-            upgrades: { ...def.upgrades, ...(parsed.upgrades || {}) },
-            companions: { ...def.companions, ...(parsed.companions || {}) },
-            prestigeUpgrades: { ...def.prestigeUpgrades, ...(parsed.prestigeUpgrades || {}) },
-            inventory: Array.isArray(parsed.inventory) ? parsed.inventory : [],
-            equippedItems: Array.isArray(parsed.equippedItems) ? parsed.equippedItems : [],
-            ownedSkins: Array.isArray(parsed.ownedSkins) ? parsed.ownedSkins : ['default_cyber'],
-            activeSkin: parsed.activeSkin || 'default_cyber',
-            ownedCompanionSkins: Array.isArray(parsed.ownedCompanionSkins) ? parsed.ownedCompanionSkins : ['default_tech'],
-            activeCompanionSkin: parsed.activeCompanionSkin || 'default_tech'
-        };
-        for (const key of Object.keys(COMPANION_DEFS)) {
-            if (game.companions[key]) {
-                if (game.companions[key].unlocked) {
-                    game.companions[key].level = Math.min(5, Math.max(1, game.companions[key].level || 1));
-                } else {
-                    game.companions[key].level = 0;
-                }
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        applyParsedGameData(parsed);
+    } catch (e) {}
+}
+
+function exportSaveCode() { try { document.getElementById('save-code-textarea').value = btoa(unescape(encodeURIComponent(JSON.stringify(game)))); document.getElementById('save-code-textarea').select(); document.execCommand('copy'); showToast('Kayıt kodu kopyalandı!'); } catch (e) {} }
+function importSaveCode() { try { const code = document.getElementById('save-code-textarea').value.trim(); if (!code) return; localStorage.setItem(SAVE_KEY, decodeURIComponent(escape(atob(code)))); loadGame(); applyBodyClasses(); buildUpgradesUI(); buildInventoryUI(); updateHUD(); showToast('Kod yüklendi!'); } catch (e) { showToast('Geçersiz kod!'); } }
+
+// =======================================================
+// 🔐 HESAP (LOGIN/KAYIT) + ☁️ BULUT KAYIT + 🏆 LİDERLİK TABLOSU
+// =======================================================
+// Kendi ücretsiz Firebase projenizi açtığınızda aşağıdaki bilgileri doldurabilirsiniz.
+// Doldurmasanız bile oyun "Yerel & Simülasyon Hesap Modu"nda sorunsuz çalışır!
+const FIREBASE_CONFIG = {
+    apiKey: "",
+    authDomain: "",
+    projectId: "",
+    storageBucket: "",
+    messagingSenderId: "",
+    appId: ""
+};
+
+const LOCAL_ACCOUNTS_KEY = 'cyberTower_localAccounts_v1';
+const LOCAL_CURRENT_USER_KEY = 'cyberTower_activeUser_v1';
+const LOCAL_LEADERBOARD_KEY = 'cyberTower_leaderboard_v1';
+
+let fbApp = null;
+let fbAuth = null;
+let fbDb = null;
+let isFirebaseReady = false;
+let currentUser = null; // { uid, username, email, isCloud }
+let cloudSaveDebounceTimer = null;
+
+function initAuthAndCloudSystem() {
+    try {
+        if (typeof firebase !== 'undefined' && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId) {
+            if (!firebase.apps.length) {
+                fbApp = firebase.initializeApp(FIREBASE_CONFIG);
+            } else {
+                fbApp = firebase.app();
             }
+            fbAuth = firebase.auth();
+            fbDb = firebase.firestore();
+            isFirebaseReady = true;
+
+            fbAuth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    const cleanName = user.displayName || (user.email ? user.email.split('@')[0] : 'Komutan');
+                    currentUser = {
+                        uid: user.uid,
+                        username: cleanName,
+                        email: user.email || '',
+                        isCloud: true
+                    };
+                    updateAccountHeaderUI();
+                    await syncFromCloudNow(true);
+                    await pushScoreToLeaderboard();
+                } else {
+                    currentUser = null;
+                    updateAccountHeaderUI();
+                }
+            });
+            return;
+        }
+    } catch (err) {
+        console.warn('Firebase başlatılamadı, Yerel Hesap Modu aktif:', err);
+        isFirebaseReady = false;
+    }
+
+    // Firebase anahtarı girilmemişse yerel hesabı kontrol et
+    try {
+        const savedUserRaw = localStorage.getItem(LOCAL_CURRENT_USER_KEY);
+        if (savedUserRaw) {
+            currentUser = JSON.parse(savedUserRaw);
+            updateAccountHeaderUI();
+            pushScoreToLeaderboard();
+        } else {
+            updateAccountHeaderUI();
         }
     } catch (e) {}
 }
-function exportSaveCode() { try { document.getElementById('save-code-textarea').value = btoa(unescape(encodeURIComponent(JSON.stringify(game)))); document.getElementById('save-code-textarea').select(); document.execCommand('copy'); showToast('Kayıt kodu kopyalandı!'); } catch (e) {} }
-function importSaveCode() { try { const code = document.getElementById('save-code-textarea').value.trim(); if (!code) return; localStorage.setItem(SAVE_KEY, decodeURIComponent(escape(atob(code)))); loadGame(); applyBodyClasses(); buildUpgradesUI(); buildInventoryUI(); updateHUD(); showToast('Kod yüklendi!'); } catch (e) { showToast('Geçersiz kod!'); } }
+
+function sanitizeUsernameToEmail(username) {
+    const clean = username.trim().toLowerCase().replace(/[^a-z0-9_.-]/g, '');
+    return `${clean || 'oyuncu'}@kulesavunma.local`;
+}
+
+function updateAccountHeaderUI() {
+    const headerLabel = document.getElementById('ui-account-name');
+    const loggedOutBox = document.getElementById('auth-logged-out-view');
+    const loggedInBox = document.getElementById('auth-logged-in-view');
+    const profileNameEl = document.getElementById('auth-profile-username');
+    const profileModeEl = document.getElementById('auth-profile-mode');
+    const lbStatusEl = document.getElementById('lb-account-status');
+
+    if (currentUser) {
+        if (headerLabel) headerLabel.textContent = currentUser.username;
+        if (loggedOutBox) loggedOutBox.classList.add('hidden');
+        if (loggedInBox) loggedInBox.classList.remove('hidden');
+        if (profileNameEl) profileNameEl.textContent = currentUser.username;
+        if (profileModeEl) {
+            profileModeEl.textContent = currentUser.isCloud
+                ? '☁️ Firebase Gerçek Zamanlı Bulut Aktif'
+                : '💾 Yerel Hesap & Simülasyon Bulutu Aktif';
+        }
+        if (lbStatusEl) {
+            lbStatusEl.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>${currentUser.username}</span> olarak sıralamadasın!`;
+        }
+    } else {
+        if (headerLabel) headerLabel.textContent = 'Giriş Yap';
+        if (loggedOutBox) loggedOutBox.classList.remove('hidden');
+        if (loggedInBox) loggedInBox.classList.add('hidden');
+        if (lbStatusEl) {
+            lbStatusEl.innerHTML = `Sıralamaya girmek için sağ üstten <button onclick="openAuthModal()" class="text-cyan-300 underline font-bold">Hesap Aç / Giriş Yap</button>.`;
+        }
+    }
+}
+
+function openAuthModal() {
+    updateAccountHeaderUI();
+    const modal = document.getElementById('auth-modal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeAuthModal() {
+    const modal = document.getElementById('auth-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+async function handleUsernameAuth(mode) {
+    const userInp = document.getElementById('auth-username-input');
+    const passInp = document.getElementById('auth-password-input');
+    const username = (userInp ? userInp.value : '').trim();
+    const password = (passInp ? passInp.value : '').trim();
+
+    if (username.length < 3) {
+        showToast('⚠️ Kullanıcı adı en az 3 karakter olmalı!');
+        return;
+    }
+    if (password.length < 4) {
+        showToast('⚠️ Şifre en az 4 karakter olmalı!');
+        return;
+    }
+
+    if (isFirebaseReady && fbAuth) {
+        const email = sanitizeUsernameToEmail(username);
+        try {
+            if (mode === 'register') {
+                const cred = await fbAuth.createUserWithEmailAndPassword(email, password);
+                if (cred.user) {
+                    await cred.user.updateProfile({ displayName: username });
+                }
+                showToast(`🎉 Hoş geldin ${username}! Hesabın oluşturuldu ve buluta bağlandı.`);
+            } else {
+                await fbAuth.signInWithEmailAndPassword(email, password);
+                showToast(`✅ Tekrar hoş geldin ${username}!`);
+            }
+            if (passInp) passInp.value = '';
+            closeAuthModal();
+            return;
+        } catch (err) {
+            showToast(`❌ Giriş Hatası: ${err.message || 'Bilgileri kontrol et.'}`);
+            return;
+        }
+    }
+
+    // Yerel & Simülasyon Hesap Modu (Firebase anahtarı girilmediğinde çalışır)
+    let accounts = {};
+    try { accounts = JSON.parse(localStorage.getItem(LOCAL_ACCOUNTS_KEY) || '{}'); } catch (e) {}
+    const key = username.toLowerCase();
+
+    if (mode === 'register') {
+        if (accounts[key]) {
+            showToast('⚠️ Bu kullanıcı adı zaten alınmış! Giriş yapmayı dene.');
+            return;
+        }
+        accounts[key] = {
+            uid: 'local_' + Date.now().toString(36),
+            username: username,
+            password: btoa(unescape(encodeURIComponent(password))),
+            savedGame: game,
+            updatedAt: Date.now()
+        };
+        localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
+        currentUser = { uid: accounts[key].uid, username: username, isCloud: false };
+        localStorage.setItem(LOCAL_CURRENT_USER_KEY, JSON.stringify(currentUser));
+        updateAccountHeaderUI();
+        pushScoreToLeaderboard();
+        if (passInp) passInp.value = '';
+        closeAuthModal();
+        showToast(`🎉 ${username} hesabı oluşturuldu ve ilerlemen kaydedildi!`);
+    } else {
+        const acc = accounts[key];
+        const encodedPass = btoa(unescape(encodeURIComponent(password)));
+        if (!acc || acc.password !== encodedPass) {
+            showToast('❌ Kullanıcı adı veya şifre hatalı!');
+            return;
+        }
+        currentUser = { uid: acc.uid, username: acc.username, isCloud: false };
+        localStorage.setItem(LOCAL_CURRENT_USER_KEY, JSON.stringify(currentUser));
+
+        if (acc.savedGame && (acc.savedGame.highestWave || 1) > (game.highestWave || 1)) {
+            applyParsedGameData(acc.savedGame);
+            tower.maxHp = getTowerMaxHp();
+            tower.hp = tower.maxHp;
+            buildUpgradesUI();
+            buildInventoryUI();
+            updateHUD();
+        }
+        updateAccountHeaderUI();
+        pushScoreToLeaderboard();
+        if (passInp) passInp.value = '';
+        closeAuthModal();
+        showToast(`✅ Hoş geldin ${acc.username}!`);
+    }
+}
+
+async function handleGoogleLogin() {
+    if (isFirebaseReady && fbAuth) {
+        try {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            await fbAuth.signInWithPopup(provider);
+            closeAuthModal();
+            showToast('✅ Google hesabınla bağlandın!');
+            return;
+        } catch (err) {
+            showToast(`❌ Google Giriş Hatası: ${err.message}`);
+            return;
+        }
+    }
+
+    // Simülasyon Google Hızlı Girişi
+    const randomNum = Math.floor(100 + Math.random() * 900);
+    const gName = (currentUser && currentUser.username) ? currentUser.username : `Komutan_${randomNum}`;
+    currentUser = {
+        uid: 'google_sim_' + gName.toLowerCase(),
+        username: gName,
+        isCloud: false
+    };
+    localStorage.setItem(LOCAL_CURRENT_USER_KEY, JSON.stringify(currentUser));
+    await syncToCloudNow(true);
+    updateAccountHeaderUI();
+    closeAuthModal();
+    showToast(`✅ Google (${gName}) ile hızlı giriş yapıldı!`);
+}
+
+async function handleLogout() {
+    if (isFirebaseReady && fbAuth) {
+        try { await fbAuth.signOut(); } catch (e) {}
+    }
+    currentUser = null;
+    localStorage.removeItem(LOCAL_CURRENT_USER_KEY);
+    updateAccountHeaderUI();
+    showToast('👋 Hesaptan çıkış yapıldı.');
+}
+
+function scheduleCloudSave() {
+    if (!currentUser) return;
+    clearTimeout(cloudSaveDebounceTimer);
+    cloudSaveDebounceTimer = setTimeout(() => {
+        syncToCloudNow(true);
+    }, 4000);
+}
+
+async function syncToCloudNow(silent = false) {
+    if (!currentUser) {
+        if (!silent) showToast('⚠️ Önce giriş yapmalısın!');
+        return;
+    }
+
+    try {
+        if (isFirebaseReady && fbDb && currentUser.isCloud) {
+            await fbDb.collection('users').doc(currentUser.uid).set({
+                username: currentUser.username,
+                saveData: JSON.stringify(game),
+                highestWave: Math.max(game.highestWave || 1, game.wave || 1),
+                updatedAt: Date.now()
+            }, { merge: true });
+        } else {
+            let accounts = {};
+            try { accounts = JSON.parse(localStorage.getItem(LOCAL_ACCOUNTS_KEY) || '{}'); } catch (e) {}
+            const key = currentUser.username.toLowerCase();
+            if (!accounts[key]) {
+                accounts[key] = { uid: currentUser.uid, username: currentUser.username, password: '' };
+            }
+            accounts[key].savedGame = game;
+            accounts[key].updatedAt = Date.now();
+            localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
+        }
+
+        await pushScoreToLeaderboard();
+        const syncEl = document.getElementById('auth-last-sync');
+        if (syncEl) {
+            const nowStr = new Date().toLocaleTimeString('tr-TR');
+            syncEl.textContent = `Son Senkronizasyon: ${nowStr}`;
+        }
+        if (!silent) showToast('☁️ İlerlemen başarıyla buluta yedeklendi!');
+    } catch (err) {
+        if (!silent) showToast('❌ Bulut yedekleme sırasında hata oluştu.');
+    }
+}
+
+async function syncFromCloudNow(silent = false) {
+    if (!currentUser) return;
+
+    try {
+        let cloudGame = null;
+        if (isFirebaseReady && fbDb && currentUser.isCloud) {
+            const doc = await fbDb.collection('users').doc(currentUser.uid).get();
+            if (doc.exists && doc.data().saveData) {
+                cloudGame = JSON.parse(doc.data().saveData);
+            }
+        } else {
+            const accounts = JSON.parse(localStorage.getItem(LOCAL_ACCOUNTS_KEY) || '{}');
+            const acc = accounts[currentUser.username.toLowerCase()];
+            if (acc && acc.savedGame) cloudGame = acc.savedGame;
+        }
+
+        if (cloudGame) {
+            const cloudMax = Math.max(cloudGame.highestWave || 1, cloudGame.wave || 1);
+            const localMax = Math.max(game.highestWave || 1, game.wave || 1);
+
+            if (!silent || cloudMax > localMax) {
+                applyParsedGameData(cloudGame);
+                tower.maxHp = getTowerMaxHp();
+                tower.hp = tower.maxHp;
+                tower.maxShield = getTowerMaxShield();
+                tower.shield = tower.maxShield;
+                localStorage.setItem(SAVE_KEY, JSON.stringify(game));
+                buildUpgradesUI();
+                buildInventoryUI();
+                updateHUD();
+                showToast(`☁️ Bulut kaydı yüklendi! (Dalga ${game.wave})`);
+            }
+        } else if (!silent) {
+            showToast('ℹ️ Bulutta henüz kayıtlı veri bulunamadı.');
+        }
+    } catch (err) {
+        if (!silent) showToast('❌ Buluttan veri çekilemedi.');
+    }
+}
+
+function getDefaultRivalsForLeaderboard() {
+    return [
+        { uid: 'npc_1', username: 'CyberValkyrie', highestWave: 85, wave: 82, activeSkin: 'cosmic_emperor', damage: 148500, prestiges: 14, updatedAt: Date.now() - 120000 },
+        { uid: 'npc_2', username: 'NeonReaper_TR', highestWave: 64, wave: 60, activeSkin: 'inferno_lord', damage: 42300, prestiges: 9, updatedAt: Date.now() - 360000 },
+        { uid: 'npc_3', username: 'QuantumHunter', highestWave: 48, wave: 48, activeSkin: 'void_reaper', damage: 12900, prestiges: 6, updatedAt: Date.now() - 800000 },
+        { uid: 'npc_4', username: 'KuleMuhafizi', highestWave: 32, wave: 29, activeSkin: 'emerald_guardian', damage: 3450, prestiges: 3, updatedAt: Date.now() - 1500000 },
+        { uid: 'npc_5', username: 'NovaSniper', highestWave: 19, wave: 18, activeSkin: 'frost_core', damage: 820, prestiges: 1, updatedAt: Date.now() - 2900000 }
+    ];
+}
+
+async function pushScoreToLeaderboard() {
+    const playerEntry = {
+        uid: currentUser ? currentUser.uid : 'local_guest',
+        username: currentUser ? currentUser.username : 'Sen (Misafir)',
+        highestWave: Math.max(game.highestWave || 1, game.wave || 1),
+        wave: game.wave || 1,
+        activeSkin: game.activeSkin || 'default_cyber',
+        damage: typeof getTowerDamage === 'function' ? Math.round(getTowerDamage()) : 12,
+        prestiges: (game.stats && game.stats.prestiges) ? game.stats.prestiges : 0,
+        updatedAt: Date.now()
+    };
+
+    if (isFirebaseReady && fbDb && currentUser && currentUser.isCloud) {
+        try {
+            await fbDb.collection('leaderboard').doc(currentUser.uid).set(playerEntry, { merge: true });
+        } catch (e) {}
+    }
+
+    // Yerel sıralama listesini de her zaman güncel tut
+    try {
+        let list = JSON.parse(localStorage.getItem(LOCAL_LEADERBOARD_KEY) || 'null');
+        if (!Array.isArray(list) || list.length === 0) {
+            list = getDefaultRivalsForLeaderboard();
+        }
+        const existingIdx = list.findIndex(x => x.uid === playerEntry.uid || x.username.toLowerCase() === playerEntry.username.toLowerCase());
+        if (existingIdx > -1) {
+            list[existingIdx] = { ...list[existingIdx], ...playerEntry };
+        } else {
+            list.push(playerEntry);
+        }
+        localStorage.setItem(LOCAL_LEADERBOARD_KEY, JSON.stringify(list));
+    } catch (e) {}
+}
+
+async function fetchAndRenderLeaderboard(showNotification = false) {
+    const container = document.getElementById('leaderboard-list');
+    if (!container) return;
+
+    await pushScoreToLeaderboard();
+    updateAccountHeaderUI();
+
+    let entries = [];
+    if (isFirebaseReady && fbDb) {
+        try {
+            const snap = await fbDb.collection('leaderboard').orderBy('highestWave', 'desc').limit(30).get();
+            snap.forEach(doc => entries.push(doc.data()));
+        } catch (e) {}
+    }
+
+    if (entries.length === 0) {
+        try {
+            entries = JSON.parse(localStorage.getItem(LOCAL_LEADERBOARD_KEY) || '[]');
+        } catch (e) {
+            entries = getDefaultRivalsForLeaderboard();
+        }
+    }
+
+    entries.sort((a, b) => {
+        if ((b.highestWave || 0) !== (a.highestWave || 0)) return (b.highestWave || 0) - (a.highestWave || 0);
+        return (b.damage || 0) - (a.damage || 0);
+    });
+
+    const myUid = currentUser ? currentUser.uid : 'local_guest';
+
+    container.innerHTML = entries.map((p, idx) => {
+        const rank = idx + 1;
+        const isMe = p.uid === myUid || (currentUser && p.username.toLowerCase() === currentUser.username.toLowerCase());
+        const skinDef = (typeof SKIN_DATABASE !== 'undefined' && SKIN_DATABASE[p.activeSkin]) ? SKIN_DATABASE[p.activeSkin] : { name: 'Siber Çekirdek', emoji: '💠' };
+
+        let rankBadge = `<span class="w-6 h-6 rounded-lg bg-slate-800 text-slate-300 font-tech font-bold text-xs flex items-center justify-center shrink-0">#${rank}</span>`;
+        if (rank === 1) rankBadge = `<span class="w-6 h-6 rounded-lg bg-amber-500/20 border border-amber-400 text-amber-300 font-tech font-bold text-xs flex items-center justify-center shrink-0">🥇</span>`;
+        else if (rank === 2) rankBadge = `<span class="w-6 h-6 rounded-lg bg-slate-300/20 border border-slate-300 text-slate-200 font-tech font-bold text-xs flex items-center justify-center shrink-0">🥈</span>`;
+        else if (rank === 3) rankBadge = `<span class="w-6 h-6 rounded-lg bg-amber-700/25 border border-amber-600 text-amber-400 font-tech font-bold text-xs flex items-center justify-center shrink-0">🥉</span>`;
+
+        return `
+            <div class="premium-card p-2.5 flex items-center justify-between gap-2 ${isMe ? 'border-cyan-400/70 bg-cyan-950/25' : ''}">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    ${rankBadge}
+                    <canvas id="lb-skin-canvas-${idx}" width="42" height="42" class="w-10 h-10 rounded-xl bg-slate-950 border border-white/10 shrink-0"></canvas>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-tech font-bold text-xs sm:text-sm ${isMe ? 'text-cyan-300' : 'text-white'} truncate">${p.username}</span>
+                            ${isMe ? '<span class="px-1.5 py-0.2 rounded bg-cyan-500/20 border border-cyan-400/40 text-[9px] font-tech font-bold text-cyan-300">SEN</span>' : ''}
+                        </div>
+                        <div class="text-[10px] text-slate-400 truncate">${skinDef.emoji} ${skinDef.name}</div>
+                        <div class="flex items-center gap-2 text-[10px] font-tech mt-0.5">
+                            <span class="text-red-400 font-bold">⚔️ ${formatNumber(p.damage || 12)}</span>
+                            <span class="text-purple-300 font-bold">🔥 ${p.prestiges || 0} Prestij</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right shrink-0">
+                    <div class="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 font-tech font-bold text-xs text-amber-300">
+                        Dalga ${p.highestWave || 1}
+                    </div>
+                    <div class="text-[9px] text-slate-400 font-tech mt-0.5">Aktif: D.${p.wave || 1}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Her oyuncunun taktığı kule skinini canlı Canvas'ta çiz
+    entries.forEach((p, idx) => {
+        const cEl = document.getElementById(`lb-skin-canvas-${idx}`);
+        if (cEl && typeof drawCustomTowerSkin === 'function') {
+            const cCtx = cEl.getContext('2d');
+            cCtx.clearRect(0, 0, cEl.width, cEl.height);
+            cCtx.save();
+            cCtx.translate(cEl.width / 2 - 1, cEl.height / 2);
+            cCtx.scale(0.68, 0.68);
+            drawCustomTowerSkin(cCtx, p.activeSkin || 'default_cyber', 0, 0, 1, 0);
+            cCtx.restore();
+        }
+    });
+
+    if (showNotification) showToast('🏆 Liderlik tablosu güncellendi!');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initAuthAndCloudSystem, 150);
+});
 
 // =======================================================
 // MOBİL & TABLET ÖZEL DÜZENLEME: YAN YANA KÜÇÜK CAN/DALGA KUTUSU
@@ -1143,7 +1626,7 @@ function importSaveCode() { try { const code = document.getElementById('save-cod
                     max-height: 100dvh !important;
                 }
                 #attack-upgrades-list, #defense-upgrades-list, #economy-upgrades-list,
-                #companions-list, #prestige-upgrades-list, #tab-items, #tab-lootbox, #tab-casino {
+                #companions-list, #prestige-upgrades-list, #tab-items, #tab-lootbox, #tab-casino, #tab-leaderboard {
                     padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 75px) !important;
                 }
             }
