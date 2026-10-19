@@ -20,6 +20,31 @@ function setElText(id, text) {
     if (el) el.textContent = text;
 }
 
+// Eksik olan renderItemIconHTML fonksiyonu (Tam Korumalı Yedekli Sürüm)
+function renderItemIconHTML(item, sizeCls = 'w-10 h-10') {
+    if (!item) return `<div class="${sizeCls} rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center">❓</div>`;
+
+    if (typeof window.customRenderItemIcon === 'function') {
+        return window.customRenderItemIcon(item, sizeCls);
+    }
+
+    if (item.svg) {
+        return `<div class="${sizeCls} rounded-xl bg-slate-950/90 border border-white/10 flex items-center justify-center p-1.5 shrink-0 shadow-inner overflow-hidden">${item.svg}</div>`;
+    }
+
+    if (item.img || item.image) {
+        return `<img src="${item.img || item.image}" alt="${item.name || ''}" class="${sizeCls} rounded-xl object-contain bg-slate-950/90 border border-white/10 p-1 shrink-0">`;
+    }
+
+    const colorCls = item.color || 'text-amber-400';
+    if (item.icon && item.icon.includes('fa-')) {
+        return `<div class="${sizeCls} rounded-xl bg-slate-950/90 border border-white/10 flex items-center justify-center shrink-0 shadow-inner ${colorCls}"><i class="${item.icon} text-lg"></i></div>`;
+    }
+
+    const emoji = item.emoji || item.icon || '🔮';
+    return `<div class="${sizeCls} rounded-xl bg-slate-950/90 border border-white/10 flex items-center justify-center shrink-0 shadow-inner text-lg">${emoji}</div>`;
+}
+
 function toggleUpgradeDrawer() {
     isDrawerOpen = !isDrawerOpen;
     const drawer = document.getElementById('upgrade-drawer');
@@ -925,10 +950,12 @@ function buildInventoryUI() {
         if (game.inventory.length === 0) {
             invList.innerHTML = `<div class="col-span-2 text-center py-6 text-xs text-slate-500">Henüz eşyan yok. Kutular sekmesinden sandık aç!</div>`;
         } else {
+            const rOrder = typeof RARITY_ORDER !== 'undefined' ? RARITY_ORDER : { rare: 1, super_rare: 2, epic: 3, mythic: 4, legendary: 5 };
+            const sortDesc = typeof raritySortDescending !== 'undefined' ? raritySortDescending : true;
             const sortedIds = [...game.inventory].filter(id => ITEM_DATABASE[id]).sort((a, b) => {
                 const itemA = ITEM_DATABASE[a], itemB = ITEM_DATABASE[b];
-                const rA = RARITY_ORDER[itemA.rarity] || 0, rB = RARITY_ORDER[itemB.rarity] || 0;
-                if (rA !== rB) return raritySortDescending ? (rB - rA) : (rA - rB);
+                const rA = rOrder[itemA.rarity] || 0, rB = rOrder[itemB.rarity] || 0;
+                if (rA !== rB) return sortDesc ? (rB - rA) : (rA - rB);
                 return itemA.name.localeCompare(itemB.name, 'tr');
             });
 
@@ -954,7 +981,8 @@ function buildInventoryUI() {
     }
 
     if (typeof SKIN_DATABASE !== 'undefined') {
-        const allSkins = Object.values(SKIN_DATABASE).sort((a, b) => (RARITY_ORDER[b.rarity] || 0) - (RARITY_ORDER[a.rarity] || 0));
+        const rOrder = typeof RARITY_ORDER !== 'undefined' ? RARITY_ORDER : { rare: 1, super_rare: 2, epic: 3, mythic: 4, legendary: 5 };
+        const allSkins = Object.values(SKIN_DATABASE).sort((a, b) => (rOrder[b.rarity] || 0) - (rOrder[a.rarity] || 0));
         const activeSkinDef = SKIN_DATABASE[game.activeSkin] || SKIN_DATABASE.default_cyber;
         if (activeSkinDef) setElText('active-skin-title', `${activeSkinDef.emoji} ${activeSkinDef.name}`);
 
@@ -981,7 +1009,8 @@ function buildInventoryUI() {
     }
 
     if (typeof COMPANION_SKIN_DATABASE !== 'undefined') {
-        const allCompSkins = Object.values(COMPANION_SKIN_DATABASE).sort((a, b) => (RARITY_ORDER[b.rarity] || 0) - (RARITY_ORDER[a.rarity] || 0));
+        const rOrder = typeof RARITY_ORDER !== 'undefined' ? RARITY_ORDER : { rare: 1, super_rare: 2, epic: 3, mythic: 4, legendary: 5 };
+        const allCompSkins = Object.values(COMPANION_SKIN_DATABASE).sort((a, b) => (rOrder[b.rarity] || 0) - (rOrder[a.rarity] || 0));
         const activeCompSkinDef = COMPANION_SKIN_DATABASE[game.activeCompanionSkin] || COMPANION_SKIN_DATABASE.default_tech;
         if (activeCompSkinDef) setElText('active-compskin-title', `${activeCompSkinDef.emoji} ${activeCompSkinDef.name}`);
 
@@ -1177,7 +1206,6 @@ function importSaveCode() { try { const t = document.getElementById('save-code-t
 
 // =======================================================
 // 🔐 HESAP (LOGIN/KAYIT) + ☁️ BULUT KAYIT + 🏆 LİDERLİK TABLOSU
-// (SENİN index.html DOSYANDAKİ ID VE FONKSİYON İSİMLERİYLE BİREBİR UYUMLU)
 // =======================================================
 const FIREBASE_CONFIG = {
     apiKey: "",
@@ -1197,8 +1225,8 @@ let fbAuth = null;
 let fbDb = null;
 let isFirebaseReady = false;
 let currentUser = null;
-let authFormMode = 'login'; // 'login' | 'register'
-let leaderboardSortBy = 'wave'; // 'wave' | 'damage'
+let authFormMode = 'login';
+let leaderboardSortBy = 'wave';
 let cloudSaveDebounceTimer = null;
 
 function initAuthAndCloudSystem() {
