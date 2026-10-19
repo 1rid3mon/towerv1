@@ -127,7 +127,7 @@ function refreshUpgradeButtonsState() {
         if (subEl) subEl.textContent = (!info.maxed && !info.lockedReason && info.count > 1) ? `+${info.count} Sv` : '';
         if (btn) btn.disabled = !info.canAfford || info.maxed || Boolean(info.lockedReason);
     }
-    buildCompanionsUI(); updatePrestigeUI();
+    buildCompanionsUI(); updatePrestigeUI(); updateLootboxCollectionCounters();
 }
 
 function renderCompanionStars(starCount) {
@@ -415,10 +415,122 @@ function updateBlackjackUI(showAllDealer) {
     else { dCardsEl.innerHTML = renderCardHTML(bjState.dealerHand[0], false) + renderCardHTML(null, true); document.getElementById('bj-dealer-score').textContent = `Toplam: ${bjState.dealerHand[0].score} + ?`; document.getElementById('bj-status').textContent = 'Kart Çek (Hit) veya Kal (Stand)'; }
 }
 
+// =======================================================
+// KOLEKSİYON SAYAÇLARI & KUTU LİMİT KORUMASI
+// =======================================================
+function updateLootboxCollectionCounters() {
+    if (!Array.isArray(game.inventory)) game.inventory = [];
+    if (!Array.isArray(game.ownedSkins)) game.ownedSkins = ['default_cyber'];
+    if (!Array.isArray(game.ownedCompanionSkins)) game.ownedCompanionSkins = ['default_tech'];
+
+    const totalItems = Object.keys(ITEM_DATABASE || {}).length;
+    const ownedItems = game.inventory.filter(id => ITEM_DATABASE && ITEM_DATABASE[id]).length;
+    const itemsFull = totalItems > 0 && ownedItems >= totalItems;
+
+    const totalSkins = Object.keys(SKIN_DATABASE || {}).length;
+    const ownedSkins = game.ownedSkins.filter(id => SKIN_DATABASE && SKIN_DATABASE[id]).length;
+    const skinsFull = totalSkins > 0 && ownedSkins >= totalSkins;
+
+    const totalCompSkins = Object.keys(COMPANION_SKIN_DATABASE || {}).length;
+    const ownedCompSkins = game.ownedCompanionSkins.filter(id => COMPANION_SKIN_DATABASE && COMPANION_SKIN_DATABASE[id]).length;
+    const compSkinsFull = totalCompSkins > 0 && ownedCompSkins >= totalCompSkins;
+
+    // Envanter alt sekme sayaçları
+    const ownedItemsCountEl = document.getElementById('owned-items-count');
+    if (ownedItemsCountEl) ownedItemsCountEl.textContent = `${ownedItems}/${totalItems}`;
+    const invGearHeaderEl = document.getElementById('inv-gear-header-count');
+    if (invGearHeaderEl) invGearHeaderEl.textContent = `${ownedItems}/${totalItems}`;
+
+    const ownedSkinsCountEl = document.getElementById('owned-skins-count');
+    if (ownedSkinsCountEl) ownedSkinsCountEl.textContent = `${ownedSkins}/${totalSkins}`;
+
+    const ownedCompSkinsCountEl = document.getElementById('owned-compskins-count');
+    if (ownedCompSkinsCountEl) ownedCompSkinsCountEl.textContent = `${ownedCompSkins}/${totalCompSkins}`;
+
+    // Kutular sekmesi rozetleri ve ilerleme yazıları
+    const itemBadge = document.getElementById('lootbox-item-badge');
+    if (itemBadge) itemBadge.textContent = itemsFull ? 'TAMAMLANDI ✓' : `Koleksiyon: ${ownedItems}/${totalItems}`;
+    const itemProg = document.getElementById('lootbox-item-progress-info');
+    if (itemProg) {
+        itemProg.textContent = itemsFull
+            ? `🎉 Tüm Eşyalar Açıldı! (${ownedItems} / ${totalItems})`
+            : `Açılan Eşya: ${ownedItems} / ${totalItems} (Kalan: ${totalItems - ownedItems})`;
+    }
+
+    const skinBadge = document.getElementById('lootbox-skin-badge');
+    if (skinBadge) skinBadge.textContent = skinsFull ? 'TAMAMLANDI ✓' : `Koleksiyon: ${ownedSkins}/${totalSkins}`;
+    const skinProg = document.getElementById('lootbox-skin-progress-info');
+    if (skinProg) {
+        skinProg.textContent = skinsFull
+            ? `🎉 Tüm Kule Skinleri Açıldı! (${ownedSkins} / ${totalSkins})`
+            : `Açılan Kule Skini: ${ownedSkins} / ${totalSkins} (Kalan: ${totalSkins - ownedSkins})`;
+    }
+
+    const compBadge = document.getElementById('lootbox-compskin-badge');
+    if (compBadge) compBadge.textContent = compSkinsFull ? 'TAMAMLANDI ✓' : `Koleksiyon: ${ownedCompSkins}/${totalCompSkins}`;
+    const compProg = document.getElementById('lootbox-compskin-progress-info');
+    if (compProg) {
+        compProg.textContent = compSkinsFull
+            ? `🎉 Tüm Yoldaş Skinleri Açıldı! (${ownedCompSkins} / ${totalCompSkins})`
+            : `Açılan Yoldaş Skini: ${ownedCompSkins} / ${totalCompSkins} (Kalan: ${totalCompSkins - ownedCompSkins})`;
+    }
+
+    // Koleksiyon tamamlandıysa kutu açma butonlarını kilitleyip "TAMAMLANDI" yaz
+    const btnItem1 = document.getElementById('btn-open-item-1');
+    const btnItem5 = document.getElementById('btn-open-item-5');
+    if (btnItem1 && btnItem5) {
+        btnItem1.disabled = itemsFull;
+        btnItem5.disabled = itemsFull;
+        if (itemsFull) {
+            btnItem1.innerHTML = `<i class="fa-solid fa-check"></i> TAMAMLANDI`;
+            btnItem5.innerHTML = `<i class="fa-solid fa-check"></i> ${ownedItems}/${totalItems} MAKS`;
+        } else {
+            btnItem1.innerHTML = `<i class="fa-solid fa-gem"></i> 25 Kristal (1'li)`;
+            btnItem5.innerHTML = `<i class="fa-solid fa-gem"></i> 110 Kristal (5'li)`;
+        }
+    }
+
+    const btnSkin1 = document.getElementById('btn-open-skin-1');
+    const btnSkin5 = document.getElementById('btn-open-skin-5');
+    if (btnSkin1 && btnSkin5) {
+        btnSkin1.disabled = skinsFull;
+        btnSkin5.disabled = skinsFull;
+        if (skinsFull) {
+            btnSkin1.innerHTML = `<i class="fa-solid fa-check"></i> TAMAMLANDI`;
+            btnSkin5.innerHTML = `<i class="fa-solid fa-check"></i> ${ownedSkins}/${totalSkins} MAKS`;
+        } else {
+            btnSkin1.innerHTML = `<i class="fa-solid fa-gem"></i> 25 Kristal (1'li)`;
+            btnSkin5.innerHTML = `<i class="fa-solid fa-gem"></i> 110 Kristal (5'li)`;
+        }
+    }
+
+    const btnComp1 = document.getElementById('btn-open-compskin-1');
+    const btnComp5 = document.getElementById('btn-open-compskin-5');
+    if (btnComp1 && btnComp5) {
+        btnComp1.disabled = compSkinsFull;
+        btnComp5.disabled = compSkinsFull;
+        if (compSkinsFull) {
+            btnComp1.innerHTML = `<i class="fa-solid fa-check"></i> TAMAMLANDI`;
+            btnComp5.innerHTML = `<i class="fa-solid fa-check"></i> ${ownedCompSkins}/${totalCompSkins} MAKS`;
+        } else {
+            btnComp1.innerHTML = `<i class="fa-solid fa-gem"></i> 20 Kristal (1'li)`;
+            btnComp5.innerHTML = `<i class="fa-solid fa-gem"></i> 90 Kristal (5'li)`;
+        }
+    }
+}
+
 let lootboxAnimTimer = null;
 let currentLootSession = null;
 
 function openLootbox(count) {
+    const totalItems = Object.keys(ITEM_DATABASE || {}).length;
+    const ownedItems = (game.inventory || []).filter(id => ITEM_DATABASE && ITEM_DATABASE[id]).length;
+    if (totalItems > 0 && ownedItems >= totalItems) {
+        showToast(`🎉 Tüm eşyaları (${ownedItems}/${totalItems}) zaten topladın! Boşuna kristal harcamana gerek yok.`);
+        updateLootboxCollectionCounters();
+        return;
+    }
+
     const cost = count === 5 ? 110 : count * 25;
     if (game.crystals < cost) { showToast('Yeterli kristalin yok!'); return; }
     game.crystals -= cost;
@@ -452,10 +564,18 @@ function openLootbox(count) {
 }
 
 function openSkinBox(count) {
+    if (!Array.isArray(game.ownedSkins)) game.ownedSkins = ['default_cyber'];
+    const totalSkins = Object.keys(SKIN_DATABASE || {}).length;
+    const ownedSkins = game.ownedSkins.filter(id => SKIN_DATABASE && SKIN_DATABASE[id]).length;
+    if (totalSkins > 0 && ownedSkins >= totalSkins) {
+        showToast(`🎉 Tüm Kule Skinlerini (${ownedSkins}/${totalSkins}) zaten açtın!`);
+        updateLootboxCollectionCounters();
+        return;
+    }
+
     const cost = count === 5 ? 110 : count * 25;
     if (game.crystals < cost) { showToast('Yeterli kristalin yok!'); return; }
     game.crystals -= cost;
-    if (!Array.isArray(game.ownedSkins)) game.ownedSkins = ['default_cyber'];
 
     let droppedEntries = [];
     let refundCrystals = 0;
@@ -487,10 +607,18 @@ function openSkinBox(count) {
 }
 
 function openCompanionSkinBox(count) {
+    if (!Array.isArray(game.ownedCompanionSkins)) game.ownedCompanionSkins = ['default_tech'];
+    const totalCompSkins = Object.keys(COMPANION_SKIN_DATABASE || {}).length;
+    const ownedCompSkins = game.ownedCompanionSkins.filter(id => COMPANION_SKIN_DATABASE && COMPANION_SKIN_DATABASE[id]).length;
+    if (totalCompSkins > 0 && ownedCompSkins >= totalCompSkins) {
+        showToast(`🎉 Tüm Yoldaş Skinlerini (${ownedCompSkins}/${totalCompSkins}) zaten açtın!`);
+        updateLootboxCollectionCounters();
+        return;
+    }
+
     const cost = count === 5 ? 90 : count * 20;
     if (game.crystals < cost) { showToast('Yeterli kristalin yok!'); return; }
     game.crystals -= cost;
-    if (!Array.isArray(game.ownedCompanionSkins)) game.ownedCompanionSkins = ['default_tech'];
 
     let droppedEntries = [];
     let refundCrystals = 0;
@@ -567,6 +695,7 @@ function revealLootboxCards() {
     const refundBanner = document.getElementById('loot-refund-banner');
     const refundText = document.getElementById('loot-refund-text');
     const reopenLabel = document.getElementById('loot-reopen-label');
+    const reopenBtn = document.getElementById('loot-btn-reopen');
 
     stageChest.classList.add('hidden');
     stageReveal.classList.remove('hidden');
@@ -577,7 +706,23 @@ function revealLootboxCards() {
     flashBurst.style.animation = 'flashBurst 0.55s ease-out forwards';
 
     const boxCost = boxType === 'compskin' ? (count === 5 ? 90 : count * 20) : (count === 5 ? 110 : count * 25);
-    reopenLabel.textContent = `Tekrar Aç (${boxCost} 💎)`;
+
+    let isCollectionMaxed = false;
+    if (boxType === 'item') {
+        const total = Object.keys(ITEM_DATABASE || {}).length;
+        isCollectionMaxed = total > 0 && (game.inventory || []).length >= total;
+    } else if (boxType === 'skin') {
+        const total = Object.keys(SKIN_DATABASE || {}).length;
+        isCollectionMaxed = total > 0 && (game.ownedSkins || []).length >= total;
+    } else if (boxType === 'compskin') {
+        const total = Object.keys(COMPANION_SKIN_DATABASE || {}).length;
+        isCollectionMaxed = total > 0 && (game.ownedCompanionSkins || []).length >= total;
+    }
+
+    if (reopenBtn) reopenBtn.disabled = isCollectionMaxed;
+    if (reopenLabel) {
+        reopenLabel.textContent = isCollectionMaxed ? 'Koleksiyon Tamamlandı!' : `Tekrar Aç (${boxCost} 💎)`;
+    }
 
     if (refundCrystals > 0) {
         refundBanner.classList.remove('hidden');
@@ -714,6 +859,8 @@ function buildInventoryUI() {
     const badge = document.getElementById('badge-equipped-count');
     if (badge) badge.textContent = `${game.equippedItems.length}/3`;
 
+    updateLootboxCollectionCounters();
+
     const eqList = document.getElementById('equipped-items-list');
     if (eqList) {
         eqList.innerHTML = '';
@@ -767,7 +914,6 @@ function buildInventoryUI() {
     }
 
     const allSkins = Object.values(SKIN_DATABASE).sort((a, b) => (RARITY_ORDER[b.rarity] || 0) - (RARITY_ORDER[a.rarity] || 0));
-    document.getElementById('owned-skins-count').textContent = `${game.ownedSkins.length}/${allSkins.length}`;
     const activeSkinDef = SKIN_DATABASE[game.activeSkin] || SKIN_DATABASE.default_cyber;
     document.getElementById('active-skin-title').textContent = `${activeSkinDef.emoji} ${activeSkinDef.name}`;
 
@@ -793,8 +939,6 @@ function buildInventoryUI() {
     }
 
     const allCompSkins = Object.values(COMPANION_SKIN_DATABASE).sort((a, b) => (RARITY_ORDER[b.rarity] || 0) - (RARITY_ORDER[a.rarity] || 0));
-    const compCountEl = document.getElementById('owned-compskins-count');
-    if (compCountEl) compCountEl.textContent = `${game.ownedCompanionSkins.length}/${allCompSkins.length}`;
     const activeCompSkinDef = COMPANION_SKIN_DATABASE[game.activeCompanionSkin] || COMPANION_SKIN_DATABASE.default_tech;
     const activeCompTitle = document.getElementById('active-compskin-title');
     if (activeCompTitle) activeCompTitle.textContent = `${activeCompSkinDef.emoji} ${activeCompSkinDef.name}`;
@@ -864,7 +1008,9 @@ function switchTab(tab) {
         if (content) content.classList.toggle('hidden', t !== tab);
         if (btn) { if (t === tab) btn.classList.add('tab-active'); else btn.classList.remove('tab-active'); }
     });
-    if (tab === 'items') buildInventoryUI(); if (tab === 'prestige') buildPrestigeUI(); if (tab === 'casino' && activeMiniGame === 'roulette') drawRouletteWheel();
+    if (tab === 'items' || tab === 'lootbox') buildInventoryUI();
+    if (tab === 'prestige') buildPrestigeUI();
+    if (tab === 'casino' && activeMiniGame === 'roulette') drawRouletteWheel();
 }
 
 function toggleGameSpeed() { gameSpeed = gameSpeed === 1 ? 2 : (gameSpeed === 2 ? 3 : 1); document.getElementById('ui-speed').textContent = `${gameSpeed}x`; }
@@ -934,11 +1080,11 @@ function loadGame() {
         }
     } catch (e) {}
 }
-function exportSaveCode() { try { document.getElementById('save-code-textarea').value = btoa(unescape(encodeURIComponent(JSON.stringify(game)))); document.getElementById('save-code-textarea').select(); document.execCommand('copy'); showToast('Kayıt kodu kopyalandı!'); } catch (e) { showToast('Hata!'); } }
+function exportSaveCode() { try { document.getElementById('save-code-textarea').value = btoa(unescape(encodeURIComponent(JSON.stringify(game)))); document.getElementById('save-code-textarea').select(); document.execCommand('copy'); showToast('Kayıt kodu kopyalandı!'); } catch (e) {} }
 function importSaveCode() { try { const code = document.getElementById('save-code-textarea').value.trim(); if (!code) return; localStorage.setItem(SAVE_KEY, decodeURIComponent(escape(atob(code)))); loadGame(); applyBodyClasses(); buildUpgradesUI(); buildInventoryUI(); updateHUD(); showToast('Kod yüklendi!'); } catch (e) { showToast('Geçersiz kod!'); } }
 
 // =======================================================
-// MOBİL ÖZEL DÜZENLEME: YAN YANA KÜÇÜK CAN/DALGA KUTUSU & AYARLAR BUTONU KORUMASI
+// MOBİL & TABLET ÖZEL DÜZENLEME: YAN YANA KÜÇÜK CAN/DALGA KUTUSU
 // =======================================================
 (function setupMobileHudAndSettingsFix() {
     function injectMobileHudCSS() {
@@ -946,9 +1092,8 @@ function importSaveCode() { try { const code = document.getElementById('save-cod
         const st = document.createElement('style');
         st.id = 'mobile-hud-side-by-side-css';
         st.textContent = `
-            @media (max-width: 768px) {
-                /* 1. Üst menü çubuğunun sağdaki Ayarlar (⚙️) butonunu dışarı itmesini engelle */
-                header, body > div > header, #main-body > header, #main-body > div:first-child {
+            @media (max-width: 1024px) {
+                header, body > div > header, #main-body > header {
                     position: relative !important;
                     z-index: 9500 !important;
                     padding-left: 6px !important;
@@ -957,32 +1102,34 @@ function importSaveCode() { try { const code = document.getElementById('save-cod
                     overflow: hidden !important;
                 }
 
-                /* 2. Can ve Dalga kutularını (#hud-top-bar) telefonda küçültüp YAN YANA 2 sütun yap */
+                /* Can ve Dalga kutularını birbirine yakın, yan yana kompakt tut */
                 #hud-top-bar {
-                    display: grid !important;
-                    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+                    display: flex !important;
+                    flex-direction: row !important;
+                    align-items: stretch !important;
+                    justify-content: flex-start !important;
                     gap: 6px !important;
-                    left: 6px !important;
-                    right: 6px !important;
-                    top: 52px !important;
+                    top: 8px !important;
+                    right: auto !important;
                     width: auto !important;
                     max-width: calc(100vw - 12px) !important;
                     transform: none !important;
                     pointer-events: none !important;
-                    z-index: 40 !important;
+                    z-index: 25 !important;
                 }
 
-                #hud-top-bar > * {
-                    width: 100% !important;
+                #hud-hp-card, #hud-wave-card {
+                    width: 152px !important;
+                    max-width: 45vw !important;
                     min-width: 0 !important;
-                    padding: 6px 8px !important;
-                    border-radius: 10px !important;
+                    padding: 5px 7px !important;
+                    border-radius: 9px !important;
                     pointer-events: auto !important;
-                    background: rgba(15, 23, 42, 0.86) !important;
+                    background: rgba(15, 23, 42, 0.88) !important;
                 }
 
                 #hud-top-bar * {
-                    font-size: 10px !important;
+                    font-size: 9.5px !important;
                     line-height: 1.15 !important;
                 }
 
@@ -992,7 +1139,6 @@ function importSaveCode() { try { const code = document.getElementById('save-cod
                     text-overflow: ellipsis !important;
                 }
 
-                /* 3. Sistem Paneli (#upgrade-drawer) içinde en alttaki yükseltmelere rahatça kaydırılabilsin */
                 #upgrade-drawer {
                     max-height: 100dvh !important;
                 }
@@ -1004,7 +1150,6 @@ function importSaveCode() { try { const code = document.getElementById('save-cod
         `;
         document.head.appendChild(st);
 
-        // Ayarlar (⚙️) ve Duraklat butonlarının mobilde her zaman dokunulabilir olmasını garantile
         const settingsBtn = document.querySelector('[onclick*="openSettingsModal"]') ||
                             Array.from(document.querySelectorAll('button')).find(b => b.querySelector('.fa-gear, .fa-cog'));
         if (settingsBtn && !settingsBtn.dataset.mobileFixed) {
@@ -1020,7 +1165,6 @@ function importSaveCode() { try { const code = document.getElementById('save-cod
             }, { passive: false });
         }
 
-        // Sağ alttaki hızlı "Paneli Gizle / Aç" butonunu doğrudan oyunun kendi çekmecesine (toggleUpgradeDrawer) bağla
         const toggleBtn = document.getElementById('mobilePanelToggleBtn');
         if (toggleBtn) {
             toggleBtn.onclick = (e) => {
