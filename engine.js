@@ -40,7 +40,7 @@ function resizeCanvas() {
 }
 window.addEventListener('resize', resizeCanvas);
 
-// Bir merminin başlangıç (x1,y1) ve bitiş (x2,y2) noktaları arasındaki doğru parçasının düşmana değip değmediğini ölçer (3x hızda içinden geçmeyi %100 önler)
+// Bir merminin başlangıç (x1,y1) ve bitiş (x2,y2) noktaları arasındaki doğru parçasının düşmana değip değmediğini ölçer
 function distToSegment(px, py, x1, y1, x2, y2) {
     const dx = x2 - x1;
     const dy = y2 - y1;
@@ -61,7 +61,6 @@ function spawnCargoDrone() {
     const startX = fromLeft ? -margin : canvas.width + margin;
     const endX = fromLeft ? canvas.width + margin : -margin;
 
-    // Ekranın üst veya alt yarılarından çapraz/yatay geçiş rotası
     const startY = canvas.height * (0.18 + Math.random() * 0.64);
     const endY = canvas.height * (0.18 + Math.random() * 0.64);
 
@@ -160,7 +159,6 @@ function handleCanvasPointerDown(e) {
     const clickX = (clientX - rect.left) * scaleX;
     const clickY = (clientY - rect.top) * scaleY;
 
-    // Mobil ve Web için geniş dokunma toleransı (radius + 20px)
     for (let i = cargoDrones.length - 1; i >= 0; i--) {
         const d = cargoDrones[i];
         if (Math.hypot(d.x - clickX, d.y - clickY) <= d.radius + 20) {
@@ -180,7 +178,6 @@ function spawnEnemy(isBoss = false) {
 
     const w = game.wave;
     // YENİ ZORLUK EĞRİSİ: İlk 10 dalgayı daha dengeli ve pürüzsüz artan bir çizgiye oturttuk. 
-    // Böylece 4 veya 5. dalgada aniden büyük bir duvarla karşılaşılmıyor.
     const earlyBuffer = w <= 10 ? (0.75 + (w * 0.025)) : 1.0; 
     const tierMult = Math.pow(1.22, Math.floor(w / 10)) * Math.pow(1.35, Math.floor(w / 25));
 
@@ -277,7 +274,6 @@ function spawnEnemy(isBoss = false) {
             kbResist = 0.35; stopDistOverride = 34;
             customPal = { color: '#64748b', secColor: '#e2e8f0' };
         } else if (w >= 3 && roll < 0.30) {
-            // Ekranda maksimum 2 Buzul Nöbetçisi ve dalga başına maksimum 4 limit kontrolü
             const activeFrostCount = enemies.filter(e => e.type === 'frost').length;
             if (activeFrostCount < 2 && waveFrostSpawns < 4) {
                 waveFrostSpawns++;
@@ -386,7 +382,6 @@ function updateGame(dt) {
     if (tower.maxShield > 0 && tower.shield < tower.maxShield) tower.shield = Math.min(tower.maxShield, tower.shield + (tower.maxShield * 0.05) * simDt);
     if (tower.recoil > 0) tower.recoil = Math.max(0, tower.recoil - simDt * 15);
 
-    // Kule donma süresi ve çözüldükten sonra devreye giren 2.5 saniyelik Donma Bağışıklığı
     if (tower.freezeTimer > 0) {
         tower.freezeTimer = Math.max(0, tower.freezeTimer - simDt);
         tower.frostVisualTick = (tower.frostVisualTick || 0) + simDt;
@@ -406,7 +401,6 @@ function updateGame(dt) {
         tower.frostSlowTimer = Math.max(0, tower.frostSlowTimer - simDt);
     }
 
-    // Overdrive (2x Atış Hızı) süresi ve görsel efekti
     if (tower.overdriveTimer > 0) {
         tower.overdriveTimer = Math.max(0, tower.overdriveTimer - dt);
         tower.overdriveVisualTick = (tower.overdriveVisualTick || 0) + dt;
@@ -482,7 +476,6 @@ function updateGame(dt) {
         }
     }
 
-    // Mermi hareketi ve Swept (Çizgi Taramalı) Çarpışma Kontrolü
     for (let i = projectiles.length - 1; i >= 0; i--) {
         const p = projectiles[i];
         const prevX = p.x;
@@ -513,7 +506,6 @@ function updateGame(dt) {
                 const e = enemies[j];
                 if (p.hitList && p.hitList.includes(e)) continue;
 
-                // Hem başlangıç-bitiş çizgisine hem de son konuma bak (dibindeki yaratığı asla ıskalamaz)
                 const segDist = distToSegment(e.x, e.y, prevX, prevY, p.x, p.y);
                 if (segDist <= e.radius + p.radius + 2) {
                     if (p.splashRadius && p.splashRadius > 0) {
@@ -603,12 +595,10 @@ function updateGame(dt) {
         const ang = Math.atan2(tower.y - e.y, tower.x - e.x);
 
         if (dist > targetStopDist) {
-            // 3x hızda bile düşmanların targetStopDist sınırını delip kulenin içine girmesini engelle
             const step = Math.min(dist - targetStopDist, e.speed * e.slowFactor * simDt);
             e.x += Math.cos(ang) * step;
             e.y += Math.sin(ang) * step;
         } else {
-            // Eğer bir yakın dövüşçü kulenin içine (targetStopDist'ten daha yakına) sıkıştıysa sınır çizgisine geri çıkar
             if (!e.isRanged && dist < targetStopDist - 1) {
                 const pushOutAngle = Math.atan2(e.y - tower.y, e.x - tower.x);
                 e.x = tower.x + Math.cos(pushOutAngle) * targetStopDist;
@@ -672,7 +662,6 @@ function fireTowerProjectile(startX, startY, target, barrelIdx = 0, totalBarrels
     const norm = barrelIdx < bCount ? (barrelIdx - (bCount - 1) / 2) : 0;
     const perpAngle = tower.angle + Math.PI / 2;
 
-    // Yakın mesafedeki düşmanların yanından veya arkasından doğmaması için dinamik çıkış noktası
     const muzzleDist = Math.min(10, distToTarget * 0.35);
     const lateralScale = Math.min(1, distToTarget / 65);
     const lateralOffset = (bCount === 2 ? norm * 8 : norm * 4.5) * lateralScale;
@@ -680,7 +669,6 @@ function fireTowerProjectile(startX, startY, target, barrelIdx = 0, totalBarrels
     const spawnX = startX + Math.cos(baseAngle) * muzzleDist + Math.cos(perpAngle) * lateralOffset;
     const spawnY = startY + Math.sin(baseAngle) * muzzleDist + Math.sin(perpAngle) * lateralOffset;
 
-    // Merminin açısını doğrudan doğduğu namlu ucundan hedefin merkezine kilitle
     const aimAngle = Math.atan2(target.y - spawnY, target.x - spawnX);
 
     const skinDef = SKIN_DATABASE[game.activeSkin] || SKIN_DATABASE.default_cyber;
@@ -878,7 +866,6 @@ function triggerTowerDefeat() {
     } else {
         showToast(`Kule ağır hasar aldı! 2. yenilgide farm moduna geçilecek.`);
         tower.hp = tower.maxHp * 0.5;
-        // İlk yıkılışta kulenin dibindeki düşmanları şok dalgasıyla biraz geri it ki kule nefes alsın
         rings.push({ x: tower.x, y: tower.y, radius: 15, color: '#ef4444', life: 0.9 });
         for (const e of enemies) {
             const d = Math.hypot(e.x - tower.x, e.y - tower.y);
