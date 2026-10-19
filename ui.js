@@ -1,6 +1,19 @@
 // ==========================================
-// BÖLÜM: ARAYÜZ (UI), MENÜLER VE MOBİL HUD DÜZENİ (ÇÖKME KORUMALI SÜRÜM)
+// BÖLÜM: ARAYÜZ (UI), MENÜLER VE MOBİL HUD DÜZENİ
 // ==========================================
+
+// EKRANDA SİYAH KALMA DURUMUNDA HATAYI GÖSTEREN TESPİT SİSTEMİ
+window.addEventListener('error', function (e) {
+    let errBanner = document.getElementById('debug-error-banner');
+    if (!errBanner) {
+        errBanner = document.createElement('div');
+        errBanner.id = 'debug-error-banner';
+        errBanner.style.cssText = 'position:fixed;bottom:55px;left:10px;right:10px;background:rgba(185,28,28,0.95);color:#fff;padding:10px 14px;border-radius:10px;font-size:12px;font-family:monospace;z-index:99999;border:1px solid #f87171;box-shadow:0 10px 25px rgba(0,0,0,0.5);';
+        document.body.appendChild(errBanner);
+    }
+    const file = e.filename ? e.filename.split('/').pop() : 'Bilinmeyen Dosya';
+    errBanner.innerHTML = `⚠️ <b>JS HATASI (${file} - Satır:${e.lineno}):</b> ${e.message}`;
+});
 
 function setElText(id, text) {
     const el = document.getElementById(id);
@@ -1050,7 +1063,7 @@ function switchTab(tab) {
     if (tab === 'items' || tab === 'lootbox') buildInventoryUI();
     if (tab === 'prestige') buildPrestigeUI();
     if (tab === 'casino' && activeMiniGame === 'roulette') drawRouletteWheel();
-    if (tab === 'leaderboard') fetchAndRenderLeaderboard(false);
+    if (tab === 'leaderboard') refreshLeaderboard(false);
 }
 
 function toggleGameSpeed() { gameSpeed = gameSpeed === 1 ? 2 : (gameSpeed === 2 ? 3 : 1); setElText('ui-speed', `${gameSpeed}x`); }
@@ -1164,6 +1177,7 @@ function importSaveCode() { try { const t = document.getElementById('save-code-t
 
 // =======================================================
 // 🔐 HESAP (LOGIN/KAYIT) + ☁️ BULUT KAYIT + 🏆 LİDERLİK TABLOSU
+// (SENİN index.html DOSYANDAKİ ID VE FONKSİYON İSİMLERİYLE BİREBİR UYUMLU)
 // =======================================================
 const FIREBASE_CONFIG = {
     apiKey: "",
@@ -1183,6 +1197,8 @@ let fbAuth = null;
 let fbDb = null;
 let isFirebaseReady = false;
 let currentUser = null;
+let authFormMode = 'login'; // 'login' | 'register'
+let leaderboardSortBy = 'wave'; // 'wave' | 'damage'
 let cloudSaveDebounceTimer = null;
 
 function initAuthAndCloudSystem() {
@@ -1198,7 +1214,7 @@ function initAuthAndCloudSystem() {
                     const cleanName = user.displayName || (user.email ? user.email.split('@')[0] : 'Komutan');
                     currentUser = { uid: user.uid, username: cleanName, email: user.email || '', isCloud: true };
                     updateAccountHeaderUI();
-                    await syncFromCloudNow(true);
+                    await forceCloudPull(true);
                     await pushScoreToLeaderboard();
                 } else {
                     currentUser = null;
@@ -1215,11 +1231,9 @@ function initAuthAndCloudSystem() {
         const savedUserRaw = localStorage.getItem(LOCAL_CURRENT_USER_KEY);
         if (savedUserRaw) {
             currentUser = JSON.parse(savedUserRaw);
-            updateAccountHeaderUI();
-            pushScoreToLeaderboard();
-        } else {
-            updateAccountHeaderUI();
         }
+        updateAccountHeaderUI();
+        pushScoreToLeaderboard();
     } catch (e) {}
 }
 
@@ -1228,39 +1242,80 @@ function sanitizeUsernameToEmail(username) {
     return `${clean || 'oyuncu'}@kulesavunma.local`;
 }
 
+function switchAuthMode(mode) {
+    authFormMode = mode === 'register' ? 'register' : 'login';
+    const tabLogin = document.getElementById('auth-tab-login');
+    const tabReg = document.getElementById('auth-tab-register');
+    const submitLbl = document.getElementById('auth-submit-label');
+    const errEl = document.getElementById('auth-error-msg');
+    if (errEl) errEl.classList.add('hidden');
+
+    if (tabLogin) {
+        tabLogin.className = authFormMode === 'login'
+            ? 'py-1.5 rounded-lg font-tech font-bold text-xs bg-emerald-600 text-white transition'
+            : 'py-1.5 rounded-lg font-tech font-bold text-xs text-slate-400 hover:text-white transition';
+    }
+    if (tabReg) {
+        tabReg.className = authFormMode === 'register'
+            ? 'py-1.5 rounded-lg font-tech font-bold text-xs bg-emerald-600 text-white transition'
+            : 'py-1.5 rounded-lg font-tech font-bold text-xs text-slate-400 hover:text-white transition';
+    }
+    if (submitLbl) {
+        submitLbl.textContent = authFormMode === 'register' ? 'YENİ HESAP OLUŞTUR' : 'HESABA GİRİŞ YAP';
+    }
+}
+
+function showAuthError(msg) {
+    const errEl = document.getElementById('auth-error-msg');
+    if (errEl) {
+        errEl.textContent = msg;
+        errEl.classList.remove('hidden');
+    } else {
+        showToast(msg);
+    }
+}
+
 function updateAccountHeaderUI() {
     const headerLabel = document.getElementById('ui-account-name');
-    const loggedOutBox = document.getElementById('auth-logged-out-view');
-    const loggedInBox = document.getElementById('auth-logged-in-view');
-    const profileNameEl = document.getElementById('auth-profile-username');
-    const profileModeEl = document.getElementById('auth-profile-mode');
-    const lbStatusEl = document.getElementById('lb-account-status');
+    const guestView = document.getElementById('auth-guest-view');
+    const loggedView = document.getElementById('auth-logged-view');
+    const profileNameEl = document.getElementById('auth-profile-name');
+    const badgeEl = document.getElementById('auth-cloud-mode-badge');
+
+    const lbMyName = document.getElementById('lb-my-name');
+    const lbMyStatus = document.getElementById('lb-my-status');
+    const lbMyBtn = document.getElementById('lb-my-action-btn');
+
+    if (badgeEl) {
+        badgeEl.innerHTML = isFirebaseReady
+            ? `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Firebase Bulut Aktif`
+            : `<span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span> Yerel & Simülasyon Bulutu Hazır`;
+    }
 
     if (currentUser) {
         if (headerLabel) headerLabel.textContent = currentUser.username;
-        if (loggedOutBox) loggedOutBox.classList.add('hidden');
-        if (loggedInBox) loggedInBox.classList.remove('hidden');
+        if (guestView) guestView.classList.add('hidden');
+        if (loggedView) loggedView.classList.remove('hidden');
         if (profileNameEl) profileNameEl.textContent = currentUser.username;
-        if (profileModeEl) {
-            profileModeEl.textContent = currentUser.isCloud
-                ? '☁️ Firebase Gerçek Zamanlı Bulut Aktif'
-                : '💾 Yerel Hesap & Simülasyon Bulutu Aktif';
-        }
-        if (lbStatusEl) {
-            lbStatusEl.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>${currentUser.username}</span> olarak sıralamadasın!`;
-        }
+
+        if (lbMyName) lbMyName.textContent = currentUser.username;
+        if (lbMyStatus) lbMyStatus.textContent = `En Yüksek Dalga: ${Math.max(game?.highestWave || 1, game?.wave || 1)} • Sıralama Aktif`;
+        if (lbMyBtn) lbMyBtn.textContent = 'Hesabım';
     } else {
         if (headerLabel) headerLabel.textContent = 'Giriş Yap';
-        if (loggedOutBox) loggedOutBox.classList.remove('hidden');
-        if (loggedInBox) loggedInBox.classList.add('hidden');
-        if (lbStatusEl) {
-            lbStatusEl.innerHTML = `Sıralamaya girmek için sağ üstten <button onclick="openAuthModal()" class="text-cyan-300 underline font-bold">Hesap Aç / Giriş Yap</button>.`;
-        }
+        if (guestView) guestView.classList.remove('hidden');
+        if (loggedView) loggedView.classList.add('hidden');
+
+        if (lbMyName) lbMyName.textContent = 'Misafir Komutan';
+        if (lbMyStatus) lbMyStatus.textContent = 'Sıralamaya adınla girmek için hesap bağla!';
+        if (lbMyBtn) lbMyBtn.textContent = 'Hesap Bağla';
     }
 }
 
 function openAuthModal() {
     updateAccountHeaderUI();
+    const errEl = document.getElementById('auth-error-msg');
+    if (errEl) errEl.classList.add('hidden');
     const modal = document.getElementById('auth-modal');
     if (modal) modal.classList.remove('hidden');
 }
@@ -1270,19 +1325,19 @@ function closeAuthModal() {
     if (modal) modal.classList.add('hidden');
 }
 
-async function handleUsernameAuth(mode) {
-    const userInp = document.getElementById('auth-username-input');
-    const passInp = document.getElementById('auth-password-input');
+async function submitUsernameAuth() {
+    const userInp = document.getElementById('auth-username');
+    const passInp = document.getElementById('auth-password');
     const username = (userInp ? userInp.value : '').trim();
     const password = (passInp ? passInp.value : '').trim();
 
-    if (username.length < 3) { showToast('⚠️ Kullanıcı adı en az 3 karakter olmalı!'); return; }
-    if (password.length < 4) { showToast('⚠️ Şifre en az 4 karakter olmalı!'); return; }
+    if (username.length < 3) { showAuthError('⚠️ Kullanıcı adı en az 3 karakter olmalı!'); return; }
+    if (password.length < 4) { showAuthError('⚠️ Şifre en az 4 karakter olmalı!'); return; }
 
     if (isFirebaseReady && fbAuth) {
         const email = sanitizeUsernameToEmail(username);
         try {
-            if (mode === 'register') {
+            if (authFormMode === 'register') {
                 const cred = await fbAuth.createUserWithEmailAndPassword(email, password);
                 if (cred.user) await cred.user.updateProfile({ displayName: username });
                 showToast(`🎉 Hoş geldin ${username}! Hesabın oluşturuldu.`);
@@ -1292,9 +1347,10 @@ async function handleUsernameAuth(mode) {
             }
             if (passInp) passInp.value = '';
             closeAuthModal();
+            refreshLeaderboard(false);
             return;
         } catch (err) {
-            showToast(`❌ Giriş Hatası: ${err.message || 'Bilgileri kontrol et.'}`);
+            showAuthError(`❌ Giriş Hatası: ${err.message || 'Bilgileri kontrol et.'}`);
             return;
         }
     }
@@ -1303,8 +1359,8 @@ async function handleUsernameAuth(mode) {
     try { accounts = JSON.parse(localStorage.getItem(LOCAL_ACCOUNTS_KEY) || '{}'); } catch (e) {}
     const key = username.toLowerCase();
 
-    if (mode === 'register') {
-        if (accounts[key]) { showToast('⚠️ Bu kullanıcı adı zaten alınmış!'); return; }
+    if (authFormMode === 'register') {
+        if (accounts[key]) { showAuthError('⚠️ Bu kullanıcı adı zaten alınmış! Giriş yap sekmesini dene.'); return; }
         accounts[key] = {
             uid: 'local_' + Date.now().toString(36),
             username: username,
@@ -1316,14 +1372,15 @@ async function handleUsernameAuth(mode) {
         currentUser = { uid: accounts[key].uid, username: username, isCloud: false };
         localStorage.setItem(LOCAL_CURRENT_USER_KEY, JSON.stringify(currentUser));
         updateAccountHeaderUI();
-        pushScoreToLeaderboard();
+        await pushScoreToLeaderboard();
+        refreshLeaderboard(false);
         if (passInp) passInp.value = '';
         closeAuthModal();
         showToast(`🎉 ${username} hesabı oluşturuldu!`);
     } else {
         const acc = accounts[key];
         const encodedPass = btoa(unescape(encodeURIComponent(password)));
-        if (!acc || acc.password !== encodedPass) { showToast('❌ Kullanıcı adı veya şifre hatalı!'); return; }
+        if (!acc || acc.password !== encodedPass) { showAuthError('❌ Kullanıcı adı veya şifre hatalı!'); return; }
         currentUser = { uid: acc.uid, username: acc.username, isCloud: false };
         localStorage.setItem(LOCAL_CURRENT_USER_KEY, JSON.stringify(currentUser));
 
@@ -1336,14 +1393,15 @@ async function handleUsernameAuth(mode) {
             updateHUD();
         }
         updateAccountHeaderUI();
-        pushScoreToLeaderboard();
+        await pushScoreToLeaderboard();
+        refreshLeaderboard(false);
         if (passInp) passInp.value = '';
         closeAuthModal();
         showToast(`✅ Hoş geldin ${acc.username}!`);
     }
 }
 
-async function handleGoogleLogin() {
+async function loginWithGoogle() {
     if (isFirebaseReady && fbAuth) {
         try {
             const provider = new firebase.auth.GoogleAuthProvider();
@@ -1352,7 +1410,7 @@ async function handleGoogleLogin() {
             showToast('✅ Google hesabınla bağlandın!');
             return;
         } catch (err) {
-            showToast(`❌ Google Giriş Hatası: ${err.message}`);
+            showAuthError(`❌ Google Giriş Hatası: ${err.message}`);
             return;
         }
     }
@@ -1361,19 +1419,33 @@ async function handleGoogleLogin() {
     const gName = (currentUser && currentUser.username) ? currentUser.username : `Komutan_${randomNum}`;
     currentUser = { uid: 'google_sim_' + gName.toLowerCase(), username: gName, isCloud: false };
     localStorage.setItem(LOCAL_CURRENT_USER_KEY, JSON.stringify(currentUser));
-    await syncToCloudNow(true);
+    await forceCloudPush(true);
     updateAccountHeaderUI();
+    refreshLeaderboard(false);
     closeAuthModal();
     showToast(`✅ Google (${gName}) ile hızlı giriş yapıldı!`);
 }
 
-async function handleLogout() {
+function changeDisplayNickname() {
+    if (!currentUser) return;
+    const newName = prompt('Liderlik tablosunda görünecek yeni komutan adını gir:', currentUser.username);
+    if (!newName || newName.trim().length < 3) return;
+    currentUser.username = newName.trim().slice(0, 18);
+    localStorage.setItem(LOCAL_CURRENT_USER_KEY, JSON.stringify(currentUser));
+    updateAccountHeaderUI();
+    forceCloudPush(true);
+    refreshLeaderboard(false);
+    showToast(`✨ Komutan adın "${currentUser.username}" olarak güncellendi!`);
+}
+
+async function logoutAccount() {
     if (isFirebaseReady && fbAuth) {
         try { await fbAuth.signOut(); } catch (e) {}
     }
     currentUser = null;
     localStorage.removeItem(LOCAL_CURRENT_USER_KEY);
     updateAccountHeaderUI();
+    refreshLeaderboard(false);
     showToast('👋 Hesaptan çıkış yapıldı.');
 }
 
@@ -1381,11 +1453,11 @@ function scheduleCloudSave() {
     if (!currentUser) return;
     clearTimeout(cloudSaveDebounceTimer);
     cloudSaveDebounceTimer = setTimeout(() => {
-        syncToCloudNow(true);
+        forceCloudPush(true);
     }, 4000);
 }
 
-async function syncToCloudNow(silent = false) {
+async function forceCloudPush(silent = false) {
     if (!currentUser || typeof game === 'undefined') {
         if (!silent) showToast('⚠️ Önce giriş yapmalısın!');
         return;
@@ -1410,14 +1482,14 @@ async function syncToCloudNow(silent = false) {
         }
 
         await pushScoreToLeaderboard();
-        setElText('auth-last-sync', `Son Senkronizasyon: ${new Date().toLocaleTimeString('tr-TR')}`);
-        if (!silent) showToast('☁️ İlerlemen başarıyla buluta yedeklendi!');
+        setElText('auth-last-sync', `Son Bulut Kaydı: ${new Date().toLocaleTimeString('tr-TR')}`);
+        if (!silent) showToast('☁️ İlerlemen başarıyla buluta kaydedildi!');
     } catch (err) {
-        if (!silent) showToast('❌ Bulut yedekleme sırasında hata oluştu.');
+        if (!silent) showToast('❌ Bulut kaydı sırasında hata oluştu.');
     }
 }
 
-async function syncFromCloudNow(silent = false) {
+async function forceCloudPull(silent = false) {
     if (!currentUser || typeof game === 'undefined') return;
 
     try {
@@ -1465,11 +1537,28 @@ function getDefaultRivalsForLeaderboard() {
     ];
 }
 
+function setLeaderboardSort(sortType) {
+    leaderboardSortBy = sortType === 'damage' ? 'damage' : 'wave';
+    const wBtn = document.getElementById('lb-sort-wave');
+    const dBtn = document.getElementById('lb-sort-damage');
+    if (wBtn) {
+        wBtn.className = leaderboardSortBy === 'wave'
+            ? 'py-1.5 rounded-lg font-tech font-bold text-xs bg-amber-600 text-white transition'
+            : 'py-1.5 rounded-lg font-tech font-bold text-xs text-slate-400 hover:text-white transition';
+    }
+    if (dBtn) {
+        dBtn.className = leaderboardSortBy === 'damage'
+            ? 'py-1.5 rounded-lg font-tech font-bold text-xs bg-amber-600 text-white transition'
+            : 'py-1.5 rounded-lg font-tech font-bold text-xs text-slate-400 hover:text-white transition';
+    }
+    refreshLeaderboard(false);
+}
+
 async function pushScoreToLeaderboard() {
     if (typeof game === 'undefined') return;
     const playerEntry = {
         uid: currentUser ? currentUser.uid : 'local_guest',
-        username: currentUser ? currentUser.username : 'Sen (Misafir)',
+        username: currentUser ? currentUser.username : 'Misafir Komutan',
         highestWave: Math.max(game.highestWave || 1, game.wave || 1),
         wave: game.wave || 1,
         activeSkin: game.activeSkin || 'default_cyber',
@@ -1492,7 +1581,7 @@ async function pushScoreToLeaderboard() {
     } catch (e) {}
 }
 
-async function fetchAndRenderLeaderboard(showNotification = false) {
+async function refreshLeaderboard(showNotification = false) {
     const container = document.getElementById('leaderboard-list');
     if (!container) return;
 
@@ -1513,15 +1602,22 @@ async function fetchAndRenderLeaderboard(showNotification = false) {
     }
 
     entries.sort((a, b) => {
+        if (leaderboardSortBy === 'damage') {
+            if ((b.damage || 0) !== (a.damage || 0)) return (b.damage || 0) - (a.damage || 0);
+            return (b.highestWave || 0) - (a.highestWave || 0);
+        }
         if ((b.highestWave || 0) !== (a.highestWave || 0)) return (b.highestWave || 0) - (a.highestWave || 0);
         return (b.damage || 0) - (a.damage || 0);
     });
 
     const myUid = currentUser ? currentUser.uid : 'local_guest';
+    let myRank = '-';
 
     container.innerHTML = entries.map((p, idx) => {
         const rank = idx + 1;
         const isMe = p.uid === myUid || (currentUser && p.username.toLowerCase() === currentUser.username.toLowerCase());
+        if (isMe) myRank = rank;
+
         const skinDef = (typeof SKIN_DATABASE !== 'undefined' && SKIN_DATABASE[p.activeSkin]) ? SKIN_DATABASE[p.activeSkin] : { name: 'Siber Çekirdek', emoji: '💠' };
 
         let rankBadge = `<span class="w-6 h-6 rounded-lg bg-slate-800 text-slate-300 font-tech font-bold text-xs flex items-center justify-center shrink-0">#${rank}</span>`;
@@ -1530,14 +1626,14 @@ async function fetchAndRenderLeaderboard(showNotification = false) {
         else if (rank === 3) rankBadge = `<span class="w-6 h-6 rounded-lg bg-amber-700/25 border border-amber-600 text-amber-400 font-tech font-bold text-xs flex items-center justify-center shrink-0">🥉</span>`;
 
         return `
-            <div class="premium-card p-2.5 flex items-center justify-between gap-2 ${isMe ? 'border-cyan-400/70 bg-cyan-950/25' : ''}">
+            <div class="premium-card p-2.5 flex items-center justify-between gap-2 ${isMe ? 'border-emerald-400/70 bg-emerald-950/25' : ''}">
                 <div class="flex items-center gap-2.5 min-w-0">
                     ${rankBadge}
                     <canvas id="lb-skin-canvas-${idx}" width="42" height="42" class="w-10 h-10 rounded-xl bg-slate-950 border border-white/10 shrink-0"></canvas>
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5">
-                            <span class="font-tech font-bold text-xs sm:text-sm ${isMe ? 'text-cyan-300' : 'text-white'} truncate">${p.username}</span>
-                            ${isMe ? '<span class="px-1.5 py-0.2 rounded bg-cyan-500/20 border border-cyan-400/40 text-[9px] font-tech font-bold text-cyan-300">SEN</span>' : ''}
+                            <span class="font-tech font-bold text-xs sm:text-sm ${isMe ? 'text-emerald-300' : 'text-white'} truncate">${p.username}</span>
+                            ${isMe ? '<span class="px-1.5 py-0.2 rounded bg-emerald-500/20 border border-emerald-400/40 text-[9px] font-tech font-bold text-emerald-300">SEN</span>' : ''}
                         </div>
                         <div class="text-[10px] text-slate-400 truncate">${skinDef.emoji} ${skinDef.name}</div>
                         <div class="flex items-center gap-2 text-[10px] font-tech mt-0.5">
@@ -1555,6 +1651,8 @@ async function fetchAndRenderLeaderboard(showNotification = false) {
             </div>
         `;
     }).join('');
+
+    setElText('lb-my-rank', `#${myRank}`);
 
     entries.forEach((p, idx) => {
         const cEl = document.getElementById(`lb-skin-canvas-${idx}`);
@@ -1576,6 +1674,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(initAuthAndCloudSystem, 200);
 });
 
+// =======================================================
+// MOBİL & TABLET ÖZEL DÜZENLEME: YAN YANA KÜÇÜK CAN/DALGA KUTUSU
+// =======================================================
 (function setupMobileHudAndSettingsFix() {
     function injectMobileHudCSS() {
         if (document.getElementById('mobile-hud-side-by-side-css')) return;
