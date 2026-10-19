@@ -7,6 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK (Bulut Kayıt & Liderlik Tablosu İçin) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <style>
         :root {
             --bg-dark: #181926;
@@ -89,7 +93,7 @@
             border-radius: 10px !important;
         }
 
-        header, #upgrade-drawer, #settings-modal > div, #theme-modal > div, #confirm-modal > div {
+        header, #upgrade-drawer, #settings-modal > div, #theme-modal > div, #confirm-modal > div, #auth-modal > div {
             background-color: rgba(30, 32, 48, 0.95) !important;
             border-color: rgba(255, 255, 255, 0.06) !important;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
@@ -173,6 +177,11 @@
         </div>
 
         <div class="flex items-center space-x-1 sm:space-x-2">
+            <!-- Hesap & Bulut Kayıt Butonu -->
+            <button onclick="openAuthModal()" id="btn-header-account" class="px-2 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-tech font-bold text-xs transition flex items-center gap-1" title="Hesap & Bulut Kayıt">
+                <i id="ui-account-icon" class="fa-solid fa-user-astronaut text-xs"></i>
+                <span id="ui-account-name" class="hidden md:inline max-w-[90px] truncate">Giriş Yap</span>
+            </button>
             <button onclick="openThemeModal()" class="px-2 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-tech font-bold text-xs transition flex items-center gap-1">
                 <i id="ui-theme-icon" class="fa-solid fa-palette text-xs"></i>
                 <span id="ui-theme-name" class="hidden lg:inline">Siber</span>
@@ -275,7 +284,7 @@
             </div>
         </div>
 
-        <div id="upgrade-drawer" class="absolute top-0 bottom-0 left-0 w-full sm:w-[430px] bg-slate-900/95 backdrop-blur-xl border-r border-slate-800 flex flex-col z-30 -translate-x-full shadow-2xl">
+        <div id="upgrade-drawer" class="absolute top-0 bottom-0 left-0 w-full sm:w-[440px] bg-slate-900/95 backdrop-blur-xl border-r border-slate-800 flex flex-col z-30 -translate-x-full shadow-2xl">
             <div class="p-3 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-2">
                     <span class="font-tech font-bold text-sm text-white tracking-wide uppercase flex items-center gap-1.5">
@@ -304,15 +313,17 @@
                 <div class="bg-slate-900/80 rounded px-1 py-0.5"><span class="text-slate-400 block text-[8px]">ÇOKLU</span><b id="ui-drawer-multi" class="font-tech text-cyan-400">1</b></div>
             </div>
 
-            <nav class="grid grid-cols-8 bg-slate-900 border-b border-slate-800 shrink-0 text-[9px] font-medium">
+            <!-- 9 Sekmeli Navigasyon (🏆 Sıralama Eklendi) -->
+            <nav class="grid grid-cols-9 bg-slate-900 border-b border-slate-800 shrink-0 text-[8.5px] sm:text-[9px] font-medium">
                 <button onclick="switchTab('attack')" id="tab-btn-attack" class="py-2.5 flex flex-col items-center justify-center gap-0.5 tab-active transition hover:bg-slate-800/40"><i class="fa-solid fa-crosshairs text-xs text-red-400"></i><span>Saldırı</span></button>
                 <button onclick="switchTab('defense')" id="tab-btn-defense" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-shield-halved text-xs text-emerald-400"></i><span>Savunma</span></button>
                 <button onclick="switchTab('economy')" id="tab-btn-economy" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-coins text-xs text-amber-400"></i><span>Ekonomi</span></button>
                 <button onclick="switchTab('companions')" id="tab-btn-companions" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-satellite text-xs text-cyan-400"></i><span>Yoldaş</span></button>
-                <button onclick="switchTab('items')" id="tab-btn-items" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40 relative"><i class="fa-solid fa-shield-cat text-xs text-yellow-400"></i><span>Envanter</span><span id="badge-equipped-count" class="absolute top-1 right-1 px-1 bg-yellow-500 text-black font-bold text-[8px] rounded-full">0/3</span></button>
+                <button onclick="switchTab('items')" id="tab-btn-items" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40 relative"><i class="fa-solid fa-shield-cat text-xs text-yellow-400"></i><span>Envanter</span><span id="badge-equipped-count" class="absolute top-0.5 right-0.5 px-1 bg-yellow-500 text-black font-bold text-[7px] rounded-full">0/3</span></button>
                 <button onclick="switchTab('lootbox')" id="tab-btn-lootbox" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-box-open text-xs text-pink-400"></i><span>Kutular</span></button>
                 <button onclick="switchTab('prestige')" id="tab-btn-prestige" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-bolt-lightning text-xs text-purple-400"></i><span>Prestij</span></button>
                 <button onclick="switchTab('casino')" id="tab-btn-casino" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-dice text-xs text-amber-300 animate-pulse"></i><span>Kumar</span></button>
+                <button onclick="switchTab('leaderboard')" id="tab-btn-leaderboard" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-trophy text-xs text-yellow-400"></i><span>Sıralama</span></button>
             </nav>
 
             <div class="flex-1 overflow-y-auto p-3 space-y-2.5" id="tab-content-area">
@@ -519,9 +530,146 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- 9. SEKME: LİDERLİK TABLOSU (🏆 SIRALAMA) -->
+                <div id="tab-leaderboard" class="hidden space-y-3">
+                    <div class="premium-card bg-gradient-to-br from-amber-950/50 via-slate-900 to-indigo-950/50 p-3.5 shadow-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <h3 class="font-tech font-bold text-base text-amber-300 flex items-center gap-2">
+                                    <i class="fa-solid fa-trophy text-yellow-400"></i> KÜRESEL LİDERLİK TABLOSU
+                                </h3>
+                                <p class="text-[10px] text-slate-400">En yüksek dalgaya ulaşan kule komutanları ve aktif skinleri</p>
+                            </div>
+                            <button onclick="refreshLeaderboard(true)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-white/10 text-amber-300 text-xs font-tech font-bold transition flex items-center gap-1 shrink-0">
+                                <i id="leaderboard-refresh-icon" class="fa-solid fa-rotate"></i> Yenile
+                            </button>
+                        </div>
+
+                        <!-- Oyuncunun Kendi Sıralama & Hesap Durumu Kartı -->
+                        <div id="leaderboard-my-card" class="bg-slate-950/80 border border-emerald-500/30 rounded-xl p-2.5 flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-tech font-bold text-xs shrink-0" id="lb-my-rank">#-</div>
+                                <div class="min-w-0">
+                                    <div class="font-tech font-bold text-xs text-white truncate" id="lb-my-name">Misafir Komutan</div>
+                                    <div class="text-[10px] text-slate-400" id="lb-my-status">Sıralamaya girmek için hesap aç!</div>
+                                </div>
+                            </div>
+                            <button onclick="openAuthModal()" id="lb-my-action-btn" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-tech font-bold text-[11px] shrink-0 transition">
+                                Hesap Bağla
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sıralama Filtresi -->
+                    <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                        <button onclick="setLeaderboardSort('wave')" id="lb-sort-wave" class="py-1.5 rounded-lg font-tech font-bold text-xs bg-amber-600 text-white transition"><i class="fa-solid fa-water mr-1"></i>En Yüksek Dalga</button>
+                        <button onclick="setLeaderboardSort('damage')" id="lb-sort-damage" class="py-1.5 rounded-lg font-tech font-bold text-xs text-slate-400 hover:text-white transition"><i class="fa-solid fa-burst mr-1"></i>Kule Hasarı</button>
+                    </div>
+
+                    <!-- Oyuncu Listesi -->
+                    <div id="leaderboard-list" class="space-y-2 max-h-[380px] overflow-y-auto pr-1"></div>
+                </div>
             </div>
         </div>
     </main>
+
+    <!-- HESAP & BULUT KAYIT MODALI (LOGIN / REGISTER) -->
+    <div id="auth-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-emerald-500/40 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 class="font-tech font-bold text-xl text-white flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up text-emerald-400"></i> Hesap & Bulut Sistemi
+                </h3>
+                <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <!-- Bağlantı Durumu Rozeti -->
+            <div class="flex items-center justify-between bg-slate-950/90 border border-white/5 px-3 py-2 rounded-xl text-xs">
+                <span class="text-slate-400">Sunucu Durumu:</span>
+                <span id="auth-cloud-mode-badge" class="font-tech font-bold text-emerald-400 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Hazır
+                </span>
+            </div>
+
+            <!-- GİRİŞ YAPILMAMIŞ EKRAN (LOGIN / KAYIT FORMU) -->
+            <div id="auth-guest-view" class="space-y-3.5">
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    Hesap oluşturarak ilerlemeni buluta yedekle! Telefondan kasıp tabletten veya PC'den aynı hesapla devam et ve <b class="text-amber-300">🏆 Liderlik Tablosunda</b> arkadaşlarınla yarış!
+                </p>
+
+                <div class="grid grid-cols-2 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <button onclick="switchAuthMode('login')" id="auth-tab-login" class="py-1.5 rounded-lg font-tech font-bold text-xs bg-emerald-600 text-white transition">Giriş Yap</button>
+                    <button onclick="switchAuthMode('register')" id="auth-tab-register" class="py-1.5 rounded-lg font-tech font-bold text-xs text-slate-400 hover:text-white transition">Kayıt Ol</button>
+                </div>
+
+                <div class="space-y-2.5">
+                    <div>
+                        <label class="text-[11px] text-slate-400 font-semibold block mb-1">Kullanıcı Adı (Sıralamada Görünecek Adın):</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                            <input type="text" id="auth-username" maxlength="18" placeholder="Örn: KurtKaan06" class="w-full bg-slate-950 border border-white/10 rounded-xl pl-8 pr-3 py-2 text-xs text-white font-medium focus:outline-none focus:border-emerald-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-slate-400 font-semibold block mb-1">Şifre:</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                            <input type="password" id="auth-password" placeholder="En az 6 karakter" class="w-full bg-slate-950 border border-white/10 rounded-xl pl-8 pr-3 py-2 text-xs text-white font-medium focus:outline-none focus:border-emerald-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="auth-error-msg" class="hidden text-xs text-red-400 bg-red-950/50 border border-red-500/30 rounded-lg p-2 text-center"></div>
+
+                <button onclick="submitUsernameAuth()" id="btn-auth-submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-tech font-bold text-sm shadow-lg transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i> <span id="auth-submit-label">HESABA GİRİŞ YAP</span>
+                </button>
+
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-white/10"></div>
+                    <span class="flex-shrink mx-3 text-[10px] text-slate-500 uppercase font-tech">VEYA TEK TIKLA</span>
+                    <div class="flex-grow border-t border-white/10"></div>
+                </div>
+
+                <button onclick="loginWithGoogle()" class="w-full py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-tech font-bold text-xs shadow transition flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-google text-red-500 text-sm"></i> Google ile Hızlı Bağlan
+                </button>
+            </div>
+
+            <!-- GİRİŞ YAPILMIŞ EKRAN (PROFİL & BULUT SENKRONİZASYON) -->
+            <div id="auth-logged-view" class="hidden space-y-4">
+                <div class="premium-card p-3.5 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-xl">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-emerald-400 font-tech font-bold uppercase">Aktif Komutan Hesabı</div>
+                            <div id="auth-profile-name" class="font-tech font-bold text-base text-white">Oyuncu</div>
+                            <div id="auth-last-sync" class="text-[10px] text-slate-400">Son Bulut Kaydı: Az önce</div>
+                        </div>
+                    </div>
+                    <button onclick="changeDisplayNickname()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-white/10 text-slate-300 text-[11px] font-tech font-bold transition" title="İsim Değiştir">
+                        <i class="fa-solid fa-pen"></i> İsim
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="forceCloudPush()" class="py-2.5 px-3 rounded-xl bg-blue-600/25 hover:bg-blue-600/40 border border-blue-500/40 text-blue-300 font-tech font-bold text-xs transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Buluta Kaydet
+                    </button>
+                    <button onclick="forceCloudPull()" class="py-2.5 px-3 rounded-xl bg-purple-600/25 hover:bg-purple-600/40 border border-purple-500/40 text-purple-300 font-tech font-bold text-xs transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-cloud-arrow-down"></i> Buluttan Çek
+                    </button>
+                </div>
+
+                <button onclick="logoutAccount()" class="w-full py-2 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-400 font-tech font-bold text-xs transition">
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Hesaptan Çıkış Yap
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div id="theme-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-indigo-500/40 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
@@ -605,31 +753,4 @@
                 <h2 id="loot-reveal-title" class="font-tech font-bold text-2xl sm:text-3xl text-white tracking-wide drop-shadow">KAZANILAN ÖDÜLLER</h2>
             </div>
 
-            <div id="loot-cards-container" class="w-full flex flex-wrap items-stretch justify-center gap-3 sm:gap-4 py-2"></div>
-
-            <div id="loot-refund-banner" class="hidden px-4 py-2 rounded-xl bg-cyan-950/80 border border-cyan-400/40 text-cyan-300 text-xs font-tech font-bold flex items-center gap-2 shadow-lg">
-                <i class="fa-solid fa-rotate-left text-cyan-400"></i>
-                <span id="loot-refund-text">Kopya ödüllerden +0 💎 Kristal iade edildi!</span>
-            </div>
-
-            <div class="flex items-center gap-3 pt-2">
-                <button onclick="closeLootboxModal()" class="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-tech font-bold text-sm transition shadow-lg">
-                    HARİKA!
-                </button>
-                <button id="loot-btn-reopen" onclick="reopenLastBox()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-tech font-bold text-sm transition shadow-[0_0_20px_rgba(245,158,11,0.4)] flex items-center gap-1.5">
-                    <i class="fa-solid fa-gem"></i> <span id="loot-reopen-label">Tekrar Aç (25 💎)</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="toast-msg" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900/95 border border-blue-500/50 text-white px-4 py-2 rounded-xl shadow-xl text-xs font-medium pointer-events-none opacity-0 transition-opacity duration-300 z-50 flex items-center gap-2">
-        <i class="fa-solid fa-circle-info text-blue-400"></i><span id="toast-text">Bildirim</span>
-    </div>
-
-    <script src="data.js"></script>
-    <script src="graphics.js"></script>
-    <script src="ui.js"></script>
-    <script src="engine.js"></script>
-</body>
-</html>
+            <div id="loot-cards-container" class="w-full flex flex-wrap items-stretch justify-center gap-3 sm:gap-4 py-
