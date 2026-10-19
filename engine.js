@@ -4,7 +4,8 @@ const ctx = canvas.getContext('2d');
 let tower = {
     x: 0, y: 0, hp: 100, maxHp: 100, shield: 0, maxShield: 0,
     fireCooldown: 0, angle: 0, recoil: 0,
-    freezeTimer: 0, frostSlowTimer: 0, frostVisualTick: 0
+    freezeTimer: 0, freezeImmunityTimer: 0, frostSlowTimer: 0, frostVisualTick: 0,
+    overdriveTimer: 0, overdriveVisualTick: 0
 };
 let enemies = [];
 let projectiles = [];
@@ -12,6 +13,7 @@ let particles = [];
 let floatingTexts = [];
 let lightningBeams = [];
 let rings = [];
+let cargoDrones = [];
 
 let bgStars = [];
 let snowFlakes = [];
@@ -25,12 +27,14 @@ initStars();
 
 let spawnTimer = 0;
 let playTimeAccum = 0;
+let waveFrostSpawns = 0;
+let cargoSpawnTimer = 45 + Math.random() * 15;
 
 function resizeCanvas() {
     const container = document.getElementById('canvas-container');
     if (!container) return;
     canvas.width = container.clientWidth;
-    canvas.height = canvas.clientHeight;
+    canvas.height = container.clientHeight;
     tower.x = canvas.width / 2;
     tower.y = canvas.height / 2;
 }
@@ -48,6 +52,125 @@ function distToSegment(px, py, x1, y1, x2, y2) {
     const projY = y1 + t * dy;
     return Math.hypot(px - projX, py - projY);
 }
+
+function spawnCargoDrone() {
+    if (cargoDrones.length > 0 || !canvas.width || !canvas.height) return;
+
+    const fromLeft = Math.random() < 0.5;
+    const margin = 36;
+    const startX = fromLeft ? -margin : canvas.width + margin;
+    const endX = fromLeft ? canvas.width + margin : -margin;
+
+    // Ekranın üst veya alt yarılarından çapraz/yatay geçiş rotası
+    const startY = canvas.height * (0.18 + Math.random() * 0.64);
+    const endY = canvas.height * (0.18 + Math.random() * 0.64);
+
+    const angle = Math.atan2(endY - startY, endX - startX);
+    const speed = 72 + Math.random() * 18;
+
+    const roll = Math.random();
+    let rewardType = 'gold';
+    let color = '#fbbf24';
+    let secColor = '#fef08a';
+    let label = 'ALTIN KARGO';
+
+    if (roll < 0.34) {
+        rewardType = 'overdrive';
+        color = '#f97316';
+        secColor = '#fed7aa';
+        label = 'OVERDRIVE DRONU';
+    } else if (roll < 0.67) {
+        rewardType = 'crystal';
+        color = '#22d3ee';
+        secColor = '#cffafe';
+        label = 'KRİSTAL UYDUSU';
+    }
+
+    cargoDrones.push({
+        x: startX,
+        y: startY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        radius: 20,
+        rewardType,
+        color,
+        secColor,
+        label,
+        rot: 0,
+        pulsePhase: 0,
+        trailTick: 0,
+        life: 20
+    });
+
+    if (typeof showToast === 'function') {
+        showToast(`🛸 ${label} göründü! Yakalamak için dokun!`);
+    }
+}
+
+function collectCargoDrone(index) {
+    const d = cargoDrones[index];
+    if (!d) return;
+    cargoDrones.splice(index, 1);
+
+    createParticles(d.x, d.y, d.color, 20, 110);
+    createParticles(d.x, d.y, '#ffffff', 10, 75);
+    rings.push({ x: d.x, y: d.y, radius: 14, color: d.color, life: 0.95 });
+
+    const w = game.wave || 1;
+    if (d.rewardType === 'overdrive') {
+        tower.overdriveTimer = 10.0;
+        const bonusGold = Math.max(10, Math.round(getWaveBaseGold(w) * getGoldMultiplier() * 5));
+        game.gold += bonusGold;
+        addFloatingText(d.x, d.y - 10, `⚡ 2X HIZ (10sn)!`, '#f97316', 14);
+        addFloatingText(d.x, d.y + 8, `+${formatNumber(bonusGold)} 🪙`, '#fbbf24', 12);
+        rings.push({ x: tower.x, y: tower.y, radius: 16, color: '#f97316', life: 0.85 });
+        if (typeof showToast === 'function') {
+            showToast(`⚡ Overdrive Aktif! 10 Saniye 2x Atış Hızı + ${formatNumber(bonusGold)} Altın!`);
+        }
+    } else if (d.rewardType === 'crystal') {
+        const cAmt = Math.max(3, Math.round((4 + Math.floor(w * 0.35)) * getCrystalDropMult()));
+        game.crystals += cAmt;
+        addFloatingText(d.x, d.y - 8, `+${formatNumber(cAmt)} 💎`, '#22d3ee', 15);
+        if (typeof showToast === 'function') {
+            showToast(`💎 Kargo İmha Edildi! +${formatNumber(cAmt)} Kristal Kazandın!`);
+        }
+    } else {
+        const goldAmt = Math.max(25, Math.round(getWaveBaseGold(w) * getGoldMultiplier() * 12));
+        game.gold += goldAmt;
+        addFloatingText(d.x, d.y - 8, `+${formatNumber(goldAmt)} 🪙`, '#fbbf24', 15);
+        if (typeof showToast === 'function') {
+            showToast(`🪙 Altın Kargosu Toplandı! +${formatNumber(goldAmt)} Altın!`);
+        }
+    }
+
+    updateHUD();
+    refreshUpgradeButtonsState();
+}
+
+function handleCanvasPointerDown(e) {
+    if (isPaused || isDefeated || cargoDrones.length === 0) return;
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+    const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clickX = (clientX - rect.left) * scaleX;
+    const clickY = (clientY - rect.top) * scaleY;
+
+    // Mobil ve Web için geniş dokunma toleransı (radius + 20px)
+    for (let i = cargoDrones.length - 1; i >= 0; i--) {
+        const d = cargoDrones[i];
+        if (Math.hypot(d.x - clickX, d.y - clickY) <= d.radius + 20) {
+            if (e.cancelable) e.preventDefault();
+            collectCargoDrone(i);
+            break;
+        }
+    }
+}
+canvas.addEventListener('pointerdown', handleCanvasPointerDown, { passive: false });
 
 function spawnEnemy(isBoss = false) {
     const angle = Math.random() * Math.PI * 2;
@@ -151,12 +274,23 @@ function spawnEnemy(isBoss = false) {
             kbResist = 0.35; stopDistOverride = 34;
             customPal = { color: '#64748b', secColor: '#e2e8f0' };
         } else if (w >= 3 && roll < 0.30) {
-            type = 'frost'; subType = 'frost'; name = 'Buzul Nöbetçisi'; radius = 13; speed = 32;
-            hp = baseHp * 0.95; dmg = baseDmg * 0.85; isRanged = true; isFrost = true;
-            freezeDuration = 0.85; frostSlowDuration = 3.2;
-            attackInterval = 1.60; stopDistOverride = Math.max(105, getTowerRange() - 25);
-            gold = baseGold * 1.25;
-            customPal = { color: '#06b6d4', secColor: '#cffafe' };
+            // Ekranda maksimum 2 Buzul Nöbetçisi ve dalga başına maksimum 4 limit kontrolü
+            const activeFrostCount = enemies.filter(e => e.type === 'frost').length;
+            if (activeFrostCount < 2 && waveFrostSpawns < 4) {
+                waveFrostSpawns++;
+                type = 'frost'; subType = 'frost'; name = 'Buzul Nöbetçisi'; radius = 13; speed = 32;
+                hp = baseHp * 0.95; dmg = baseDmg * 0.85; isRanged = true; isFrost = true;
+                freezeDuration = 0.85; frostSlowDuration = 3.2;
+                attackInterval = 1.60; stopDistOverride = Math.max(105, getTowerRange() - 25);
+                gold = baseGold * 1.25;
+                customPal = { color: '#06b6d4', secColor: '#cffafe' };
+            } else if (Math.random() < 0.5) {
+                type = 'ranged'; subType = 'ranged'; name = 'Mavi Nişancı'; radius = 12; speed = 30;
+                hp = baseHp * 0.80; dmg = baseDmg * 0.95; isRanged = true; gold = baseGold * 1.10;
+            } else {
+                type = 'green'; subType = 'green'; name = 'Yeşil Xenomorph'; radius = 13; speed = 40;
+                hp = baseHp * 1.0; dmg = baseDmg * 1.0; stopDistOverride = 30;
+            }
         } else if (w >= 2 && roll < 0.44) {
             type = 'runner'; subType = 'runner'; name = 'Gölge Koşucu'; radius = 10; speed = 72;
             hp = baseHp * 0.52; dmg = baseDmg * 0.85; gold = baseGold * 1.10;
@@ -193,10 +327,14 @@ function spawnEnemy(isBoss = false) {
 
 function applyFrostToTower(freezeDur = 0, slowDur = 3.0) {
     tower.frostSlowTimer = Math.max(tower.frostSlowTimer || 0, slowDur);
-    if (freezeDur > 0 && (freezeDur >= 1.0 || Math.random() < 0.30)) {
+
+    const isImmuneToFreeze = (tower.freezeTimer > 0) || ((tower.freezeImmunityTimer || 0) > 0);
+    if (!isImmuneToFreeze && freezeDur > 0 && (freezeDur >= 1.0 || Math.random() < 0.30)) {
         tower.freezeTimer = Math.max(tower.freezeTimer || 0, freezeDur);
         addFloatingText(tower.x, tower.y - 26, '❄️ KULE DONDU!', '#38bdf8', 13);
         rings.push({ x: tower.x, y: tower.y, radius: 18, color: '#38bdf8', life: 0.75 });
+    } else if ((tower.freezeImmunityTimer || 0) > 0 && freezeDur > 0) {
+        addFloatingText(tower.x, tower.y - 22, '🛡️ DONMA KORUMASI', '#bae6fd', 10);
     } else {
         addFloatingText(tower.x, tower.y - 22, '❄️ BUZ YAVAŞLATMASI', '#7dd3fc', 10);
     }
@@ -245,6 +383,7 @@ function updateGame(dt) {
     if (tower.maxShield > 0 && tower.shield < tower.maxShield) tower.shield = Math.min(tower.maxShield, tower.shield + (tower.maxShield * 0.05) * simDt);
     if (tower.recoil > 0) tower.recoil = Math.max(0, tower.recoil - simDt * 15);
 
+    // Kule donma süresi ve çözüldükten sonra devreye giren 2.5 saniyelik Donma Bağışıklığı
     if (tower.freezeTimer > 0) {
         tower.freezeTimer = Math.max(0, tower.freezeTimer - simDt);
         tower.frostVisualTick = (tower.frostVisualTick || 0) + simDt;
@@ -252,9 +391,59 @@ function updateGame(dt) {
             tower.frostVisualTick = 0;
             createParticles(tower.x, tower.y, '#bae6fd', 3, 35);
         }
+        if (tower.freezeTimer === 0) {
+            tower.freezeImmunityTimer = 2.5;
+            addFloatingText(tower.x, tower.y - 24, '🛡️ 2.5sn BAĞIŞIKLIK', '#7dd3fc', 10);
+        }
+    } else if (tower.freezeImmunityTimer > 0) {
+        tower.freezeImmunityTimer = Math.max(0, tower.freezeImmunityTimer - simDt);
     }
+
     if (tower.frostSlowTimer > 0) {
         tower.frostSlowTimer = Math.max(0, tower.frostSlowTimer - simDt);
+    }
+
+    // Overdrive (2x Atış Hızı) süresi ve görsel efekti
+    if (tower.overdriveTimer > 0) {
+        tower.overdriveTimer = Math.max(0, tower.overdriveTimer - dt);
+        tower.overdriveVisualTick = (tower.overdriveVisualTick || 0) + dt;
+        if (tower.overdriveVisualTick >= 0.22) {
+            tower.overdriveVisualTick = 0;
+            createParticles(tower.x, tower.y, '#f97316', 2, 45);
+        }
+    }
+
+    cargoSpawnTimer -= dt;
+    if (cargoSpawnTimer <= 0) {
+        cargoSpawnTimer = 45 + Math.random() * 15;
+        spawnCargoDrone();
+    }
+
+    for (let i = cargoDrones.length - 1; i >= 0; i--) {
+        const d = cargoDrones[i];
+        d.x += d.vx * dt;
+        d.y += d.vy * dt;
+        d.rot += dt * 2.2;
+        d.pulsePhase += dt * 5;
+        d.life -= dt;
+        d.trailTick = (d.trailTick || 0) + dt;
+        if (d.trailTick >= 0.08) {
+            d.trailTick = 0;
+            particles.push({
+                x: d.x - (d.vx * 0.04),
+                y: d.y - (d.vy * 0.04),
+                vx: (Math.random() - 0.5) * 18,
+                vy: (Math.random() - 0.5) * 18,
+                radius: 2 + Math.random() * 1.5,
+                color: d.color,
+                alpha: 0.85,
+                life: 0.35
+            });
+        }
+        const outOfBounds = d.x < -80 || d.x > canvas.width + 80 || d.y < -80 || d.y > canvas.height + 80;
+        if (d.life <= 0 || outOfBounds) {
+            cargoDrones.splice(i, 1);
+        }
     }
 
     spawnTimer -= simDt;
@@ -263,7 +452,9 @@ function updateGame(dt) {
         spawnEnemy(false);
     }
 
-    const fireRateFactor = tower.freezeTimer > 0 ? 0 : (tower.frostSlowTimer > 0 ? 0.55 : 1.0);
+    const baseFrostFactor = tower.freezeTimer > 0 ? 0 : (tower.frostSlowTimer > 0 ? 0.55 : 1.0);
+    const overdriveFactor = (tower.overdriveTimer && tower.overdriveTimer > 0) ? 2.0 : 1.0;
+    const fireRateFactor = baseFrostFactor * overdriveFactor;
     tower.fireCooldown -= simDt * fireRateFactor;
 
     const range = getTowerRange();
@@ -669,6 +860,7 @@ function completeWave() {
         game.holdWaveTimer = 0; game.consecutiveHoldWins++; addFloatingText(tower.x, tower.y - 35, `Farm Modu (${game.consecutiveHoldWins}/4)`, '#38bdf8', 11);
         if (game.consecutiveHoldWins >= 4) { game.holdWave = false; game.consecutiveHoldWins = 0; updateHoldWaveButton(); showToast('Farm modunda 4 dalga geçildi! Otomatik İlerleme aktif.'); }
     }
+    waveFrostSpawns = 0;
     game.waveKills = 0; game.waveTargetKills = Math.min(45, 14 + Math.floor(game.wave * 0.25)); tower.hp = Math.min(tower.maxHp, tower.hp + tower.maxHp * 0.15);
     if (!game.holdWave && game.wave % 5 === 0 && !enemies.some(e => e.type === 'boss')) spawnEnemy(true);
     updatePrestigeUI(); refreshUpgradeButtonsState(); saveGame(true);
@@ -698,7 +890,7 @@ function triggerTowerDefeat() {
 
 function recoverFromDefeat() {
     isDefeated = false; document.getElementById('defeat-overlay').classList.add('hidden'); enemies = []; projectiles = [];
-    tower.freezeTimer = 0; tower.frostSlowTimer = 0;
+    tower.freezeTimer = 0; tower.freezeImmunityTimer = 0; tower.frostSlowTimer = 0; waveFrostSpawns = 0;
     if (game.wave > 1) { game.wave--; game.holdWave = true; game.holdWaveTimer = 0; game.consecutiveHoldWins = 0; updateHoldWaveButton(); showToast('Üst üste 2 kez yıkıldın! Güvenli dalgaya çekildin.'); }
     game.consecutiveDefeats = 0; game.waveKills = 0; tower.hp = getTowerMaxHp(); tower.shield = getTowerMaxShield(); updateHUD();
 }
