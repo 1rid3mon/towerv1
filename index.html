@@ -203,7 +203,7 @@
         <div id="canvas-container" class="absolute inset-0 bg-slate-950 overflow-hidden select-none">
             <canvas id="gameCanvas" class="block w-full h-full"></canvas>
 
-            <!-- Üst Can ve Dalga Kartları: Telefon/Tablette yan yana kompakt, PC'de geniş -->
+            <!-- Üst Can ve Dalga Kartları -->
             <div id="hud-top-bar" class="absolute top-2 left-2 flex flex-row items-stretch justify-start gap-1.5 sm:gap-2.5 pointer-events-none z-10">
                 <div id="hud-hp-card" class="bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-1.5 sm:p-2 rounded-xl w-[155px] sm:w-52 shadow-lg pointer-events-auto tablet-compact flex flex-col justify-between">
                     <div>
@@ -313,7 +313,7 @@
                 <div class="bg-slate-900/80 rounded px-1 py-0.5"><span class="text-slate-400 block text-[8px]">ÇOKLU</span><b id="ui-drawer-multi" class="font-tech text-cyan-400">1</b></div>
             </div>
 
-            <!-- 9 Sekmeli Navigasyon (🏆 Sıralama Eklendi) -->
+            <!-- 9 Sekmeli Navigasyon -->
             <nav class="grid grid-cols-9 bg-slate-900 border-b border-slate-800 shrink-0 text-[8.5px] sm:text-[9px] font-medium">
                 <button onclick="switchTab('attack')" id="tab-btn-attack" class="py-2.5 flex flex-col items-center justify-center gap-0.5 tab-active transition hover:bg-slate-800/40"><i class="fa-solid fa-crosshairs text-xs text-red-400"></i><span>Saldırı</span></button>
                 <button onclick="switchTab('defense')" id="tab-btn-defense" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-shield-halved text-xs text-emerald-400"></i><span>Savunma</span></button>
@@ -615,7 +615,7 @@
                         <label class="text-[11px] text-slate-400 font-semibold block mb-1">Şifre:</label>
                         <div class="relative">
                             <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                            <input type="password" id="auth-password" placeholder="En az 6 karakter" class="w-full bg-slate-950 border border-white/10 rounded-xl pl-8 pr-3 py-2 text-xs text-white font-medium focus:outline-none focus:border-emerald-500">
+                            <input type="password" id="auth-password" placeholder="En az 4 karakter" class="w-full bg-slate-950 border border-white/10 rounded-xl pl-8 pr-3 py-2 text-xs text-white font-medium focus:outline-none focus:border-emerald-500">
                         </div>
                     </div>
                 </div>
@@ -753,4 +753,34 @@
                 <h2 id="loot-reveal-title" class="font-tech font-bold text-2xl sm:text-3xl text-white tracking-wide drop-shadow">KAZANILAN ÖDÜLLER</h2>
             </div>
 
-            <div id="loot-cards-container" class="w-full flex flex-wrap items-stretch justify-center gap-3 sm:gap-4 py-
+            <div id="loot-cards-container" class="w-full flex flex-wrap items-stretch justify-center gap-3 sm:gap-4 py-2"></div>
+
+            <div id="loot-refund-banner" class="hidden px-4 py-2 rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-tech font-bold flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-gem text-cyan-400"></i>
+                <span id="loot-refund-text">Kopya ödüllerden +10 Kristal iade edildi!</span>
+            </div>
+
+            <div class="flex items-center justify-center gap-3 pt-2">
+                <button id="loot-btn-reopen" onclick="reopenLastBox()" class="upgrade-btn px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-tech font-bold text-xs sm:text-sm shadow-lg flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span id="loot-reopen-label">Tekrar Aç</span>
+                </button>
+                <button onclick="closeLootboxModal()" class="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/15 text-white font-tech font-bold text-xs sm:text-sm shadow-lg transition">
+                    Harika! (Kapat)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bildirim (Toast) Kutusu -->
+    <div id="toast-msg" class="fixed bottom-14 left-1/2 -translate-x-1/2 bg-slate-900/95 border border-blue-500/40 text-slate-100 px-4 py-2 rounded-xl shadow-2xl pointer-events-none opacity-0 transition-opacity duration-300 z-50 flex items-center gap-2 text-xs font-tech font-bold">
+        <i class="fa-solid fa-circle-info text-blue-400"></i>
+        <span id="toast-text">Bildirim</span>
+    </div>
+
+    <!-- OYUN DOSYALARI -->
+    <script src="data.js"></script>
+    <script src="ui.js"></script>
+    <script src="engine.js"></script>
+</body>
+</html>
