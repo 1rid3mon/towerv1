@@ -1216,6 +1216,84 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
     }
 }
 
+// =======================================================
+// KARGO / GANİMET DRONU (QTE UYDUSU) GÖRSEL ÇİZİMİ
+// =======================================================
+function drawCargoDrone(c, d, nowTime) {
+    c.save();
+    c.translate(d.x, d.y);
+
+    const pulse = Math.sin(d.pulsePhase || nowTime * 0.006) * 3;
+
+    // Dış dikkat çekici hedefleme halkası
+    c.beginPath();
+    c.arc(0, 0, d.radius + 7 + pulse, 0, Math.PI * 2);
+    c.strokeStyle = d.color;
+    c.lineWidth = 1.6;
+    c.setLineDash([5, 4]);
+    c.stroke();
+    c.setLineDash([]);
+
+    // Parlama aurası
+    const glow = c.createRadialGradient(0, 0, 4, 0, 0, d.radius + 10);
+    glow.addColorStop(0, d.secColor || '#ffffff');
+    glow.addColorStop(0.5, d.color);
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    c.globalAlpha = 0.35;
+    c.fillStyle = glow;
+    c.beginPath();
+    c.arc(0, 0, d.radius + 10, 0, Math.PI * 2);
+    c.fill();
+    c.globalAlpha = 1;
+
+    // Dönen uydu panelleri ve sekizgen kargo çekirdeği
+    c.save();
+    c.rotate(d.rot || 0);
+
+    c.fillStyle = '#1e293b';
+    c.strokeStyle = d.secColor || '#ffffff';
+    c.lineWidth = 1.6;
+    c.fillRect(-d.radius - 5, -5, 9, 10);
+    c.strokeRect(-d.radius - 5, -5, 9, 10);
+    c.fillRect(d.radius - 4, -5, 9, 10);
+    c.strokeRect(d.radius - 4, -5, 9, 10);
+
+    c.fillStyle = '#0f172a';
+    c.strokeStyle = d.color;
+    c.lineWidth = 2.2;
+    c.beginPath();
+    for (let i = 0; i < 8; i++) {
+        const a = (i * Math.PI) / 4;
+        const px = Math.cos(a) * (d.radius * 0.78);
+        const py = Math.sin(a) * (d.radius * 0.78);
+        if (i === 0) c.moveTo(px, py);
+        else c.lineTo(px, py);
+    }
+    c.closePath();
+    c.fill();
+    c.stroke();
+
+    c.fillStyle = d.color;
+    c.beginPath();
+    c.arc(0, 0, d.radius * 0.42, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+
+    // Merkez ikon ve "DOKUN!" etiketi
+    c.font = "bold 11px 'Rajdhani', sans-serif";
+    c.fillStyle = '#ffffff';
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    const iconTxt = d.rewardType === 'overdrive' ? '⚡' : (d.rewardType === 'crystal' ? '💎' : '🪙');
+    c.fillText(iconTxt, 0, 0);
+
+    c.font = "bold 9.5px 'Rajdhani', sans-serif";
+    c.fillStyle = d.secColor || '#fef08a';
+    c.fillText('DOKUN!', 0, -d.radius - 11);
+
+    c.restore();
+}
+
 function renderGame() {
     if (!canvas || !ctx) return;
 
@@ -1316,11 +1394,26 @@ function renderGame() {
         ctx.fillStyle = 'rgba(56, 189, 248, 0.09)'; ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
     }
 
+    // Overdrive (2x Atış Hızı) aktifken kule etrafında dönen turuncu enerji halkası
+    if (tower.overdriveTimer && tower.overdriveTimer > 0) {
+        ctx.save();
+        ctx.rotate(nowCompTime * 0.005);
+        const odRad = 29 + Math.sin(nowCompTime * 0.015) * 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, odRad, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(249, 115, 22, 0.9)';
+        ctx.lineWidth = 2.4;
+        ctx.setLineDash([8, 5]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+    }
+
     const skinId = game.activeSkin || 'default_cyber';
     const barrelCount = Math.min(7, Math.max(1, getEffectiveMultishot()));
     drawCustomTowerSkin(ctx, skinId, tower.angle, tower.recoil, barrelCount, nowCompTime);
 
-    // Kule Buz / Donma Görsel Efekti
+    // Kule Buz / Donma ve Donma Bağışıklığı Görsel Efekti
     if (tower.freezeTimer && tower.freezeTimer > 0) {
         ctx.fillStyle = 'rgba(56, 189, 248, 0.38)';
         ctx.strokeStyle = '#e0f2fe';
@@ -1333,6 +1426,12 @@ function renderGame() {
             if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
         }
         ctx.closePath(); ctx.fill(); ctx.stroke();
+    } else if (tower.freezeImmunityTimer && tower.freezeImmunityTimer > 0) {
+        ctx.strokeStyle = 'rgba(186, 230, 253, 0.85)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 3]);
+        ctx.beginPath(); ctx.arc(0, 0, 26, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
     } else if (tower.frostSlowTimer && tower.frostSlowTimer > 0) {
         ctx.strokeStyle = 'rgba(125, 211, 252, 0.65)';
         ctx.lineWidth = 1.8;
@@ -1341,6 +1440,13 @@ function renderGame() {
         ctx.setLineDash([]);
     }
     ctx.restore();
+
+    // Kargo / Ganimet Dronlarının (QTE) Çizimi
+    if (typeof cargoDrones !== 'undefined' && cargoDrones.length > 0) {
+        for (const d of cargoDrones) {
+            drawCargoDrone(ctx, d, nowCompTime);
+        }
+    }
 
     // Düşmanların ve Bossların Özel Tasarımlarla Çizimi
     for (const e of enemies) {
