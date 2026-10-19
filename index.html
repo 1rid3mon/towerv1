@@ -51,8 +51,43 @@
         .card-red { color: #dc2626; }
         
         body.device-phone .hide-on-phone { display: none !important; }
-        body.device-phone .text-shrink { font-size: 11px !important; }
-        body.device-tablet .tablet-compact { padding: 8px !important; }
+        body.device-phone .text-shrink { font-size: 10px !important; }
+        body.device-tablet .tablet-compact { padding: 6px 8px !important; }
+
+        /* Telefon ve Tablet Modunda Can & Dalga Kartlarını Kompakt ve Yan Yana Yap */
+        @media (max-width: 1024px) {
+            #hud-top-bar {
+                flex-direction: row !important;
+                align-items: stretch !important;
+                justify-content: flex-start !important;
+                gap: 6px !important;
+                right: auto !important;
+                max-width: calc(100vw - 16px) !important;
+            }
+            #hud-hp-card, #hud-wave-card {
+                width: 158px !important;
+                max-width: 46vw !important;
+                padding: 6px 8px !important;
+                border-radius: 10px !important;
+            }
+        }
+        body.device-phone #hud-top-bar,
+        body.device-tablet #hud-top-bar {
+            flex-direction: row !important;
+            align-items: stretch !important;
+            justify-content: flex-start !important;
+            gap: 6px !important;
+            right: auto !important;
+        }
+        body.device-phone #hud-hp-card,
+        body.device-phone #hud-wave-card,
+        body.device-tablet #hud-hp-card,
+        body.device-tablet #hud-wave-card {
+            width: 162px !important;
+            max-width: 46vw !important;
+            padding: 6px 8px !important;
+            border-radius: 10px !important;
+        }
 
         header, #upgrade-drawer, #settings-modal > div, #theme-modal > div, #confirm-modal > div {
             background-color: rgba(30, 32, 48, 0.95) !important;
@@ -159,44 +194,49 @@
         <div id="canvas-container" class="absolute inset-0 bg-slate-950 overflow-hidden select-none">
             <canvas id="gameCanvas" class="block w-full h-full"></canvas>
 
-            <div id="hud-top-bar" class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pointer-events-none z-10">
-                <div id="hud-hp-card" class="bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-2 sm:p-2.5 rounded-xl w-full sm:w-60 shadow-lg pointer-events-auto tablet-compact">
-                    <div class="flex justify-between text-xs mb-1">
-                        <span class="font-semibold text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-heart-pulse"></i> Can</span>
-                        <span id="ui-hp-text" class="font-tech font-bold text-slate-200 text-shrink">100 / 100</span>
-                    </div>
-                    <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-1.5 border border-slate-700/50">
-                        <div id="ui-hp-bar" class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-150" style="width: 100%"></div>
-                    </div>
-                    <div id="shield-container" class="hidden">
-                        <div class="flex justify-between text-[11px] mb-0.5">
-                            <span class="font-semibold text-sky-400 flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> Kalkan</span>
-                            <span id="ui-shield-text" class="font-tech font-bold text-sky-300">50 / 50</span>
+            <!-- Üst Can ve Dalga Kartları: Telefon/Tablette yan yana kompakt, PC'de geniş -->
+            <div id="hud-top-bar" class="absolute top-2 left-2 flex flex-row items-stretch justify-start gap-1.5 sm:gap-2.5 pointer-events-none z-10">
+                <div id="hud-hp-card" class="bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-1.5 sm:p-2 rounded-xl w-[155px] sm:w-52 shadow-lg pointer-events-auto tablet-compact flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between text-[10px] sm:text-xs mb-0.5">
+                            <span class="font-semibold text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-heart-pulse"></i> Can</span>
+                            <span id="ui-hp-text" class="font-tech font-bold text-slate-200 text-shrink">100 / 100</span>
                         </div>
-                        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
-                            <div id="ui-shield-bar" class="h-full bg-gradient-to-r from-sky-600 to-cyan-400 transition-all duration-150" style="width: 100%"></div>
+                        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-1 border border-slate-700/50">
+                            <div id="ui-hp-bar" class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-150" style="width: 100%"></div>
+                        </div>
+                        <div id="shield-container" class="hidden">
+                            <div class="flex justify-between text-[9px] sm:text-[10px] mb-0.5">
+                                <span class="font-semibold text-sky-400 flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> Kalkan</span>
+                                <span id="ui-shield-text" class="font-tech font-bold text-sky-300">50 / 50</span>
+                            </div>
+                            <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50 mb-0.5">
+                                <div id="ui-shield-bar" class="h-full bg-gradient-to-r from-sky-600 to-cyan-400 transition-all duration-150" style="width: 100%"></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 mt-1 pt-1 border-t border-slate-800/80">
+                    <div class="flex items-center justify-between text-[9px] sm:text-[10px] text-slate-400 pt-1 border-t border-slate-800/80">
                         <span>Yenileme: <b id="ui-hud-regen" class="text-slate-200">0/sn</b></span>
                         <span>Zırh: <b id="ui-hud-armor" class="text-slate-200">0</b></span>
                     </div>
                 </div>
 
-                <div id="hud-wave-card" class="bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-2 sm:p-2.5 rounded-xl w-full sm:w-64 shadow-lg pointer-events-auto tablet-compact">
-                    <div class="flex items-center justify-between mb-1">
-                        <div class="flex items-center gap-1.5">
-                            <span id="ui-wave-badge" class="px-2 py-0.5 text-xs font-tech font-bold rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">DALGA 1</span>
-                            <span id="ui-boss-warning" class="hidden px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-500/20 text-red-400 border border-red-500/40 animate-pulse"><i class="fa-solid fa-skull"></i> BOSS</span>
+                <div id="hud-wave-card" class="bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-1.5 sm:p-2 rounded-xl w-[155px] sm:w-56 shadow-lg pointer-events-auto tablet-compact flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-0.5">
+                            <div class="flex items-center gap-1">
+                                <span id="ui-wave-badge" class="px-1.5 py-0.5 text-[10px] sm:text-xs font-tech font-bold rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">DALGA 1</span>
+                                <span id="ui-boss-warning" class="hidden px-1 py-0.5 text-[9px] font-bold rounded bg-red-500/20 text-red-400 border border-red-500/40 animate-pulse"><i class="fa-solid fa-skull"></i></span>
+                            </div>
+                            <span id="ui-wave-progress-text" class="text-[10px] sm:text-xs font-tech text-slate-300">0 / 15</span>
                         </div>
-                        <span id="ui-wave-progress-text" class="text-xs font-tech text-slate-300">0 / 15</span>
+                        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-1 border border-slate-700/50">
+                            <div id="ui-wave-bar" class="h-full bg-gradient-to-r from-blue-600 to-indigo-400 transition-all duration-200" style="width: 0%"></div>
+                        </div>
                     </div>
-                    <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
-                        <div id="ui-wave-bar" class="h-full bg-gradient-to-r from-blue-600 to-indigo-400 transition-all duration-200" style="width: 0%"></div>
-                    </div>
-                    <div class="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 mt-1 pt-1 border-t border-slate-800/80">
-                        <span>Aktif Düşman: <b id="ui-active-enemies" class="text-slate-200">0</b></span>
-                        <button onclick="toggleHoldWave()" id="btn-hold-wave" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[10px] font-semibold text-emerald-400 transition flex items-center gap-1">
+                    <div class="flex items-center justify-between text-[9px] sm:text-[10px] text-slate-400 pt-1 border-t border-slate-800/80">
+                        <span>Düşman: <b id="ui-active-enemies" class="text-slate-200">0</b></span>
+                        <button onclick="toggleHoldWave()" id="btn-hold-wave" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[9px] sm:text-[10px] font-semibold text-emerald-400 transition flex items-center gap-1">
                             <i id="icon-hold-wave" class="fa-solid fa-forward"></i>
                             <span id="text-hold-wave">Oto İlerle</span>
                         </button>
@@ -297,7 +337,7 @@
                 
                 <div id="tab-items" class="hidden space-y-3">
                     <div class="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
-                        <button onclick="switchInventorySubTab('gear')" id="inv-sub-gear" class="py-1.5 rounded-lg font-tech font-bold text-[11px] bg-blue-600 text-white transition"><i class="fa-solid fa-toolbox mr-1"></i>Eşyalar</button>
+                        <button onclick="switchInventorySubTab('gear')" id="inv-sub-gear" class="py-1.5 rounded-lg font-tech font-bold text-[11px] bg-blue-600 text-white transition"><i class="fa-solid fa-toolbox mr-1"></i>Eşyalar (<span id="owned-items-count">0/0</span>)</button>
                         <button onclick="switchInventorySubTab('skins')" id="inv-sub-skins" class="py-1.5 rounded-lg font-tech font-bold text-[11px] text-slate-400 hover:text-white transition"><i class="fa-solid fa-chess-rook mr-1"></i>Kule (<span id="owned-skins-count">1/26</span>)</button>
                         <button onclick="switchInventorySubTab('compskins')" id="inv-sub-compskins" class="py-1.5 rounded-lg font-tech font-bold text-[11px] text-slate-400 hover:text-white transition"><i class="fa-solid fa-satellite mr-1"></i>Yoldaş (<span id="owned-compskins-count">1/10</span>)</button>
                     </div>
@@ -309,7 +349,7 @@
                         </div>
                         <div>
                             <div class="flex items-center justify-between mb-1.5">
-                                <h4 class="font-tech font-bold text-xs text-slate-300 uppercase flex items-center gap-1.5"><i class="fa-solid fa-box"></i> Envanterdeki Eşyalar</h4>
+                                <h4 class="font-tech font-bold text-xs text-slate-300 uppercase flex items-center gap-1.5"><i class="fa-solid fa-box"></i> Envanterdeki Eşyalar (<span id="inv-gear-header-count" class="text-pink-400">0/0</span>)</h4>
                                 <button onclick="toggleRaritySortOrder()" id="btn-sort-rarity" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 border border-white/10 text-[10px] font-tech font-bold text-amber-300 transition flex items-center gap-1">
                                     <i class="fa-solid fa-arrow-down-wide-short"></i> <span id="sort-rarity-label">Nadirlik: En Yüksek</span>
                                 </button>
@@ -343,35 +383,38 @@
 
                 <div id="tab-lootbox" class="hidden space-y-3">
                     <div class="premium-card bg-gradient-to-br from-pink-950/50 via-slate-900 to-indigo-950/50 p-3.5 shadow-lg text-center relative overflow-hidden">
-                        <div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-pink-500 text-white font-tech font-bold text-[9px] uppercase">Özel İkonlu Eşyalar!</div>
+                        <div id="lootbox-item-badge" class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-pink-500 text-white font-tech font-bold text-[9px] uppercase">Koleksiyon: 0/0</div>
                         <div class="w-11 h-11 rounded-2xl bg-pink-500/20 border border-pink-500/40 flex items-center justify-center mx-auto mb-2 text-pink-400 text-xl"><i class="fa-solid fa-cube"></i></div>
                         <h3 class="font-tech font-bold text-base text-pink-300 mb-0.5">Eşya & Kuantum Sandığı</h3>
-                        <p class="text-[11px] text-slate-300 mb-2.5"><b class="text-amber-300">Trajedi Maskesi</b>, <b class="text-pink-300">Sisifos'un Kayası</b>, <b class="text-cyan-300">Kader Daktilosu</b>, <b class="text-red-300">Kanlı Kum Saati</b> ve özel eşyalar düşür!</p>
+                        <p class="text-[11px] text-slate-300 mb-2"><b class="text-amber-300">Trajedi Maskesi</b>, <b class="text-pink-300">Sisifos'un Kayası</b>, <b class="text-cyan-300">Kader Daktilosu</b>, <b class="text-red-300">Kanlı Kum Saati</b> ve özel eşyalar düşür!</p>
+                        <div id="lootbox-item-progress-info" class="text-[10px] font-tech font-bold text-pink-300 mb-2.5 bg-slate-950/70 py-1 px-2.5 rounded-lg border border-pink-500/30 inline-block">Açılan Eşya: 0 / 0</div>
                         <div class="flex justify-center gap-2">
-                            <button onclick="openLootbox(1)" class="px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 25 Kristal (1'li)</button>
-                            <button onclick="openLootbox(5)" class="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 110 Kristal (5'li)</button>
+                            <button id="btn-open-item-1" onclick="openLootbox(1)" class="upgrade-btn px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 25 Kristal (1'li)</button>
+                            <button id="btn-open-item-5" onclick="openLootbox(5)" class="upgrade-btn px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 110 Kristal (5'li)</button>
                         </div>
                     </div>
 
                     <div class="premium-card bg-gradient-to-br from-amber-950/60 via-slate-900 to-yellow-950/40 p-3.5 shadow-lg text-center relative overflow-hidden">
-                        <div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-tech font-bold text-[9px] uppercase">Kule Skinleri!</div>
+                        <div id="lootbox-skin-badge" class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-tech font-bold text-[9px] uppercase">Koleksiyon: 1/26</div>
                         <div class="w-11 h-11 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center mx-auto mb-2 text-amber-400 text-xl"><i class="fa-solid fa-crown"></i></div>
                         <h3 class="font-tech font-bold text-base text-amber-300 mb-0.5">Kule Skin Kutusu</h3>
-                        <p class="text-[11px] text-slate-300 mb-2.5">Efsanevi <b class="text-yellow-300">Kurt Kaan</b>, <b class="text-yellow-300">DGDVRN</b>, <b class="text-pink-300">Balonlu Sakız</b> ve 25 özel Kule Skini içerir!</p>
+                        <p class="text-[11px] text-slate-300 mb-2">Efsanevi <b class="text-yellow-300">Kurt Kaan</b>, <b class="text-yellow-300">DGDVRN</b>, <b class="text-pink-300">Balonlu Sakız</b> ve özel Kule Skinleri içerir!</p>
+                        <div id="lootbox-skin-progress-info" class="text-[10px] font-tech font-bold text-amber-300 mb-2.5 bg-slate-950/70 py-1 px-2.5 rounded-lg border border-amber-500/30 inline-block">Açılan Kule Skini: 1 / 26</div>
                         <div class="flex justify-center gap-2">
-                            <button onclick="openSkinBox(1)" class="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 25 Kristal (1'li)</button>
-                            <button onclick="openSkinBox(5)" class="px-3 py-2 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 110 Kristal (5'li)</button>
+                            <button id="btn-open-skin-1" onclick="openSkinBox(1)" class="upgrade-btn px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 25 Kristal (1'li)</button>
+                            <button id="btn-open-skin-5" onclick="openSkinBox(5)" class="upgrade-btn px-3 py-2 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 110 Kristal (5'li)</button>
                         </div>
                     </div>
 
                     <div class="premium-card bg-gradient-to-br from-cyan-950/60 via-slate-900 to-blue-950/40 p-3.5 shadow-lg text-center relative overflow-hidden">
-                        <div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-cyan-400 text-slate-950 font-tech font-bold text-[9px] uppercase">Yeni Yoldaşlar!</div>
+                        <div id="lootbox-compskin-badge" class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-cyan-400 text-slate-950 font-tech font-bold text-[9px] uppercase">Koleksiyon: 1/10</div>
                         <div class="w-11 h-11 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center mx-auto mb-2 text-cyan-400 text-xl"><i class="fa-solid fa-satellite"></i></div>
                         <h3 class="font-tech font-bold text-base text-cyan-300 mb-0.5">Yoldaş Skin Kutusu</h3>
-                        <p class="text-[11px] text-slate-300 mb-2.5">Yörüngedeki yoldaşların için <b class="text-amber-300">Bozkurt Ruhu</b>, <b class="text-purple-300">Tutulma Hilali</b>, <b class="text-pink-300">Gölge Kunai</b> ve <b class="text-sky-300">Origami Turna</b> görünümleri!</p>
+                        <p class="text-[11px] text-slate-300 mb-2">Yörüngedeki yoldaşların için <b class="text-amber-300">Bozkurt Ruhu</b>, <b class="text-purple-300">Tutulma Hilali</b>, <b class="text-pink-300">Gölge Kunai</b> ve <b class="text-sky-300">Origami Turna</b> görünümleri!</p>
+                        <div id="lootbox-compskin-progress-info" class="text-[10px] font-tech font-bold text-cyan-300 mb-2.5 bg-slate-950/70 py-1 px-2.5 rounded-lg border border-cyan-500/30 inline-block">Açılan Yoldaş Skini: 1 / 10</div>
                         <div class="flex justify-center gap-2">
-                            <button onclick="openCompanionSkinBox(1)" class="px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 20 Kristal (1'li)</button>
-                            <button onclick="openCompanionSkinBox(5)" class="px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 90 Kristal (5'li)</button>
+                            <button id="btn-open-compskin-1" onclick="openCompanionSkinBox(1)" class="upgrade-btn px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 20 Kristal (1'li)</button>
+                            <button id="btn-open-compskin-5" onclick="openCompanionSkinBox(5)" class="upgrade-btn px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-tech font-bold text-xs shadow"><i class="fa-solid fa-gem"></i> 90 Kristal (5'li)</button>
                         </div>
                     </div>
 
@@ -574,7 +617,7 @@
                     HARİKA!
                 </button>
                 <button id="loot-btn-reopen" onclick="reopenLastBox()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-tech font-bold text-sm transition shadow-[0_0_20px_rgba(245,158,11,0.4)] flex items-center gap-1.5">
-                    <i class="fa-solid fa-gem"></i> <span id="loot-reopen-label">Tekrar Aç (5 💎)</span>
+                    <i class="fa-solid fa-gem"></i> <span id="loot-reopen-label">Tekrar Aç (25 💎)</span>
                 </button>
             </div>
         </div>
