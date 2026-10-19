@@ -179,7 +179,9 @@ function spawnEnemy(isBoss = false) {
     const y = tower.y + Math.sin(angle) * spawnDist;
 
     const w = game.wave;
-    const earlyBuffer = w === 1 ? 0.80 : (w <= 3 ? 0.90 : 1.0);
+    // YENİ ZORLUK EĞRİSİ: İlk 10 dalgayı daha dengeli ve pürüzsüz artan bir çizgiye oturttuk. 
+    // Böylece 4 veya 5. dalgada aniden büyük bir duvarla karşılaşılmıyor.
+    const earlyBuffer = w <= 10 ? (0.75 + (w * 0.025)) : 1.0; 
     const tierMult = Math.pow(1.22, Math.floor(w / 10)) * Math.pow(1.35, Math.floor(w / 25));
 
     const baseHp = (18 + (w - 1) * 7.5) * Math.pow(1.095, w - 1) * tierMult * earlyBuffer;
@@ -194,7 +196,8 @@ function spawnEnemy(isBoss = false) {
 
     if (isBoss) {
         type = 'boss';
-        const bossMult = (w % 10 === 0 ? 10.0 : 6.5);
+        // 5. Dalga ilk heyecandır, orayı kilit taşı değil eğitim boss'u gibi yaptık (4.5x can)
+        const bossMult = (w === 5 ? 4.5 : (w % 10 === 0 ? 10.0 : 6.5));
         gold = baseGold * (game.holdWave ? 2.5 : 6.0);
 
         const bossPool = ['tank_boss', 'ranged_boss', 'speed_boss', 'frost_boss', 'leviathan'];
@@ -891,7 +894,22 @@ function triggerTowerDefeat() {
 function recoverFromDefeat() {
     isDefeated = false; document.getElementById('defeat-overlay').classList.add('hidden'); enemies = []; projectiles = [];
     tower.freezeTimer = 0; tower.freezeImmunityTimer = 0; tower.frostSlowTimer = 0; waveFrostSpawns = 0;
-    if (game.wave > 1) { game.wave--; game.holdWave = true; game.holdWaveTimer = 0; game.consecutiveHoldWins = 0; updateHoldWaveButton(); showToast('Üst üste 2 kez yıkıldın! Güvenli dalgaya çekildin.'); }
+
+    // YENİ SİSTEM: Enkazdan Kurtarma Ödülü (Teselli Altın ve Kristal)
+    const salvageGold = Math.floor(getWaveBaseGold(game.wave) * getGoldMultiplier() * 8);
+    const salvageCrystal = Math.max(1, Math.floor(game.wave / 4));
+    game.gold += salvageGold;
+    game.crystals += salvageCrystal;
+
+    if (game.wave > 1) { 
+        game.wave--; 
+        game.holdWave = true; game.holdWaveTimer = 0; game.consecutiveHoldWins = 0; 
+        updateHoldWaveButton(); 
+        showToast(`💥 Kule Yıkıldı! Enkazdan ${formatNumber(salvageGold)} 🪙 ve ${salvageCrystal} 💎 kurtardın. Güvenli dalgaya çekildin.`); 
+    } else {
+        showToast(`💥 Kule Yıkıldı! Enkazdan ${formatNumber(salvageGold)} 🪙 ve ${salvageCrystal} 💎 kurtardın. Yeniden toparlan!`);
+    }
+
     game.consecutiveDefeats = 0; game.waveKills = 0; tower.hp = getTowerMaxHp(); tower.shield = getTowerMaxShield(); updateHUD();
 }
 
