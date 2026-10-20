@@ -169,13 +169,13 @@ function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
     c.shadowBlur = 8;
     c.shadowOffsetY = 3;
 
+    switch (skinId) {
         case 'nane_tower': {
             const mintAura = 24 + Math.sin(nowTime * 0.007) * 3;
             c.beginPath(); c.arc(0, 0, mintAura, 0, Math.PI * 2);
             c.fillStyle = 'rgba(16, 185, 129, 0.24)'; c.fill();
             c.strokeStyle = 'rgba(167, 243, 208, 0.6)'; c.lineWidth = 1.6; c.stroke();
 
-            // Dönen taze nane yaprakları
             c.save(); c.rotate(nowTime * 0.0025);
             for (let i = 0; i < 6; i++) {
                 c.rotate(Math.PI / 3);
@@ -189,13 +189,11 @@ function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
 
             drawBarrels('#059669', '#a7f3d0', '#ecfdf5', 22, 7.5, 'cone');
 
-            // Nane şekeri (Peppermint) gövde
             const mintGrad = c.createRadialGradient(-3, -3, 2, 0, 0, 17);
             mintGrad.addColorStop(0, '#ecfdf5'); mintGrad.addColorStop(0.55, '#34d399'); mintGrad.addColorStop(1, '#065f46');
             c.fillStyle = mintGrad; c.strokeStyle = '#a7f3d0'; c.lineWidth = 2;
             c.beginPath(); c.arc(0, 0, 17, 0, Math.PI * 2); c.fill(); c.stroke();
 
-            // Dönen nane girdabı
             c.save(); c.rotate(-nowTime * 0.003);
             c.strokeStyle = '#ffffff'; c.lineWidth = 2.4;
             for (let i = 0; i < 4; i++) {
@@ -217,7 +215,6 @@ function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
 
             drawBarrels('#d97706', '#fef08a', '#38bdf8', 23, 8);
 
-            // Dönen 12 köşeli güneş tacı
             c.save(); c.rotate(nowTime * 0.002);
             c.fillStyle = '#b45309'; c.strokeStyle = '#fde047'; c.lineWidth = 1.8;
             c.beginPath();
@@ -230,7 +227,6 @@ function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
             c.closePath(); c.fill(); c.stroke();
             c.restore();
 
-            // Sunkas kanatlı zırh
             c.save(); c.rotate(angle);
             c.fillStyle = '#0284c7'; c.strokeStyle = '#fef08a'; c.lineWidth = 1.6;
             c.beginPath(); c.moveTo(4, -10); c.lineTo(-10, -21); c.lineTo(-14, -9); c.closePath(); c.fill(); c.stroke();
@@ -256,7 +252,6 @@ function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
 
             drawBarrels('#991b1b', '#f97316', '#fef08a', 22, 8.5, 'cone');
 
-            // Dönen alev dilleri
             c.save(); c.rotate(-nowTime * 0.004);
             c.fillStyle = '#ea580c'; c.strokeStyle = '#fde047'; c.lineWidth = 1.5;
             c.beginPath();
@@ -286,16 +281,13 @@ function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
 
             drawBarrels('#0e7490', '#22d3ee', '#facc15', 22, 7.5);
 
-            // Tesla Elektro-Şok Bobinleri
             c.save(); c.rotate(angle);
             c.fillStyle = '#1e293b'; c.strokeStyle = '#facc15'; c.lineWidth = 2;
             c.beginPath(); c.roundRect(-16, -16, 32, 32, 7); c.fill(); c.stroke();
 
-            // Yan Tesla Elektrotları
             c.fillStyle = '#06b6d4'; c.strokeStyle = '#cffafe'; c.lineWidth = 1.5;
             c.beginPath(); c.arc(0, -18, 4.5, 0, Math.PI * 2); c.arc(0, 18, 4.5, 0, Math.PI * 2); c.fill(); c.stroke();
 
-            // Canlı Elektrik Arkları (Şimşek)
             c.strokeStyle = '#fef08a'; c.lineWidth = 1.8;
             const jitter = Math.sin(nowTime * 0.05) * 3;
             c.beginPath();
@@ -309,9 +301,6 @@ function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
             c.font = "bold 5.8px 'Rajdhani', sans-serif"; c.fillStyle = '#22d3ee'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('TEYZİR', 0, 0);
             break;
         }
-
-    
-    switch (skinId) {
         case 'kurt_kaan': {
             const wolfAura = 24 + Math.sin(nowTime * 0.007) * 3;
             c.beginPath(); c.arc(0, 0, wolfAura, 0, Math.PI * 2);
@@ -740,7 +729,7 @@ function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
             c.beginPath();
             for (let i = 0; i < 8; i++) {
                 const a = (i * Math.PI) / 4;
-                const px = Math.cos(a) * 18, py = Math.sin(a) * 18;
+                const px = Math.cos(a) * 18, py = Math.sin(a) * r || 18;
                 if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
             }
             c.closePath();
@@ -914,9 +903,7 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
     c.shadowOffsetY = 2;
 
     switch (kind) {
-        // 1. AĞIR TANK BOSS (Zırhlı Titan Behemoth)
         case 'tank_boss': {
-            // Dönen dış ezici dişli çember
             c.save();
             c.rotate(nowTime * 0.0012);
             c.fillStyle = isHit ? '#ffffff' : '#78350f';
@@ -932,7 +919,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.closePath(); c.fill(); c.stroke();
             c.restore();
 
-            // Kuleye bakan zırhlı gövde ve koçbaşı kalkanı
             c.save();
             c.rotate(faceAngle);
             c.fillStyle = isHit ? '#ffffff' : '#1e293b';
@@ -946,7 +932,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             }
             c.closePath(); c.fill(); c.stroke();
 
-            // Omuz zırh plakaları
             c.fillStyle = isHit ? '#ffffff' : '#b45309';
             c.strokeStyle = '#fef08a';
             c.lineWidth = 1.6;
@@ -955,7 +940,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.fillRect(-r * 0.35, r * 0.53, r * 0.65, r * 0.32);
             c.strokeRect(-r * 0.35, r * 0.53, r * 0.65, r * 0.32);
 
-            // Ön ağır koçbaşı tamponu
             c.fillStyle = '#facc15';
             c.beginPath();
             c.moveTo(r * 0.98, 0);
@@ -965,7 +949,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.lineTo(r * 0.55, r * 0.58);
             c.closePath(); c.fill(); c.stroke();
 
-            // Merkez turuncu reaktör çekirdeği
             const corePulse = r * 0.32 + Math.sin(nowTime * 0.008) * 2.5;
             c.fillStyle = '#f97316';
             c.beginPath(); c.arc(0, 0, corePulse, 0, Math.PI * 2); c.fill();
@@ -974,13 +957,10 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.restore();
             break;
         }
-
-        // 2. UZAKTAN VURAN NİŞANCI BOSS (Hiperiyon Topçusu)
         case 'ranged_boss': {
             c.save();
             c.rotate(faceAngle);
 
-            // Lazer nişangah çizgisi
             c.save();
             c.strokeStyle = 'rgba(244, 63, 94, 0.35)';
             c.lineWidth = 1.4;
@@ -988,7 +968,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.beginPath(); c.moveTo(r * 0.8, 0); c.lineTo(r * 3.8, 0); c.stroke();
             c.restore();
 
-            // Çift uzun Railgun (Plazma Topu) namluları
             c.fillStyle = isHit ? '#ffffff' : '#334155';
             c.strokeStyle = '#f472b6';
             c.lineWidth = 2;
@@ -997,14 +976,12 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.fillRect(r * 0.15, r * 0.30, r * 1.15, r * 0.26);
             c.strokeRect(r * 0.15, r * 0.30, r * 1.15, r * 0.26);
 
-            // Namlu uçlarındaki enerji parlaması
             c.fillStyle = '#38bdf8';
             c.beginPath();
             c.arc(r * 1.3, -r * 0.43, r * 0.14, 0, Math.PI * 2);
             c.arc(r * 1.3, r * 0.43, r * 0.14, 0, Math.PI * 2);
             c.fill();
 
-            // Kanatlı ana topçu gövdesi
             c.fillStyle = isHit ? '#ffffff' : '#500724';
             c.strokeStyle = '#fbcfe8';
             c.lineWidth = 2.2;
@@ -1017,7 +994,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.lineTo(-r * 0.15, r * 1.08);
             c.closePath(); c.fill(); c.stroke();
 
-            // Merkez radar ve hedefleme gözü
             c.fillStyle = '#ec4899';
             c.beginPath(); c.arc(-r * 0.05, 0, r * 0.42, 0, Math.PI * 2); c.fill(); c.stroke();
             c.fillStyle = '#fef08a';
@@ -1025,13 +1001,10 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.restore();
             break;
         }
-
-        // 3. HIZLI SUİKASTÇI BOSS (Kızıl Fırtına Vektörü)
         case 'speed_boss': {
             c.save();
             c.rotate(faceAngle);
 
-            // Çift roket egzoz alevi
             const flameLen = r * (0.65 + Math.sin(nowTime * 0.04) * 0.28);
             c.fillStyle = '#f97316';
             c.beginPath();
@@ -1039,7 +1012,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.moveTo(-r * 0.65, r * 0.08); c.lineTo(-r * 0.65 - flameLen, r * 0.22); c.lineTo(-r * 0.65, r * 0.35);
             c.closePath(); c.fill();
 
-            // Çift tırpan kanatlı aerodinamik gövde
             c.fillStyle = isHit ? '#ffffff' : '#7f1d1d';
             c.strokeStyle = '#fca5a5';
             c.lineWidth = 2.2;
@@ -1056,7 +1028,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.lineTo(r * 0.20, r * 0.42);
             c.closePath(); c.fill(); c.stroke();
 
-            // İç kızıl bıçak deseni ve parlayan gözler
             c.fillStyle = '#ef4444';
             c.beginPath();
             c.moveTo(r * 0.9, 0); c.lineTo(-r * 0.3, -r * 0.35); c.lineTo(-r * 0.15, 0); c.lineTo(-r * 0.3, r * 0.35);
@@ -1070,14 +1041,10 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.restore();
             break;
         }
-
-        // 4. DONDURAN BUZ BOSS (Kutup Hükümdarı Kryos)
         case 'frost_boss': {
-            // Dondurucu fırtına aurası
             c.fillStyle = 'rgba(56, 189, 248, 0.18)';
             c.beginPath(); c.arc(0, 0, r * 1.25 + Math.sin(nowTime * 0.006) * 3, 0, Math.PI * 2); c.fill();
 
-            // Dış dönen 8 kollu buz tacı
             c.save();
             c.rotate(nowTime * 0.0018);
             c.fillStyle = isHit ? '#ffffff' : '#0284c7';
@@ -1093,7 +1060,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.closePath(); c.fill(); c.stroke();
             c.restore();
 
-            // Ters yöne dönen iç kristal yıldız
             c.save();
             c.rotate(-nowTime * 0.0025);
             c.fillStyle = isHit ? '#ffffff' : '#38bdf8';
@@ -1109,7 +1075,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.closePath(); c.fill(); c.stroke();
             c.restore();
 
-            // Merkez buz çekirdeği ve gözler
             c.fillStyle = '#f0f9ff';
             c.beginPath(); c.arc(0, 0, r * 0.30, 0, Math.PI * 2); c.fill();
             c.fillStyle = '#0369a1';
@@ -1119,11 +1084,8 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.fill();
             break;
         }
-
-        // 5. KLASİK BOSS (Kozmik Leviathan)
         case 'leviathan':
         case 'boss': {
-            // Dönen hiçlik halkası
             c.save();
             c.rotate(-nowTime * 0.002);
             c.fillStyle = isHit ? '#ffffff' : '#3b0764';
@@ -1139,7 +1101,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.closePath(); c.fill(); c.stroke();
             c.restore();
 
-            // Kuleye bakan kıskaçlı ve 3 gözlü kozmik gövde
             c.save();
             c.rotate(faceAngle);
             c.fillStyle = isHit ? '#ffffff' : '#581c87';
@@ -1157,7 +1118,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.lineTo(r * 0.45, -r * 0.72);
             c.closePath(); c.fill(); c.stroke();
 
-            // 3 Kozmik Göz
             c.fillStyle = '#facc15';
             c.beginPath();
             c.arc(r * 0.28, -r * 0.26, 3.2, 0, Math.PI * 2);
@@ -1167,8 +1127,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.restore();
             break;
         }
-
-        // 6. NORMAL AĞIR TANK (Zırhlı Golem)
         case 'tank': {
             c.save();
             c.rotate(faceAngle);
@@ -1183,7 +1141,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             }
             c.closePath(); c.fill(); c.stroke();
 
-            // Ön ağır kalkan plakası
             c.fillStyle = '#94a3b8';
             c.strokeStyle = '#f8fafc';
             c.lineWidth = 1.5;
@@ -1191,21 +1148,17 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.roundRect(r * 0.35, -r * 0.75, r * 0.45, r * 1.5, 3);
             c.fill(); c.stroke();
 
-            // Turuncu Golem vizörü
             c.fillStyle = '#f97316';
             c.fillRect(-r * 0.15, -r * 0.38, r * 0.28, r * 0.76);
             c.restore();
             break;
         }
-
-        // 7. NORMAL DONDURAN BUZ DÜŞMANI (Buzul Nöbetçisi)
         case 'frost': {
             c.save();
             c.rotate(e.rot);
             c.fillStyle = isHit ? '#ffffff' : '#0891b2';
             c.strokeStyle = '#cffafe';
             c.lineWidth = 1.8;
-            // 6 kollu buz kristali yıldızı
             c.beginPath();
             for (let i = 0; i < 12; i++) {
                 const a = (i * Math.PI) / 6;
@@ -1220,19 +1173,15 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.restore();
             break;
         }
-
-        // 8. NORMAL HIZLI KOŞUCU (Gölge Koşucu)
         case 'runner': {
             c.save();
             c.rotate(faceAngle);
-            // Motor alevi
             const jet = r * (0.55 + Math.sin(nowTime * 0.04) * 0.25);
             c.fillStyle = '#fb923c';
             c.beginPath();
             c.moveTo(-r * 0.6, -r * 0.28); c.lineTo(-r * 0.6 - jet, 0); c.lineTo(-r * 0.6, r * 0.28);
             c.closePath(); c.fill();
 
-            // Sivri hançer/ok gövde
             c.fillStyle = isHit ? '#ffffff' : '#e11d48';
             c.strokeStyle = '#fda4af';
             c.lineWidth = 1.6;
@@ -1248,15 +1197,12 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.restore();
             break;
         }
-
-        // 9. NORMAL IŞINLANAN (Sarı Psişik)
         case 'teleporter': {
             c.save();
             c.rotate(e.rot);
             c.fillStyle = isHit ? '#ffffff' : '#ca8a04';
             c.strokeStyle = '#fef08a';
             c.lineWidth = 1.6;
-            // 4 kollu mistik şuriken/yıldız
             c.beginPath();
             for (let i = 0; i < 8; i++) {
                 const a = (i * Math.PI) / 4;
@@ -1267,7 +1213,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.closePath(); c.fill(); c.stroke();
             c.restore();
 
-            // Merkezde kuleye bakan psişik göz
             c.fillStyle = '#ffffff';
             c.beginPath(); c.arc(0, 0, r * 0.42, 0, Math.PI * 2); c.fill();
             c.fillStyle = '#7c2d12';
@@ -1276,19 +1221,15 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.fill();
             break;
         }
-
-        // 10. NORMAL UZAKTAN VURAN (Mavi Nişancı)
         case 'ranged': {
             c.save();
             c.rotate(faceAngle);
-            // Uzun nişancı namlusu
             c.fillStyle = '#1e293b';
             c.strokeStyle = '#38bdf8';
             c.lineWidth = 1.5;
             c.fillRect(r * 0.2, -2.2, r * 1.05, 4.4);
             c.strokeRect(r * 0.2, -2.2, r * 1.05, 4.4);
 
-            // Kanatlı nişancı dronu gövdesi
             c.fillStyle = isHit ? '#ffffff' : '#0284c7';
             c.strokeStyle = '#bae6fd';
             c.lineWidth = 1.6;
@@ -1301,21 +1242,17 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.lineTo(-r * 0.45, r * 0.95);
             c.closePath(); c.fill(); c.stroke();
 
-            // Kırmızı hedefleme merceği
             c.fillStyle = '#f43f5e';
             c.beginPath(); c.arc(0, 0, r * 0.28, 0, Math.PI * 2); c.fill();
             c.restore();
             break;
         }
-
-        // 11. STANDART YAKIN DÖVÜŞÇÜ (Yeşil Xenomorph Böceği)
         case 'green':
         default: {
             c.save();
             c.rotate(faceAngle);
             const bite = Math.sin(e.animPhase || nowTime * 0.01) * 1.8;
 
-            // Ön kıskaçlar (Çene)
             c.strokeStyle = '#bbf7d0';
             c.lineWidth = 2;
             c.beginPath();
@@ -1323,7 +1260,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.moveTo(r * 0.5, r * 0.35); c.lineTo(r * 1.15, r * 0.15 + bite);
             c.stroke();
 
-            // Yan böcek ayakları
             c.strokeStyle = '#15803d';
             c.lineWidth = 1.6;
             c.beginPath();
@@ -1333,7 +1269,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.moveTo(-r * 0.4, r * 0.5); c.lineTo(-r * 0.65, r * 0.95);
             c.stroke();
 
-            // Zırhlı böcek gövdesi
             c.fillStyle = isHit ? '#ffffff' : (e.color || '#16a34a');
             c.strokeStyle = e.secColor || '#86efac';
             c.lineWidth = 1.6;
@@ -1341,7 +1276,6 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.ellipse(0, 0, r * 0.92, r * 0.72, 0, 0, Math.PI * 2);
             c.fill(); c.stroke();
 
-            // Sırt çizgisi ve parlayan sarı gözler
             c.strokeStyle = 'rgba(15, 23, 42, 0.45)';
             c.beginPath();
             c.arc(-r * 0.2, 0, r * 0.45, -Math.PI * 0.4, Math.PI * 0.4);
@@ -1367,7 +1301,6 @@ function drawCargoDrone(c, d, nowTime) {
 
     const pulse = Math.sin(d.pulsePhase || nowTime * 0.006) * 3;
 
-    // Dış dikkat çekici hedefleme halkası
     c.beginPath();
     c.arc(0, 0, d.radius + 7 + pulse, 0, Math.PI * 2);
     c.strokeStyle = d.color;
@@ -1376,7 +1309,6 @@ function drawCargoDrone(c, d, nowTime) {
     c.stroke();
     c.setLineDash([]);
 
-    // Parlama aurası
     const glow = c.createRadialGradient(0, 0, 4, 0, 0, d.radius + 10);
     glow.addColorStop(0, d.secColor || '#ffffff');
     glow.addColorStop(0.5, d.color);
@@ -1388,7 +1320,6 @@ function drawCargoDrone(c, d, nowTime) {
     c.fill();
     c.globalAlpha = 1;
 
-    // Dönen uydu panelleri ve sekizgen kargo çekirdeği
     c.save();
     c.rotate(d.rot || 0);
 
@@ -1421,7 +1352,6 @@ function drawCargoDrone(c, d, nowTime) {
     c.fill();
     c.restore();
 
-    // Merkez ikon ve "DOKUN!" etiketi
     c.font = "bold 11px 'Rajdhani', sans-serif";
     c.fillStyle = '#ffffff';
     c.textAlign = 'center';
@@ -1439,7 +1369,6 @@ function drawCargoDrone(c, d, nowTime) {
 function renderGame() {
     if (!canvas || !ctx) return;
 
-    // Tablet/Full ekran geçişlerinde canvas boyutu 0 olursa otomatik kurtar
     if (canvas.width <= 0 || canvas.height <= 0) {
         const parent = canvas.parentElement;
         canvas.width = (parent && parent.clientWidth > 0) ? parent.clientWidth : window.innerWidth;
@@ -1455,13 +1384,9 @@ function renderGame() {
     const maxDim = Math.max(canvas.width, canvas.height, 100);
 
     const theme = game.settings.activeTheme || 'cyber';
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        const theme = game.settings.activeTheme || 'cyber';
     const nowThemeTime = performance.now();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Özel tema dekorasyonlarını ilk seferde otomatik hazırla
     if (!window._themeEnvData) {
         window._themeEnvData = {
             butterflies: Array.from({ length: 18 }, () => ({
@@ -1490,12 +1415,10 @@ function renderGame() {
     const env = window._themeEnvData;
 
     if (theme === 'cengiz') {
-        // 15. DALGA: CENGİZ HAKANLIĞI TEMASI (Kızıl-Altın Bozkır, Kılıçlar, Hakanlık Güneşi & Korlar)
         const grad = ctx.createRadialGradient(tx, ty, 30, tx, ty, maxDim * 0.8);
         grad.addColorStop(0, '#3b1319'); grad.addColorStop(0.55, '#220c10'); grad.addColorStop(1, '#110608');
         ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Merkezde Cengiz Hakanlığı Altın Güneş & Hilal Damgası
         ctx.save();
         ctx.translate(tx, ty);
         ctx.rotate(nowThemeTime * 0.0002);
@@ -1509,7 +1432,6 @@ function renderGame() {
         }
         ctx.restore();
 
-        // Köşelerde Yere Saplanmış Bozkır Kılıçları ve Sancak Tuğları
         const swordPositions = [
             [canvas.width * 0.14, canvas.height * 0.25, 0.25],
             [canvas.width * 0.86, canvas.height * 0.24, -0.25],
@@ -1520,22 +1442,18 @@ function renderGame() {
             ctx.save(); ctx.translate(sx, sy); ctx.rotate(tilt);
             ctx.fillStyle = 'rgba(0,0,0,0.35)';
             ctx.beginPath(); ctx.ellipse(0, 22, 22, 6, 0, 0, Math.PI * 2); ctx.fill();
-            // Kılıç namlusu
             ctx.fillStyle = '#64748b'; ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.2;
             ctx.beginPath(); ctx.moveTo(-4, 22); ctx.lineTo(-5, -28); ctx.lineTo(0, -38); ctx.lineTo(5, -28); ctx.lineTo(4, 22); ctx.closePath(); ctx.fill(); ctx.stroke();
-            // Altın balçak ve kabza
             ctx.fillStyle = '#eab308';
             ctx.fillRect(-14, -18, 28, 5);
             ctx.fillStyle = '#7f1d1d'; ctx.fillRect(-3, -34, 6, 16);
             ctx.beginPath(); ctx.arc(0, -36, 4.5, 0, Math.PI * 2); ctx.fillStyle = '#facc15'; ctx.fill();
-            // Dalgalanan Kızıl Sancak Bezi
             const wave = Math.sin(nowThemeTime * 0.004 + sx) * 4;
             ctx.fillStyle = 'rgba(220, 38, 38, 0.65)';
             ctx.beginPath(); ctx.moveTo(12, -15); ctx.quadraticCurveTo(28, -10 + wave, 36, -4 + wave); ctx.lineTo(12, 2); ctx.closePath(); ctx.fill();
             ctx.restore();
         }
 
-        // Uçuşan Savaş Korları (Kıvılcımlar)
         for (const em of env.embers) {
             em.x = (em.x + em.vx + canvas.width) % canvas.width;
             em.y = (em.y + em.vy + canvas.height) % canvas.height;
@@ -1546,12 +1464,10 @@ function renderGame() {
         ctx.shadowBlur = 0;
 
     } else if (theme === 'snow') {
-        // 30. DALGA: KAR & BUZUL GEZEGENİ (Kuzey Işıkları, Karlı Çam Ağaçları, Buz Kristalleri)
         const grad = ctx.createRadialGradient(tx, ty, 30, tx, ty, maxDim * 0.8);
         grad.addColorStop(0, '#1e3a5f'); grad.addColorStop(0.55, '#132842'); grad.addColorStop(1, '#0b1727');
         ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Kuzey Işıkları (Aurora Borealis) Dalgaları
         for (let i = 0; i < 2; i++) {
             const auroraGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height * 0.45);
             auroraGrad.addColorStop(0, 'rgba(45, 212, 191, 0)');
@@ -1569,7 +1485,6 @@ function renderGame() {
             ctx.lineTo(canvas.width, 0); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
         }
 
-        // Merkezde Dev Altıgen Buzul Kristali Mührü
         ctx.save(); ctx.translate(tx, ty); ctx.rotate(nowThemeTime * 0.00015);
         ctx.strokeStyle = 'rgba(186, 230, 253, 0.12)'; ctx.lineWidth = 1.8;
         for (let i = 0; i < 6; i++) {
@@ -1581,7 +1496,6 @@ function renderGame() {
         }
         ctx.restore();
 
-        // Karlı Çam Ağaçları ve Buz Tepeleri
         const trees = [
             [canvas.width * 0.10, canvas.height * 0.28, 1.0],
             [canvas.width * 0.16, canvas.height * 0.34, 0.75],
@@ -1600,26 +1514,22 @@ function renderGame() {
                 ctx.fillStyle = '#0f3d3e'; ctx.strokeStyle = '#bae6fd'; ctx.lineWidth = 1.2;
                 ctx.beginPath(); ctx.moveTo(lx, ly - 16); ctx.lineTo(lx - w, ly + 8); ctx.lineTo(lx + w, ly + 8); ctx.closePath();
                 ctx.fill(); ctx.stroke();
-                // Üstündeki kar tabakası
                 ctx.fillStyle = '#e0f2fe';
                 ctx.beginPath(); ctx.moveTo(lx, ly - 16); ctx.lineTo(lx - w * 0.55, ly - 3); ctx.lineTo(lx + w * 0.55, ly - 3); ctx.closePath(); ctx.fill();
             }
             ctx.restore();
         }
 
-        // Yağan Kar Taneleri
         for (const sf of snowFlakes) {
             ctx.fillStyle = `rgba(241, 245, 249, ${sf.alpha})`;
             ctx.beginPath(); ctx.arc(sf.x, sf.y, sf.r * 1.2, 0, Math.PI * 2); ctx.fill();
         }
 
     } else if (theme === 'desert') {
-        // 45. DALGA: KIZIL ÇÖL & KAKTÜS TEMASI
         const grad = ctx.createRadialGradient(tx, ty, 30, tx, ty, maxDim * 0.85);
         grad.addColorStop(0, '#5c3418'); grad.addColorStop(0.55, '#3d210e'); grad.addColorStop(1, '#211106');
         ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Sağ üstte kavurucu Çöl Güneşi
         const sunX = canvas.width * 0.85, sunY = canvas.height * 0.18;
         const sunGrad = ctx.createRadialGradient(sunX, sunY, 8, sunX, sunY, 75);
         sunGrad.addColorStop(0, 'rgba(254, 240, 138, 0.55)');
@@ -1627,7 +1537,6 @@ function renderGame() {
         sunGrad.addColorStop(1, 'rgba(245, 158, 11, 0)');
         ctx.fillStyle = sunGrad; ctx.beginPath(); ctx.arc(sunX, sunY, 75, 0, Math.PI * 2); ctx.fill();
 
-        // Arka planda Kum Tepeleri (Dunes)
         ctx.fillStyle = 'rgba(180, 83, 9, 0.14)';
         ctx.beginPath();
         ctx.moveTo(0, canvas.height * 0.72);
@@ -1635,7 +1544,6 @@ function renderGame() {
         ctx.quadraticCurveTo(canvas.width * 0.82, canvas.height * 0.84, canvas.width, canvas.height * 0.68);
         ctx.lineTo(canvas.width, canvas.height); ctx.lineTo(0, canvas.height); ctx.closePath(); ctx.fill();
 
-        // Çöl Kaktüsleri (Saguaro Kaktüsleri)
         const cacti = [
             [canvas.width * 0.12, canvas.height * 0.30, 1.05],
             [canvas.width * 0.86, canvas.height * 0.36, 0.90],
@@ -1646,25 +1554,19 @@ function renderGame() {
         ];
         for (const [cx, cy, sc] of cacti) {
             ctx.save(); ctx.translate(cx, cy); ctx.scale(sc, sc);
-            // Kaktüs gölgesi
             ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
             ctx.beginPath(); ctx.ellipse(0, 22, 16, 5, 0, 0, Math.PI * 2); ctx.fill();
-            // Ana gövde ve kollar
             ctx.fillStyle = '#15803d'; ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 1.5;
             ctx.beginPath(); ctx.roundRect(-6, -24, 12, 46, 6); ctx.fill(); ctx.stroke();
-            // Sol kol
             ctx.beginPath(); ctx.roundRect(-18, -8, 14, 7, 3.5); ctx.fill(); ctx.stroke();
             ctx.beginPath(); ctx.roundRect(-18, -20, 7, 16, 3.5); ctx.fill(); ctx.stroke();
-            // Sağ kol
             ctx.beginPath(); ctx.roundRect(4, -2, 14, 7, 3.5); ctx.fill(); ctx.stroke();
             ctx.beginPath(); ctx.roundRect(11, -15, 7, 17, 3.5); ctx.fill(); ctx.stroke();
-            // Kaktüs tepesinde pembe/sarı çöl çiçeği
             ctx.fillStyle = '#f43f5e';
             ctx.beginPath(); ctx.arc(0, -25, 3.5, 0, Math.PI * 2); ctx.fill();
             ctx.restore();
         }
 
-        // Esen Kum Fırtınası Çizgileri
         ctx.strokeStyle = 'rgba(253, 230, 138, 0.22)'; ctx.lineWidth = 1.2;
         for (const sg of env.sandGrains) {
             sg.x = (sg.x + sg.spd) % canvas.width;
@@ -1672,12 +1574,10 @@ function renderGame() {
         }
 
     } else if (theme === 'space') {
-        // 60. DALGA: DERİN UZAY NEBULASI (Renkli Nebulalar, Halkalı Gezegenler, Parlak Yıldızlar)
         const grad = ctx.createRadialGradient(tx, ty, 20, tx, ty, maxDim * 0.85);
         grad.addColorStop(0, '#1e1038'); grad.addColorStop(0.5, '#0f0822'); grad.addColorStop(1, '#05020c');
         ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Büyük Kozmik Nebula Bulutları (Mor, Pembe ve Turkuaz Bulutsular)
         const nebulaSpots = [
             [canvas.width * 0.25, canvas.height * 0.30, 220, 'rgba(168, 85, 247, 0.18)'],
             [canvas.width * 0.75, canvas.height * 0.68, 250, 'rgba(236, 72, 153, 0.16)'],
@@ -1692,7 +1592,6 @@ function renderGame() {
             ctx.beginPath(); ctx.arc(nx, ny, nr, 0, Math.PI * 2); ctx.fill();
         }
 
-        // Merkezde Dönen Galaksi Spirali
         ctx.save(); ctx.translate(tx, ty); ctx.rotate(nowThemeTime * 0.0003);
         ctx.strokeStyle = 'rgba(192, 132, 252, 0.14)'; ctx.lineWidth = 2;
         for (let arm = 0; arm < 3; arm++) {
@@ -1707,7 +1606,6 @@ function renderGame() {
         }
         ctx.restore();
 
-        // Sol Üstte Halkalı Gezegen (Satürn Tarzı)
         const px = canvas.width * 0.15, py = canvas.height * 0.22;
         ctx.save(); ctx.translate(px, py); ctx.rotate(-0.35);
         const pGrad = ctx.createRadialGradient(-8, -8, 4, 0, 0, 28);
@@ -1719,7 +1617,6 @@ function renderGame() {
         ctx.beginPath(); ctx.ellipse(0, 0, 60, 16, 0, 0, Math.PI * 2); ctx.stroke();
         ctx.restore();
 
-        // Parlayan Yıldızlar ve 4 Köşeli Kutup Yıldızları
         for (let i = 0; i < bgStars.length; i++) {
             const st = bgStars[i];
             const sx = st.x % canvas.width, sy = st.y % canvas.height;
@@ -1736,14 +1633,12 @@ function renderGame() {
         ctx.globalAlpha = 1;
 
     } else if (theme === 'bubblegum') {
-        // 100. DALGA: BUUBGLEGUM TEMASI (Mavi & Pembe Pamuk Şeker Atmosferi, Kelebekler ve Baloncuklar)
         const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
         grad.addColorStop(0, '#3b0a2e');
         grad.addColorStop(0.5, '#1e1b4b');
         grad.addColorStop(1, '#082f49');
         ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Pembe ve Mavi Yumuşak Parlama Bulutları
         const pinkGlow = ctx.createRadialGradient(canvas.width * 0.25, canvas.height * 0.3, 10, canvas.width * 0.25, canvas.height * 0.3, 280);
         pinkGlow.addColorStop(0, 'rgba(244, 114, 182, 0.22)'); pinkGlow.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = pinkGlow; ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1752,14 +1647,12 @@ function renderGame() {
         blueGlow.addColorStop(0, 'rgba(56, 189, 248, 0.22)'); blueGlow.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = blueGlow; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Merkezde Pembe-Mavi Sakız Halkaları
         for (let r = 85; r < 460; r += 95) {
             ctx.beginPath(); ctx.arc(tx, ty, r, 0, Math.PI * 2);
             ctx.strokeStyle = r % 2 === 0 ? 'rgba(244, 114, 182, 0.10)' : 'rgba(56, 189, 248, 0.10)';
             ctx.lineWidth = 2; ctx.stroke();
         }
 
-        // Uçuşan Sakız Baloncukları
         for (const b of env.bubbles) {
             b.y = (b.y - b.vy + canvas.height) % canvas.height;
             const bx = b.x % canvas.width;
@@ -1773,7 +1666,6 @@ function renderGame() {
             ctx.restore();
         }
 
-        // Kanat Çırpan Mavi ve Pembe Kelebekler
         for (const bf of env.butterflies) {
             bf.x = (bf.x + bf.vx + Math.sin(nowThemeTime * 0.002 + bf.phase) * 0.6 + canvas.width) % canvas.width;
             bf.y = (bf.y + bf.vy + canvas.height) % canvas.height;
@@ -1788,15 +1680,12 @@ function renderGame() {
             const secCol = bf.isPink ? '#38bdf8' : '#f472b6';
             ctx.shadowColor = mainCol; ctx.shadowBlur = 8;
 
-            // Sol ve sağ üst-alt kelebek kanatları
             ctx.save(); ctx.scale(wingFlap, 1);
             ctx.fillStyle = mainCol; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 0.8;
-            // Üst kanatlar
             ctx.beginPath();
             ctx.moveTo(0, 0); ctx.bezierCurveTo(-s * 1.4, -s * 1.2, -s * 1.5, s * 0.2, 0, s * 0.2);
             ctx.moveTo(0, 0); ctx.bezierCurveTo(s * 1.4, -s * 1.2, s * 1.5, s * 0.2, 0, s * 0.2);
             ctx.fill(); ctx.stroke();
-            // Alt kanatlar (karşıt mavi/pembe vurgu)
             ctx.fillStyle = secCol;
             ctx.beginPath();
             ctx.moveTo(0, s * 0.1); ctx.bezierCurveTo(-s * 1.1, s * 0.3, -s * 0.9, s * 1.2, 0, s * 0.7);
@@ -1804,7 +1693,6 @@ function renderGame() {
             ctx.fill(); ctx.stroke();
             ctx.restore();
 
-            // Kelebek gövdesi
             ctx.fillStyle = '#fdf2f8';
             ctx.fillRect(-1, -s * 0.4, 2, s * 1.1);
             ctx.restore();
@@ -1812,7 +1700,6 @@ function renderGame() {
         ctx.shadowBlur = 0;
 
     } else {
-        // VARSAYILAN: SİBER ÇEKİRDEK TEMASI
         const grad = ctx.createRadialGradient(tx, ty, 30, tx, ty, maxDim * 0.8);
         grad.addColorStop(0, '#222436'); grad.addColorStop(0.6, '#191b29'); grad.addColorStop(1, '#131420');
         ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1824,7 +1711,6 @@ function renderGame() {
             ctx.beginPath(); ctx.arc(sx, sy, st.size, 0, Math.PI * 2); ctx.fill();
         }
     }
-
 
     if (game.settings.showRange) {
         const r = getTowerRange(); ctx.beginPath(); ctx.arc(tx, ty, r, 0, Math.PI * 2);
@@ -1876,7 +1762,6 @@ function renderGame() {
         ctx.fillStyle = 'rgba(56, 189, 248, 0.09)'; ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
     }
 
-    // Overdrive (2x Atış Hızı) aktifken kule etrafında dönen turuncu enerji halkası
     if (tower.overdriveTimer && tower.overdriveTimer > 0) {
         ctx.save();
         ctx.rotate(nowCompTime * 0.005);
@@ -1895,7 +1780,6 @@ function renderGame() {
     const barrelCount = Math.min(7, Math.max(1, getEffectiveMultishot()));
     drawCustomTowerSkin(ctx, skinId, tower.angle, tower.recoil, barrelCount, nowCompTime);
 
-    // Kule Buz / Donma ve Donma Bağışıklığı Görsel Efekti
     if (tower.freezeTimer && tower.freezeTimer > 0) {
         ctx.fillStyle = 'rgba(56, 189, 248, 0.38)';
         ctx.strokeStyle = '#e0f2fe';
@@ -1923,14 +1807,12 @@ function renderGame() {
     }
     ctx.restore();
 
-    // Kargo / Ganimet Dronlarının (QTE) Çizimi
     if (typeof cargoDrones !== 'undefined' && cargoDrones.length > 0) {
         for (const d of cargoDrones) {
             drawCargoDrone(ctx, d, nowCompTime);
         }
     }
 
-    // Düşmanların ve Bossların Özel Tasarımlarla Çizimi
     for (const e of enemies) {
         ctx.save();
         ctx.translate(e.x, e.y);
