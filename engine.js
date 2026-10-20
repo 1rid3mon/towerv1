@@ -450,7 +450,7 @@ function updateGame(dt) {
 
     let capMult = 1.0, intervalMult = 1.0;
     if (isBossWave) { capMult = 1.6; intervalMult = 0.75; }
-    else if (isSwarmWave) { capMult = 2; intervalMult = 0.5; }
+    else if (isSwarmWave) { capMult = 1.8; intervalMult = 0.5; }
 
     const maxEnemies = Math.min(40, Math.round(baseCap * capMult));
 
