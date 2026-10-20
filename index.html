@@ -148,6 +148,43 @@
         .rarity-glow-epic { box-shadow: 0 0 30px rgba(168, 85, 247, 0.55), inset 0 0 20px rgba(168, 85, 247, 0.25); }
         .rarity-glow-mythic { box-shadow: 0 0 38px rgba(236, 72, 153, 0.7), inset 0 0 25px rgba(236, 72, 153, 0.3); }
         .rarity-glow-legendary { box-shadow: 0 0 45px rgba(250, 204, 21, 0.85), inset 0 0 30px rgba(250, 204, 21, 0.4); }
+        
+/* Dikey telefon: üst çubukta taşmayı azalt */
+@media (max-width: 480px) and (orientation: portrait) {
+    #main-body > header {
+        padding: 4px 6px !important;
+        gap: 4px !important;
+        min-width: 0 !important;
+    }
+
+    #main-body > header > div {
+        min-width: 0 !important;
+        gap: 4px !important;
+    }
+
+    #main-body > header button {
+        flex-shrink: 1 !important;
+        min-width: 0 !important;
+        padding: 5px 6px !important;
+        gap: 4px !important;
+        font-size: 10px !important;
+    }
+
+    #main-body > header button i {
+        flex-shrink: 0 !important;
+    }
+
+    #main-body > header button span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #main-body > header #ui-account-name {
+        max-width: 54px !important;
+    }
+}
+
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-pc color-pastel" id="main-body">
