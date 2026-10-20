@@ -2,8 +2,11 @@ const SAVE_KEY = 'CoreTowerDefense_Save_v11';
 
 const THEME_DEFS = {
     cyber: { id: 'cyber', name: 'Siber Çekirdek', towerName: 'Siber Izgara Arka Planı', reqWave: 1, icon: 'fa-solid fa-microchip', color: 'text-blue-400', desc: 'Klasik siber savunma atmosferi.' },
-    snow: { id: 'snow', name: 'Buzul Gezegeni (Kar)', towerName: 'Kar Yağışlı Arka Plan', reqWave: 30, icon: 'fa-solid fa-snowflake', color: 'text-sky-300', desc: '30. Dalgada açılır. Kar fırtınası atmosferi.' },
-    space: { id: 'space', name: 'Derin Uzay Nebulası', towerName: 'Kozmik Nebula Arka Planı', reqWave: 60, icon: 'fa-solid fa-shuttle-space', color: 'text-purple-400', desc: '60. Dalgada açılır. Derin uzay atmosferi.' }
+    cengiz: { id: 'cengiz', name: 'Cengiz Hakanlığı', towerName: 'Bozkır & Kızıl Tuğ Arka Planı', reqWave: 15, icon: 'fa-solid fa-khanda', color: 'text-red-400', desc: '15. Dalgada açılır. Destansı kılıçlar, kızıl korlar ve hakanlık mührü.' },
+    snow: { id: 'snow', name: 'Buzul Gezegeni (Kar)', towerName: 'Kar & Kuzey Işıkları Arka Planı', reqWave: 30, icon: 'fa-solid fa-snowflake', color: 'text-sky-300', desc: '30. Dalgada açılır. Çam ağaçları, kuzey ışıkları ve kristal kar fırtınası.' },
+    desert: { id: 'desert', name: 'Kızıl Çöl & Kaktüs', towerName: 'Çöl Kumulları Arka Planı', reqWave: 45, icon: 'fa-solid fa-sun', color: 'text-amber-400', desc: '45. Dalgada açılır. Dev kaktüsler, kum tepeleri ve çöl güneşi.' },
+    space: { id: 'space', name: 'Derin Uzay Nebulası', towerName: 'Kozmik Nebula Arka Planı', reqWave: 60, icon: 'fa-solid fa-shuttle-space', color: 'text-purple-400', desc: '60. Dalgada açılır. Renkli nebulalar, halkalı gezegenler ve kayan yıldızlar.' },
+    bubblegum: { id: 'bubblegum', name: 'Buubglegum Rüyası', towerName: 'Mavi-Pembe Kelebek Arka Planı', reqWave: 100, icon: 'fa-solid fa-wand-magic-sparkles', color: 'text-pink-400', desc: '100. Dalgada açılır. Mavi-pembe kelebekler ve uçuşan sakız balonları!' }
 };
 
 const SKIN_DATABASE = {
@@ -11,6 +14,10 @@ const SKIN_DATABASE = {
     kurt_kaan: { id: 'kurt_kaan', name: 'Kurt Kaan', rarity: 'legendary', emoji: '🐺', desc: 'Asil bozkurt ruhu taşıyan, uluyarak plazma pençesi fırlatan Efsanevi Kurt Kaan kulesi!', projColor: '#38bdf8', critColor: '#facc15' },
     dgdvrn: { id: 'dgdvrn', name: 'DGDVRN (Altın Kaplama)', rarity: 'legendary', emoji: '👑', desc: 'Özel üretim saf altın kaplamalı efsanevi kule!', projColor: '#facc15', critColor: '#fef08a' },
     black_hole: { id: 'black_hole', name: 'Kozmik Kara Delik', rarity: 'legendary', emoji: '🕳️', desc: 'Uzay-zamanı büken, etrafında olay ufku dönen efsanevi kara delik kulesi!', projColor: '#a855f7', critColor: '#f43f5e' },
+    nane_tower: { id: 'nane_tower', name: 'Nane Kulesi', rarity: 'legendary', emoji: '🌿', desc: 'Buzlu nane yaprakları ve ferahlatıcı zümrüt kristaliyle düşmanları kesen efsanevi kule!', projColor: '#34d399', critColor: '#a7f3d0' },
+    sunkas_tower: { id: 'sunkas_tower', name: 'Sunkas Kulesi', rarity: 'legendary', emoji: '☀️', desc: 'Altın güneş halesi ve siber imparatorluk çekirdeğiyle parlayan efsanevi Sunkas kulesi!', projColor: '#fbbf24', critColor: '#38bdf8' },
+    ates_tower: { id: 'ates_tower', name: 'Ateş Kulesi', rarity: 'legendary', emoji: '🔥', desc: 'Volkanik magma çekirdeği ve dönen alev halkalarıyla her şeyi kül eden efsanevi kule!', projColor: '#f97316', critColor: '#fef08a' },
+    teyzir_tower: { id: 'teyzir_tower', name: 'Teyzir Kulesi', rarity: 'legendary', emoji: '⚡', desc: 'Yüksek voltajlı Tesla bobinleri ve şok yıldırımları saçan efsanevi elektro-şok kulesi!', projColor: '#22d3ee', critColor: '#facc15' },
     bubblegum: { id: 'bubblegum', name: 'Balonlu Sakız', rarity: 'mythic', emoji: '🫧', desc: 'Şişip patlayan tatlı pembe balonlu sakız otomatı kulesi.', projColor: '#f472b6', critColor: '#c084fc' },
     cyber_samurai: { id: 'cyber_samurai', name: 'Siber Samuray', rarity: 'mythic', emoji: '🥷', desc: 'Çift katana namlulu, kızıl kabuto miğferli ölümsüz Shogun kulesi.', projColor: '#f43f5e', critColor: '#fde047' },
     snowman: { id: 'snowman', name: 'Kardan Adam Kulesi', rarity: 'mythic', emoji: '⛄', desc: 'Havuç burunlu efsanevi Kardan Adam kulesi.', projColor: '#bae6fd', critColor: '#38bdf8' },
@@ -34,6 +41,7 @@ const SKIN_DATABASE = {
     pizza: { id: 'pizza', name: 'Sıcak Pizza', rarity: 'rare', emoji: '🍕', desc: 'Sucuklu ve erimiş peynirli İtalyan pizzası.', projColor: '#f97316', critColor: '#ef4444' },
     toilet: { id: 'toilet', name: 'Altın Porselen', rarity: 'rare', emoji: '🚽', desc: 'Girdaplı porselen mizahi kule skini.', projColor: '#60a5fa', critColor: '#facc15' }
 };
+
 
 const COMPANION_SKIN_DATABASE = {
     default_tech: { id: 'default_tech', name: 'Siber Taktik Dronu', rarity: 'rare', emoji: '🛸', desc: 'Göz yormayan, zarif kanatlı standart taktik yoldaş dronu.' },
