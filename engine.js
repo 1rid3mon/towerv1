@@ -443,7 +443,7 @@ function updateGame(dt) {
         }
     }
 
-     // Boss dalgası (5'in katı): hafif sürü | Sürü dalgası (3'ün katı): tam sürü | Diğerleri: sakin
+    // Boss dalgası (5'in katı): hafif sürü | Sürü dalgası (3'ün katı): tam sürü | Diğerleri: sakin
     const isBossWave = game.wave % 5 === 0;
     const isSwarmWave = game.wave % 3 === 0;
     const baseCap = 6 + Math.floor(game.wave / 6);
@@ -459,8 +459,6 @@ function updateGame(dt) {
         const baseInterval = Math.max(0.7, 1.7 - game.wave * 0.01);
         spawnTimer = baseInterval * intervalMult;
         spawnEnemy(false);
-    }
-
     }
 
     const baseFrostFactor = tower.freezeTimer > 0 ? 0 : (tower.frostSlowTimer > 0 ? 0.55 : 1.0);
