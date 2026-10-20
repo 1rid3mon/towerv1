@@ -1208,12 +1208,12 @@ function importSaveCode() { try { const t = document.getElementById('save-code-t
 // 🔐 HESAP (LOGIN/KAYIT) + ☁️ BULUT KAYIT + 🏆 LİDERLİK TABLOSU
 // =======================================================
 const FIREBASE_CONFIG = {
-    apiKey: "",
-    authDomain: "",
-    projectId: "",
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: ""
+    apiKey: "AIzaSyBzLARFUu-jpL3GBbmwXitR06_s-HX_spw",
+    authDomain: "rid3mon-c311a.firebaseapp.com",
+    projectId: "rid3mon-c311a",
+    storageBucket: "rid3mon-c311a.firebasestorage.app",
+    messagingSenderId: "598148206661",
+    appId: "1:598148206661:web:fccfb31214ec5923e7d32c"
 };
 
 const LOCAL_ACCOUNTS_KEY = 'cyberTower_localAccounts_v1';
