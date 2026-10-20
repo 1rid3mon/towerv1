@@ -446,11 +446,11 @@ function updateGame(dt) {
     // Boss dalgası (5'in katı): hafif sürü | Sürü dalgası (3'ün katı): tam sürü | Diğerleri: sakin
     const isBossWave = game.wave % 5 === 0;
     const isSwarmWave = game.wave % 3 === 0;
-    const baseCap = 6 + Math.floor(game.wave / 6);
+    const baseCap = 9 + Math.floor(game.wave / 6);
 
     let capMult = 1.0, intervalMult = 1.0;
     if (isBossWave) { capMult = 1.6; intervalMult = 0.75; }
-    else if (isSwarmWave) { capMult = 1.8; intervalMult = 0.5; }
+    else if (isSwarmWave) { capMult = 2; intervalMult = 0.5; }
 
     const maxEnemies = Math.min(40, Math.round(baseCap * capMult));
 
