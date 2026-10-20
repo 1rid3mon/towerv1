@@ -169,6 +169,148 @@ function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
     c.shadowBlur = 8;
     c.shadowOffsetY = 3;
 
+        case 'nane_tower': {
+            const mintAura = 24 + Math.sin(nowTime * 0.007) * 3;
+            c.beginPath(); c.arc(0, 0, mintAura, 0, Math.PI * 2);
+            c.fillStyle = 'rgba(16, 185, 129, 0.24)'; c.fill();
+            c.strokeStyle = 'rgba(167, 243, 208, 0.6)'; c.lineWidth = 1.6; c.stroke();
+
+            // Dönen taze nane yaprakları
+            c.save(); c.rotate(nowTime * 0.0025);
+            for (let i = 0; i < 6; i++) {
+                c.rotate(Math.PI / 3);
+                c.fillStyle = i % 2 === 0 ? '#10b981' : '#34d399';
+                c.strokeStyle = '#d1fae5'; c.lineWidth = 1.2;
+                c.beginPath();
+                c.moveTo(0, -14); c.quadraticCurveTo(7, -21, 0, -25); c.quadraticCurveTo(-7, -21, 0, -14);
+                c.closePath(); c.fill(); c.stroke();
+            }
+            c.restore();
+
+            drawBarrels('#059669', '#a7f3d0', '#ecfdf5', 22, 7.5, 'cone');
+
+            // Nane şekeri (Peppermint) gövde
+            const mintGrad = c.createRadialGradient(-3, -3, 2, 0, 0, 17);
+            mintGrad.addColorStop(0, '#ecfdf5'); mintGrad.addColorStop(0.55, '#34d399'); mintGrad.addColorStop(1, '#065f46');
+            c.fillStyle = mintGrad; c.strokeStyle = '#a7f3d0'; c.lineWidth = 2;
+            c.beginPath(); c.arc(0, 0, 17, 0, Math.PI * 2); c.fill(); c.stroke();
+
+            // Dönen nane girdabı
+            c.save(); c.rotate(-nowTime * 0.003);
+            c.strokeStyle = '#ffffff'; c.lineWidth = 2.4;
+            for (let i = 0; i < 4; i++) {
+                c.rotate(Math.PI / 2);
+                c.beginPath(); c.arc(4, 0, 6, 0, Math.PI * 0.8); c.stroke();
+            }
+            c.restore();
+
+            c.fillStyle = '#064e3b'; c.strokeStyle = '#6ee7b7'; c.lineWidth = 1.8;
+            c.beginPath(); c.arc(0, 0, 8.5, 0, Math.PI * 2); c.fill(); c.stroke();
+            c.font = "bold 6.5px 'Rajdhani', sans-serif"; c.fillStyle = '#a7f3d0'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('NANE', 0, 0);
+            break;
+        }
+        case 'sunkas_tower': {
+            const sunAura = 25 + Math.sin(nowTime * 0.008) * 3.5;
+            c.beginPath(); c.arc(0, 0, sunAura, 0, Math.PI * 2);
+            c.fillStyle = 'rgba(245, 158, 11, 0.25)'; c.fill();
+            c.strokeStyle = 'rgba(56, 189, 248, 0.65)'; c.lineWidth = 1.6; c.stroke();
+
+            drawBarrels('#d97706', '#fef08a', '#38bdf8', 23, 8);
+
+            // Dönen 12 köşeli güneş tacı
+            c.save(); c.rotate(nowTime * 0.002);
+            c.fillStyle = '#b45309'; c.strokeStyle = '#fde047'; c.lineWidth = 1.8;
+            c.beginPath();
+            for (let i = 0; i < 24; i++) {
+                const a = (i * Math.PI) / 12;
+                const r = i % 2 === 0 ? 22 : 15.5;
+                const px = Math.cos(a) * r, py = Math.sin(a) * r;
+                if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+            }
+            c.closePath(); c.fill(); c.stroke();
+            c.restore();
+
+            // Sunkas kanatlı zırh
+            c.save(); c.rotate(angle);
+            c.fillStyle = '#0284c7'; c.strokeStyle = '#fef08a'; c.lineWidth = 1.6;
+            c.beginPath(); c.moveTo(4, -10); c.lineTo(-10, -21); c.lineTo(-14, -9); c.closePath(); c.fill(); c.stroke();
+            c.beginPath(); c.moveTo(4, 10); c.lineTo(-10, 21); c.lineTo(-14, 9); c.closePath(); c.fill(); c.stroke();
+            c.restore();
+
+            const sunGrad = c.createRadialGradient(-3, -3, 2, 0, 0, 15);
+            sunGrad.addColorStop(0, '#fef9c3'); sunGrad.addColorStop(0.5, '#f59e0b'); sunGrad.addColorStop(1, '#78350f');
+            c.fillStyle = sunGrad; c.strokeStyle = '#38bdf8'; c.lineWidth = 2;
+            c.beginPath(); c.arc(0, 0, 14, 0, Math.PI * 2); c.fill(); c.stroke();
+
+            c.fillStyle = '#0f172a'; c.beginPath(); c.arc(0, 0, 9.5, 0, Math.PI * 2); c.fill();
+            c.font = "bold 5.8px 'Rajdhani', sans-serif"; c.fillStyle = '#fde047'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('SUNKAS', 0, 0);
+            break;
+        }
+        case 'ates_tower': {
+            const fireAura = 25 + Math.sin(nowTime * 0.012) * 4;
+            const fGrad = c.createRadialGradient(0, 0, 6, 0, 0, fireAura);
+            fGrad.addColorStop(0, 'rgba(254, 240, 138, 0.5)');
+            fGrad.addColorStop(0.5, 'rgba(249, 115, 22, 0.35)');
+            fGrad.addColorStop(1, 'rgba(239, 68, 68, 0)');
+            c.fillStyle = fGrad; c.beginPath(); c.arc(0, 0, fireAura, 0, Math.PI * 2); c.fill();
+
+            drawBarrels('#991b1b', '#f97316', '#fef08a', 22, 8.5, 'cone');
+
+            // Dönen alev dilleri
+            c.save(); c.rotate(-nowTime * 0.004);
+            c.fillStyle = '#ea580c'; c.strokeStyle = '#fde047'; c.lineWidth = 1.5;
+            c.beginPath();
+            for (let i = 0; i < 16; i++) {
+                const a = (i * Math.PI) / 8;
+                const r = i % 2 === 0 ? 22 + Math.sin(nowTime * 0.02 + i) * 2 : 14;
+                const px = Math.cos(a) * r, py = Math.sin(a) * r;
+                if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+            }
+            c.closePath(); c.fill(); c.stroke();
+            c.restore();
+
+            const coreGrad = c.createRadialGradient(0, 0, 2, 0, 0, 15);
+            coreGrad.addColorStop(0, '#fef08a'); coreGrad.addColorStop(0.5, '#ef4444'); coreGrad.addColorStop(1, '#450a0a');
+            c.fillStyle = coreGrad; c.strokeStyle = '#fb923c'; c.lineWidth = 2;
+            c.beginPath(); c.arc(0, 0, 15, 0, Math.PI * 2); c.fill(); c.stroke();
+
+            c.fillStyle = '#450a0a'; c.beginPath(); c.arc(0, 0, 8.5, 0, Math.PI * 2); c.fill();
+            c.font = "bold 6.5px 'Rajdhani', sans-serif"; c.fillStyle = '#fef08a'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('ATEŞ', 0, 0);
+            break;
+        }
+        case 'teyzir_tower': {
+            const shockAura = 24 + Math.sin(nowTime * 0.018) * 3;
+            c.beginPath(); c.arc(0, 0, shockAura, 0, Math.PI * 2);
+            c.fillStyle = 'rgba(34, 211, 238, 0.22)'; c.fill();
+            c.strokeStyle = '#facc15'; c.lineWidth = 1.5; c.setLineDash([5, 4]); c.stroke(); c.setLineDash([]);
+
+            drawBarrels('#0e7490', '#22d3ee', '#facc15', 22, 7.5);
+
+            // Tesla Elektro-Şok Bobinleri
+            c.save(); c.rotate(angle);
+            c.fillStyle = '#1e293b'; c.strokeStyle = '#facc15'; c.lineWidth = 2;
+            c.beginPath(); c.roundRect(-16, -16, 32, 32, 7); c.fill(); c.stroke();
+
+            // Yan Tesla Elektrotları
+            c.fillStyle = '#06b6d4'; c.strokeStyle = '#cffafe'; c.lineWidth = 1.5;
+            c.beginPath(); c.arc(0, -18, 4.5, 0, Math.PI * 2); c.arc(0, 18, 4.5, 0, Math.PI * 2); c.fill(); c.stroke();
+
+            // Canlı Elektrik Arkları (Şimşek)
+            c.strokeStyle = '#fef08a'; c.lineWidth = 1.8;
+            const jitter = Math.sin(nowTime * 0.05) * 3;
+            c.beginPath();
+            c.moveTo(0, -18); c.lineTo(8 + jitter, -10); c.lineTo(18, -3);
+            c.moveTo(0, 18); c.lineTo(8 - jitter, 10); c.lineTo(18, 3);
+            c.stroke();
+            c.restore();
+
+            c.fillStyle = '#083344'; c.strokeStyle = '#22d3ee'; c.lineWidth = 2;
+            c.beginPath(); c.arc(0, 0, 10, 0, Math.PI * 2); c.fill(); c.stroke();
+            c.font = "bold 5.8px 'Rajdhani', sans-serif"; c.fillStyle = '#22d3ee'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('TEYZİR', 0, 0);
+            break;
+        }
+
+    
     switch (skinId) {
         case 'kurt_kaan': {
             const wolfAura = 24 + Math.sin(nowTime * 0.007) * 3;
