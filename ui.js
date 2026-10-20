@@ -1353,6 +1353,41 @@ function closeAuthModal() {
     if (modal) modal.classList.add('hidden');
 }
 
+async function signInWithGoogle() {
+    if (!isFirebaseReady || !fbAuth) {
+        showAuthError('Firebase bağlantısı hazır değil. Lütfen tekrar dene.');
+        return;
+    }
+
+    try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const result = await fbAuth.signInWithPopup(provider);
+
+        if (!result.user) {
+            showAuthError('Google hesabı alınamadı. Tekrar dene.');
+            return;
+        }
+
+        // Mevcut hesap sistemiyle uyumlu kullanıcı adı
+        const googleUser = result.user;
+        const username =
+            googleUser.displayName ||
+            (googleUser.email ? googleUser.email.split('@')[0] : 'Komutan');
+
+        // Firebase Auth kullanıcı durumunu mevcut dinleyici günceller.
+        closeAuthModal();
+        showToast(`Google ile giriş başarılı, ${username}!`);
+        refreshLeaderboard(false);
+    } catch (err) {
+        console.error('Google giriş hatası:', err);
+        showAuthError(
+            err.code === 'auth/popup-closed-by-user'
+                ? 'Giriş penceresi kapatıldı.'
+                : `Google giriş hatası: ${err.message || 'Tekrar dene.'}`
+        );
+    }
+}
+
 async function submitUsernameAuth() {
     const userInp = document.getElementById('auth-username');
     const passInp = document.getElementById('auth-password');
