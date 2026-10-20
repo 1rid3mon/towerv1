@@ -729,7 +729,7 @@ function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
             c.beginPath();
             for (let i = 0; i < 8; i++) {
                 const a = (i * Math.PI) / 4;
-                const px = Math.cos(a) * 18, py = Math.sin(a) * r || 18;
+                const px = Math.cos(a) * 18, py = Math.sin(a) * 18;
                 if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
             }
             c.closePath();
