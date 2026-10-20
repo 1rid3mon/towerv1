@@ -839,7 +839,6 @@ function damageTower(rawDamage, attacker) {
     if (rem > 0) { tower.hp -= rem; createParticles(tower.x, tower.y, '#ef4444', 5, 50); }
     if (tower.hp <= 0) { tower.hp = 0; triggerTowerDefeat(); }
 }
-
 function completeWave() {
     if (!game.holdWave) {
         const interestCap = Math.round(getWaveBaseGold(game.wave) * 25 * getGoldMultiplier());
@@ -855,8 +854,11 @@ function completeWave() {
                 game.crystals += milestoneCrystals;
                 showToast(`🏆 Dalga ${game.highestWave} Rekor Ödülü: +${milestoneCrystals} 💎 Kristal!`);
             }
-            if (prevHighest < 30 && game.highestWave >= 30) showToast('❄️ 30. Dalga! Kar Teması Açıldı!');
-            else if (prevHighest < 60 && game.highestWave >= 60) showToast('🚀 60. Dalga! Uzay Teması Açıldı!');
+            if (prevHighest < 15 && game.highestWave >= 15) showToast('⚔️ 15. Dalga! Cengiz Hakanlığı Teması Açıldı!');
+            else if (prevHighest < 30 && game.highestWave >= 30) showToast('❄️ 30. Dalga! Kar Teması Açıldı!');
+            else if (prevHighest < 45 && game.highestWave >= 45) showToast('🌵 45. Dalga! Kızıl Çöl Teması Açıldı!');
+            else if (prevHighest < 60 && game.highestWave >= 60) showToast('🚀 60. Dalga! Derin Uzay Nebulası Teması Açıldı!');
+            else if (prevHighest < 100 && game.highestWave >= 100) showToast('🦋 100. Dalga! Buubglegum Kelebek Teması Açıldı!');
         }
         game.consecutiveDefeats = 0;
     } else {
