@@ -919,16 +919,160 @@ function updateHoldWaveButton() {
     else { btn.className = 'px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-semibold text-emerald-400 transition flex items-center gap-1'; icon.className = 'fa-solid fa-forward'; txt.textContent = 'Oto İlerle'; }
 }
 
+
 let lastFrameTime = performance.now();
-function gameLoop(now) {
-    const dt = Math.min(0.1, (now - lastFrameTime) / 1000); lastFrameTime = now;
-    updateGame(dt); renderGame(); updateRouletteAnimation(now); requestAnimationFrame(gameLoop);
+
+// Aynı tarayıcıda yalnızca bir sekmenin oyunu çalıştırmasına izin ver.
+const ACTIVE_TAB_KEY = 'towerDefense_activeTab';
+const TAB_ID = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+const TAB_LOCK_TIMEOUT = 8000;
+
+let isDuplicateTab = false;
+let gameSaveTimer = null;
+let tabHeartbeat = null;
+
+function readActiveTab() {
+    try {
+        return JSON.parse(localStorage.getItem(ACTIVE_TAB_KEY));
+    } catch {
+        return null;
+    }
 }
 
+function claimActiveTab() {
+    const active = readActiveTab();
+    const now = Date.now();
+
+    if (
+        active &&
+        active.id !== TAB_ID &&
+        now - active.time < TAB_LOCK_TIMEOUT
+    ) {
+        return false;
+    }
+
+    localStorage.setItem(ACTIVE_TAB_KEY, JSON.stringify({
+        id: TAB_ID,
+        time: now
+    }));
+
+    return true;
+}
+
+function showDuplicateTabScreen() {
+    if (isDuplicateTab) return;
+    isDuplicateTab = true;
+
+    if (gameSaveTimer !== null) clearInterval(gameSaveTimer);
+    if (tabHeartbeat !== null) clearInterval(tabHeartbeat);
+
+    const overlay = document.createElement('div');
+    overlay.id = 'duplicate-tab-warning';
+    overlay.style.cssText = `
+        position:fixed;inset:0;z-index:999999;
+        background:#020617;color:white;
+        display:flex;align-items:center;
+        justify-content:center;text-align:center;
+        padding:24px;font:16px sans-serif;
+    `;
+
+    overlay.innerHTML = `
+        <div>
+            <h2>Oyun başka bir sekmede açık</h2>
+            <p>Oynamak için diğer oyun sekmesini kapatıp bu sayfayı yenile.</p>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+}
+
+function gameLoop(now) {
+    if (isDuplicateTab) return;
+
+    const active = readActiveTab();
+
+    if (!active || active.id !== TAB_ID) {
+        showDuplicateTabScreen();
+        return;
+    }
+
+    const dt = Math.min(0.1, (now - lastFrameTime) / 1000);
+    lastFrameTime = now;
+
+    updateGame(dt);
+    renderGame();
+    updateRouletteAnimation(now);
+
+    if (!isDuplicateTab) requestAnimationFrame(gameLoop);
+}
+
+window.addEventListener('storage', event => {
+    if (event.key !== ACTIVE_TAB_KEY || isDuplicateTab) return;
+
+    const active = readActiveTab();
+
+    if (active && active.id !== TAB_ID &&
+        Date.now() - active.time < TAB_LOCK_TIMEOUT) {
+        showDuplicateTabScreen();
+    }
+});
+
+window.addEventListener('pagehide', () => {
+    if (gameSaveTimer !== null) clearInterval(gameSaveTimer);
+    if (tabHeartbeat !== null) clearInterval(tabHeartbeat);
+
+    const active = readActiveTab();
+
+    if (active && active.id === TAB_ID) {
+        localStorage.removeItem(ACTIVE_TAB_KEY);
+    }
+});
+
 window.onload = function () {
-    loadGame(); resizeCanvas();
-    tower.maxHp = getTowerMaxHp(); tower.hp = tower.maxHp; tower.maxShield = getTowerMaxShield(); tower.shield = tower.maxShield;
-    applyBodyClasses(); setDeviceMode(game.deviceMode || 'pc'); updateHoldWaveButton();
-    buildUpgradesUI(); buildInventoryUI(); drawRouletteWheel(); updateHUD();
-    setInterval(() => saveGame(false), 15000); requestAnimationFrame(gameLoop);
+    if (!claimActiveTab()) {
+        showDuplicateTabScreen();
+        return;
+    }
+
+    loadGame();
+    resizeCanvas();
+
+    tower.maxHp = getTowerMaxHp();
+    tower.hp = tower.maxHp;
+    tower.maxShield = getTowerMaxShield();
+    tower.shield = tower.maxShield;
+
+    applyBodyClasses();
+    setDeviceMode(game.deviceMode || 'pc');
+    updateHoldWaveButton();
+    buildUpgradesUI();
+    buildInventoryUI();
+    drawRouletteWheel();
+    updateHUD();
+
+    gameSaveTimer = setInterval(() => {
+        if (!isDuplicateTab) {
+            const active = readActiveTab();
+            if (active && active.id === TAB_ID) saveGame(false);
+            else showDuplicateTabScreen();
+        }
+    }, 15000);
+
+    tabHeartbeat = setInterval(() => {
+        if (isDuplicateTab) return;
+
+        const active = readActiveTab();
+
+        if (!active || active.id !== TAB_ID) {
+            showDuplicateTabScreen();
+            return;
+        }
+
+        localStorage.setItem(ACTIVE_TAB_KEY, JSON.stringify({
+            id: TAB_ID,
+            time: Date.now()
+        }));
+    }, 2000);
+
+    requestAnimationFrame(gameLoop);
 };
