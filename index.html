@@ -813,6 +813,24 @@
 <script src="ui.js"></script>
 <script src="render.js"></script>
 <script src="engine.js"></script>
+
+<script>
+    // Sağ tık menüsünü kapat
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    
+    // F12, Ctrl+Shift+I, Ctrl+U (Kaynak Kodu) kısayollarını engelle
+    document.addEventListener('keydown', e => {
+        if (
+            e.key === 'F12' ||
+            (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) ||
+            (e.ctrlKey && e.key.toUpperCase() === 'U')
+        ) {
+            e.preventDefault();
+        }
+    });
+    
+</script>
+
 </body>
 
 </html>
