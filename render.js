@@ -1998,5 +1998,5 @@ function renderGame() {
             if (typeof resizeCanvas === 'function') resizeCanvas();
         }, 150);
     });
-    setInterval(scanAndTagMobileElements, 1200);
+ //   setInterval(scanAndTagMobileElements, 1200);
 })();
