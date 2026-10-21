@@ -438,7 +438,11 @@ function switchMiniGame(gameType) {
             : 'py-2 rounded-xl bg-slate-800 text-slate-300 font-tech font-bold text-xs transition';
     });
     if (gameType === 'roulette') drawRouletteWheel();
-    if (gameType === 'quantum') drawQuantumBar();
+    if (gameType === 'quantum') {
+        drawQuantumBar();
+        const info = document.getElementById('quantum-rules-text');
+        if (info) info.innerHTML = `Çubuk kayarken <b class="text-yellow-300">sarı</b> bölgede kilitle: <b class="text-yellow-300">x${QUANTUM_CFG.yellowMult}</b>, <b class="text-sky-300">mavi</b> bölgede: <b class="text-sky-300">x${QUANTUM_CFG.blueMult}</b>. Kaçırırsan bahis gider ve kombo sıfırlanır. Her başarı çubuğu hızlandırır. En fazla ${QUANTUM_CFG.maxBet} 💎 bahis.`;
+    }
 }
 
 function setCasinoBetVal(val) {
@@ -584,7 +588,27 @@ function updateBlackjackUI(showAllDealer) {
 }
 
 // Beceri Odaklı Mini Oyun: Kuantum Frekans Kilidi
-let qHack = { active: false, pos: 0.5, dir: 1, speed: 1.5, minB: 0.32, maxB: 0.68, minY: 0.46, maxY: 0.54, combo: 0 };
+// ---- KUANTUM DENGE AYARLARI (zorluk/ödül buradan değişir) ----
+// Simülasyonla ayarlandı: çok usta oyuncu ~%110, normal oyuncu ~%85, acemi ~%60 geri dönüş alır.
+const QUANTUM_CFG = {
+    blueHalf: 0.05,    // mavi bölgenin yarı genişliği (toplam %10)
+    yellowHalf: 0.012, // sarı bölgenin yarı genişliği (toplam %2.4)
+    blueMult: 1.15,    // mavi kilit: bahsin 1.15 katı geri (net +%15)
+    yellowMult: 1.8,   // sarı kilit: bahsin 1.8 katı geri
+    comboStep: 0.015,  // her kombo ödüle +%1.5
+    comboCap: 3,        // kombo bonusu en fazla +%4.5
+    speedBase: 2.2,    // başlangıç çubuk hızı
+    speedStep: 0.22,   // kombo başına hız artışı
+    speedMax: 4.2,     // en yüksek çubuk hızı
+    jitterMin: 0.82,   // her sekmede hız çarpanı rastgele bu aralıkta değişir (ritim ezberlenmesin)
+    jitterMax: 1.18,
+    maxBet: 100        // tur başına en yüksek bahis (kristal)
+};
+// Kesirli ödülü adil yuvarla (küçük bahislerde sistematik kazanç/kayıp olmasın)
+function _quantumRoundWin(x) { const f = Math.floor(x); return f + (Math.random() < x - f ? 1 : 0); }
+function _quantumComboBonus(combo) { return 1 + Math.min(QUANTUM_CFG.comboCap, combo) * QUANTUM_CFG.comboStep; }
+
+let qHack = { active: false, pos: 0.5, dir: 1, speed: 1.5, jitter: 1, minB: 0.32, maxB: 0.68, minY: 0.46, maxY: 0.54, combo: 0 };
 let _secureQuantumVault = null;
 
 function handleQuantumAction() {
@@ -592,16 +616,18 @@ function handleQuantumAction() {
         const betInp = document.getElementById('casino-bet');
         const bet = Math.floor(Number(betInp ? betInp.value : 0));
         if (!Number.isFinite(bet) || bet <= 0 || bet > game.crystals) { showToast('Yeterli kristalin yok!'); return; }
+        if (bet > QUANTUM_CFG.maxBet) { showToast(`Kuantumda en fazla ${QUANTUM_CFG.maxBet} 💎 bahis yapabilirsin.`); return; }
         game.crystals -= bet; saveGame(true);
         updateHUD();
         _secureQuantumVault = Object.freeze({ bet: bet });
         qHack.active = true;
         qHack.pos = 0;
         qHack.dir = 1;
-        qHack.speed = Math.min(2.8, 1.45 + qHack.combo * 0.15);
+        qHack.jitter = 1;
+        qHack.speed = Math.min(QUANTUM_CFG.speedMax, QUANTUM_CFG.speedBase + qHack.combo * QUANTUM_CFG.speedStep);
         const center = 0.25 + Math.random() * 0.50;
-        qHack.minB = center - 0.15; qHack.maxB = center + 0.15;
-        qHack.minY = center - 0.04; qHack.maxY = center + 0.04;
+        qHack.minB = center - QUANTUM_CFG.blueHalf; qHack.maxB = center + QUANTUM_CFG.blueHalf;
+        qHack.minY = center - QUANTUM_CFG.yellowHalf; qHack.maxY = center + QUANTUM_CFG.yellowHalf;
 
         const btn = document.getElementById('btn-quantum-action');
         if (btn) { btn.textContent = '⚡ ŞİMDİ KİLİTLE!'; btn.className = 'w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-tech font-bold text-xs shadow animate-pulse'; }
@@ -617,22 +643,22 @@ function handleQuantumAction() {
         const lockedBet = _secureQuantumVault.bet;
         _secureQuantumVault = null;
 
-        const comboBonus = 1 + (qHack.combo * 0.1);
+        const comboBonus = _quantumComboBonus(qHack.combo);
         if (qHack.pos >= qHack.minY && qHack.pos <= qHack.maxY) {
             qHack.combo++;
-            const win = Math.round(lockedBet * 4 * comboBonus);
+            const win = _quantumRoundWin(lockedBet * QUANTUM_CFG.yellowMult * comboBonus);
             game.crystals += win; if (window._syncShadow) window._syncShadow();
             showToast(`🎯 KUSURSUZ KİLİT! +${win} 💎 (${qHack.combo}x Kombo!)`);
         } else if (qHack.pos >= qHack.minB && qHack.pos <= qHack.maxB) {
             qHack.combo++;
-            const win = Math.round(lockedBet * 2 * comboBonus);
+            const win = _quantumRoundWin(lockedBet * QUANTUM_CFG.blueMult * comboBonus);
             game.crystals += win; if (window._syncShadow) window._syncShadow();
             showToast(`⚡ STABİL KİLİT! +${win} 💎 (${qHack.combo}x Kombo!)`);
         } else {
             qHack.combo = 0;
             showToast(`💥 FREKANS KAÇTI! -${lockedBet} 💎`);
         }
-        setElText('quantum-combo-text', `Kombo Serisi: ${qHack.combo}x (Çarpan: x${(1 + qHack.combo * 0.1).toFixed(1)})`);
+        setElText('quantum-combo-text', `Kombo Serisi: ${qHack.combo}x (Çarpan: x${_quantumComboBonus(qHack.combo).toFixed(2)})`);
         const btn = document.getElementById('btn-quantum-action');
         if (btn) { btn.textContent = 'FREKANSI BAŞLAT'; btn.className = 'w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs shadow transition'; }
         drawQuantumBar(); updateHUD(); refreshUpgradeButtonsState(); saveGame(true);
@@ -644,9 +670,10 @@ function stepQuantumLoop(now) {
     if (!qHack.lastT) qHack.lastT = now;
     const dt = Math.min(0.05, (now - qHack.lastT) / 1000);
     qHack.lastT = now;
-    qHack.pos += dt * 0.96 * qHack.speed * qHack.dir;
-    if (qHack.pos >= 1) { qHack.pos = 1; qHack.dir = -1; }
-    if (qHack.pos <= 0) { qHack.pos = 0; qHack.dir = 1; }
+    qHack.pos += dt * 0.96 * qHack.speed * qHack.jitter * qHack.dir;
+    // Her uçta hız biraz rastgele değişir: ritmi ezberleyip "metronom gibi" her seferinde doğru anı yakalamak zorlaşır
+    if (qHack.pos >= 1) { qHack.pos = 1; qHack.dir = -1; qHack.jitter = QUANTUM_CFG.jitterMin + Math.random() * (QUANTUM_CFG.jitterMax - QUANTUM_CFG.jitterMin); }
+    if (qHack.pos <= 0) { qHack.pos = 0; qHack.dir = 1; qHack.jitter = QUANTUM_CFG.jitterMin + Math.random() * (QUANTUM_CFG.jitterMax - QUANTUM_CFG.jitterMin); }
     drawQuantumBar();
     requestAnimationFrame(stepQuantumLoop);
 }
