@@ -1,4 +1,6 @@
 const SAVE_KEY = 'CoreTowerDefense_Save_v11';
+// Bu tarayıcıda en az bir kez İMZALI kayıt üretildiğini gösterir (eski imzasız kayıtların geçiş kontrolü için)
+const SIGNED_MARK_KEY = 'CoreTowerDefense_signedOnce';
 
 const THEME_DEFS = {
     cyber: { id: 'cyber', name: 'Siber Çekirdek', towerName: 'Siber Izgara Arka Planı', reqWave: 1, icon: 'fa-solid fa-microchip', color: 'text-blue-400', desc: 'Klasik siber savunma atmosferi.' },
