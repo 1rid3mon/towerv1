@@ -1325,6 +1325,9 @@ function applyParsedGameData(parsed) {
             }
         }
     }
+    // Yüklenen kayıt (bulut / kod / hesap) meşru bir atlayış: anti-cheat gölgesini yeni duruma eşitle,
+    // yoksa 400 ms sonra "geçersiz artış" diye dalga ve kristal geri alınır.
+    if (typeof window._syncShadow === 'function') window._syncShadow();
 }
 
 function saveGame(silent = false) {
