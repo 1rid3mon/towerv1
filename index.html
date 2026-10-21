@@ -514,9 +514,10 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-2 pt-1">
+                        <div class="grid grid-cols-3 gap-2 pt-1">
                             <button onclick="switchMiniGame('roulette')" id="mg-btn-roulette" class="py-2 rounded-xl bg-amber-600 text-white font-tech font-bold text-xs transition">RULET</button>
                             <button onclick="switchMiniGame('blackjack')" id="mg-btn-blackjack" class="py-2 rounded-xl bg-slate-800 text-slate-300 font-tech font-bold text-xs transition">BLACKJACK</button>
+                            <button onclick="switchMiniGame('quantum')" id="mg-btn-quantum" class="py-2 rounded-xl bg-slate-800 text-slate-300 font-tech font-bold text-xs transition">KUANTUM</button>
                         </div>
 
                         <div id="mg-roulette" class="space-y-2.5 pt-1">
@@ -564,6 +565,17 @@
                                 <button onclick="hitBlackjack()" class="py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-tech font-bold text-xs">KART ÇEK (HIT)</button>
                                 <button onclick="standBlackjack()" class="py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-tech font-bold text-xs">KAL (STAND)</button>
                             </div>
+                        </div>
+
+                        <div id="mg-quantum" class="hidden space-y-3 pt-1">
+                            <div class="bg-slate-900/60 border border-white/5 p-3 rounded-xl space-y-2.5 text-xs">
+                                <div class="text-center text-[11px] text-slate-400 leading-snug">
+                                    Çubuk kayarken <b class="text-yellow-300">sarı</b> bölgede kilitle: <b class="text-yellow-300">x4</b>, <b class="text-sky-300">mavi</b> bölgede: <b class="text-sky-300">x2</b>. Her başarı kombo çarpanını artırır, kaçırırsan kombo sıfırlanır.
+                                </div>
+                                <canvas id="quantumHackCanvas" width="320" height="40" class="w-full h-10 rounded-lg border border-slate-800"></canvas>
+                                <div id="quantum-combo-text" class="text-center font-tech font-bold text-[11px] text-cyan-300">Kombo Serisi: 0x (Çarpan: x1.0)</div>
+                            </div>
+                            <button id="btn-quantum-action" onclick="handleQuantumAction()" class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs shadow transition">FREKANSI BAŞLAT</button>
                         </div>
                     </div>
                 </div>
@@ -744,6 +756,16 @@
             <div class="pt-3 border-t border-white/10 flex items-center justify-between">
                 <span class="text-[11px] text-slate-400">Oyunu sıfırla:</span>
                 <button onclick="openHardResetConfirm()" class="px-3 py-1.5 rounded-lg bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-400 text-xs font-semibold"><i class="fa-solid fa-trash-can mr-1"></i> Sıfırla</button>
+            </div>
+
+            <div class="pt-3 border-t border-white/10 space-y-2">
+                <label class="text-xs font-semibold text-slate-300 block"><i class="fa-solid fa-key text-amber-400 mr-1"></i> Kayıt Kodu (Yedekle / Cihaz Değiştir):</label>
+                <textarea id="save-code-textarea" rows="3" placeholder="Kodu buraya yapıştır veya 'Kod Oluştur' ile kopyala..." class="w-full bg-slate-950 border border-white/10 rounded-lg p-2 text-[10px] text-slate-300 font-mono focus:outline-none focus:border-cyan-500 resize-none"></textarea>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="exportSaveCode()" class="py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 text-xs font-tech font-bold transition">Kod Oluştur & Kopyala</button>
+                    <button onclick="openConfirmModal('Kayıt yüklensin mi?', 'Mevcut ilerlemen bu koddaki kayıtla DEĞİŞTİRİLECEK.', importSaveCode)" class="py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-tech font-bold transition">Kodu Yükle</button>
+                </div>
+                <div class="text-[10px] text-slate-500 leading-snug">Kod imzalıdır; elle değiştirilen kodlar kabul edilmez.</div>
             </div>
 
             
