@@ -454,7 +454,7 @@ function playRoulette(choice) {
     const betInp = document.getElementById('casino-bet');
     const bet = Math.floor(Number(betInp ? betInp.value : 0));
     if (!Number.isFinite(bet) || bet <= 0 || bet > game.crystals) { showToast('Yeterli kristalin yok!'); return; }
-    game.crystals -= bet; updateHUD();
+    game.crystals -= bet; updateHUD(); saveGame(true);
     
     const winIndex = Math.floor(Math.random() * ROULETTE_SECTORS.length), winSec = ROULETTE_SECTORS[winIndex], sliceAngle = (Math.PI * 2) / ROULETTE_SECTORS.length;
     
@@ -518,7 +518,7 @@ function startBlackjack() {
     const betInp = document.getElementById('casino-bet');
     const bet = Math.floor(Number(betInp ? betInp.value : 0));
     if (!Number.isFinite(bet) || bet <= 0 || bet > game.crystals) { showToast('Yeterli kristalin yok!'); return; }
-    game.crystals -= bet;
+    game.crystals -= bet; saveGame(true);
     _secureBjVault = Object.freeze({ bet: bet });
     bjState = { bet, active: true, playerHand: [drawCard(), drawCard()], dealerHand: [drawCard(), drawCard()] };
     const stEl = document.getElementById('bj-actions-start'), plEl = document.getElementById('bj-actions-play');
@@ -588,7 +588,7 @@ function handleQuantumAction() {
         const betInp = document.getElementById('casino-bet');
         const bet = Math.floor(Number(betInp ? betInp.value : 0));
         if (!Number.isFinite(bet) || bet <= 0 || bet > game.crystals) { showToast('Yeterli kristalin yok!'); return; }
-        game.crystals -= bet;
+        game.crystals -= bet; saveGame(true);
         updateHUD();
         _secureQuantumVault = Object.freeze({ bet: bet });
         qHack.active = true;
