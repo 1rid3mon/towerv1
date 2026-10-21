@@ -35,7 +35,8 @@ function escapeHtml(str) {
 }
 
 // Eksik olan renderItemIconHTML fonksiyonu (Tam Korumalı Yedekli Sürüm)
-function renderItemIconHTML(item, sizeCls = 'w-10 h-10') {
+// render_4.js'deki sanatlı sürüm varsa onu ezmesin diye yalnızca YEDEK olarak tanımlanır
+if (typeof window.renderItemIconHTML !== 'function') window.renderItemIconHTML = function (item, sizeCls = 'w-10 h-10') {
     if (!item) return `<div class="${sizeCls} rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center">❓</div>`;
 
     if (typeof window.customRenderItemIcon === 'function') {
@@ -57,7 +58,7 @@ function renderItemIconHTML(item, sizeCls = 'w-10 h-10') {
 
     const emoji = item.emoji || item.icon || '🔮';
     return `<div class="${sizeCls} rounded-xl bg-slate-950/90 border border-white/10 flex items-center justify-center shrink-0 shadow-inner text-lg">${emoji}</div>`;
-}
+};
 
 function toggleUpgradeDrawer() {
     isDrawerOpen = !isDrawerOpen;
@@ -1334,6 +1335,7 @@ function saveGame(silent = false) {
             game._sig = window._generateSaveSignature(game);
         }
         localStorage.setItem(SAVE_KEY, JSON.stringify(game));
+        if (game._sig) localStorage.setItem(SIGNED_MARK_KEY, '1');
         scheduleCloudSave();
     } catch (e) {}
 }
@@ -1345,6 +1347,9 @@ function loadGame() {
         const parsed = JSON.parse(raw);
         if (typeof window._verifySaveSignature === 'function' && !window._verifySaveSignature(parsed)) {
             console.warn('Kayıt imzası doğrulanamadı, varsayılan durum korunuyor.');
+            // Hiçbir şeyi kaybetmemek için reddedilen kaydı yedekle (otomatik kayıt ana anahtarın üzerine yazacak)
+            try { localStorage.setItem(SAVE_KEY + '_rejected_backup', raw); } catch (e2) {}
+            try { if (typeof showToast === 'function') showToast('🛡️ Kayıt imzası geçersiz. Hesabın varsa bulut kaydın yüklenecek.'); } catch (e3) {}
             return;
         }
         applyParsedGameData(parsed);
@@ -1711,6 +1716,8 @@ async function forceCloudPush(silent = false) {
     if (typeof window._isSessionClean === 'function' && !window._isSessionClean()) return;
 
     try {
+        // Bulut kopyası push anındaki değerlerle imzalansın (kayıttan sonra altın/kristal değişmiş olabilir)
+        if (typeof window._generateSaveSignature === 'function') game._sig = window._generateSaveSignature(game);
         if (isFirebaseReady && fbDb && currentUser.isCloud) {
             await fbDb.collection('users').doc(currentUser.uid).set({
                 username: currentUser.username,
