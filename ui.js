@@ -171,7 +171,6 @@ function buyUpgrade(key) {
     updateHUD();
     saveGame(true);
 }
-
 function refreshUpgradeButtonsState() {
     if (typeof UPGRADE_DEFS === 'undefined' || typeof game === 'undefined') return;
     for (const [key, def] of Object.entries(UPGRADE_DEFS)) {
@@ -188,10 +187,10 @@ function refreshUpgradeButtonsState() {
         if (subEl) subEl.textContent = (!info.maxed && !info.lockedReason && info.count > 1) ? `+${info.count} Sv` : '';
         if (btn) btn.disabled = !info.canAfford || info.maxed || Boolean(info.lockedReason);
     }
-    buildCompanionsUI();
     updatePrestigeUI();
     updateLootboxCollectionCounters();
 }
+
 
 function renderCompanionStars(starCount) {
     let html = '';
@@ -1828,5 +1827,5 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         injectMobileHudCSS();
     }
-    setInterval(injectMobileHudCSS, 1000);
+   // setInterval(injectMobileHudCSS, 1000);
 })();
