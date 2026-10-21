@@ -341,12 +341,18 @@ function applyFrostToTower(freezeDur = 0, slowDur = 3.0) {
 }
 
 function createParticles(x, y, color, count = 8, speed = 70) {
+    // 1. Yeni eklediğimiz FPS koruma kodları:
+    if (particles.length > 120) count = Math.min(count, 3);
+    if (particles.length > 180) return;
+
+    // 2. Orijinal efekt yaratma kodu (Buraya dokunmuyoruz):
     for (let i = 0; i < count; i++) {
         const ang = Math.random() * Math.PI * 2;
         const spd = (0.3 + Math.random() * 0.7) * speed;
         particles.push({ x, y, vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd, radius: 1.5 + Math.random() * 2.5, color, alpha: 1, life: 0.35 + Math.random() * 0.25 });
     }
 }
+
 
 function addFloatingText(x, y, text, color = '#ffffff', size = 12) {
     if (!game.settings.showDamageText) return;
