@@ -19,7 +19,7 @@ window.addEventListener('error', function (e) {
 const _domTextCache = {};
 function setElText(id, text) {
     const str = String(text ?? '');
-    if (_domTextCache[id] === str) return;
+   if (el && el.textContent !== str) {
     const el = document.getElementById(id);
     if (el) {
         el.textContent = str;
