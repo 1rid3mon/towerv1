@@ -1114,7 +1114,12 @@ window.onload = function () {
     };
 
     window._verifySaveSignature = function(gameObj) {
-        if (!gameObj || !gameObj._sig) return true;
+        if (!gameObj || typeof gameObj !== 'object') return false;
+        if (!gameObj._sig) {
+            // Eski (imzasız) kayıt: yalnızca bu tarayıcıda daha önce hiç imzalı kayıt üretilmediyse kabul edilir.
+            // Kabul edilen kayıt bir sonraki saveGame() ile otomatik imzalanır (sessiz geçiş).
+            try { return !localStorage.getItem(SIGNED_MARK_KEY); } catch (e) { return true; }
+        }
         return gameObj._sig === window._generateSaveSignature(gameObj);
     };
 
