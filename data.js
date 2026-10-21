@@ -391,15 +391,17 @@ function calculatePendingSouls() {
     return Math.max(1, Math.floor(Math.pow(game.wave - 8, 1.22) * (1 + Math.floor(game.wave / 30) * 0.25)));
 }
 
-function formatNumber(num) {
+// Yedek sürüm: ui_8.js'deki (daha gelişmiş) formatNumber varsa o kullanılır, dosya sırası fark etmez.
+window.formatNumber = window.formatNumber || function formatNumber(num) {
     if (num === null || num === undefined || isNaN(num)) return '0';
+    if (!Number.isFinite(num)) return '∞';
     const abs = Math.abs(num);
     if (abs >= 1e12) return (num / 1e12).toFixed(2) + 'T';
     if (abs >= 1e9) return (num / 1e9).toFixed(2) + 'B';
     if (abs >= 1e6) return (num / 1e6).toFixed(2) + 'M';
     if (abs >= 1e3) return (num / 1e3).toFixed(1) + 'K';
     return Math.floor(num).toString();
-}
+};
 
 // =======================================================
 // ÜSTÜNE TIKLAYINCA AÇIKLAMA GÖSTERME (INSPECTOR) SİSTEMİ
@@ -482,8 +484,11 @@ function formatNumber(num) {
 
     document.addEventListener('click', (e) => {
         // Satın alma butonuna doğrudan basıldıysa popup açma, sadece kartın/eşyanın gövdesine basılınca aç
+        if (e.target.closest && e.target.closest('#cyber-inspect-popup')) return;
         const card = e.target.closest('div, li, article');
         if (!card) return;
+        // Büyük kapsayıcılarda pahalı innerText (yeniden düzen hesabı) çalışmasın
+        if ((card.textContent || '').length > 900) return;
 
         const text = (card.innerText || '').trim();
         if (!text || text.length > 260) return;
