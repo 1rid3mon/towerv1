@@ -1826,7 +1826,7 @@ function renderGame() {
 
         if (e.hp < e.maxHp || e.type === 'boss') {
             const barW = Math.max(24, e.radius * 2.1);
-            const pct = Math.max(0, e.hp / e.maxHp);
+            const pct = e.maxHp > 0 ? Math.max(0, Math.min(1, e.hp / e.maxHp)) : 0;
             const barY = -e.radius - 12;
 
             ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
@@ -1964,6 +1964,8 @@ function renderGame() {
             btn.innerHTML = '🔽 Paneli Gizle';
 
             btn.addEventListener('click', (e) => {
+                // ui_8.js bu butona kendi onclick'ini bağladıysa (çekmece sistemi) çift tetiklenmesin
+                if (typeof btn.onclick === 'function') return;
                 e.stopPropagation();
                 scanAndTagMobileElements();
                 const panel = document.querySelector('.mobile-upgrade-scrollable');
@@ -1989,9 +1991,12 @@ function renderGame() {
         injectMobileStylesAndFixes();
     }
 
+    let _resizeTimer = null;
     window.addEventListener('resize', () => {
-        scanAndTagMobileElements();
         if (typeof resizeCanvas === 'function') resizeCanvas();
+        // Mobilde adres çubuğu açılıp kapanırken saniyede onlarca resize gelir; ağır taramayı beklet
+        clearTimeout(_resizeTimer);
+        _resizeTimer = setTimeout(scanAndTagMobileElements, 250);
     });
     document.addEventListener('fullscreenchange', () => {
         setTimeout(() => {
