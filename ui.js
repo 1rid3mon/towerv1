@@ -15,9 +15,24 @@ window.addEventListener('error', function (e) {
     errBanner.innerHTML = `⚠️ <b>JS HATASI (${file} - Satır:${e.lineno}):</b> ${e.message}`;
 });
 
+// 60 FPS DOM Performans Önbelleği: Aynı metni saniyede 60 kez tekrar yazmayı engeller
+const _domTextCache = {};
 function setElText(id, text) {
+    const str = String(text ?? '');
+    if (_domTextCache[id] === str) return;
     const el = document.getElementById(id);
-    if (el) el.textContent = text;
+    if (el) {
+        el.textContent = str;
+        _domTextCache[id] = str;
+    }
+}
+
+// XSS Güvenlik Filtresi (Liderlik tablosu ve kullanıcı adları için)
+function escapeHtml(str) {
+    if (!str || typeof str !== 'string') return '';
+    return str.replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+    });
 }
 
 // Eksik olan renderItemIconHTML fonksiyonu (Tam Korumalı Yedekli Sürüm)
@@ -33,7 +48,7 @@ function renderItemIconHTML(item, sizeCls = 'w-10 h-10') {
     }
 
     if (item.img || item.image) {
-        return `<img src="${item.img || item.image}" alt="${item.name || ''}" class="${sizeCls} rounded-xl object-contain bg-slate-950/90 border border-white/10 p-1 shrink-0">`;
+        return `<img src="${item.img || item.image}" alt="${escapeHtml(item.name || '')}" class="${sizeCls} rounded-xl object-contain bg-slate-950/90 border border-white/10 p-1 shrink-0">`;
     }
 
     const colorCls = item.color || 'text-amber-400';
@@ -171,6 +186,7 @@ function buyUpgrade(key) {
     updateHUD();
     saveGame(true);
 }
+
 function refreshUpgradeButtonsState() {
     if (typeof UPGRADE_DEFS === 'undefined' || typeof game === 'undefined') return;
     for (const [key, def] of Object.entries(UPGRADE_DEFS)) {
@@ -187,10 +203,10 @@ function refreshUpgradeButtonsState() {
         if (subEl) subEl.textContent = (!info.maxed && !info.lockedReason && info.count > 1) ? `+${info.count} Sv` : '';
         if (btn) btn.disabled = !info.canAfford || info.maxed || Boolean(info.lockedReason);
     }
+    if (currentTab === 'companions') buildCompanionsUI();
     updatePrestigeUI();
     updateLootboxCollectionCounters();
 }
-
 
 function renderCompanionStars(starCount) {
     let html = '';
@@ -377,6 +393,7 @@ function buyPrestigeUpgrade(key) {
 
 let activeMiniGame = 'roulette';
 let bjState = { playerHand: [], dealerHand: [], active: false };
+let _secureBjVault = null;
 const ROULETTE_SECTORS = [{ num: '0', color: 'green', hex: '#10b981' }, { num: '32', color: 'red', hex: '#dc2626' }, { num: '15', color: 'black', hex: '#1e293b' }, { num: '19', color: 'red', hex: '#dc2626' }, { num: '4', color: 'black', hex: '#1e293b' }, { num: '21', color: 'red', hex: '#dc2626' }, { num: '2', color: 'black', hex: '#1e293b' }, { num: '25', color: 'red', hex: '#dc2626' }, { num: '17', color: 'black', hex: '#1e293b' }, { num: '34', color: 'red', hex: '#dc2626' }, { num: '6', color: 'black', hex: '#1e293b' }, { num: '27', color: 'red', hex: '#dc2626' }, { num: '13', color: 'black', hex: '#1e293b' }, { num: '36', color: 'red', hex: '#dc2626' }, { num: '11', color: 'black', hex: '#1e293b' }];
 let rouletteAnim = { spinning: false, wheelAngle: 0, ballAngle: 0, ballRadius: 72, startTime: 0, duration: 2800, startWheelAngle: 0, targetWheelAngle: 0, startBallAngle: 0, targetBallAngle: 0, winningSector: null, userChoice: null, betAmount: 0 };
 
@@ -412,27 +429,31 @@ function updateRouletteAnimation(now) {
 
 function switchMiniGame(gameType) {
     activeMiniGame = gameType;
-    const rEl = document.getElementById('mg-roulette'), bEl = document.getElementById('mg-blackjack');
-    if (rEl) rEl.classList.toggle('hidden', gameType !== 'roulette');
-    if (bEl) bEl.classList.toggle('hidden', gameType !== 'blackjack');
-    const rBtn = document.getElementById('mg-btn-roulette'), bBtn = document.getElementById('mg-btn-blackjack');
-    if (rBtn) rBtn.className = gameType === 'roulette' ? 'py-2 rounded-xl bg-amber-600 text-white font-tech font-bold text-xs transition' : 'py-2 rounded-xl bg-slate-800 text-slate-300 font-tech font-bold text-xs transition';
-    if (bBtn) bBtn.className = gameType === 'blackjack' ? 'py-2 rounded-xl bg-amber-600 text-white font-tech font-bold text-xs transition' : 'py-2 rounded-xl bg-slate-800 text-slate-300 font-tech font-bold text-xs transition';
+    ['roulette', 'blackjack', 'quantum'].forEach(t => {
+        const el = document.getElementById(`mg-${t}`);
+        const btn = document.getElementById(`mg-btn-${t}`);
+        if (el) el.classList.toggle('hidden', t !== gameType);
+        if (btn) btn.className = t === gameType
+            ? 'py-2 rounded-xl bg-amber-600 text-white font-tech font-bold text-xs transition'
+            : 'py-2 rounded-xl bg-slate-800 text-slate-300 font-tech font-bold text-xs transition';
+    });
     if (gameType === 'roulette') drawRouletteWheel();
+    if (gameType === 'quantum') drawQuantumBar();
 }
 
 function setCasinoBetVal(val) {
     const betInp = document.getElementById('casino-bet');
     if (betInp) betInp.value = val;
 }
+
 // Dışarıdan (Konsoldan) erişilemeyen gizli kasa değişkeni
 let _secureRouletteVault = null;
 
 function playRoulette(choice) {
     if (rouletteAnim.spinning) { showToast('Çark zaten dönüyor!'); return; }
     const betInp = document.getElementById('casino-bet');
-    const bet = parseInt(betInp ? betInp.value : 0) || 0;
-    if (bet <= 0 || bet > game.crystals) { showToast('Yeterli kristalin yok!'); return; }
+    const bet = Math.floor(Number(betInp ? betInp.value : 0));
+    if (!Number.isFinite(bet) || bet <= 0 || bet > game.crystals) { showToast('Yeterli kristalin yok!'); return; }
     game.crystals -= bet; updateHUD();
     
     const winIndex = Math.floor(Math.random() * ROULETTE_SECTORS.length), winSec = ROULETTE_SECTORS[winIndex], sliceAngle = (Math.PI * 2) / ROULETTE_SECTORS.length;
@@ -454,13 +475,12 @@ function playRoulette(choice) {
 }
 
 function finishRouletteSpin() {
-    // Eğer çark gerçekten dönmediyse ve konsoldan direkt finishRouletteSpin() çağrıldıysa iptal et!
     if (!_secureRouletteVault) return;
 
     const lockedBet = _secureRouletteVault.bet;
     const lockedChoice = _secureRouletteVault.choice;
     const winSec = _secureRouletteVault.winSec;
-    _secureRouletteVault = null; // Tekrar çağrılmasını önlemek için kasayı sıfırla
+    _secureRouletteVault = null;
 
     ['red', 'green', 'black'].forEach(c => { const b = document.getElementById(`btn-roul-${c}`); if (b) b.disabled = false; });
     const resultColor = winSec.color, mult = resultColor === 'green' ? 14 : 2;
@@ -494,10 +514,13 @@ function renderCardHTML(card, hidden = false) {
 }
 
 function startBlackjack() {
+    if (bjState.active) return;
     const betInp = document.getElementById('casino-bet');
-    const bet = parseInt(betInp ? betInp.value : 0) || 0;
-    if (bet <= 0 || bet > game.crystals) { showToast('Yeterli kristalin yok!'); return; }
-    game.crystals -= bet; bjState = { bet, active: true, playerHand: [drawCard(), drawCard()], dealerHand: [drawCard(), drawCard()] };
+    const bet = Math.floor(Number(betInp ? betInp.value : 0));
+    if (!Number.isFinite(bet) || bet <= 0 || bet > game.crystals) { showToast('Yeterli kristalin yok!'); return; }
+    game.crystals -= bet;
+    _secureBjVault = Object.freeze({ bet: bet });
+    bjState = { bet, active: true, playerHand: [drawCard(), drawCard()], dealerHand: [drawCard(), drawCard()] };
     const stEl = document.getElementById('bj-actions-start'), plEl = document.getElementById('bj-actions-play');
     if (stEl) stEl.classList.add('hidden');
     if (plEl) plEl.classList.remove('hidden');
@@ -505,21 +528,33 @@ function startBlackjack() {
 }
 
 function hitBlackjack() {
-    if (!bjState.active) return; bjState.playerHand.push(drawCard());
-    if (calcHand(bjState.playerHand) > 21) endBlackjack('Bust! 21\'i geçtin, kaybettin.'); else updateBlackjackUI(false);
+    if (!bjState.active || !_secureBjVault) return;
+    bjState.playerHand.push(drawCard());
+    if (calcHand(bjState.playerHand) > 21) {
+        _secureBjVault = null;
+        endBlackjack('Bust! 21\'i geçtin, kaybettin.');
+    } else {
+        updateBlackjackUI(false);
+    }
 }
 
 function standBlackjack() {
-    if (!bjState.active) return; let dSum = calcHand(bjState.dealerHand);
+    if (!bjState.active || !_secureBjVault) return;
+    const lockedBet = _secureBjVault.bet;
+    _secureBjVault = null;
+
+    let dSum = calcHand(bjState.dealerHand);
     while (dSum < 17) { bjState.dealerHand.push(drawCard()); dSum = calcHand(bjState.dealerHand); }
     const pSum = calcHand(bjState.playerHand);
-    if (dSum > 21 || pSum > dSum) { const win = bjState.bet * 2; game.crystals += win; endBlackjack(`KAZANDIN! +${win} 💎`); }
-    else if (pSum === dSum) { game.crystals += bjState.bet; endBlackjack('BERABERE! Kristal iade edildi.'); }
+    if (dSum > 21 || pSum > dSum) { const win = lockedBet * 2; game.crystals += win; endBlackjack(`KAZANDIN! +${win} 💎`); }
+    else if (pSum === dSum) { game.crystals += lockedBet; endBlackjack('BERABERE! Kristal iade edildi.'); }
     else endBlackjack(`KAYBETTİN! Bot kazandı.`);
 }
 
 function endBlackjack(msg) {
-    bjState.active = false; updateBlackjackUI(true);
+    bjState.active = false;
+    _secureBjVault = null;
+    updateBlackjackUI(true);
     const stEl = document.getElementById('bj-status');
     if (stEl) stEl.innerHTML = `<span class="font-bold text-amber-300">${msg}</span>`;
     const actSt = document.getElementById('bj-actions-start'), actPl = document.getElementById('bj-actions-play');
@@ -542,6 +577,77 @@ function updateBlackjackUI(showAllDealer) {
         setElText('bj-dealer-score', `Toplam: ${bjState.dealerHand[0].score} + ?`);
         setElText('bj-status', 'Kart Çek (Hit) veya Kal (Stand)');
     }
+}
+
+// Beceri Odaklı Mini Oyun: Kuantum Frekans Kilidi
+let qHack = { active: false, pos: 0.5, dir: 1, speed: 1.5, minB: 0.32, maxB: 0.68, minY: 0.46, maxY: 0.54, combo: 0 };
+let _secureQuantumVault = null;
+
+function handleQuantumAction() {
+    if (!qHack.active) {
+        const betInp = document.getElementById('casino-bet');
+        const bet = Math.floor(Number(betInp ? betInp.value : 0));
+        if (!Number.isFinite(bet) || bet <= 0 || bet > game.crystals) { showToast('Yeterli kristalin yok!'); return; }
+        game.crystals -= bet;
+        updateHUD();
+        _secureQuantumVault = Object.freeze({ bet: bet });
+        qHack.active = true;
+        qHack.pos = 0;
+        qHack.dir = 1;
+        qHack.speed = Math.min(2.8, 1.45 + qHack.combo * 0.15);
+        const center = 0.25 + Math.random() * 0.50;
+        qHack.minB = center - 0.15; qHack.maxB = center + 0.15;
+        qHack.minY = center - 0.04; qHack.maxY = center + 0.04;
+
+        const btn = document.getElementById('btn-quantum-action');
+        if (btn) { btn.textContent = '⚡ ŞİMDİ KİLİTLE!'; btn.className = 'w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-tech font-bold text-xs shadow animate-pulse'; }
+        requestAnimationFrame(stepQuantumLoop);
+    } else {
+        qHack.active = false;
+        if (!_secureQuantumVault) return;
+        const lockedBet = _secureQuantumVault.bet;
+        _secureQuantumVault = null;
+
+        const comboBonus = 1 + (qHack.combo * 0.1);
+        if (qHack.pos >= qHack.minY && qHack.pos <= qHack.maxY) {
+            qHack.combo++;
+            const win = Math.round(lockedBet * 4 * comboBonus);
+            game.crystals += win;
+            showToast(`🎯 KUSURSUZ KİLİT! +${win} 💎 (${qHack.combo}x Kombo!)`);
+        } else if (qHack.pos >= qHack.minB && qHack.pos <= qHack.maxB) {
+            qHack.combo++;
+            const win = Math.round(lockedBet * 2 * comboBonus);
+            game.crystals += win;
+            showToast(`⚡ STABİL KİLİT! +${win} 💎 (${qHack.combo}x Kombo!)`);
+        } else {
+            qHack.combo = 0;
+            showToast(`💥 FREKANS KAÇTI! -${lockedBet} 💎`);
+        }
+        setElText('quantum-combo-text', `Kombo Serisi: ${qHack.combo}x (Çarpan: x${(1 + qHack.combo * 0.1).toFixed(1)})`);
+        const btn = document.getElementById('btn-quantum-action');
+        if (btn) { btn.textContent = 'FREKANSI BAŞLAT'; btn.className = 'w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs shadow transition'; }
+        drawQuantumBar(); updateHUD(); refreshUpgradeButtonsState(); saveGame(true);
+    }
+}
+
+function stepQuantumLoop() {
+    if (!qHack.active) return;
+    qHack.pos += 0.016 * qHack.speed * qHack.dir;
+    if (qHack.pos >= 1) { qHack.pos = 1; qHack.dir = -1; }
+    if (qHack.pos <= 0) { qHack.pos = 0; qHack.dir = 1; }
+    drawQuantumBar();
+    requestAnimationFrame(stepQuantumLoop);
+}
+
+function drawQuantumBar() {
+    const c = document.getElementById('quantumHackCanvas');
+    if (!c) return;
+    const g = c.getContext('2d'), w = c.width, h = c.height;
+    g.clearRect(0, 0, w, h);
+    g.fillStyle = '#0f172a'; g.fillRect(0, 0, w, h);
+    g.fillStyle = 'rgba(56, 189, 248, 0.35)'; g.fillRect(w * qHack.minB, 0, w * (qHack.maxB - qHack.minB), h);
+    g.fillStyle = 'rgba(250, 204, 21, 0.85)'; g.fillRect(w * qHack.minY, 0, w * (qHack.maxY - qHack.minY), h);
+    g.fillStyle = '#ffffff'; g.fillRect(w * qHack.pos - 2, 0, 4, h);
 }
 
 function updateLootboxCollectionCounters() {
@@ -1076,8 +1182,14 @@ function updateHUD() {
         }
     }
 
+    const armorVal = formatNumber(getTowerArmor());
+    const dmgVal = formatNumber(getTowerDamage());
+    const spdVal = getTowerFireRate().toFixed(2);
+    const critVal = `%${getTowerCritChance()}`;
+    const multiVal = getEffectiveMultishot();
+
     setElText('ui-hud-regen', `${formatNumber(getTowerRegen())}/sn`);
-    setElText('ui-hud-armor', formatNumber(getTowerArmor()));
+    setElText('ui-hud-armor', armorVal);
     setElText('ui-wave-badge', `DALGA ${game.wave}`);
     const bossWarn = document.getElementById('ui-boss-warning');
     if (bossWarn) bossWarn.classList.toggle('hidden', game.wave % 5 !== 0);
@@ -1086,17 +1198,17 @@ function updateHUD() {
     if (wBar) wBar.style.width = `${Math.min(100, (game.waveKills / Math.max(1, game.waveTargetKills)) * 100)}%`;
     setElText('ui-active-enemies', typeof enemies !== 'undefined' ? enemies.length : 0);
 
-    setElText('ui-Quick-dmg', formatNumber(getTowerDamage()));
-    setElText('ui-Quick-spd', getTowerFireRate().toFixed(2));
-    setElText('ui-Quick-crit', `%${getTowerCritChance()}`);
-    setElText('ui-Quick-multi', getEffectiveMultishot());
+    setElText('ui-Quick-dmg', dmgVal);
+    setElText('ui-Quick-spd', spdVal);
+    setElText('ui-Quick-crit', critVal);
+    setElText('ui-Quick-multi', multiVal);
 
     setElText('ui-drawer-hp', formatNumber(tower.hp));
-    setElText('ui-drawer-armor', formatNumber(getTowerArmor()));
-    setElText('ui-drawer-dmg', formatNumber(getTowerDamage()));
-    setElText('ui-drawer-spd', getTowerFireRate().toFixed(2));
-    setElText('ui-drawer-crit', `%${getTowerCritChance()}`);
-    setElText('ui-drawer-multi', getEffectiveMultishot());
+    setElText('ui-drawer-armor', armorVal);
+    setElText('ui-drawer-dmg', dmgVal);
+    setElText('ui-drawer-spd', spdVal);
+    setElText('ui-drawer-crit', critVal);
+    setElText('ui-drawer-multi', multiVal);
 }
 
 function switchTab(tab) {
@@ -1107,9 +1219,11 @@ function switchTab(tab) {
         if (content) content.classList.toggle('hidden', t !== tab);
         if (btn) { if (t === tab) btn.classList.add('tab-active'); else btn.classList.remove('tab-active'); }
     });
+    if (tab === 'companions') buildCompanionsUI();
     if (tab === 'items' || tab === 'lootbox') buildInventoryUI();
     if (tab === 'prestige') buildPrestigeUI();
     if (tab === 'casino' && activeMiniGame === 'roulette') drawRouletteWheel();
+    if (tab === 'casino' && activeMiniGame === 'quantum') drawQuantumBar();
     if (tab === 'leaderboard') refreshLeaderboard(false);
 }
 
@@ -1169,7 +1283,7 @@ function showToast(msg) {
 }
 
 // =======================================================
-// KAYIT SİSTEMİ (LOCALSTORAGE + AKILLI BULUT SENKRONİZASYONU)
+// KAYIT SİSTEMİ (LOCALSTORAGE + İMZA DOĞRULAMA + BULUT SENKRONİZASYONU)
 // =======================================================
 function applyParsedGameData(parsed) {
     if (typeof getDefaultState !== 'function' || !parsed) return;
@@ -1205,6 +1319,9 @@ function saveGame(silent = false) {
     try {
         if (typeof game === 'undefined') return;
         game.lastSaveTime = Date.now();
+        if (typeof window._generateSaveSignature === 'function') {
+            game._sig = window._generateSaveSignature(game);
+        }
         localStorage.setItem(SAVE_KEY, JSON.stringify(game));
         scheduleCloudSave();
     } catch (e) {}
@@ -1215,12 +1332,51 @@ function loadGame() {
         const raw = localStorage.getItem(SAVE_KEY);
         if (!raw) return;
         const parsed = JSON.parse(raw);
+        if (typeof window._verifySaveSignature === 'function' && !window._verifySaveSignature(parsed)) {
+            console.warn('Kayıt imzası doğrulanamadı, varsayılan durum korunuyor.');
+            return;
+        }
         applyParsedGameData(parsed);
     } catch (e) {}
 }
 
-function exportSaveCode() { try { const t = document.getElementById('save-code-textarea'); if (!t) return; t.value = btoa(unescape(encodeURIComponent(JSON.stringify(game)))); t.select(); document.execCommand('copy'); showToast('Kayıt kodu kopyalandı!'); } catch (e) {} }
-function importSaveCode() { try { const t = document.getElementById('save-code-textarea'); if (!t) return; const code = t.value.trim(); if (!code) return; localStorage.setItem(SAVE_KEY, decodeURIComponent(escape(atob(code)))); loadGame(); applyBodyClasses(); buildUpgradesUI(); buildInventoryUI(); updateHUD(); showToast('Kod yüklendi!'); } catch (e) { showToast('Geçersiz kod!'); } }
+function exportSaveCode() {
+    try {
+        const t = document.getElementById('save-code-textarea');
+        if (!t) return;
+        if (typeof window._generateSaveSignature === 'function') {
+            game._sig = window._generateSaveSignature(game);
+        }
+        t.value = btoa(unescape(encodeURIComponent(JSON.stringify(game))));
+        t.select();
+        document.execCommand('copy');
+        showToast('Güvenli kayıt kodu kopyalandı!');
+    } catch (e) {}
+}
+
+function importSaveCode() {
+    try {
+        const t = document.getElementById('save-code-textarea');
+        if (!t) return;
+        const code = t.value.trim();
+        if (!code) return;
+        const decodedStr = decodeURIComponent(escape(atob(code)));
+        const parsed = JSON.parse(decodedStr);
+        if (!parsed._sig || (typeof window._verifySaveSignature === 'function' && !window._verifySaveSignature(parsed))) {
+            showToast('🛡️ HATA: Değiştirilmiş veya sahte kayıt kodu!');
+            return;
+        }
+        localStorage.setItem(SAVE_KEY, JSON.stringify(parsed));
+        loadGame();
+        applyBodyClasses();
+        buildUpgradesUI();
+        buildInventoryUI();
+        updateHUD();
+        showToast('Kayıt kodu doğrulandı ve yüklendi!');
+    } catch (e) {
+        showToast('Geçersiz kod!');
+    }
+}
 
 // =======================================================
 // 🔐 HESAP (LOGIN/KAYIT) + ☁️ BULUT KAYIT + 🏆 LİDERLİK TABLOSU
@@ -1284,8 +1440,11 @@ function initAuthAndCloudSystem() {
 }
 
 function sanitizeUsernameToEmail(username) {
-    const clean = username.trim().toLowerCase().replace(/[^a-z0-9_.-]/g, '');
-    return `${clean || 'oyuncu'}@kulesavunma.local`;
+    const trMap = { 'ç':'c', 'ğ':'g', 'ı':'i', 'i':'i', 'ö':'o', 'ş':'s', 'ü':'u' };
+    let clean = (username || '').trim().toLowerCase();
+    clean = clean.replace(/[çğışöü]/g, char => trMap[char] || char);
+    clean = clean.replace(/[^a-z0-9_.-]/g, '');
+    return `${clean || 'oyuncu_' + Math.floor(Math.random()*1000)}@kulesavunma.local`;
 }
 
 function switchAuthMode(mode) {
@@ -1386,13 +1545,11 @@ async function signInWithGoogle() {
             return;
         }
 
-        // Mevcut hesap sistemiyle uyumlu kullanıcı adı
         const googleUser = result.user;
         const username =
             googleUser.displayName ||
             (googleUser.email ? googleUser.email.split('@')[0] : 'Komutan');
 
-        // Firebase Auth kullanıcı durumunu mevcut dinleyici günceller.
         closeAuthModal();
         showToast(`Google ile giriş başarılı, ${username}!`);
         refreshLeaderboard(false);
@@ -1484,16 +1641,7 @@ async function submitUsernameAuth() {
 
 async function loginWithGoogle() {
     if (isFirebaseReady && fbAuth) {
-        try {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            await fbAuth.signInWithPopup(provider);
-            closeAuthModal();
-            showToast('✅ Google hesabınla bağlandın!');
-            return;
-        } catch (err) {
-            showAuthError(`❌ Google Giriş Hatası: ${err.message}`);
-            return;
-        }
+        return signInWithGoogle();
     }
 
     const randomNum = Math.floor(100 + Math.random() * 900);
@@ -1507,14 +1655,20 @@ async function loginWithGoogle() {
     showToast(`✅ Google (${gName}) ile hızlı giriş yapıldı!`);
 }
 
-function changeDisplayNickname() {
+async function changeDisplayNickname() {
     if (!currentUser) return;
     const newName = prompt('Liderlik tablosunda görünecek yeni komutan adını gir:', currentUser.username);
     if (!newName || newName.trim().length < 3) return;
-    currentUser.username = newName.trim().slice(0, 18);
+    const cleanNick = newName.trim().slice(0, 18);
+    currentUser.username = cleanNick;
     localStorage.setItem(LOCAL_CURRENT_USER_KEY, JSON.stringify(currentUser));
+
+    if (isFirebaseReady && fbAuth && fbAuth.currentUser) {
+        try { await fbAuth.currentUser.updateProfile({ displayName: cleanNick }); } catch (e) {}
+    }
+
     updateAccountHeaderUI();
-    forceCloudPush(true);
+    await forceCloudPush(true);
     refreshLeaderboard(false);
     showToast(`✨ Komutan adın "${currentUser.username}" olarak güncellendi!`);
 }
@@ -1543,6 +1697,7 @@ async function forceCloudPush(silent = false) {
         if (!silent) showToast('⚠️ Önce giriş yapmalısın!');
         return;
     }
+    if (typeof window._isSessionClean === 'function' && !window._isSessionClean()) return;
 
     try {
         if (isFirebaseReady && fbDb && currentUser.isCloud) {
@@ -1594,7 +1749,7 @@ async function forceCloudPull(silent = false) {
                 tower.hp = tower.maxHp;
                 tower.maxShield = getTowerMaxShield();
                 tower.shield = tower.maxShield;
-                localStorage.setItem(SAVE_KEY, JSON.stringify(game));
+                saveGame(true);
                 buildUpgradesUI();
                 buildInventoryUI();
                 updateHUD();
@@ -1637,9 +1792,12 @@ function setLeaderboardSort(sortType) {
 
 async function pushScoreToLeaderboard() {
     if (typeof game === 'undefined') return;
+    if (typeof window._isSessionClean === 'function' && !window._isSessionClean()) return;
+
+    const cleanUsername = (currentUser ? currentUser.username : 'Misafir Komutan').slice(0, 20);
     const playerEntry = {
         uid: currentUser ? currentUser.uid : 'local_guest',
-        username: currentUser ? currentUser.username : 'Misafir Komutan',
+        username: cleanUsername,
         highestWave: Math.max(game.highestWave || 1, game.wave || 1),
         wave: game.wave || 1,
         activeSkin: game.activeSkin || 'default_cyber',
@@ -1696,7 +1854,8 @@ async function refreshLeaderboard(showNotification = false) {
 
     container.innerHTML = entries.map((p, idx) => {
         const rank = idx + 1;
-        const isMe = p.uid === myUid || (currentUser && p.username.toLowerCase() === currentUser.username.toLowerCase());
+        const pName = String(p.username || 'Komutan');
+        const isMe = p.uid === myUid || (currentUser && pName.toLowerCase() === currentUser.username.toLowerCase());
         if (isMe) myRank = rank;
 
         const skinDef = (typeof SKIN_DATABASE !== 'undefined' && SKIN_DATABASE[p.activeSkin]) ? SKIN_DATABASE[p.activeSkin] : { name: 'Siber Çekirdek', emoji: '💠' };
@@ -1713,7 +1872,7 @@ async function refreshLeaderboard(showNotification = false) {
                     <canvas id="lb-skin-canvas-${idx}" width="42" height="42" class="w-10 h-10 rounded-xl bg-slate-950 border border-white/10 shrink-0"></canvas>
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5">
-                            <span class="font-tech font-bold text-xs sm:text-sm ${isMe ? 'text-emerald-300' : 'text-white'} truncate">${p.username}</span>
+                            <span class="font-tech font-bold text-xs sm:text-sm ${isMe ? 'text-emerald-300' : 'text-white'} truncate">${escapeHtml(pName)}</span>
                             ${isMe ? '<span class="px-1.5 py-0.2 rounded bg-emerald-500/20 border border-emerald-400/40 text-[9px] font-tech font-bold text-emerald-300">SEN</span>' : ''}
                         </div>
                         <div class="text-[10px] text-slate-400 truncate">${skinDef.emoji} ${skinDef.name}</div>
@@ -1846,5 +2005,4 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         injectMobileHudCSS();
     }
-   // setInterval(injectMobileHudCSS, 1000);
 })();
