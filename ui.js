@@ -630,9 +630,12 @@ function handleQuantumAction() {
     }
 }
 
-function stepQuantumLoop() {
+function stepQuantumLoop(now) {
     if (!qHack.active) return;
-    qHack.pos += 0.016 * qHack.speed * qHack.dir;
+    if (!qHack.lastT) qHack.lastT = now;
+    const dt = Math.min(0.05, (now - qHack.lastT) / 1000);
+    qHack.lastT = now;
+    qHack.pos += dt * 0.96 * qHack.speed * qHack.dir;
     if (qHack.pos >= 1) { qHack.pos = 1; qHack.dir = -1; }
     if (qHack.pos <= 0) { qHack.pos = 0; qHack.dir = 1; }
     drawQuantumBar();
