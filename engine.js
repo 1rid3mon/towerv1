@@ -1101,6 +1101,8 @@ window.onload = function () {
         };
     }
 
+    window._syncShadow = syncShadow;
+
     window._generateSaveSignature = function(gameObj) {
         const coreStr = `${Math.floor(gameObj.gold)}|${Math.floor(gameObj.crystals)}|${Math.floor(gameObj.souls)}|${gameObj.wave}|${gameObj.highestWave}|${gameObj.stats?.prestiges || 0}|${SECRET_SALT}`;
         let hash = 2166136261;
