@@ -177,7 +177,6 @@ function spawnEnemy(isBoss = false) {
     const y = tower.y + Math.sin(angle) * spawnDist;
 
     const w = game.wave;
-    // YENİ ZORLUK EĞRİSİ: İlk 10 dalgayı daha dengeli ve pürüzsüz artan bir çizgiye oturttuk. 
     const earlyBuffer = w <= 10 ? (0.75 + (w * 0.025)) : 1.0; 
     const tierMult = Math.pow(1.22, Math.floor(w / 10)) * Math.pow(1.35, Math.floor(w / 25));
 
@@ -193,7 +192,6 @@ function spawnEnemy(isBoss = false) {
 
     if (isBoss) {
         type = 'boss';
-        // 5. Dalga ilk heyecandır, orayı kilit taşı değil eğitim boss'u gibi yaptık (4.5x can)
         const bossMult = (w === 5 ? 4.5 : (w % 10 === 0 ? 10.0 : 6.5));
         gold = baseGold * (game.holdWave ? 2.5 : 6.0);
 
@@ -341,18 +339,15 @@ function applyFrostToTower(freezeDur = 0, slowDur = 3.0) {
 }
 
 function createParticles(x, y, color, count = 8, speed = 70) {
-    // 1. Yeni eklediğimiz FPS koruma kodları:
     if (particles.length > 120) count = Math.min(count, 3);
     if (particles.length > 180) return;
 
-    // 2. Orijinal efekt yaratma kodu (Buraya dokunmuyoruz):
     for (let i = 0; i < count; i++) {
         const ang = Math.random() * Math.PI * 2;
         const spd = (0.3 + Math.random() * 0.7) * speed;
         particles.push({ x, y, vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd, radius: 1.5 + Math.random() * 2.5, color, alpha: 1, life: 0.35 + Math.random() * 0.25 });
     }
 }
-
 
 function addFloatingText(x, y, text, color = '#ffffff', size = 12) {
     if (!game.settings.showDamageText) return;
@@ -430,7 +425,7 @@ function updateGame(dt) {
         d.pulsePhase += dt * 5;
         d.life -= dt;
         d.trailTick = (d.trailTick || 0) + dt;
-        if (d.trailTick >= 0.08) {
+        if (d.trailTick >= 0.08 && particles.length < 160) {
             d.trailTick = 0;
             particles.push({
                 x: d.x - (d.vx * 0.04),
@@ -449,7 +444,6 @@ function updateGame(dt) {
         }
     }
 
-    // Boss dalgası (5'in katı): hafif sürü | Sürü dalgası (3'ün katı): tam sürü | Diğerleri: sakin
     const isBossWave = game.wave % 5 === 0;
     const isSwarmWave = game.wave % 3 === 0;
     const baseCap = 9 + Math.floor(game.wave / 6);
@@ -828,7 +822,7 @@ function killEnemy(enemy) {
 
     game.stats.totalKills++; game.waveKills++;
     if (game.waveKills >= game.waveTargetKills) completeWave();
-    refreshUpgradeButtonsState();
+    if (isDrawerOpen) refreshUpgradeButtonsState();
 }
 
 function damageTower(rawDamage, attacker) {
@@ -845,6 +839,7 @@ function damageTower(rawDamage, attacker) {
     if (rem > 0) { tower.hp -= rem; createParticles(tower.x, tower.y, '#ef4444', 5, 50); }
     if (tower.hp <= 0) { tower.hp = 0; triggerTowerDefeat(); }
 }
+
 function completeWave() {
     if (!game.holdWave) {
         const interestCap = Math.round(getWaveBaseGold(game.wave) * 25 * getGoldMultiplier());
@@ -902,7 +897,6 @@ function recoverFromDefeat() {
     isDefeated = false; document.getElementById('defeat-overlay').classList.add('hidden'); enemies = []; projectiles = [];
     tower.freezeTimer = 0; tower.freezeImmunityTimer = 0; tower.frostSlowTimer = 0; waveFrostSpawns = 0;
 
-    // YENİ SİSTEM: Enkazdan Kurtarma Ödülü (Teselli Altın ve Kristal)
     const salvageGold = Math.floor(getWaveBaseGold(game.wave) * getGoldMultiplier() * 8);
     const salvageCrystal = Math.max(1, Math.floor(game.wave / 4));
     game.gold += salvageGold;
@@ -927,10 +921,9 @@ function updateHoldWaveButton() {
     else { btn.className = 'px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-semibold text-emerald-400 transition flex items-center gap-1'; icon.className = 'fa-solid fa-forward'; txt.textContent = 'Oto İlerle'; }
 }
 
-
 let lastFrameTime = performance.now();
+let lastTabCheckTime = 0;
 
-// Aynı tarayıcıda yalnızca bir sekmenin oyunu çalıştırmasına izin ver.
 const ACTIVE_TAB_KEY = 'towerDefense_activeTab';
 const TAB_ID = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
 const TAB_LOCK_TIMEOUT = 8000;
@@ -997,11 +990,14 @@ function showDuplicateTabScreen() {
 function gameLoop(now) {
     if (isDuplicateTab) return;
 
-    const active = readActiveTab();
-
-    if (!active || active.id !== TAB_ID) {
-        showDuplicateTabScreen();
-        return;
+    // Performans için localStorage kontrolünü her karede değil saniyede 1 kez yap
+    if (now - lastTabCheckTime > 1000) {
+        lastTabCheckTime = now;
+        const active = readActiveTab();
+        if (!active || active.id !== TAB_ID) {
+            showDuplicateTabScreen();
+            return;
+        }
     }
 
     const dt = Math.min(0.1, (now - lastFrameTime) / 1000);
@@ -1084,3 +1080,75 @@ window.onload = function () {
 
     requestAnimationFrame(gameLoop);
 };
+
+// =======================================================
+// 🛡️ ANTI-CHEAT: GÖLGE KASA VE BELLEK KORUMASI
+// =======================================================
+(function initAntiCheat() {
+    const SECRET_SALT = "Kule_v11_KrM_2026_#99!";
+    let shadow = null;
+    let cheatFlags = 0;
+
+    function syncShadow() {
+        if (typeof game === 'undefined') return;
+        shadow = {
+            gold: Number(game.gold) || 0,
+            crystals: Number(game.crystals) || 0,
+            souls: Number(game.souls) || 0,
+            wave: Number(game.wave) || 1,
+            highestWave: Number(game.highestWave) || 1,
+            prestiges: Number(game.stats?.prestiges) || 0
+        };
+    }
+
+    window._generateSaveSignature = function(gameObj) {
+        const coreStr = `${Math.floor(gameObj.gold)}|${Math.floor(gameObj.crystals)}|${Math.floor(gameObj.souls)}|${gameObj.wave}|${gameObj.highestWave}|${gameObj.stats?.prestiges || 0}|${SECRET_SALT}`;
+        let hash = 2166136261;
+        for (let i = 0; i < coreStr.length; i++) {
+            hash ^= coreStr.charCodeAt(i);
+            hash = Math.imul(hash, 16777619);
+        }
+        return (hash >>> 0).toString(36);
+    };
+
+    window._verifySaveSignature = function(gameObj) {
+        if (!gameObj || !gameObj._sig) return true;
+        return gameObj._sig === window._generateSaveSignature(gameObj);
+    };
+
+    setInterval(() => {
+        if (typeof game === 'undefined') return;
+        if (!shadow) { syncShadow(); return; }
+
+        const maxAllowedWaveJump = Math.max(3, getStartWaveLevel() - shadow.wave + 2);
+        if (game.wave - shadow.wave > maxAllowedWaveJump || game.highestWave - shadow.highestWave > maxAllowedWaveJump) {
+            game.wave = shadow.wave;
+            game.highestWave = shadow.highestWave;
+            cheatFlags++;
+            if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Geçersiz dalga değişimi engellendi!');
+        }
+
+        if (game.crystals - shadow.crystals > 650) {
+            game.crystals = shadow.crystals;
+            cheatFlags++;
+            if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Geçersiz kristal artışı engellendi!');
+        }
+
+        const maxPossibleSouls = calculatePendingSouls() + 50;
+        if (game.souls - shadow.souls > maxPossibleSouls && game.souls - shadow.souls > 200) {
+            game.souls = shadow.souls;
+            cheatFlags++;
+            if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Geçersiz Ruh Taşı müdahalesi engellendi!');
+        }
+
+        if (isNaN(game.gold) || game.gold < 0) game.gold = shadow.gold;
+        if (isNaN(game.crystals) || game.crystals < 0) game.crystals = shadow.crystals;
+        if (isNaN(game.souls) || game.souls < 0) game.souls = shadow.souls;
+
+        syncShadow();
+    }, 400);
+
+    window._isSessionClean = function() {
+        return cheatFlags < 3;
+    };
+})();
