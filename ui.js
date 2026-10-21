@@ -12,16 +12,15 @@ window.addEventListener('error', function (e) {
         document.body.appendChild(errBanner);
     }
     const file = e.filename ? e.filename.split('/').pop() : 'Bilinmeyen Dosya';
-    errBanner.innerHTML = `⚠️ <b>JS HATASI (${file} - Satır:${e.lineno}):</b> ${e.message}`;
+    errBanner.textContent = `⚠️ JS HATASI (${file} - Satır:${e.lineno}): ${e.message}`;
 });
 
 // 60 FPS DOM Performans Önbelleği: Aynı metni saniyede 60 kez tekrar yazmayı engeller
 const _domTextCache = {};
 function setElText(id, text) {
     const str = String(text ?? '');
-   if (el && el.textContent !== str) {
     const el = document.getElementById(id);
-    if (el) {
+    if (el && el.textContent !== str) {
         el.textContent = str;
         _domTextCache[id] = str;
     }
@@ -475,7 +474,11 @@ function playRoulette(choice) {
 }
 
 function finishRouletteSpin() {
-    if (!_secureRouletteVault) return;
+    if (!_secureRouletteVault) {
+        rouletteAnim.spinning = false;
+        ['red', 'green', 'black'].forEach(c => { const b = document.getElementById(`btn-roul-${c}`); if (b) b.disabled = false; });
+        return;
+    }
 
     const lockedBet = _secureRouletteVault.bet;
     const lockedChoice = _secureRouletteVault.choice;
@@ -490,7 +493,7 @@ function finishRouletteSpin() {
         display.className = `font-tech font-bold text-sm py-1 px-3 rounded-lg border border-slate-800 shadow-inner ${resultColor === 'green' ? 'text-emerald-400 bg-emerald-950/40' : (resultColor === 'red' ? 'text-red-400 bg-red-950/40' : 'text-slate-200 bg-slate-950')}`;
     }
     if (lockedChoice === resultColor) {
-        const win = lockedBet * mult; game.crystals += win;
+        const win = lockedBet * mult; game.crystals += win; if (window._syncShadow) window._syncShadow();
         if (resText) resText.innerHTML = `<span class="text-emerald-400 font-bold">KAZANDIN! +${win} 💎</span>`;
         showToast(`Rulet Kazancı: +${win} Kristal!`);
     } else if (resText) {
@@ -546,8 +549,8 @@ function standBlackjack() {
     let dSum = calcHand(bjState.dealerHand);
     while (dSum < 17) { bjState.dealerHand.push(drawCard()); dSum = calcHand(bjState.dealerHand); }
     const pSum = calcHand(bjState.playerHand);
-    if (dSum > 21 || pSum > dSum) { const win = lockedBet * 2; game.crystals += win; endBlackjack(`KAZANDIN! +${win} 💎`); }
-    else if (pSum === dSum) { game.crystals += lockedBet; endBlackjack('BERABERE! Kristal iade edildi.'); }
+    if (dSum > 21 || pSum > dSum) { const win = lockedBet * 2; game.crystals += win; if (window._syncShadow) window._syncShadow(); endBlackjack(`KAZANDIN! +${win} 💎`); }
+    else if (pSum === dSum) { game.crystals += lockedBet; if (window._syncShadow) window._syncShadow(); endBlackjack('BERABERE! Kristal iade edildi.'); }
     else endBlackjack(`KAYBETTİN! Bot kazandı.`);
 }
 
@@ -601,10 +604,15 @@ function handleQuantumAction() {
 
         const btn = document.getElementById('btn-quantum-action');
         if (btn) { btn.textContent = '⚡ ŞİMDİ KİLİTLE!'; btn.className = 'w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-tech font-bold text-xs shadow animate-pulse'; }
+        qHack.lastT = 0;
         requestAnimationFrame(stepQuantumLoop);
     } else {
         qHack.active = false;
-        if (!_secureQuantumVault) return;
+        if (!_secureQuantumVault) {
+            const b = document.getElementById('btn-quantum-action');
+            if (b) { b.textContent = 'FREKANSI BAŞLAT'; b.className = 'w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs shadow transition'; }
+            return;
+        }
         const lockedBet = _secureQuantumVault.bet;
         _secureQuantumVault = null;
 
@@ -612,12 +620,12 @@ function handleQuantumAction() {
         if (qHack.pos >= qHack.minY && qHack.pos <= qHack.maxY) {
             qHack.combo++;
             const win = Math.round(lockedBet * 4 * comboBonus);
-            game.crystals += win;
+            game.crystals += win; if (window._syncShadow) window._syncShadow();
             showToast(`🎯 KUSURSUZ KİLİT! +${win} 💎 (${qHack.combo}x Kombo!)`);
         } else if (qHack.pos >= qHack.minB && qHack.pos <= qHack.maxB) {
             qHack.combo++;
             const win = Math.round(lockedBet * 2 * comboBonus);
-            game.crystals += win;
+            game.crystals += win; if (window._syncShadow) window._syncShadow();
             showToast(`⚡ STABİL KİLİT! +${win} 💎 (${qHack.combo}x Kombo!)`);
         } else {
             qHack.combo = 0;
