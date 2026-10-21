@@ -425,6 +425,8 @@ function setCasinoBetVal(val) {
     const betInp = document.getElementById('casino-bet');
     if (betInp) betInp.value = val;
 }
+// Dışarıdan (Konsoldan) erişilemeyen gizli kasa değişkeni
+let _secureRouletteVault = null;
 
 function playRoulette(choice) {
     if (rouletteAnim.spinning) { showToast('Çark zaten dönüyor!'); return; }
@@ -432,7 +434,16 @@ function playRoulette(choice) {
     const bet = parseInt(betInp ? betInp.value : 0) || 0;
     if (bet <= 0 || bet > game.crystals) { showToast('Yeterli kristalin yok!'); return; }
     game.crystals -= bet; updateHUD();
+    
     const winIndex = Math.floor(Math.random() * ROULETTE_SECTORS.length), winSec = ROULETTE_SECTORS[winIndex], sliceAngle = (Math.PI * 2) / ROULETTE_SECTORS.length;
+    
+    // Bahsi, seçimi ve sonucu dondurarak koruma altına alıyoruz:
+    _secureRouletteVault = Object.freeze({
+        bet: bet,
+        choice: choice,
+        winSec: Object.freeze({ ...winSec })
+    });
+
     rouletteAnim.spinning = true; rouletteAnim.startTime = performance.now(); rouletteAnim.duration = 2600; rouletteAnim.userChoice = choice; rouletteAnim.betAmount = bet; rouletteAnim.winningSector = winSec;
     rouletteAnim.startWheelAngle = rouletteAnim.wheelAngle % (Math.PI * 2); rouletteAnim.targetWheelAngle = (-Math.PI / 2 - (winIndex * sliceAngle + sliceAngle / 2)) + Math.PI * 2 * 5;
     rouletteAnim.startBallAngle = rouletteAnim.ballAngle % (Math.PI * 2); rouletteAnim.targetBallAngle = -Math.PI / 2 - Math.PI * 2 * 6;
@@ -443,19 +454,27 @@ function playRoulette(choice) {
 }
 
 function finishRouletteSpin() {
+    // Eğer çark gerçekten dönmediyse ve konsoldan direkt finishRouletteSpin() çağrıldıysa iptal et!
+    if (!_secureRouletteVault) return;
+
+    const lockedBet = _secureRouletteVault.bet;
+    const lockedChoice = _secureRouletteVault.choice;
+    const winSec = _secureRouletteVault.winSec;
+    _secureRouletteVault = null; // Tekrar çağrılmasını önlemek için kasayı sıfırla
+
     ['red', 'green', 'black'].forEach(c => { const b = document.getElementById(`btn-roul-${c}`); if (b) b.disabled = false; });
-    const winSec = rouletteAnim.winningSector, resultColor = winSec.color, mult = resultColor === 'green' ? 14 : 2;
+    const resultColor = winSec.color, mult = resultColor === 'green' ? 14 : 2;
     const display = document.getElementById('roulette-wheel-display'), resText = document.getElementById('roulette-result');
     if (display) {
         display.textContent = `${resultColor === 'green' ? 'YEŞİL' : (resultColor === 'red' ? 'KIRMIZI' : 'SİYAH')} (${winSec.num})`;
         display.className = `font-tech font-bold text-sm py-1 px-3 rounded-lg border border-slate-800 shadow-inner ${resultColor === 'green' ? 'text-emerald-400 bg-emerald-950/40' : (resultColor === 'red' ? 'text-red-400 bg-red-950/40' : 'text-slate-200 bg-slate-950')}`;
     }
-    if (rouletteAnim.userChoice === resultColor) {
-        const win = rouletteAnim.betAmount * mult; game.crystals += win;
+    if (lockedChoice === resultColor) {
+        const win = lockedBet * mult; game.crystals += win;
         if (resText) resText.innerHTML = `<span class="text-emerald-400 font-bold">KAZANDIN! +${win} 💎</span>`;
         showToast(`Rulet Kazancı: +${win} Kristal!`);
     } else if (resText) {
-        resText.innerHTML = `<span class="text-red-400 font-bold">KAYBETTİN! -${rouletteAnim.betAmount} 💎</span>`;
+        resText.innerHTML = `<span class="text-red-400 font-bold">KAYBETTİN! -${lockedBet} 💎</span>`;
     }
     updateHUD(); refreshUpgradeButtonsState(); saveGame(true);
 }
