@@ -41,7 +41,12 @@ service cloud.firestore {
    let nextLimit = getAfter(p);
    return nextLimit.data.uid == userId
     && nextLimit.data.updatedAt == request.time
-    && (!exists(p) || request.time > get(p).data.updatedAt + duration.value(minSecondsBetweenWrites(),'s'))
+    && nextLimit.data.highestWave == request.resource.data.highestWave
+    && validNum(nextLimit.data.highestWave,1,maxWave())
+    && (!exists(p) || (
+      request.time > get(p).data.updatedAt + duration.value(minSecondsBetweenWrites(),'s')
+      && request.resource.data.highestWave <= get(p).data.highestWave + maxWaveJumpPerWrite()
+    ))
     && (resource == null || (
       request.time > resource.data.updatedAt + duration.value(minSecondsBetweenWrites(),'s')
       && request.resource.data.highestWave <= resource.data.highestWave + maxWaveJumpPerWrite()
@@ -61,13 +66,18 @@ service cloud.firestore {
   match /leaderboardRateLimits/{userId}{
    allow read: if isOwner(userId);
    allow create: if isOwner(userId)
-    && request.resource.data.keys().hasOnly(['uid','updatedAt'])
-    && request.resource.data.uid == userId
-    && request.resource.data.updatedAt == request.time;
-   allow update: if isOwner(userId)
-    && request.resource.data.keys().hasOnly(['uid','updatedAt'])
+    && request.resource.data.keys().hasOnly(['uid','updatedAt','highestWave'])
     && request.resource.data.uid == userId
     && request.resource.data.updatedAt == request.time
+    && validNum(request.resource.data.highestWave,1,maxWave())
+    && (!exists(/databases/$(database)/documents/leaderboard/$(userId))
+      || request.resource.data.highestWave <= get(/databases/$(database)/documents/leaderboard/$(userId)).data.highestWave + maxWaveJumpPerWrite());
+   allow update: if isOwner(userId)
+    && request.resource.data.keys().hasOnly(['uid','updatedAt','highestWave'])
+    && request.resource.data.uid == userId
+    && request.resource.data.updatedAt == request.time
+    && validNum(request.resource.data.highestWave,1,maxWave())
+    && request.resource.data.highestWave <= resource.data.highestWave + maxWaveJumpPerWrite()
     && request.time > resource.data.updatedAt + duration.value(minSecondsBetweenWrites(),'s');
    // This record must survive leaderboard deletion or the timer could be reset.
    allow delete: if false;
