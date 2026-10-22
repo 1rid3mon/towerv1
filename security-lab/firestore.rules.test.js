@@ -78,14 +78,13 @@ test("leaderboard update inside the 20-second interval is rejected", async () =>
   })));
 });
 
-test("KNOWN GAP: delete-and-recreate bypasses the leaderboard update interval", async () => {
+test("candidate policy denies leaderboard deletion and blocks delete/recreate rate-limit bypass", async () => {
   const db = testEnv.authenticatedContext("alice").firestore();
   await assertSucceeds(setDoc(doc(db, "leaderboard/alice"), validBoard()));
-  await assertSucceeds(deleteDoc(doc(db, "leaderboard/alice")));
-  // This currently succeeds because resource == null makes withinRateLimit() true.
-  // This test documents existing behavior; it is not a claim that the behavior is secure.
-  await assertSucceeds(setDoc(doc(db, "leaderboard/alice"), validBoard({
-    highestWave: 5000, wave: 5000, damage: 999999999, activeSkin: "not-validated-owned-skin"
+  await assertFails(deleteDoc(doc(db, "leaderboard/alice")));
+  // Since the row still exists, an immediate high-jump update remains subject to the normal rate limit.
+  await assertFails(setDoc(doc(db, "leaderboard/alice"), validBoard({
+    highestWave: 5000, wave: 5000, updatedAt: serverTimestamp()
   })));
 });
 
