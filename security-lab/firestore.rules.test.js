@@ -250,3 +250,42 @@ test("leaderboard rejects unknown oversized documents and non-string skin IDs", 
     extraM: 13, extraN: 14, extraO: 15
   }));
 });
+
+
+test("user save cannot be read or deleted by another authenticated user", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  await testEnv.withSecurityRulesDisabled(async context => {
+    await setDoc(doc(context.firestore(), "users/alice"), {
+      username: "Alice", saveData: "{}", highestWave: 1, updatedAt: Date.now()
+    });
+  });
+  await assertFails(getDoc(doc(bob, "users/alice")));
+  await assertFails(deleteDoc(doc(bob, "users/alice")));
+  await assertSucceeds(getDoc(doc(alice, "users/alice")));
+});
+
+test("user save rejects a non-numeric highestWave and oversized save payload", async () => {
+  const db = testEnv.authenticatedContext("alice").firestore();
+  await assertFails(setDoc(doc(db, "users/alice"), {
+    username: "Alice", saveData: "{}", highestWave: "500", updatedAt: Date.now()
+  }));
+  await assertFails(setDoc(doc(db, "users/alice"), {
+    username: "Alice", saveData: "x".repeat(200001), highestWave: 1, updatedAt: Date.now()
+  }));
+});
+
+test("leaderboard rejects a negative wave, negative prestige, and non-numeric damage", async () => {
+  const db = testEnv.authenticatedContext("alice").firestore();
+  await assertFails(writeBoard(db, { wave: -1, highestWave: 10 }));
+  await assertFails(writeBoard(db, { prestiges: -1 }));
+  await assertFails(writeBoard(db, { damage: "999" }));
+});
+
+test("leaderboard and rate-limit documents cannot be deleted by another user", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  await assertSucceeds(writeBoard(alice));
+  await assertFails(deleteDoc(doc(bob, "leaderboard/alice")));
+  await assertFails(deleteDoc(doc(bob, "leaderboardRateLimits/alice")));
+});
