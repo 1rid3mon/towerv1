@@ -178,13 +178,11 @@ function spawnEnemy(isBoss = false) {
 
     const w = game.wave;
     const earlyBuffer = w <= 10 ? (0.75 + (w * 0.025)) : 1.0;
-    // v1.1.0: soften the sharp 25-wave difficulty cliff while keeping endless scaling.
-    // Each tier step now compounds more gently; boss identity still comes from per-type multipliers.
-    const tierMult = Math.pow(1.18, Math.floor(w / 10)) * Math.pow(1.25, Math.floor(w / 25));
-    const lateWaveSoftener = w > 30 ? Math.pow(0.992, w - 30) : 1.0;
+    // Preserve the established endless-wave balance until measured playtest data supports a change.
+    const tierMult = Math.pow(1.22, Math.floor(w / 10)) * Math.pow(1.35, Math.floor(w / 25));
 
-    const baseHp = (18 + (w - 1) * 7.5) * Math.pow(1.092, w - 1) * tierMult * earlyBuffer * lateWaveSoftener;
-    const baseDmg = (4.5 + (w - 1) * 1.6) * Math.pow(1.075, w - 1) * Math.pow(1.12, Math.floor(w / 10)) * earlyBuffer * Math.pow(lateWaveSoftener, 0.55);
+    const baseHp = (18 + (w - 1) * 7.5) * Math.pow(1.095, w - 1) * tierMult * earlyBuffer;
+    const baseDmg = (4.5 + (w - 1) * 1.6) * Math.pow(1.082, w - 1) * Math.pow(1.16, Math.floor(w / 10)) * earlyBuffer;
     const baseGold = getWaveBaseGold(w) * getGoldMultiplier();
 
     let type = 'green', subType = 'normal', name = 'Yeşil Xenomorph', radius = 13, speed = 38 + Math.min(30, w * 0.18);
