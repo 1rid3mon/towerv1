@@ -664,7 +664,16 @@ function updateGame(dt) {
                 } else {
                     damageTower(e.dmg, e);
                     if (e.isFrost) applyFrostToTower(e.freezeDuration, e.frostSlowDuration);
-                    if (e.type === 'boss') rings.push({ x: tower.x, y: tower.y, radius: 14, color: e.color, life: 0.5 });
+                    if (e.type === 'boss') {
+                        rings.push({ x: tower.x, y: tower.y, radius: 14, color: e.color, life: 0.5 });
+                        if (e.subType === 'tank_boss') {
+                            // Heavy titan impact: strong feedback without adding hidden bonus damage.
+                            rings.push({ x: tower.x, y: tower.y, radius: 30, color: '#fbbf24', life: 0.72 });
+                            createParticles(tower.x, tower.y, '#fbbf24', 14, 105);
+                            createParticles(tower.x, tower.y, '#f8fafc', 7, 65);
+                            addFloatingText(tower.x, tower.y - 26, 'AĞIR DARBE!', '#fde68a', 12);
+                        }
+                    }
                 }
             }
         }
