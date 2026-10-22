@@ -2329,6 +2329,28 @@ function renderGame() {
             ctx.restore();
         }
 
+        // Red Vector dash wind-up: warn the player before the boss closes distance.
+        if (e.type === 'boss' && e.subType === 'speed_boss' &&
+            e.dashCooldown > 0 && e.dashCooldown <= 0.6) {
+            const dashProgress = 1 - e.dashCooldown / 0.6;
+            const dashAngle = Math.atan2(ty - e.y, tx - e.x);
+            const dashLength = Math.min(100, Math.hypot(tx - e.x, ty - e.y));
+            ctx.save();
+            ctx.globalAlpha = 0.25 + dashProgress * 0.55;
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 1.5 + dashProgress * 2;
+            ctx.setLineDash([7, 5]);
+            ctx.beginPath();
+            ctx.moveTo(e.x, e.y);
+            ctx.lineTo(e.x + Math.cos(dashAngle) * dashLength, e.y + Math.sin(dashAngle) * dashLength);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.arc(e.x, e.y, e.radius + 7 + dashProgress * 5, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
         // Armored Titan wind-up: a ground warning ring marks its next heavy strike.
         if (e.type === 'boss' && e.subType === 'tank_boss' &&
             Math.hypot(tower.x - e.x, tower.y - e.y) <= (e.stopDistOverride || 38) + 12 &&
