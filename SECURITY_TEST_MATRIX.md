@@ -64,7 +64,7 @@ Run only with a disposable test account and a backup save. These checks reveal l
 | Scenario | Current expectation / interpretation |
 |---|---|
 | Modify gold/crystals/souls/wave in live client memory | Shadow checks may catch some changes, but public client hooks and arbitrary runtime edits can bypass them. Do not call this server-side protection |
-| Edit an exported save code's upgrade, inventory, owned-skin, or companion fields while leaving the existing signature untouched | Current signature does not cover these fields; the code may still validate. This is a known client-side integrity gap |
+| Edit an exported save code's upgrade, inventory, owned-skin, or companion fields while leaving the existing signature untouched | V2 signature should reject stale-checksum edits to these fields; legacy V1 codes retain the older limited signature. A modified client can still reproduce V2 signatures |
 | Submit a changed, valid-size JSON string as `users/{uid}.saveData` | Current rules accept it if ownership and outer field constraints pass; rules cannot inspect JSON inside a string |
 | Create a first leaderboard row with a fabricated score | Candidate policy still allows it; documented known gap |
 | Delete a leaderboard row and recreate it immediately | Candidate policy's non-deletable rate-limit record should prevent timer reset |
