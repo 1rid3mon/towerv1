@@ -1237,6 +1237,18 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.lineTo(r * 0.02, r * 0.02);
             c.lineTo(-r * 0.02, r * 0.18);
             c.stroke();
+
+            // Offset crown etching gives this boss a distinct silhouette without a copied texture.
+            c.strokeStyle = 'rgba(233, 213, 255, 0.72)';
+            c.lineWidth = Math.max(0.8, r * 0.028);
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(-r * 0.54, -r * 0.66);
+            c.lineTo(-r * 0.34, -r * 0.78);
+            c.lineTo(-r * 0.18, -r * 0.62);
+            c.moveTo(r * 0.48, r * 0.62);
+            c.lineTo(r * 0.62, r * 0.46);
+            c.stroke();
             c.restore();
             break;
         }
