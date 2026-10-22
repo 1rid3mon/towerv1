@@ -139,3 +139,15 @@ test('ranged marksman has restrained sensor plates and a visible aiming reticle'
   assert.match(art, /rgba\(224, 242, 254, 0\.78\)/);
   assert.match(art, /r \* 0\.66/);
 });
+
+
+test('tank boss has original offset armor seams and rivets', () => {
+  const start = renderSource.indexOf("case 'tank_boss':");
+  const end = renderSource.indexOf("case 'ranged_boss':", start);
+  assert.ok(start >= 0 && end > start, 'tank boss drawing case must exist');
+  const art = renderSource.slice(start, end);
+  assert.match(art, /Offset armor seams and rivets/);
+  assert.match(art, /rgba\(69, 26, 3, 0\.88\)/);
+  assert.match(art, /arc\(-r \* 0\.48, -r \* 0\.40/);
+  assert.doesNotMatch(art, /new Image\(|https?:\/\//);
+});
