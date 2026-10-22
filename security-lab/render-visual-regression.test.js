@@ -66,7 +66,7 @@ test('all enemy families receive the same restrained hand-ink pass', () => {
   const end = renderSource.indexOf('function drawCustomEnemy', start);
   assert.ok(start >= 0 && end > start, 'shared ink helper must exist before the enemy renderer');
   const helper = renderSource.slice(start, end);
-  for (const kind of ['frost', 'frost_boss', 'tank', 'tank_boss', 'leviathan', 'boss', 'runner', 'speed_boss', 'ranged', 'ranged_boss', 'teleporter']) {
+  for (const kind of ['green', 'frost', 'frost_boss', 'tank', 'tank_boss', 'leviathan', 'boss', 'runner', 'speed_boss', 'ranged', 'ranged_boss', 'teleporter']) {
     assert.ok(helper.includes("kind === '" + kind + "'"), 'shared material mapping should include ' + kind);
   }
   assert.match(renderSource, /drawEnemyInkAccents\(c, kind, r, faceAngle, isHit\);/);
