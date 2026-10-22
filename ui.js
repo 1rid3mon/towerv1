@@ -1800,19 +1800,8 @@ async function submitUsernameAuth() {
 }
 
 async function loginWithGoogle() {
-    if (isFirebaseReady && fbAuth) {
-        return signInWithGoogle();
-    }
-
-    const randomNum = Math.floor(100 + Math.random() * 900);
-    const gName = (currentUser && currentUser.username) ? currentUser.username : `Komutan_${randomNum}`;
-    currentUser = { uid: 'google_sim_' + gName.toLowerCase(), username: gName, isCloud: false };
-    localStorage.setItem(LOCAL_CURRENT_USER_KEY, JSON.stringify(currentUser));
-    await forceCloudPush(true);
-    updateAccountHeaderUI();
-    refreshLeaderboard(false);
-    closeAuthModal();
-    showToast(`✅ Google (${gName}) ile hızlı giriş yapıldı!`);
+    // Never simulate Google authentication: an offline/local profile is not a verified Google account.
+    return signInWithGoogle();
 }
 
 async function changeDisplayNickname() {
