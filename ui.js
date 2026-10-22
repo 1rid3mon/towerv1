@@ -1959,7 +1959,14 @@ async function forceCloudPull(silent = false) {
             const cloudMax = Math.max(cloudGame.highestWave || 1, cloudGame.wave || 1);
             const localMax = Math.max(game.highestWave || 1, game.wave || 1);
 
-            if (!silent || cloudMax > localMax) {
+            // On a silent login pull, preserve the higher best-wave progress. When best wave
+            // ties, prefer the newer save timestamp so a fresh device can recover same-wave
+            // upgrades/currency/inventory instead of silently keeping its default local state.
+            const shouldApplyCloud = !silent ||
+                cloudMax > localMax ||
+                (cloudMax === localMax &&
+                    Number(cloudGame.lastSaveTime || 0) > Number(game.lastSaveTime || 0));
+            if (shouldApplyCloud) {
                 applyParsedGameData(cloudGame);
                 tower.maxHp = getTowerMaxHp();
                 tower.hp = tower.maxHp;
