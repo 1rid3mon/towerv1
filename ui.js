@@ -1916,6 +1916,7 @@ async function pushScoreToLeaderboard() {
             const serverTime = firebase.firestore.FieldValue.serverTimestamp();
             batch.set(fbDb.collection('leaderboardRateLimits').doc(currentUser.uid), {
                 uid: currentUser.uid,
+                highestWave: playerEntry.highestWave,
                 updatedAt: serverTime
             }, { merge: true });
             batch.set(fbDb.collection('leaderboard').doc(currentUser.uid), {
