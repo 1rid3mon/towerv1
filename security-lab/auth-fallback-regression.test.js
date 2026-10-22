@@ -43,3 +43,13 @@ test('the local-only fallback remains clearly separate from Firebase-backed auth
   assert.match(localFallback, /isCloud:\s*false/);
   assert.match(localFallback, /localStorage\.setItem\(LOCAL_CURRENT_USER_KEY/);
 });
+
+test('Google sign-in never fabricates a local identity when Firebase is unavailable', () => {
+  const start = uiSource.indexOf('async function loginWithGoogle()');
+  const end = uiSource.indexOf('async function changeDisplayNickname()', start);
+  assert.ok(start >= 0 && end > start, 'Google sign-in handler should exist');
+  const googleHandler = uiSource.slice(start, end);
+
+  assert.match(googleHandler, /return signInWithGoogle\(\);/);
+  assert.doesNotMatch(googleHandler, /google_sim_|Komutan_\$\{|forceCloudPush|localStorage\.setItem/);
+});
