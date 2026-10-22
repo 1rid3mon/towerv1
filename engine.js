@@ -1103,24 +1103,51 @@ window.onload = function () {
 
     window._syncShadow = syncShadow;
 
-    window._generateSaveSignature = function(gameObj) {
-        const coreStr = `${Math.floor(gameObj.gold)}|${Math.floor(gameObj.crystals)}|${Math.floor(gameObj.souls)}|${gameObj.wave}|${gameObj.highestWave}|${gameObj.stats?.prestiges || 0}|${SECRET_SALT}`;
+    // V2 checksum covers the complete serializable save (except volatile metadata/signature).
+    // This is a tamper-evident checksum for casual edits, NOT a server-trusted signature:
+    // the algorithm and salt ship to the browser and can be reproduced by modified clients.
+    function stableSaveString(value) {
+        if (Array.isArray(value)) return '[' + value.map(stableSaveString).join(',') + ']';
+        if (value && typeof value === 'object') {
+            const keys = Object.keys(value)
+                .filter(key => key !== '_sig' && key !== 'lastSaveTime')
+                .sort();
+            return '{' + keys.map(key => JSON.stringify(key) + ':' + stableSaveString(value[key])).join(',') + '}';
+        }
+        return JSON.stringify(value);
+    }
+
+    function checksum(text) {
         let hash = 2166136261;
-        for (let i = 0; i < coreStr.length; i++) {
-            hash ^= coreStr.charCodeAt(i);
+        for (let i = 0; i < text.length; i++) {
+            hash ^= text.charCodeAt(i);
             hash = Math.imul(hash, 16777619);
         }
         return (hash >>> 0).toString(36);
+    }
+
+    function legacySignature(gameObj) {
+        const coreStr = `${Math.floor(gameObj.gold)}|${Math.floor(gameObj.crystals)}|${Math.floor(gameObj.souls)}|${gameObj.wave}|${gameObj.highestWave}|${gameObj.stats?.prestiges || 0}|${SECRET_SALT}`;
+        return checksum(coreStr);
+    }
+
+    window._generateSaveSignature = function(gameObj) {
+        if (!gameObj || typeof gameObj !== 'object') return '';
+        return checksum('save-v2|' + stableSaveString(gameObj) + '|' + SECRET_SALT);
     };
 
     window._verifySaveSignature = function(gameObj) {
         if (!gameObj || typeof gameObj !== 'object') return false;
         if (!gameObj._sig) {
-            // Eski (imzasız) kayıt: yalnızca bu tarayıcıda daha önce hiç imzalı kayıt üretilmediyse kabul edilir.
-            // Kabul edilen kayıt bir sonraki saveGame() ile otomatik imzalanır (sessiz geçiş).
+            // Legacy unsigned saves remain eligible for the existing one-time migration path.
             try { return !localStorage.getItem(SIGNED_MARK_KEY); } catch (e) { return true; }
         }
-        return gameObj._sig === window._generateSaveSignature(gameObj);
+        if (gameObj._sigVersion === 2) {
+            return gameObj._sig === window._generateSaveSignature(gameObj);
+        }
+        // Backward compatibility for existing v1 saves/codes. V1 only covers economy/wave fields,
+        // so it must not be described as protecting inventory, upgrades, skins, or companions.
+        return gameObj._sig === legacySignature(gameObj);
     };
 
     setInterval(() => {
