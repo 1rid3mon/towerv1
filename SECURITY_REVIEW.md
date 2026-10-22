@@ -64,7 +64,7 @@ The review branch now has an emulator-tested candidate design that preserves cli
 4. Only then adjust client submission logic to use that trusted path.
 
 ### High — The browser anti-cheat exposes its own trust-reset hooks
-The current client assigns `window._syncShadow`, `window._generateSaveSignature`, `window._verifySaveSignature`, and `window._isSessionClean`. The signature is a browser-side FNV-style checksum over only gold, crystals, souls, wave, highestWave, and prestige count; upgrades, inventory, owned skins, companions, and other state are not covered. The client also calls `_syncShadow()` after selected reward paths, so an injected script can call the same public hook after editing balances. The hard-coded salt and client-side generator are visible to every player.
+The current client assigns `window._syncShadow`, `window._generateSaveSignature`, `window._verifySaveSignature`, and `window._isSessionClean`. New V2 saves now checksum the complete serializable save (excluding only the checksum itself and volatile `lastSaveTime`), and regression tests cover stale-checksum edits to upgrades and inventory. Existing V1 saves/codes remain accepted for compatibility; their legacy checksum still covers only gold, crystals, souls, wave, highestWave, and prestige count. The client also calls `_syncShadow()` after selected reward paths, so injected code can call the public hook after editing balances. The V2 algorithm and hard-coded salt are still shipped to every player.
 
 **Practical meaning:** these mechanisms can catch accidental corruption or unsophisticated edits, but they are not a security boundary against the friend's cheat program or any script running in the page. Hiding names or changing the checksum algorithm alone would not fix this.
 
@@ -78,7 +78,7 @@ The client serializes the entire game state to a string and writes it to `users/
 ### Cheat-focused regression scenarios
 These are intentionally adversarial checks to run against a disposable test account / local emulator, not a production account:
 - Increase each economy field in the live browser state and see whether the client detects it; separately verify that this does not get described as server-side protection.
-- Export a save code, modify only an upgrade/inventory/skin field while preserving the old checksum, and verify the current signature's coverage limitation.
+- Export a V2 save code, modify an upgrade/inventory/skin field while preserving the old checksum, and verify it is rejected; separately document that legacy V1 codes retain weaker coverage.
 - Submit a modified but size-valid `saveData` string to a test user's own document and verify that the current rules accept it; this documents the opaque-payload gap.
 - Attempt a fabricated first leaderboard row and a large subsequent wave jump; first-row forgery remains a known gap, while the candidate rate-limit policy should constrain later updates.
 - Confirm the client blocks leaderboard publishing after integrity flags, while treating this as a deterrent only—not as a way to prevent a modified client from calling Firestore directly.
