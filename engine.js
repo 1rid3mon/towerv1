@@ -832,6 +832,12 @@ function killEnemy(enemy) {
 
     createParticles(enemy.x, enemy.y, enemy.color, enemy.type === 'boss' ? 24 : 10, 85);
     rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 0.5, color: enemy.color, life: 1.0 });
+    if (enemy.isElite) {
+        // Elite defeat gets a brief gold shockwave and extra sparks, using existing effects.
+        createParticles(enemy.x, enemy.y, '#fbbf24', 12, 125);
+        rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 0.8, color: '#fbbf24', life: 1.15 });
+        rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 1.25, color: '#fef3c7', life: 0.75 });
+    }
 
     game.stats.totalKills++; game.waveKills++;
     if (game.waveKills >= game.waveTargetKills) completeWave();
