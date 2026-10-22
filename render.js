@@ -1398,6 +1398,28 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.beginPath();
             c.arc(Math.cos(faceAngle) * 1.5, Math.sin(faceAngle) * 1.5, r * 0.20, 0, Math.PI * 2);
             c.fill();
+
+            // Broken, offset phase marks keep the teleporter readable without a glow texture.
+            c.strokeStyle = 'rgba(120, 53, 15, 0.78)';
+            c.lineWidth = Math.max(0.7, r * 0.065);
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(-r * 0.72, -r * 0.12);
+            c.lineTo(-r * 0.42, -r * 0.30);
+            c.lineTo(-r * 0.22, -r * 0.12);
+            c.moveTo(r * 0.24, r * 0.28);
+            c.lineTo(r * 0.48, r * 0.12);
+            c.lineTo(r * 0.70, r * 0.22);
+            c.stroke();
+
+            c.strokeStyle = 'rgba(255, 251, 235, 0.82)';
+            c.lineWidth = Math.max(0.6, r * 0.045);
+            c.beginPath();
+            c.moveTo(-r * 0.16, -r * 0.70);
+            c.lineTo(r * 0.08, -r * 0.54);
+            c.moveTo(-r * 0.04, r * 0.60);
+            c.lineTo(r * 0.18, r * 0.48);
+            c.stroke();
             break;
         }
         case 'ranged': {
