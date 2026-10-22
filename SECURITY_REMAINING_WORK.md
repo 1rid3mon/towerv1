@@ -24,6 +24,7 @@ This is the execution checklist for the isolated `security-hardening-review` bra
 - [x] Added a visible leaderboard notice explaining that scores are client-reported and not yet server-verified, with a regression test.
 - [x] Documented the account-deletion vs. retained rate-limit metadata trade-off.
 - [x] Added an Android WebView packaging/security plan; no Android wrapper or APK has been built yet.
+- [x] First gameplay/UI feature drop: the tower health HUD shows a red pulsing critical state and a “KRİTİK” label at 25% HP or lower; the warning clears above the threshold and respects reduced-motion preferences. Added a regression test.
 
 ## Must do before any production rollout
 
