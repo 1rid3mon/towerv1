@@ -117,3 +117,48 @@ test('boss wave HUD warning is visibly labelled and accessible', () => {
   assert.match(indexSource, /motion-safe:animate-pulse/);
   assert.match(uiSource, /bossWarn\.classList\.toggle\('hidden', game\.wave % 5 !== 0\)/);
 });
+
+
+test('real game defaults accept a legacy partial save and reject malformed nested upgrade values', () => {
+  const dataSource = fs.readFileSync(path.join(__dirname, '..', 'data.js'), 'utf8');
+  const defaultStart = dataSource.indexOf('function getDefaultState() {');
+  const defaultEnd = dataSource.indexOf('\n}\n\nlet game = getDefaultState();', defaultStart);
+  assert.ok(defaultStart >= 0 && defaultEnd > defaultStart, 'real getDefaultState must exist');
+  const defaultFunction = dataSource.slice(defaultStart, defaultEnd + 2);
+  const validatorStart = uiSource.indexOf('function isCompatibleSaveShape(');
+  const validatorEnd = uiSource.indexOf('\nfunction applyParsedGameData', validatorStart);
+  assert.ok(validatorStart >= 0 && validatorEnd > validatorStart, 'save-shape validator must exist');
+
+  const sandbox = {};
+  vm.runInNewContext(
+    defaultFunction + '\nglobalThis.getDefaultState = getDefaultState;\n' +
+    uiSource.slice(validatorStart, validatorEnd) +
+    '\nglobalThis.validateSaveShape = isCompatibleSaveShape;',
+    sandbox
+  );
+  const validate = sandbox.validateSaveShape;
+
+  // Old saves may not contain newer fields; known fields they do contain must keep valid types.
+  const legacySave = {
+    gold: 1800,
+    crystals: 27,
+    souls: 2,
+    wave: 14,
+    highestWave: 18,
+    stats: { totalKills: 120, prestiges: 1 },
+    upgrades: { damage: 12, attackSpeed: 4 },
+    inventory: ['starter_item'],
+    ownedSkins: ['default_cyber'],
+    activeSkin: 'default_cyber'
+  };
+  assert.equal(validate(legacySave), true, 'partial legacy saves should remain compatible');
+
+  const malformedSave = {
+    ...legacySave,
+    upgrades: { damage: { hacked: true } }
+  };
+  assert.equal(validate(malformedSave), false, 'known numeric upgrade fields must not accept objects');
+
+  const oversizedSave = { ...legacySave, unknownPayload: 'x'.repeat(1001) };
+  assert.equal(validate(oversizedSave), false, 'unknown fields must remain bounded');
+});
