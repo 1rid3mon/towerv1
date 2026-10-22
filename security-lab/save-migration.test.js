@@ -10,13 +10,16 @@ const end = uiSource.indexOf('\nfunction exportSaveCode()', start);
 assert.ok(start >= 0 && end > start, 'actual loadGame function must exist');
 const loadGameSource = uiSource.slice(start, end);
 
-function harness(initialRaw, initialMarker = null, verify = () => true) {
+function harness(initialRaw, initialMarker = null, verify = () => true, failSetKey = null) {
   const store = new Map();
   if (initialRaw !== null) store.set('CoreTowerDefense_Save_v11', initialRaw);
   if (initialMarker !== null) store.set('CoreTowerDefense_signedOnce', initialMarker);
   const localStorage = {
     getItem: key => store.has(key) ? store.get(key) : null,
-    setItem: (key, value) => store.set(key, String(value))
+    setItem: (key, value) => {
+      if (key === failSetKey) throw new Error('simulated storage quota/write failure');
+      store.set(key, String(value));
+    }
   };
   const sandbox = {
     SAVE_KEY: 'CoreTowerDefense_Save_v11',
@@ -63,4 +66,35 @@ test('rejected local save is not migrated or overwritten', () => {
   assert.equal(store.get('CoreTowerDefense_Save_v11'), invalidRaw);
   assert.equal(store.get('CoreTowerDefense_Save_v11_rejected_backup'), invalidRaw);
   assert.equal(store.has('CoreTowerDefense_Save_v11_legacy_migration_backup'), false);
+});
+
+
+test('backup write failure leaves the original unsigned save untouched', () => {
+  const legacyRaw = JSON.stringify({ gold: 222, crystals: 9, wave: 4, highestWave: 4 });
+  const { store, sandbox } = harness(
+    legacyRaw,
+    null,
+    parsed => !parsed._sig,
+    'CoreTowerDefense_Save_v11_legacy_migration_backup'
+  );
+
+  assert.equal(store.get('CoreTowerDefense_Save_v11'), legacyRaw);
+  assert.equal(store.has('CoreTowerDefense_Save_v11_legacy_migration_backup'), false);
+  assert.equal(store.has('CoreTowerDefense_signedOnce'), false);
+  assert.equal(sandbox.game.gold, 222, 'the in-memory load should still work');
+});
+
+test('primary save write failure keeps the exact recovery backup and original save', () => {
+  const legacyRaw = JSON.stringify({ gold: 333, crystals: 11, wave: 6, highestWave: 8 });
+  const { store, sandbox } = harness(
+    legacyRaw,
+    null,
+    parsed => !parsed._sig,
+    'CoreTowerDefense_Save_v11'
+  );
+
+  assert.equal(store.get('CoreTowerDefense_Save_v11'), legacyRaw);
+  assert.equal(store.get('CoreTowerDefense_Save_v11_legacy_migration_backup'), legacyRaw);
+  assert.equal(store.has('CoreTowerDefense_signedOnce'), false);
+  assert.equal(sandbox.game.highestWave, 8, 'the in-memory load should still work');
 });
