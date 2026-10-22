@@ -151,3 +151,19 @@ test('tank boss has original offset armor seams and rivets', () => {
   assert.match(art, /arc\(-r \* 0\.48, -r \* 0\.40/);
   assert.doesNotMatch(art, /new Image\(|https?:\/\//);
 });
+
+
+test('critical tower health also highlights the numeric HP text and resets with the HUD state', () => {
+  const uiSource = fs.readFileSync(path.join(__dirname, '..', 'ui.js'), 'utf8');
+  const updateStart = uiSource.indexOf('function updateHUD()');
+  const updateEnd = uiSource.indexOf('\nfunction ', updateStart + 1);
+  const update = uiSource.slice(updateStart, updateEnd > updateStart ? updateEnd : undefined);
+  assert.match(update, /const hpText = document\.getElementById\('ui-hp-text'\)/);
+  assert.match(update, /hpText\.classList\.toggle\('hud-critical-text', isCriticalHp\)/);
+  assert.match(update, /const isCriticalHp = tower\.hp > 0 && hpRatio <= 0\.25/);
+  assert.match(indexSource(), /#ui-hp-text\.hud-critical-text[\s\S]*?color: #fca5a5 !important/);
+});
+
+function indexSource() {
+  return fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+}
