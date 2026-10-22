@@ -17,7 +17,8 @@ This is the execution checklist for the isolated `security-hardening-review` bra
 - [x] Added tests for limiter deletion/independent changes, missing or mismatched paired writes, rapid recreation, save payload size, and basic schema bounds.
 - [x] Added full-save V2 checksum coverage for local/save-code tamper detection while retaining legacy V1 verification.
 - [x] Made local save, save-code import, and cloud pull fail closed if verification is missing or fails; cloud pulls reject unsigned saves.
-- [x] Added structural save-shape validation for local, imported, and cloud saves; malformed known fields are rejected before state application, with regression tests.
+- [x] Added structural save validation for local, imported, and cloud saves; malformed known fields, oversized strings, and excessively deep/large unknown payloads are rejected before state application, with regression tests.
+- [x] Added regression coverage for leaderboard username HTML escaping to reduce the risk of stored XSS from client-controlled profile names.
 - [x] Clarified that client-side checks are not a security guarantee against modified clients.
 - [x] Documented the account-deletion vs. retained rate-limit metadata trade-off.
 - [x] Added an Android WebView packaging/security plan; no Android wrapper or APK has been built yet.
