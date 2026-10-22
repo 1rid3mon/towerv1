@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kule Savunma: Sonsuz Döngü | v1.0.0</title>
+    <title>Kule Savunma: Sonsuz Döngü | v1.1.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -218,7 +218,7 @@
             <div class="flex flex-col">
                 <div class="hidden sm:flex items-center gap-2">
                     <h1 class="font-tech font-bold text-sm sm:text-xl text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 tracking-wider">KULE SAVUNMA</h1>
-                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 1.0.0 yeniliklerini göster" class="rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[10px] font-bold tracking-wide text-cyan-300 hover:bg-cyan-500/20 transition">v1.0.0</button>
+                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 1.0.0 yeniliklerini göster" class="rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[10px] font-bold tracking-wide text-cyan-300 hover:bg-cyan-500/20 transition">v1.1.0</button>
                 </div>
                 <div class="flex items-center space-x-3 sm:space-x-4 mt-0.5">
                     <div class="flex items-center gap-1.5" title="Altın">
@@ -233,7 +233,7 @@
                         <i class="fa-solid fa-fire text-[10px] sm:text-sm text-purple-400 neon-text-purple"></i>
                         <div id="ui-souls" class="font-tech font-bold text-xs sm:text-base text-purple-400 neon-text-purple leading-tight">0</div>
                     </div>
-                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 1.0.0 yeniliklerini göster" class="sm:hidden rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[9px] font-bold tracking-wide text-cyan-300">v1.0.0</button>
+                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 1.0.0 yeniliklerini göster" class="sm:hidden rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[9px] font-bold tracking-wide text-cyan-300">v1.1.0</button>
                 </div>
             </div>
         </div>
@@ -854,29 +854,33 @@
         </div>
     </div>
 
-    <!-- v1.0.0 update notes -->
+    <!-- v1.1.0 update notes -->
     <div id="update-notes-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md items-center justify-center p-4 z-[70]" role="dialog" aria-modal="true" aria-labelledby="update-notes-title" onclick="if(event.target === this) closeUpdateNotesModal()">
         <div class="w-full max-w-md rounded-2xl border border-cyan-400/25 bg-slate-900 p-5 shadow-2xl">
             <div class="flex items-start justify-between gap-3">
                 <div>
                     <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300">BÜYÜK YENİLİK SERİSİ</div>
-                    <h2 id="update-notes-title" class="mt-1 font-tech text-2xl font-bold text-white">Kule Savunma <span class="text-cyan-300">v1.0.0</span></h2>
-                    <p class="mt-1 text-xs text-slate-400">İlk sürüm • Sonsuz Döngü</p>
+                    <h2 id="update-notes-title" class="mt-1 font-tech text-2xl font-bold text-white">Kule Savunma <span class="text-cyan-300">v1.1.0</span></h2>
+                    <p class="mt-1 text-xs text-slate-400">Büyük içerik güncellemesi • Sonsuz Döngü</p>
                 </div>
                 <button type="button" onclick="closeUpdateNotesModal()" aria-label="Yenilikler penceresini kapat" class="rounded-lg bg-slate-800 px-3 py-2 text-slate-300 hover:bg-slate-700">✕</button>
             </div>
             <div class="mt-5 space-y-3">
-                <div class="flex gap-3 rounded-xl border border-white/5 bg-slate-800/60 p-3">
-                    <i class="fa-solid fa-tag mt-0.5 text-cyan-300"></i>
-                    <div><div class="text-sm font-semibold text-white">Sürüm etiketi</div><p class="mt-1 text-xs leading-relaxed text-slate-400">Oyun artık sürüm numarasını gösteriyor. Sürüm etiketine dokunarak bu pencereyi tekrar açabilirsin.</p></div>
+                <div class="flex gap-3 rounded-xl border border-amber-400/20 bg-amber-500/5 p-3">
+                    <i class="fa-solid fa-crown mt-0.5 text-amber-300"></i>
+                    <div><div class="text-sm font-semibold text-white">Elit düşmanlar</div><p class="mt-1 text-xs leading-relaxed text-slate-300">8. dalgadan itibaren bazı normal düşmanlar nadiren elit olarak ortaya çıkar. Daha dayanıklı ve tehlikelidirler; onları alt etmek normalden daha fazla altın kazandırır.</p></div>
                 </div>
                 <div class="flex gap-3 rounded-xl border border-white/5 bg-slate-800/60 p-3">
-                    <i class="fa-solid fa-list-check mt-0.5 text-indigo-300"></i>
-                    <div><div class="text-sm font-semibold text-white">Yenilikler ekranı</div><p class="mt-1 text-xs leading-relaxed text-slate-400">Güncelleme notları oyun içinden erişilebilir hale geldi. Yeni sürümlerde değişiklikler burada duyurulacak.</p></div>
+                    <i class="fa-solid fa-bolt mt-0.5 text-yellow-300"></i>
+                    <div><div class="text-sm font-semibold text-white">Savaş alanında yeni görsel işaretler</div><p class="mt-1 text-xs leading-relaxed text-slate-400">Elit düşmanlar altın renkli hareketli bir halka, işaretler ve isim/sağlık göstergesiyle ayırt edilir. Yeni görseller oyunun mevcut çizim sistemiyle oluşturulur.</p></div>
+                </div>
+                <div class="flex gap-3 rounded-xl border border-white/5 bg-slate-800/60 p-3">
+                    <i class="fa-solid fa-cloud-arrow-up mt-0.5 text-cyan-300"></i>
+                    <div><div class="text-sm font-semibold text-white">Bulut kayıt teşhisi</div><p class="mt-1 text-xs leading-relaxed text-slate-400">Firestore bağlantısı için alternatif aktarım algılama ayarı ve daha açıklayıcı kayıt hata günlükleri eklendi. Gerçek cihaz/ağ doğrulaması ayrıca gereklidir.</p></div>
                 </div>
                 <div class="rounded-xl border border-purple-400/15 bg-purple-500/5 p-3">
-                    <div class="text-xs font-bold text-purple-200"><i class="fa-solid fa-rocket mr-1"></i> Sıradaki hedefler</div>
-                    <p class="mt-1 text-xs leading-relaxed text-slate-400">Yeni düşman ve boss görünümleri, savaş efektleri, kule içerikleri ve daha fazla oynanış yeniliği sıradaki güncellemelerin hedefleri. Bunlar henüz bu sürümde yayımlanmış özellikler değildir.</p>
+                    <div class="text-xs font-bold text-purple-200"><i class="fa-solid fa-shield-halved mr-1"></i> Kayıt uyumluluğu</div>
+                    <p class="mt-1 text-xs leading-relaxed text-slate-400">Elit düşman özelliği yeni bir kayıt alanı veya sıfırlama gerektirmez. Mevcut dalga, yükseltme ve envanter ilerlemesi korunacak şekilde eklendi.</p>
                 </div>
             </div>
             <button type="button" onclick="closeUpdateNotesModal()" class="mt-5 w-full rounded-xl border border-cyan-400/30 bg-cyan-500/15 py-2.5 font-tech font-bold text-cyan-200 transition hover:bg-cyan-500/25">OYUNA DÖN</button>
