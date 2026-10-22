@@ -170,6 +170,56 @@
         .rarity-glow-mythic { box-shadow: 0 0 38px rgba(236, 72, 153, 0.7), inset 0 0 25px rgba(236, 72, 153, 0.3); }
         .rarity-glow-legendary { box-shadow: 0 0 45px rgba(250, 204, 21, 0.85), inset 0 0 30px rgba(250, 204, 21, 0.4); }
         
+/* v1.1.0: tighter touch-friendly layout for small screens in both orientations */
+@media (max-width: 480px) {
+    #hud-top-bar {
+        left: max(6px, env(safe-area-inset-left)) !important;
+        top: max(6px, env(safe-area-inset-top)) !important;
+        gap: 4px !important;
+        max-width: calc(100vw - 12px) !important;
+    }
+    #hud-hp-card, #hud-wave-card,
+    body.device-phone #hud-hp-card, body.device-phone #hud-wave-card {
+        width: calc((100vw - 22px) / 2) !important;
+        max-width: calc((100vw - 22px) / 2) !important;
+        min-width: 0 !important;
+        padding: 5px 6px !important;
+    }
+    #main-body > header button, #main-body button {
+        touch-action: manipulation;
+    }
+    #upgrade-drawer, #settings-modal > div, #theme-modal > div,
+    #confirm-modal > div, #auth-modal > div {
+        max-width: calc(100vw - 16px) !important;
+    }
+}
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+    #main-body > header {
+        min-height: 38px !important;
+        padding: 3px 6px !important;
+        gap: 4px !important;
+    }
+    #main-body > header button {
+        padding: 4px 6px !important;
+        font-size: 10px !important;
+    }
+    #hud-top-bar {
+        top: 42px !important;
+        left: 6px !important;
+        gap: 4px !important;
+    }
+    #hud-hp-card, #hud-wave-card,
+    body.device-phone #hud-hp-card, body.device-phone #hud-wave-card {
+        width: 124px !important;
+        max-width: 34vw !important;
+        padding: 4px 6px !important;
+    }
+    #upgrade-drawer {
+        max-height: calc(100dvh - 44px) !important;
+        overflow-y: auto !important;
+    }
+}
+
 /* Dikey telefon: üst çubukta taşmayı azalt */
 @media (max-width: 480px) and (orientation: portrait) {
     #main-body > header {
