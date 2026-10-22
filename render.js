@@ -916,6 +916,9 @@ function drawEnemyInkAccents(c, kind, r, faceAngle, isHit) {
     } else if (kind === 'teleporter') {
         seam = 'rgba(120, 53, 15, 0.58)';
         edge = 'rgba(254, 240, 138, 0.60)';
+    } else if (kind === 'green') {
+        seam = 'rgba(20, 83, 45, 0.58)';
+        edge = 'rgba(220, 252, 231, 0.60)';
     }
 
     c.save();
