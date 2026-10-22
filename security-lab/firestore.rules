@@ -42,14 +42,14 @@ service cloud.firestore {
   match /users/{userId}{
    allow read: if isOwner(userId);
    allow create,update: if isOwner(userId)&&validUserDoc();
-   // Client deletion is disabled: otherwise a user can delete and recreate the row to reset its rate limit.
-   // This is a candidate policy for emulator testing only; do not deploy without checking the live write flow.
-   allow delete: if false;
+   allow delete: if isOwner(userId);
   }
   match /leaderboard/{userId}{
    allow read: if true;
    allow create,update: if isOwner(userId)&&validBoardDoc(userId)&&withinRateLimit();
-   allow delete: if isOwner(userId);
+   // Client deletion is disabled: otherwise a user can delete and recreate the row to reset its rate limit.
+   // This is a candidate policy for emulator testing only; do not deploy without checking the live write flow.
+   allow delete: if false;
   }
  }
 }
