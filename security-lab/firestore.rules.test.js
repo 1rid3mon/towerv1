@@ -1,5 +1,6 @@
 const { readFileSync } = require("node:fs");
 const { join } = require("node:path");
+const { before, after, beforeEach, test } = require("node:test");
 const {
   initializeTestEnvironment,
   assertSucceeds,
@@ -36,7 +37,7 @@ before(async () => {
 });
 
 after(async () => {
-  await testEnv.cleanup();
+  if (testEnv) await testEnv.cleanup();
 });
 
 beforeEach(async () => {
