@@ -2287,6 +2287,27 @@ function renderGame() {
             ctx.restore();
         }
 
+        // v1.1.0: subtle aim telegraph warns players before artillery/Leviathan fan shots.
+        if (e.type === 'boss' &&
+            (e.subType === 'ranged_boss' || e.subType === 'leviathan') &&
+            e.attackCooldown > 0 && e.attackCooldown <= 0.48) {
+            const aim = Math.atan2(ty - e.y, tx - e.x);
+            const warnAlpha = 0.22 + (1 - e.attackCooldown / 0.48) * 0.42;
+            const warnLen = Math.min(150, Math.hypot(tx - e.x, ty - e.y));
+            ctx.save();
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = e.color || '#f0abfc';
+            ctx.globalAlpha = warnAlpha;
+            ctx.lineWidth = 1.5;
+            for (const offset of [-0.17, 0, 0.17]) {
+                ctx.beginPath();
+                ctx.moveTo(e.x, e.y);
+                ctx.lineTo(e.x + Math.cos(aim + offset) * warnLen, e.y + Math.sin(aim + offset) * warnLen);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
         drawCustomEnemy(ctx, e, tx, ty, nowCompTime);
 
         if (e.hp < e.maxHp || e.type === 'boss' || e.isElite) {
