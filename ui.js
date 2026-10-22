@@ -1956,17 +1956,10 @@ async function forceCloudPull(silent = false) {
         }
 
         if (cloudGame) {
-            const cloudMax = Math.max(cloudGame.highestWave || 1, cloudGame.wave || 1);
-            const localMax = Math.max(game.highestWave || 1, game.wave || 1);
-
             // On a silent login pull, preserve the higher best-wave progress. When best wave
             // ties, prefer the newer save timestamp so a fresh device can recover same-wave
             // upgrades/currency/inventory instead of silently keeping its default local state.
-            const shouldApplyCloud = !silent ||
-                cloudMax > localMax ||
-                (cloudMax === localMax &&
-                    Number(cloudGame.lastSaveTime || 0) > Number(game.lastSaveTime || 0));
-            if (shouldApplyCloud) {
+            if (shouldApplyCloudSave(cloudGame, game, silent)) {
                 applyParsedGameData(cloudGame);
                 tower.maxHp = getTowerMaxHp();
                 tower.hp = tower.maxHp;
@@ -1984,6 +1977,15 @@ async function forceCloudPull(silent = false) {
     } catch (err) {
         if (!silent) showToast('❌ Buluttan veri çekilemedi.');
     }
+}
+
+function shouldApplyCloudSave(cloudGame, localGame, silent) {
+    if (!silent) return true;
+    const cloudMax = Math.max(cloudGame.highestWave || 1, cloudGame.wave || 1);
+    const localMax = Math.max(localGame.highestWave || 1, localGame.wave || 1);
+    if (cloudMax > localMax) return true;
+    if (cloudMax < localMax) return false;
+    return Number(cloudGame.lastSaveTime || 0) > Number(localGame.lastSaveTime || 0);
 }
 
 function getDefaultRivalsForLeaderboard() {
