@@ -106,3 +106,11 @@ test('critical-health HUD warning activates at 25% HP and clears above the thres
   assert.match(uiSource, /hpBar\.classList\.toggle\('hud-critical-bar', isCriticalHp\)/);
   assert.match(uiSource, /hpCriticalBadge\.classList\.toggle\('hidden', !isCriticalHp\)/);
 });
+
+test('boss wave HUD warning is visibly labelled and accessible', () => {
+  const indexSource = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  assert.match(indexSource, /id="ui-boss-warning"[^>]*aria-label="Boss dalgası"/);
+  assert.match(indexSource, /id="ui-boss-warning"[^>]*role="status"/);
+  assert.match(indexSource, /aria-hidden="true"><\\/i>\\s*BOSS<\\/span>/);
+  assert.match(uiSource, /bossWarn\.classList\.toggle\('hidden', game\.wave % 5 !== 0\)/);
+});
