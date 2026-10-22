@@ -1827,7 +1827,10 @@ async function deleteMyAccount() {
             await fbDb.collection('leaderboard').doc(uid).delete();
             await fbDb.collection('users').doc(uid).delete();
         }
-    } catch (e) {}
+    } catch (e) {
+        showToast('❌ Hesap verileri silinemedi. Hiçbir şeyin tamamen silindiğini varsayma; tekrar dene.');
+        return;
+    }
 
     try {
         if (isFirebaseReady && fbAuth && fbAuth.currentUser) {
@@ -1838,7 +1841,8 @@ async function deleteMyAccount() {
             showToast('⚠️ Güvenlik gereği önce çıkış yapıp tekrar giriş yap, hemen ardından tekrar "Hesabı Sil" de.');
             return;
         }
-        // Hesap zaten silinmiş olabilir, yine de yerel oturumu temizleyip devam ediyoruz.
+        showToast('❌ Firebase hesabı silinemedi. Bazı veriler silinmiş olabilir; tekrar giriş yapıp silme işlemini yeniden dene.');
+        return;
     }
 
     currentUser = null;
