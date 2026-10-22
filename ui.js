@@ -1378,6 +1378,7 @@ function saveGame(silent = false) {
     try {
         if (typeof game === 'undefined') return;
         game.lastSaveTime = Date.now();
+        game._sigVersion = 2;
         if (typeof window._generateSaveSignature === 'function') {
             game._sig = window._generateSaveSignature(game);
         }
@@ -1407,6 +1408,7 @@ function exportSaveCode() {
     try {
         const t = document.getElementById('save-code-textarea');
         if (!t) return;
+        game._sigVersion = 2;
         if (typeof window._generateSaveSignature === 'function') {
             game._sig = window._generateSaveSignature(game);
         }
@@ -1802,6 +1804,7 @@ async function forceCloudPush(silent = false) {
 
     try {
         // Bulut kopyası push anındaki değerlerle imzalansın (kayıttan sonra altın/kristal değişmiş olabilir)
+        game._sigVersion = 2;
         if (typeof window._generateSaveSignature === 'function') game._sig = window._generateSaveSignature(game);
         if (isFirebaseReady && fbDb && currentUser.isCloud) {
             await fbDb.collection('users').doc(currentUser.uid).set({
