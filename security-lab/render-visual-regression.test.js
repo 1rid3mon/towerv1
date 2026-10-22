@@ -22,7 +22,8 @@ test('tank creature has small armor construction details', () => {
   assert.ok(start >= 0 && end > start, 'tank drawing case must exist');
   const tank = renderSource.slice(start, end);
   assert.match(tank, /Small bolts and an offset armor seam/);
-  assert.match(tank, /for \(const bolt of \[\[-0\.45, -0\.45\]/);
+  assert.match(tank, /arc\(-r \* 0\.45, -r \* 0\.45/);
+  assert.match(tank, /arc\(r \* 0\.52, r \* 0\.45/);
   assert.match(tank, /strokeStyle = 'rgba\(15, 23, 42, 0\.8\)'/);
 });
 
