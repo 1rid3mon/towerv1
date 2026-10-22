@@ -29,7 +29,7 @@ test('cloud save loading fails closed if the verifier is missing or rejects the 
 
 test('save-shape validator accepts compatible saves and rejects malformed known fields', () => {
   const start = uiSource.indexOf('function isCompatibleSaveShape(');
-  const end = uiSource.indexOf('\\nfunction applyParsedGameData', start);
+  const end = uiSource.indexOf('\nfunction applyParsedGameData', start);
   assert.ok(start >= 0 && end > start, 'save-shape validator must exist');
   const sandbox = {
     getDefaultState: () => ({
@@ -40,7 +40,7 @@ test('save-shape validator accepts compatible saves and rejects malformed known 
     })
   };
   vm.runInNewContext(
-    uiSource.slice(start, end) + '\\nglobalThis.validateSaveShape = isCompatibleSaveShape;',
+    uiSource.slice(start, end) + '\nglobalThis.validateSaveShape = isCompatibleSaveShape;',
     sandbox
   );
   const validate = sandbox.validateSaveShape;
