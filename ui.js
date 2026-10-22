@@ -1366,7 +1366,26 @@ function isCompatibleSaveShape(parsed) {
         return true;
     }
 
-    return matchesShape(parsed, defaults, 0);
+    let boundedNodes = 0;
+    function isBoundedTree(value, depth) {
+        if (++boundedNodes > 5000 || depth > 12) return false;
+        if (value === null || typeof value === 'boolean') return true;
+        if (typeof value === 'number') return Number.isFinite(value);
+        if (typeof value === 'string') return value.length <= 1000;
+        if (Array.isArray(value)) {
+            if (value.length > 5000) return false;
+            return value.every(item => isBoundedTree(item, depth + 1));
+        }
+        if (typeof value === 'object') {
+            const keys = Object.keys(value);
+            if (keys.length > 500) return false;
+            return keys.every(key => isBoundedTree(value[key], depth + 1));
+        }
+        return false;
+    }
+
+    // Validate unknown fields too: they must not smuggle huge/deep objects into game state.
+    return isBoundedTree(parsed, 0) && matchesShape(parsed, defaults, 0);
 }
 
 function applyParsedGameData(parsed) {
