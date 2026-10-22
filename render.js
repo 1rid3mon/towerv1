@@ -1401,6 +1401,33 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
 
             c.fillStyle = '#f43f5e';
             c.beginPath(); c.arc(0, 0, r * 0.28, 0, Math.PI * 2); c.fill();
+
+            // A few worn sensor plates make the ranged unit read as a deliberate marksman.
+            c.strokeStyle = 'rgba(7, 89, 133, 0.82)';
+            c.lineWidth = Math.max(0.8, r * 0.07);
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(-r * 0.46, -r * 0.48);
+            c.lineTo(-r * 0.12, -r * 0.28);
+            c.lineTo(r * 0.08, -r * 0.40);
+            c.moveTo(-r * 0.46, r * 0.48);
+            c.lineTo(-r * 0.12, r * 0.28);
+            c.lineTo(r * 0.08, r * 0.40);
+            c.stroke();
+
+            c.strokeStyle = 'rgba(224, 242, 254, 0.78)';
+            c.lineWidth = Math.max(0.7, r * 0.045);
+            c.beginPath();
+            c.moveTo(r * 0.54, -r * 0.24);
+            c.lineTo(r * 0.78, -r * 0.24);
+            c.moveTo(r * 0.66, -r * 0.36);
+            c.lineTo(r * 0.66, -r * 0.12);
+            c.stroke();
+
+            c.fillStyle = isHit ? '#ffffff' : '#fda4af';
+            c.beginPath();
+            c.arc(r * 0.12, 0, Math.max(1.1, r * 0.10), 0, Math.PI * 2);
+            c.fill();
             c.restore();
             break;
         }
