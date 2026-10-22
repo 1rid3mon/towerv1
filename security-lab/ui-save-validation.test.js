@@ -45,12 +45,29 @@ test('save-shape validator accepts compatible saves and rejects malformed known 
   );
   const validate = sandbox.validateSaveShape;
   assert.equal(validate({ gold: 50, settings: { showDamageText: false }, inventory: [], stats: { totalKills: 3 } }), true);
+  assert.equal(validate({ inventory: ['item_1', 'item_2'] }), true);
   assert.equal(validate({ gold: '999999', settings: { showDamageText: true } }), false);
   assert.equal(validate({ gold: 10, settings: 'not-an-object' }), false);
   assert.equal(validate({ gold: Number.NaN }), false);
   assert.equal(validate({ inventory: new Array(5001) }), false);
   assert.equal(validate({ inventory: [{ id: 'item_1' }] }), false);
   assert.equal(validate([]), false);
+});
+
+test('leaderboard usernames are HTML-escaped before insertion', () => {
+  const start = uiSource.indexOf('function escapeHtml(');
+  const end = uiSource.indexOf('\\n}', start);
+  assert.ok(start >= 0 && end > start, 'escapeHtml helper must exist');
+  const sandbox = {};
+  vm.runInNewContext(
+    uiSource.slice(start, end + 2) + '\\nglobalThis.escape = escapeHtml;',
+    sandbox
+  );
+  assert.equal(
+    sandbox.escape('<img src=x onerror=alert(1)> & "test"'),
+    '&lt;img src=x onerror=alert(1)&gt; &amp; &quot;test&quot;'
+  );
+  assert.match(uiSource, /<span class="font-tech font-bold text-xs sm:text-sm \\u0024\\{isMe \\? 'text-emerald-300' : 'text-white'\\} truncate">\\$\\{escapeHtml\\(pName\\)\\}<\\/span>/);
 });
 
 test('save-code export does not falsely claim client signatures prevent cheating', () => {
