@@ -19,6 +19,7 @@ This is the execution checklist for the isolated `security-hardening-review` bra
 - [x] Made local save, save-code import, and cloud pull fail closed if verification is missing or fails; cloud pulls reject unsigned saves.
 - [x] Added structural save validation for local, imported, and cloud saves; malformed known fields, oversized strings, and excessively deep/large unknown payloads are rejected before state application, with regression tests.
 - [x] Added regression coverage for leaderboard username HTML escaping to reduce the risk of stored XSS from client-controlled profile names.
+- [x] Password-based registration now displays a clear “username already taken” message when Firebase rejects a duplicate synthetic username email; credential errors use clearer login feedback.
 - [x] Clarified that client-side checks are not a security guarantee against modified clients.
 - [x] Documented the account-deletion vs. retained rate-limit metadata trade-off.
 - [x] Added an Android WebView packaging/security plan; no Android wrapper or APK has been built yet.
@@ -32,6 +33,12 @@ This is the execution checklist for the isolated `security-hardening-review` bra
 - [ ] Test sign-up, login, logout, cloud push/pull, equal-or-lower cloud wave, cross-device sync, and account deletion in a separate Firebase test project.
 - [ ] Check the actual deployed Firestore Rules in Firebase Console. The repository snapshot is not proof of the live rules.
 - [ ] Review candidate rules and candidate client code together. Never deploy only one side: candidate client writes paired documents; candidate rules require them.
+
+### P1 — Enforce usernames consistently across sign-in methods
+
+- [ ] Current username/password accounts rely on Firebase Auth email uniqueness for the normalized synthetic email; the new UI message makes duplicates understandable, but this is not a shared username registry.
+- [ ] Google sign-in can still produce duplicate display names. Before enabling it as a normal account-creation path, implement a unique username claim/reservation flow and test concurrent claims, failed sign-ups, account cleanup, and existing-account migration.
+- [ ] Decide and document username normalization rules (case-insensitive, Turkish character mapping, allowed characters) before changing identity keys; do not rename or lock out existing accounts accidentally.
 
 ### P1 — Prevent fake leaderboard scores
 
