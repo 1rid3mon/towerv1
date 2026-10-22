@@ -82,3 +82,15 @@ test('shared enemy art pass stays lightweight and adds no asset or animation dep
   assert.match(helper, /c\.save\(\);/);
   assert.match(helper, /c\.restore\(\);/);
 });
+
+test('enemy identity is grounded in engine definitions: red fast runner and yellow teleporter', () => {
+  const engineSource = fs.readFileSync(path.join(__dirname, '..', 'engine.js'), 'utf8');
+  assert.match(engineSource, /type = 'runner'; subType = 'runner'; name = 'Gölge Koşucu'; radius = 10; speed = 72/);
+  assert.match(engineSource, /type = 'teleporter'; subType = 'teleporter'; name = 'Sarı Psişik'; radius = 11; speed = 48/);
+  assert.match(engineSource, /isTeleporter = true/);
+  const start = renderSource.indexOf('function drawEnemyInkAccents');
+  const end = renderSource.indexOf('function drawCustomEnemy', start);
+  const helper = renderSource.slice(start, end);
+  assert.match(helper, /kind === 'runner'[\s\S]*?rgba\(76, 5, 25, 0\.58\)/);
+  assert.match(helper, /kind === 'teleporter'[\s\S]*?rgba\(254, 240, 138, 0\.60\)/);
+});
