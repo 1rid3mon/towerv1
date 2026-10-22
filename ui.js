@@ -1563,6 +1563,9 @@ function initAuthAndCloudSystem() {
             fbApp = !firebase.apps.length ? firebase.initializeApp(FIREBASE_CONFIG) : firebase.app();
             fbAuth = firebase.auth();
             fbDb = firebase.firestore();
+            // Automatically switch to long-polling where streaming channels are blocked by
+            // restrictive browsers, privacy filters, or networks. Must be set before any reads/writes.
+            fbDb.settings({ experimentalAutoDetectLongPolling: true });
             isFirebaseReady = true;
 
             fbAuth.onAuthStateChanged(async (user) => {
@@ -1922,7 +1925,12 @@ async function forceCloudPush(silent = false) {
         setElText('auth-last-sync', `Son Bulut Kaydı: ${new Date().toLocaleTimeString('tr-TR')}`);
         if (!silent) showToast('☁️ İlerlemen başarıyla buluta kaydedildi!');
     } catch (err) {
-        if (!silent) showToast('❌ Bulut kaydı sırasında hata oluştu.');
+        // Keep autosave quiet, but retain diagnostics instead of swallowing Firestore failures.
+        console.error('[Cloud Save] Firestore write failed:', err && err.code ? err.code : 'unknown', err);
+        if (!silent) {
+            const code = err && err.code ? err.code : 'unknown';
+            showToast(`❌ Bulut kaydı başarısız (${code}). Yerel kayıt korunuyor.`);
+        }
     }
 }
 
