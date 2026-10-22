@@ -1393,7 +1393,7 @@ function loadGame() {
         const raw = localStorage.getItem(SAVE_KEY);
         if (!raw) return;
         const parsed = JSON.parse(raw);
-        if (typeof window._verifySaveSignature === 'function' && !window._verifySaveSignature(parsed)) {
+        if (typeof window._verifySaveSignature !== 'function' || !window._verifySaveSignature(parsed)) {
             console.warn('Kayıt imzası doğrulanamadı, varsayılan durum korunuyor.');
             // Hiçbir şeyi kaybetmemek için reddedilen kaydı yedekle (otomatik kayıt ana anahtarın üzerine yazacak)
             try { localStorage.setItem(SAVE_KEY + '_rejected_backup', raw); } catch (e2) {}
@@ -1427,7 +1427,7 @@ function importSaveCode() {
         if (!code) return;
         const decodedStr = decodeURIComponent(escape(atob(code)));
         const parsed = JSON.parse(decodedStr);
-        if (!parsed._sig || (typeof window._verifySaveSignature === 'function' && !window._verifySaveSignature(parsed))) {
+        if (!parsed._sig || typeof window._verifySaveSignature !== 'function' || !window._verifySaveSignature(parsed)) {
             showToast('🛡️ HATA: Değiştirilmiş veya sahte kayıt kodu!');
             return;
         }
@@ -1840,7 +1840,7 @@ async function forceCloudPull(silent = false) {
             const doc = await fbDb.collection('users').doc(currentUser.uid).get();
             if (doc.exists && doc.data().saveData) {
                 cloudGame = JSON.parse(doc.data().saveData);
-                if (typeof window._verifySaveSignature === 'function' && !window._verifySaveSignature(cloudGame)) {
+                if (typeof window._verifySaveSignature !== 'function' || !window._verifySaveSignature(cloudGame)) {
                     if (!silent) showToast('🛡️ Bulut kaydının imzası geçersiz; kayıt yüklenmedi.');
                     return;
                 }
