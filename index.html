@@ -569,7 +569,7 @@
 
                         <div id="mg-quantum" class="hidden space-y-3 pt-1">
                             <div class="bg-slate-900/60 border border-white/5 p-3 rounded-xl space-y-2.5 text-xs">
-                                <div class="text-center text-[11px] text-slate-400 leading-snug">
+                                <div id="quantum-rules-text" class="text-center text-[11px] text-slate-400 leading-snug">
                                     Çubuk kayarken <b class="text-yellow-300">sarı</b> bölgede kilitle: <b class="text-yellow-300">x4</b>, <b class="text-sky-300">mavi</b> bölgede: <b class="text-sky-300">x2</b>. Her başarı kombo çarpanını artırır, kaçırırsan kombo sıfırlanır.
                                 </div>
                                 <canvas id="quantumHackCanvas" width="320" height="40" class="w-full h-10 rounded-lg border border-slate-800"></canvas>
@@ -716,6 +716,10 @@
                 <button onclick="logoutAccount()" class="w-full py-2 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-400 font-tech font-bold text-xs transition">
                     <i class="fa-solid fa-right-from-bracket mr-1"></i> Hesaptan Çıkış Yap
                 </button>
+                <button onclick="openDeleteAccountConfirm()" class="w-full py-2 rounded-xl bg-red-900/40 hover:bg-red-900/60 border border-red-700/60 text-red-300 font-tech font-bold text-xs transition">
+                    <i class="fa-solid fa-trash mr-1"></i> Hesabımı Kalıcı Olarak Sil
+                </button>
+                <a href="PRIVACY_POLICY_URL_BURAYA" target="_blank" rel="noopener" class="block text-center text-[10px] text-slate-500 hover:text-slate-300 underline pt-1">Gizlilik Politikası</a>
             </div>
         </div>
     </div>
