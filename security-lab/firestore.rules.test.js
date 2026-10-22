@@ -203,3 +203,50 @@ test("user document rejects an oversized username", async () => {
     username: "A".repeat(61), saveData: "{}", highestWave: 1, updatedAt: Date.now()
   }));
 });
+
+
+test("leaderboard rejects a wave above highestWave", async () => {
+  const db = testEnv.authenticatedContext("alice").firestore();
+  await assertFails(writeBoard(db, { highestWave: 10, wave: 11 }));
+});
+
+test("leaderboard rejects negative damage and invalid numeric prestige values", async () => {
+  const db = testEnv.authenticatedContext("alice").firestore();
+  await assertFails(writeBoard(db, { damage: -1 }));
+  await assertFails(writeBoard(db, { prestiges: -1 }));
+  await assertFails(writeBoard(db, { prestiges: 100001 }));
+});
+
+test("leaderboard rejects a mismatched uid and oversized username", async () => {
+  const db = testEnv.authenticatedContext("alice").firestore();
+  await assertFails(writeBoard(db, { uid: "bob" }));
+  await assertFails(writeBoard(db, { username: "A".repeat(21) }));
+});
+
+test("leaderboard rejects a wave jump above the per-write limit", async () => {
+  const db = testEnv.authenticatedContext("alice").firestore();
+  await assertSucceeds(writeBoard(db, { highestWave: 10, wave: 8 }));
+  // Emulator test time is advanced by a rules-disabled seed so the cooldown does not mask the jump check.
+  await testEnv.withSecurityRulesDisabled(async context => {
+    const adminDb = context.firestore();
+    const oldTime = new Date(Date.now() - 60000);
+    await setDoc(doc(adminDb, "leaderboard/alice"), {
+      uid: "alice", username: "Alice", highestWave: 10, wave: 8,
+      damage: 120, prestiges: 0, activeSkin: "default_cyber", updatedAt: oldTime
+    });
+    await setDoc(doc(adminDb, "leaderboardRateLimits/alice"), {
+      uid: "alice", highestWave: 10, updatedAt: oldTime
+    });
+  });
+  await assertFails(writeBoard(db, { highestWave: 26, wave: 26 }));
+});
+
+test("leaderboard rejects unknown oversized documents and non-string skin IDs", async () => {
+  const db = testEnv.authenticatedContext("alice").firestore();
+  await assertFails(writeBoard(db, { activeSkin: 123 }));
+  await assertFails(writeBoard(db, {
+    extraA: 1, extraB: 2, extraC: 3, extraD: 4, extraE: 5, extraF: 6,
+    extraG: 7, extraH: 8, extraI: 9, extraJ: 10, extraK: 11, extraL: 12,
+    extraM: 13, extraN: 14, extraO: 15
+  }));
+});
