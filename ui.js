@@ -1849,7 +1849,7 @@ async function deleteMyAccount() {
     localStorage.removeItem(LOCAL_CURRENT_USER_KEY);
     updateAccountHeaderUI();
     refreshLeaderboard(false);
-    showToast('🗑️ Hesabın kalıcı olarak silindi.');
+    showToast('🗑️ Hesap ve oyun verileri silindi. Bazı güvenlik kayıtları ayrı tutulabilir.');
 }
 
 async function logoutAccount() {
