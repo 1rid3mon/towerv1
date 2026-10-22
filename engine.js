@@ -660,6 +660,18 @@ function updateGame(dt) {
                     // Split damage keeps the pattern threatening without tripling total damage.
                     const isBossFan = e.type === 'boss' && (e.subType === 'ranged_boss' || e.subType === 'leviathan');
                     const shotAngles = isBossFan ? [-0.17, 0, 0.17] : [0];
+                    // Armor is applied separately to each projectile, so split raw damage alone
+                    // would under-deal against armored towers. Invert damageTower's reduction
+                    // to keep three successful hits close to one ordinary hit after armor.
+                    let fanShotDamage = e.dmg;
+                    if (isBossFan) {
+                        const armorVal = getTowerArmor();
+                        const singleHitDamage = Math.max(1, Math.round(Math.max(e.dmg * 0.25, e.dmg - armorVal)));
+                        const targetDamagePerShot = singleHitDamage / 3;
+                        fanShotDamage = targetDamagePerShot <= armorVal / 3
+                            ? targetDamagePerShot * 4
+                            : targetDamagePerShot + armorVal;
+                    }
                     for (const offset of shotAngles) {
                         const shotAngle = ang + offset;
                         projectiles.push({
@@ -667,7 +679,7 @@ function updateGame(dt) {
                             vx: Math.cos(shotAngle) * pSpd, vy: Math.sin(shotAngle) * pSpd,
                             radius: e.type === 'boss' ? 6.5 : 4.5,
                             color: e.isFrost ? '#38bdf8' : e.color,
-                            damage: isBossFan ? e.dmg * (1 / 3) : e.dmg,
+                            damage: fanShotDamage,
                             life: 3.5, fromEnemy: true,
                             isFrost: e.isFrost || false,
                             isBossFrost: e.type === 'boss' && e.subType === 'frost_boss',
