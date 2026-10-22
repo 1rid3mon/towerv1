@@ -667,7 +667,7 @@ function updateGame(dt) {
                             vx: Math.cos(shotAngle) * pSpd, vy: Math.sin(shotAngle) * pSpd,
                             radius: e.type === 'boss' ? 6.5 : 4.5,
                             color: e.isFrost ? '#38bdf8' : e.color,
-                            damage: isBossFan ? e.dmg * 0.58 : e.dmg,
+                            damage: isBossFan ? e.dmg * (1 / 3) : e.dmg,
                             life: 3.5, fromEnemy: true,
                             isFrost: e.isFrost || false,
                             isBossFrost: e.type === 'boss' && e.subType === 'frost_boss',
