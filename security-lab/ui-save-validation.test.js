@@ -56,18 +56,18 @@ test('save-shape validator accepts compatible saves and rejects malformed known 
 
 test('leaderboard usernames are HTML-escaped before insertion', () => {
   const start = uiSource.indexOf('function escapeHtml(');
-  const end = uiSource.indexOf('\\n}', start);
+  const end = uiSource.indexOf('\n}', start);
   assert.ok(start >= 0 && end > start, 'escapeHtml helper must exist');
   const sandbox = {};
   vm.runInNewContext(
-    uiSource.slice(start, end + 2) + '\\nglobalThis.escape = escapeHtml;',
+    uiSource.slice(start, end + 2) + '\nglobalThis.escape = escapeHtml;',
     sandbox
   );
   assert.equal(
     sandbox.escape('<img src=x onerror=alert(1)> & "test"'),
     '&lt;img src=x onerror=alert(1)&gt; &amp; &quot;test&quot;'
   );
-  assert.match(uiSource, /<span class="font-tech font-bold text-xs sm:text-sm \\u0024\\{isMe \\? 'text-emerald-300' : 'text-white'\\} truncate">\\$\\{escapeHtml\\(pName\\)\\}<\\/span>/);
+  assert.ok(uiSource.includes('${escapeHtml(pName)}'), 'leaderboard template must escape the player name');
 });
 
 test('save-code export does not falsely claim client signatures prevent cheating', () => {
