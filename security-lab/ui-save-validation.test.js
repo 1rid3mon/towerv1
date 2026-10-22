@@ -85,3 +85,8 @@ test('all cloud/local save paths validate shape before applying parsed state', (
   assert.match(uiSource, /if \(cloudGame && !isCompatibleSaveShape\(cloudGame\)\)/);
   assert.match(uiSource, /function applyParsedGameData\(parsed\) \{\s*if \(!isCompatibleSaveShape\(parsed\)\) return false;/);
 });
+
+test('Firebase registration explains that a taken username cannot be reused', () => {
+  assert.match(uiSource, /auth\/email-already-in-use/);
+  assert.match(uiSource, /Bu kullanıcı adı alınmış! Lütfen başka bir kullanıcı adı seç veya Giriş Yap sekmesini kullan\./);
+});
