@@ -113,5 +113,6 @@ test('boss wave HUD warning is visibly labelled and accessible', () => {
   assert.match(indexSource, /id="ui-boss-warning"[^>]*role="status"/);
   assert.match(indexSource, /fa-skull mr-0\.5" aria-hidden="true">/);
   assert.match(indexSource, />BOSS<\/span>/);
+  assert.match(indexSource, /motion-safe:animate-pulse/);
   assert.match(uiSource, /bossWarn\.classList\.toggle\('hidden', game\.wave % 5 !== 0\)/);
 });
