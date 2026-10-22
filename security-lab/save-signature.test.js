@@ -1,0 +1,78 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+
+function loadAntiCheatHooks() {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'engine.js'), 'utf8');
+  const start = source.indexOf('(function initAntiCheat() {');
+  const marker = '\n})();';
+  const close = source.indexOf(marker, start);
+  assert.notEqual(start, -1, 'anti-cheat IIFE should exist in engine.js');
+  assert.notEqual(close, -1, 'anti-cheat IIFE should close');
+  const snippet = source.slice(start, close + marker.length);
+  const window = {};
+  vm.runInNewContext(snippet, {
+    window,
+    localStorage: { getItem: () => '1' },
+    SIGNED_MARK_KEY: 'test-signed-marker',
+    setInterval: () => 1
+  });
+  return window;
+}
+
+function legacySignature(gameObj) {
+  const salt = 'Kule_v11_KrM_2026_#99!';
+  const text = `${Math.floor(gameObj.gold)}|${Math.floor(gameObj.crystals)}|${Math.floor(gameObj.souls)}|${gameObj.wave}|${gameObj.highestWave}|${gameObj.stats?.prestiges || 0}|${salt}`;
+  let hash = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+test('v2 save checksum detects edits to upgrades and inventory when old checksum is retained', () => {
+  const hooks = loadAntiCheatHooks();
+  const save = {
+    gold: 100, crystals: 20, souls: 0, wave: 4, highestWave: 4,
+    stats: { prestiges: 0 }, upgrades: { damage: 3 },
+    inventory: ['starter_item'], ownedSkins: ['default_cyber'],
+    _sigVersion: 2, lastSaveTime: 1000
+  };
+  save._sig = hooks._generateSaveSignature(save);
+  assert.equal(hooks._verifySaveSignature(save), true);
+
+  const tampered = JSON.parse(JSON.stringify(save));
+  tampered.upgrades.damage = 999;
+  assert.equal(hooks._verifySaveSignature(tampered), false);
+
+  const inventoryTampered = JSON.parse(JSON.stringify(save));
+  inventoryTampered.inventory.push('rare_item');
+  assert.equal(hooks._verifySaveSignature(inventoryTampered), false);
+});
+
+test('v2 save checksum ignores volatile save time but covers the rest of the save', () => {
+  const hooks = loadAntiCheatHooks();
+  const save = {
+    gold: 100, crystals: 20, souls: 0, wave: 4, highestWave: 4,
+    stats: { prestiges: 0 }, upgrades: { damage: 3 },
+    _sigVersion: 2, lastSaveTime: 1000
+  };
+  save._sig = hooks._generateSaveSignature(save);
+  save.lastSaveTime = 2000;
+  assert.equal(hooks._verifySaveSignature(save), true);
+});
+
+test('legacy v1 saves remain loadable for backward compatibility; old signature scope remains limited', () => {
+  const hooks = loadAntiCheatHooks();
+  const save = {
+    gold: 100, crystals: 20, souls: 0, wave: 4, highestWave: 4,
+    stats: { prestiges: 0 }, upgrades: { damage: 3 }, inventory: ['starter_item']
+  };
+  save._sig = legacySignature(save);
+  assert.equal(hooks._verifySaveSignature(save), true);
+  save.upgrades.damage = 999;
+  assert.equal(hooks._verifySaveSignature(save), true, 'v1 did not cover upgrades; migration remains a known legacy limitation');
+});
