@@ -1893,6 +1893,9 @@ function setLeaderboardSort(sortType) {
     refreshLeaderboard(false);
 }
 
+// Reduce needless rejected Firestore writes; server-side rules remain the actual enforcement.
+const leaderboardCloudWriteAttempts = new Map();
+
 async function pushScoreToLeaderboard() {
     if (typeof game === 'undefined') return;
     if (typeof window._isSessionClean === 'function' && !window._isSessionClean()) return;
@@ -1909,22 +1912,27 @@ async function pushScoreToLeaderboard() {
     };
 
     if (isFirebaseReady && fbDb && currentUser && currentUser.isCloud) {
-        // Score and persistent rate-limit timestamp must be committed atomically.
-        // The rate-limit document intentionally survives leaderboard-row deletion.
-        try {
-            const batch = fbDb.batch();
-            const serverTime = firebase.firestore.FieldValue.serverTimestamp();
-            batch.set(fbDb.collection('leaderboardRateLimits').doc(currentUser.uid), {
-                uid: currentUser.uid,
-                highestWave: playerEntry.highestWave,
-                updatedAt: serverTime
-            }, { merge: true });
-            batch.set(fbDb.collection('leaderboard').doc(currentUser.uid), {
-                ...playerEntry,
-                updatedAt: serverTime
-            }, { merge: true });
-            await batch.commit();
-        } catch (e) {}
+        const uid = currentUser.uid;
+        const lastAttempt = leaderboardCloudWriteAttempts.get(uid) || 0;
+        if (Date.now() - lastAttempt >= 20000) {
+            leaderboardCloudWriteAttempts.set(uid, Date.now());
+            // Score and persistent rate-limit timestamp must be committed atomically.
+            // The rate-limit document intentionally survives leaderboard-row deletion.
+            try {
+                const batch = fbDb.batch();
+                const serverTime = firebase.firestore.FieldValue.serverTimestamp();
+                batch.set(fbDb.collection('leaderboardRateLimits').doc(uid), {
+                    uid,
+                    highestWave: playerEntry.highestWave,
+                    updatedAt: serverTime
+                }, { merge: true });
+                batch.set(fbDb.collection('leaderboard').doc(uid), {
+                    ...playerEntry,
+                    updatedAt: serverTime
+                }, { merge: true });
+                await batch.commit();
+            } catch (e) {}
+        }
     }
     playerEntry.updatedAt = Date.now();
 
