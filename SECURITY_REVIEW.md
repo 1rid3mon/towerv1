@@ -32,7 +32,7 @@ The 400 ms shadow check and browser-side cheatFlags can deter casual edits, but 
 
 ### Medium — Firestore rules supplied in chat need targeted edge-case tests
 The supplied rules enforce owner access, data shape/size limits, leaderboard numeric ranges, server timestamps, and an update interval. Review these cases in the Firebase Emulator before changing production rules:
-- first leaderboard creation, deletion/recreation, and rapid re-creation;
+- first leaderboard creation, deletion/recreation, and rapid re-creation; the candidate rule blocks deletion of an existing leaderboard row but still allows a fabricated score on first creation;
 - whether updatedAt is always a Firestore timestamp in the leaderboard and a number in the user document;
 - damage has a lower bound but no explicit upper bound;
 - activeSkin is only checked for string/length, not membership in the player's owned skins;
@@ -40,6 +40,9 @@ The supplied rules enforce owner access, data shape/size limits, leaderboard num
 - whether the app needs users to delete their own account/save and what that means for leaderboard records.
 
 Do not paste Firebase service-account credentials or private API keys into chat or the repository.
+
+### Current isolated candidate-policy result
+The review branch now has an emulator-tested candidate rule that denies client deletion of `leaderboard/{uid}` while preserving owner deletion of `users/{uid}`. Regression tests also intentionally demonstrate a remaining limitation: a client can still create a leaderboard row with `highestWave: 5000`, an extreme damage value, and an arbitrary skin ID. This is documented as a known gap, not a passing security control. The candidate rules are not deployed and must not be copied into production without reviewing the live configuration and migration plan.
 
 ## Verification checklist before merging code
 1. Preserve a known-good save and verify login/logout, save/pull, and cross-device sync.
