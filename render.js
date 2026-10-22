@@ -1311,6 +1311,21 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.fill();
             c.fillStyle = 'rgba(148, 163, 184, 0.8)';
             c.fillRect(-r * 0.55, -r * 0.10, r * 0.16, r * 0.20);
+
+            // v1.1.0 heavy silhouette: side treads and overlapping shoulder plates.
+            c.fillStyle = '#0f172a';
+            c.strokeStyle = '#94a3b8';
+            c.lineWidth = Math.max(1, r * 0.055);
+            c.beginPath();
+            c.roundRect(-r * 0.55, -r * 0.98, r * 0.78, r * 0.22, r * 0.08);
+            c.roundRect(-r * 0.55, r * 0.76, r * 0.78, r * 0.22, r * 0.08);
+            c.fill(); c.stroke();
+            c.fillStyle = '#64748b';
+            for (let bolt = 0; bolt < 3; bolt++) {
+                const bx = -r * 0.42 + bolt * r * 0.25;
+                c.beginPath(); c.arc(bx, -r * 0.87, Math.max(0.8, r * 0.045), 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.arc(bx, r * 0.87, Math.max(0.8, r * 0.045), 0, Math.PI * 2); c.fill();
+            }
             c.restore();
             break;
         }
@@ -1355,6 +1370,22 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.lineTo(-r * 0.32, -r * 0.48);
             c.moveTo(r * 0.36, r * 0.55);
             c.lineTo(r * 0.55, r * 0.43);
+            c.stroke();
+
+            // v1.1.0: three tall crystal shards make frost units readable at a glance.
+            c.fillStyle = isHit ? '#ffffff' : '#67e8f9';
+            c.strokeStyle = '#ecfeff';
+            c.lineWidth = Math.max(0.8, r * 0.045);
+            c.beginPath();
+            c.moveTo(-r * 0.38, -r * 0.66); c.lineTo(-r * 0.58, -r * 1.28); c.lineTo(-r * 0.12, -r * 0.78);
+            c.moveTo(r * 0.24, -r * 0.70); c.lineTo(r * 0.48, -r * 1.16); c.lineTo(r * 0.52, -r * 0.54);
+            c.moveTo(-r * 0.20, r * 0.72); c.lineTo(-r * 0.52, r * 1.18); c.lineTo(r * 0.02, r * 0.78);
+            c.closePath(); c.fill(); c.stroke();
+            c.strokeStyle = 'rgba(255,255,255,0.8)';
+            c.lineWidth = Math.max(0.7, r * 0.035);
+            c.beginPath();
+            c.moveTo(-r * 0.45, -r * 1.08); c.lineTo(-r * 0.30, -r * 0.88);
+            c.moveTo(r * 0.42, -r * 1.00); c.lineTo(r * 0.40, -r * 0.76);
             c.stroke();
             c.restore();
             break;
@@ -1401,6 +1432,29 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.lineTo(r * 0.38, -r * 0.13);
             c.moveTo(r * 0.38, r * 0.13);
             c.lineTo(r * 0.68, 0);
+            c.stroke();
+
+            // v1.1.0 speed profile: swept-back fins and a split tail stabilizer.
+            c.fillStyle = isHit ? '#ffffff' : '#9f1239';
+            c.strokeStyle = '#fecdd3';
+            c.lineWidth = Math.max(0.8, r * 0.045);
+            c.beginPath();
+            c.moveTo(-r * 0.28, -r * 0.42);
+            c.lineTo(-r * 1.05, -r * 1.02);
+            c.lineTo(-r * 0.78, -r * 0.34);
+            c.lineTo(-r * 0.48, -r * 0.12);
+            c.closePath();
+            c.moveTo(-r * 0.28, r * 0.42);
+            c.lineTo(-r * 1.05, r * 1.02);
+            c.lineTo(-r * 0.78, r * 0.34);
+            c.lineTo(-r * 0.48, r * 0.12);
+            c.closePath();
+            c.fill(); c.stroke();
+            c.strokeStyle = '#fff1f2';
+            c.lineWidth = Math.max(0.7, r * 0.035);
+            c.beginPath();
+            c.moveTo(-r * 0.48, -r * 0.48); c.lineTo(-r * 0.82, -r * 0.78);
+            c.moveTo(-r * 0.48, r * 0.48); c.lineTo(-r * 0.82, r * 0.78);
             c.stroke();
             c.restore();
             break;
@@ -1501,6 +1555,26 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.beginPath();
             c.arc(r * 0.12, 0, Math.max(1.1, r * 0.10), 0, Math.PI * 2);
             c.fill();
+
+            // v1.1.0 ranged profile: compact shoulder modules, vents and a reinforced barrel.
+            c.fillStyle = isHit ? '#ffffff' : '#0f172a';
+            c.strokeStyle = '#38bdf8';
+            c.lineWidth = Math.max(0.8, r * 0.045);
+            c.beginPath();
+            c.roundRect(-r * 0.62, -r * 0.82, r * 0.48, r * 0.34, r * 0.06);
+            c.roundRect(-r * 0.62, r * 0.48, r * 0.48, r * 0.34, r * 0.06);
+            c.fill(); c.stroke();
+            c.fillStyle = '#7dd3fc';
+            c.fillRect(-r * 0.54, -r * 0.72, r * 0.28, r * 0.06);
+            c.fillRect(-r * 0.54, r * 0.62, r * 0.28, r * 0.06);
+            c.fillStyle = '#334155';
+            c.strokeStyle = '#bae6fd';
+            c.lineWidth = Math.max(0.8, r * 0.04);
+            c.beginPath();
+            c.roundRect(r * 0.58, -r * 0.10, r * 0.72, r * 0.20, r * 0.05);
+            c.fill(); c.stroke();
+            c.fillStyle = '#e0f2fe';
+            c.fillRect(r * 1.12, -r * 0.045, r * 0.12, r * 0.09);
             c.restore();
             break;
         }
