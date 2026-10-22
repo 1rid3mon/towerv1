@@ -2119,9 +2119,28 @@ function renderGame() {
             ctx.strokeStyle = 'rgba(56, 189, 248, 0.65)'; ctx.lineWidth = 1.5; ctx.stroke();
         }
 
+        // v1.1.0 elite telegraph: restrained rotating gold ring and three markers.
+        if (e.isElite) {
+            const pulse = 1 + Math.sin(nowCompTime * 0.006 + (e.animPhase || 0)) * 0.08;
+            ctx.save();
+            ctx.rotate(nowCompTime * 0.0009 + (e.animPhase || 0));
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.88)';
+            ctx.lineWidth = 1.8;
+            ctx.beginPath(); ctx.arc(0, 0, (e.radius + 5) * pulse, 0, Math.PI * 2); ctx.stroke();
+            ctx.fillStyle = '#fef3c7';
+            for (let marker = 0; marker < 3; marker++) {
+                const a = marker * Math.PI * 2 / 3;
+                const mx = Math.cos(a) * (e.radius + 7) * pulse;
+                const my = Math.sin(a) * (e.radius + 7) * pulse;
+                ctx.save(); ctx.translate(mx, my); ctx.rotate(Math.PI / 4);
+                ctx.fillRect(-2.2, -2.2, 4.4, 4.4); ctx.restore();
+            }
+            ctx.restore();
+        }
+
         drawCustomEnemy(ctx, e, tx, ty, nowCompTime);
 
-        if (e.hp < e.maxHp || e.type === 'boss') {
+        if (e.hp < e.maxHp || e.type === 'boss' || e.isElite) {
             const barW = Math.max(24, e.radius * 2.1);
             const pct = e.maxHp > 0 ? Math.max(0, Math.min(1, e.hp / e.maxHp)) : 0;
             const barY = -e.radius - 12;
@@ -2131,9 +2150,9 @@ function renderGame() {
             ctx.fillStyle = e.type === 'boss' ? (e.color || '#d8b4fe') : '#86efac';
             ctx.fillRect(-barW / 2, barY, barW * pct, 4);
 
-            if (e.type === 'boss' && e.name) {
-                ctx.font = "bold 9.5px 'Rajdhani', sans-serif";
-                ctx.fillStyle = '#fef08a';
+            if ((e.type === 'boss' || e.isElite) && e.name) {
+                ctx.font = e.type === 'boss' ? "bold 9.5px 'Rajdhani', sans-serif" : "bold 8.5px 'Rajdhani', sans-serif";
+                ctx.fillStyle = e.isElite && e.type !== 'boss' ? '#fcd34d' : '#fef08a';
                 ctx.textAlign = 'center';
                 ctx.fillText(e.name, 0, barY - 4);
             }
