@@ -56,3 +56,19 @@ Do not merge a security patch until account login, cloud pull/push, new-account 
 ## Important limitation
 
 Client-only tests can reveal bugs but cannot make client-supplied scores trustworthy. Competitive rankings and valuable economy state require server-side validation and Firestore Rules that prevent clients from writing authoritative fields directly.
+
+## F. Cheat-software / client-tampering focus
+
+Run only with a disposable test account and a backup save. These checks reveal limits; they do not make browser-side state authoritative.
+
+| Scenario | Current expectation / interpretation |
+|---|---|
+| Modify gold/crystals/souls/wave in live client memory | Shadow checks may catch some changes, but public client hooks and arbitrary runtime edits can bypass them. Do not call this server-side protection |
+| Edit an exported save code's upgrade, inventory, owned-skin, or companion fields while leaving the existing signature untouched | Current signature does not cover these fields; the code may still validate. This is a known client-side integrity gap |
+| Submit a changed, valid-size JSON string as `users/{uid}.saveData` | Current rules accept it if ownership and outer field constraints pass; rules cannot inspect JSON inside a string |
+| Create a first leaderboard row with a fabricated score | Candidate policy still allows it; documented known gap |
+| Delete a leaderboard row and recreate it immediately | Candidate policy's non-deletable rate-limit record should prevent timer reset |
+| Write leaderboard row without matching limiter record / mismatch highestWave | Candidate rules should reject |
+| Call client UI methods repeatedly or edit localStorage | These are untrusted client inputs; the backend must not rely on the UI or localStorage for authority |
+
+**Release decision:** do not merge or deploy based only on passing emulator tests. Before making scores/economy competitive, decide between (a) best-effort client-reported scores with clearly limited trust, or (b) a server-authoritative progression/economy design. A checksum, obfuscated function name, or client-side anti-cheat timer cannot provide option (b).
