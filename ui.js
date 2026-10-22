@@ -1851,6 +1851,11 @@ async function forceCloudPull(silent = false) {
             if (acc && acc.savedGame) cloudGame = acc.savedGame;
         }
 
+        if (cloudGame && !isCompatibleSaveShape(cloudGame)) {
+            if (!silent) showToast('⚠️ Kayıt yapısı bozuk; kayıt yüklenmedi.');
+            return;
+        }
+
         if (cloudGame) {
             const cloudMax = Math.max(cloudGame.highestWave || 1, cloudGame.wave || 1);
             const localMax = Math.max(game.highestWave || 1, game.wave || 1);
