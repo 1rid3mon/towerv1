@@ -105,6 +105,7 @@ test('critical-health HUD warning activates at 25% HP and clears above the thres
   assert.match(uiSource, /hpCard\.classList\.toggle\('hud-critical', isCriticalHp\)/);
   assert.match(uiSource, /hpBar\.classList\.toggle\('hud-critical-bar', isCriticalHp\)/);
   assert.match(uiSource, /hpCriticalBadge\.classList\.toggle\('hidden', !isCriticalHp\)/);
+  assert.match(indexSource, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?#hud-hp-card\.hud-critical \{ animation: none; \}/);
 });
 
 test('boss wave HUD warning is visibly labelled and accessible', () => {
