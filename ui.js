@@ -591,8 +591,13 @@ function updateBlackjackUI(showAllDealer) {
 // ---- KUANTUM DENGE AYARLARI (zorluk/ödül buradan değişir) ----
 // Simülasyonla ayarlandı: çok usta oyuncu ~%110, normal oyuncu ~%85, acemi ~%60 geri dönüş alır.
 const QUANTUM_CFG = {
-    blueHalf: 0.05,    // mavi bölgenin yarı genişliği (toplam %10)
-    yellowHalf: 0.012, // sarı bölgenin yarı genişliği (toplam %2.4)
+    blueHalf: 0.05,    // sadece görsel: mavi bandın yarı genişliği (toplam %10)
+    yellowHalf: 0.012, // sadece görsel: sarı bandın yarı genişliği (toplam %2.4)
+    radius: 0.065,     // gerçek sonuç bu yarıçaptan hesaplanır (bandın biraz dışı dahil, keskin kesim yok)
+    winProbMin: 0.04,  // merkezden çok uzak kilit: neredeyse hep kayıp
+    winProbMax: 0.52,  // tam merkeze kilit: yine de sadece %52 kazanma ihtimali (blackjack gibi, garanti değil)
+    jackpotShareMin: 0.05, // kazanınca "kusursuz" (sarı/yüksek ödül) çıkma payı, en kötü zamanlamada
+    jackpotShareMax: 0.42, // en iyi zamanlamada bile kazanan elin sadece %42'si kusursuz oluyor
     blueMult: 1.15,    // mavi kilit: bahsin 1.15 katı geri (net +%15)
     yellowMult: 1.8,   // sarı kilit: bahsin 1.8 katı geri
     comboStep: 0.015,  // her kombo ödüle +%1.5
@@ -604,11 +609,16 @@ const QUANTUM_CFG = {
     jitterMax: 1.18,
     maxBet: 100        // tur başına en yüksek bahis (kristal)
 };
+// pos: çubuğun o anki konumu, center: o turun hedef merkezi -> [0,1] "zamanlama kalitesi" (1 = tam merkez)
+function _quantumSkill(pos, center) {
+    const d = Math.abs(pos - center);
+    return Math.max(0, Math.min(1, 1 - d / QUANTUM_CFG.radius));
+}
 // Kesirli ödülü adil yuvarla (küçük bahislerde sistematik kazanç/kayıp olmasın)
 function _quantumRoundWin(x) { const f = Math.floor(x); return f + (Math.random() < x - f ? 1 : 0); }
 function _quantumComboBonus(combo) { return 1 + Math.min(QUANTUM_CFG.comboCap, combo) * QUANTUM_CFG.comboStep; }
 
-let qHack = { active: false, pos: 0.5, dir: 1, speed: 1.5, jitter: 1, minB: 0.32, maxB: 0.68, minY: 0.46, maxY: 0.54, combo: 0 };
+let qHack = { active: false, pos: 0.5, dir: 1, speed: 1.5, jitter: 1, center: 0.5, minB: 0.32, maxB: 0.68, minY: 0.46, maxY: 0.54, combo: 0 };
 let _secureQuantumVault = null;
 
 function handleQuantumAction() {
@@ -626,6 +636,7 @@ function handleQuantumAction() {
         qHack.jitter = 1;
         qHack.speed = Math.min(QUANTUM_CFG.speedMax, QUANTUM_CFG.speedBase + qHack.combo * QUANTUM_CFG.speedStep);
         const center = 0.25 + Math.random() * 0.50;
+        qHack.center = center;
         qHack.minB = center - QUANTUM_CFG.blueHalf; qHack.maxB = center + QUANTUM_CFG.blueHalf;
         qHack.minY = center - QUANTUM_CFG.yellowHalf; qHack.maxY = center + QUANTUM_CFG.yellowHalf;
 
@@ -643,17 +654,22 @@ function handleQuantumAction() {
         const lockedBet = _secureQuantumVault.bet;
         _secureQuantumVault = null;
 
+        // Zamanlama ne kadar iyiyse ihtimal o kadar yükselir ama hiçbir zaman garanti olmaz (blackjack mantığı)
         const comboBonus = _quantumComboBonus(qHack.combo);
-        if (qHack.pos >= qHack.minY && qHack.pos <= qHack.maxY) {
+        const skill = _quantumSkill(qHack.pos, qHack.center);
+        const winChance = QUANTUM_CFG.winProbMin + (QUANTUM_CFG.winProbMax - QUANTUM_CFG.winProbMin) * skill;
+        if (Math.random() < winChance) {
             qHack.combo++;
-            const win = _quantumRoundWin(lockedBet * QUANTUM_CFG.yellowMult * comboBonus);
-            game.crystals += win; if (window._syncShadow) window._syncShadow();
-            showToast(`🎯 KUSURSUZ KİLİT! +${win} 💎 (${qHack.combo}x Kombo!)`);
-        } else if (qHack.pos >= qHack.minB && qHack.pos <= qHack.maxB) {
-            qHack.combo++;
-            const win = _quantumRoundWin(lockedBet * QUANTUM_CFG.blueMult * comboBonus);
-            game.crystals += win; if (window._syncShadow) window._syncShadow();
-            showToast(`⚡ STABİL KİLİT! +${win} 💎 (${qHack.combo}x Kombo!)`);
+            const jackpotChance = QUANTUM_CFG.jackpotShareMin + (QUANTUM_CFG.jackpotShareMax - QUANTUM_CFG.jackpotShareMin) * skill;
+            if (Math.random() < jackpotChance) {
+                const win = _quantumRoundWin(lockedBet * QUANTUM_CFG.yellowMult * comboBonus);
+                game.crystals += win; if (window._syncShadow) window._syncShadow();
+                showToast(`🎯 KUSURSUZ KİLİT! +${win} 💎 (${qHack.combo}x Kombo!)`);
+            } else {
+                const win = _quantumRoundWin(lockedBet * QUANTUM_CFG.blueMult * comboBonus);
+                game.crystals += win; if (window._syncShadow) window._syncShadow();
+                showToast(`⚡ STABİL KİLİT! +${win} 💎 (${qHack.combo}x Kombo!)`);
+            }
         } else {
             qHack.combo = 0;
             showToast(`💥 FREKANS KAÇTI! -${lockedBet} 💎`);
