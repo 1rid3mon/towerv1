@@ -306,11 +306,24 @@ function spawnEnemy(isBoss = false) {
         }
     }
 
+    // v1.1.0: rare elite enemies add a high-value threat without changing save data or wave rules.
+    let isElite = false;
+    if (!isBoss && w >= 8 && Math.random() < 0.07) {
+        isElite = true;
+        name = `ÉLITE • ${name}`;
+        hp *= 1.75;
+        dmg *= 1.12;
+        gold *= 2.25;
+        radius += 2;
+        speed *= 1.06;
+        customPal = { color: '#f59e0b', secColor: '#fef3c7' };
+    }
+
     const fallbackPal = (typeof getEnemyColors === 'function' ? getEnemyColors(type === 'boss' ? 'boss' : (isTeleporter ? 'teleporter' : (isRanged ? 'ranged' : 'green'))) : null) || { color: '#22c55e', secColor: '#ffffff' };
     const pal = customPal || fallbackPal;
 
     enemies.push({
-        x, y, type, subType, name, radius, speed,
+        x, y, type, subType, name, radius, speed, isElite,
         hp: Math.round(hp), maxHp: Math.round(hp), dmg: Math.round(dmg * 10) / 10,
         color: pal.color, secColor: pal.secColor, gold,
         isRanged, isTeleporter, isFrost, freezeDuration, frostSlowDuration,
