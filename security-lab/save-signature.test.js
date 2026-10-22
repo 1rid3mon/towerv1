@@ -76,3 +76,37 @@ test('legacy v1 saves remain loadable for backward compatibility; old signature 
   save.upgrades.damage = 999;
   assert.equal(hooks._verifySaveSignature(save), true, 'v1 did not cover upgrades; migration remains a known legacy limitation');
 });
+
+
+test('v2 checksum detects adversarial edits across economy, progression, cosmetics, and companions', () => {
+  const hooks = loadAntiCheatHooks();
+  const save = {
+    gold: 100, crystals: 20, souls: 0, wave: 4, highestWave: 4,
+    stats: { prestiges: 0, totalKills: 12 },
+    upgrades: { damage: 3 },
+    inventory: ['starter_item'],
+    ownedSkins: ['default_cyber'],
+    activeSkin: 'default_cyber',
+    companions: { laserDrone: { unlocked: false, level: 0 } },
+    _sigVersion: 2, lastSaveTime: 1000
+  };
+  save._sig = hooks._generateSaveSignature(save);
+  assert.equal(hooks._verifySaveSignature(save), true);
+
+  const attacks = [
+    ['gold', draft => { draft.gold = 999999; }],
+    ['crystals', draft => { draft.crystals = 999999; }],
+    ['souls', draft => { draft.souls = 999999; }],
+    ['wave', draft => { draft.wave = 5000; draft.highestWave = 5000; }],
+    ['prestige count', draft => { draft.stats.prestiges = 999; }],
+    ['skin ownership', draft => { draft.ownedSkins.push('premium_skin'); }],
+    ['active skin', draft => { draft.activeSkin = 'premium_skin'; }],
+    ['companion level', draft => { draft.companions.laserDrone = { unlocked: true, level: 5 }; }]
+  ];
+
+  for (const [label, mutate] of attacks) {
+    const tampered = JSON.parse(JSON.stringify(save));
+    mutate(tampered);
+    assert.equal(hooks._verifySaveSignature(tampered), false, label + ' edit should invalidate the old V2 checksum');
+  }
+});
