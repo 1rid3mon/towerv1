@@ -88,6 +88,25 @@ test("candidate policy denies leaderboard deletion and blocks delete/recreate ra
   })));
 });
 
+
+test("owner can still delete their own user save (compatibility guard)", async () => {
+  const db = testEnv.authenticatedContext("alice").firestore();
+  await assertSucceeds(setDoc(doc(db, "users/alice"), {
+    username: "Alice", saveData: "{}", highestWave: 1, updatedAt: Date.now()
+  }));
+  await assertSucceeds(deleteDoc(doc(db, "users/alice")));
+});
+
+test("KNOWN LIMITATION: leaderboard schema still accepts extreme damage and an unowned skin ID", async () => {
+  const db = testEnv.authenticatedContext("alice").firestore();
+  // Deliberately demonstrates what the current client-writable schema cannot prove.
+  // Do not interpret this passing test as protection against score manipulation.
+  await assertSucceeds(setDoc(doc(db, "leaderboard/alice"), validBoard({
+    highestWave: 5000, wave: 5000, damage: 999999999,
+    activeSkin: "skin-the-player-may-not-own"
+  })));
+});
+
 test("leaderboard reads are public by design", async () => {
   const db = testEnv.unauthenticatedContext().firestore();
   await testEnv.withSecurityRulesDisabled(async context => {
