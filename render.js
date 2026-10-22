@@ -2166,6 +2166,27 @@ function renderGame() {
     }
 
     for (const p of projectiles) {
+        // Frost boss bolts carry a crystalline shard silhouette and icy wake.
+        if (p.fromEnemy && p.isBossFrost) {
+            ctx.save();
+            const angle = Math.atan2(p.vy, p.vx);
+            ctx.translate(p.x, p.y);
+            ctx.rotate(angle);
+            ctx.globalAlpha = 0.48;
+            ctx.strokeStyle = '#bae6fd';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-19, 0); ctx.lineTo(-5, 0);
+            ctx.moveTo(-13, -4); ctx.lineTo(-7, 0); ctx.lineTo(-13, 4);
+            ctx.stroke();
+            ctx.globalAlpha = 0.95;
+            ctx.fillStyle = '#e0f2fe';
+            ctx.beginPath();
+            ctx.moveTo(8, 0); ctx.lineTo(1, -5); ctx.lineTo(-4, 0); ctx.lineTo(1, 5);
+            ctx.closePath(); ctx.fill();
+            ctx.strokeStyle = '#7dd3fc'; ctx.lineWidth = 1.2; ctx.stroke();
+            ctx.restore();
+        }
         if (p.history && p.history.length > 1) {
             ctx.save(); ctx.beginPath();
             ctx.moveTo(p.x, p.y);
