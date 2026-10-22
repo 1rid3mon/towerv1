@@ -1341,8 +1341,36 @@ function showToast(msg) {
 // =======================================================
 // KAYIT SİSTEMİ (LOCALSTORAGE + İMZA DOĞRULAMA + BULUT SENKRONİZASYONU)
 // =======================================================
+function isCompatibleSaveShape(parsed) {
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return false;
+    if (typeof getDefaultState !== 'function') return false;
+
+    const defaults = getDefaultState();
+    let visited = 0;
+    function matchesShape(value, template, depth) {
+        if (++visited > 5000 || depth > 12) return false;
+        if (Array.isArray(template)) return Array.isArray(value) && value.length <= 5000;
+        if (template === null) return value === null || value === undefined;
+        if (typeof template === 'number') return typeof value === 'number' && Number.isFinite(value);
+        if (typeof template === 'boolean') return typeof value === 'boolean';
+        if (typeof template === 'string') return typeof value === 'string' && value.length <= 1000;
+        if (template && typeof template === 'object') {
+            if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+            if (Object.keys(value).length > 500) return false;
+            for (const key of Object.keys(template)) {
+                if (Object.prototype.hasOwnProperty.call(value, key) &&
+                    !matchesShape(value[key], template[key], depth + 1)) return false;
+            }
+            return true;
+        }
+        return true;
+    }
+
+    return matchesShape(parsed, defaults, 0);
+}
+
 function applyParsedGameData(parsed) {
-    if (typeof getDefaultState !== 'function' || !parsed) return;
+    if (!isCompatibleSaveShape(parsed)) return false;
     const def = getDefaultState();
     game = {
         ...def, ...parsed,
@@ -1393,6 +1421,12 @@ function loadGame() {
         const raw = localStorage.getItem(SAVE_KEY);
         if (!raw) return;
         const parsed = JSON.parse(raw);
+        if (!isCompatibleSaveShape(parsed)) {
+            console.warn('Kayıt yapısı geçersiz; yükleme reddedildi.');
+            try { localStorage.setItem(SAVE_KEY + '_rejected_backup', raw); } catch (e2) {}
+            try { if (typeof showToast === 'function') showToast('⚠️ Kayıt yapısı bozuk. Yedek korundu; kayıt yüklenmedi.'); } catch (e3) {}
+            return;
+        }
         if (typeof window._verifySaveSignature !== 'function' || !window._verifySaveSignature(parsed)) {
             console.warn('Kayıt imzası doğrulanamadı, varsayılan durum korunuyor.');
             // Hiçbir şeyi kaybetmemek için reddedilen kaydı yedekle (otomatik kayıt ana anahtarın üzerine yazacak)
@@ -1427,6 +1461,10 @@ function importSaveCode() {
         if (!code) return;
         const decodedStr = decodeURIComponent(escape(atob(code)));
         const parsed = JSON.parse(decodedStr);
+        if (!isCompatibleSaveShape(parsed)) {
+            showToast('⚠️ Kayıt yapısı bozuk veya desteklenmiyor.');
+            return;
+        }
         if (!parsed._sig || typeof window._verifySaveSignature !== 'function' || !window._verifySaveSignature(parsed)) {
             showToast('🛡️ HATA: Değiştirilmiş veya sahte kayıt kodu!');
             return;
