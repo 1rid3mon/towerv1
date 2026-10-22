@@ -27,7 +27,7 @@ Run these in the Firebase Emulator with authenticated test users; do not experim
 | Negative or nonnumeric wave/currency fields where validated | Denied |
 | Leaderboard timestamp supplied by client instead of serverTimestamp | Denied |
 | Rapid leaderboard update | Denied within the configured interval |
-| Leaderboard first create, delete, then recreate | Behavior explicitly verified; rate limits must not be assumed to cover creation automatically |
+| Leaderboard first create, delete, then recreate | Existing-row deletion is denied by the candidate policy; initial creation can still contain fabricated values and remains a known gap |
 | Extremely high damage, prestige, or unowned activeSkin | Denied if these fields are intended to be trusted; otherwise explicitly documented as client-reported |
 
 ## C. Legitimate gameplay / anti-cheat false positives
