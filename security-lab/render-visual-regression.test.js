@@ -96,6 +96,17 @@ test('enemy identity is grounded in engine definitions: red fast runner and yell
 });
 
 
+test('yellow teleporter has restrained broken phase marks without external textures', () => {
+  const start = renderSource.indexOf("case 'teleporter':");
+  const end = renderSource.indexOf("case 'ranged':", start);
+  assert.ok(start >= 0 && end > start, 'teleporter drawing case must exist');
+  const art = renderSource.slice(start, end);
+  assert.match(art, /Broken, offset phase marks/);
+  assert.match(art, /rgba\(120, 53, 15, 0\.78\)/);
+  assert.match(art, /rgba\(255, 251, 235, 0\.82\)/);
+  assert.doesNotMatch(art, /new Image\(|https?:\/\//);
+});
+
 test('red runner has original speed grooves and a light leading-edge accent', () => {
   const start = renderSource.indexOf("case 'runner':");
   const end = renderSource.indexOf("case 'teleporter':", start);
