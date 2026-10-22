@@ -86,6 +86,31 @@ test("leaderboard update inside the 20-second interval is rejected", async () =>
   await assertFails(writeBoard(db, { highestWave: 11, wave: 9 }));
 });
 
+test("leaderboard writes without the paired rate-limit record are rejected", async () => {
+  const db = testEnv.authenticatedContext("alice").firestore();
+  await assertFails(setDoc(doc(db, "leaderboard/alice"), validBoard()));
+});
+
+test("a batch with mismatched highestWave values is rejected", async () => {
+  const db = testEnv.authenticatedContext("alice").firestore();
+  const batch = writeBatch(db);
+  batch.set(doc(db, "leaderboardRateLimits/alice"), {
+    uid: "alice", highestWave: 10, updatedAt: serverTimestamp()
+  });
+  batch.set(doc(db, "leaderboard/alice"), validBoard({ highestWave: 11, wave: 9 }));
+  await assertFails(batch.commit());
+});
+
+test("client cannot delete the persistent rate-limit record", async () => {
+  const db = testEnv.authenticatedContext("alice").firestore();
+  await testEnv.withSecurityRulesDisabled(async context => {
+    await setDoc(doc(context.firestore(), "leaderboardRateLimits/alice"), {
+      uid: "alice", highestWave: 10, updatedAt: new Date(Date.now() - 60000)
+    });
+  });
+  await assertFails(deleteDoc(doc(db, "leaderboardRateLimits/alice")));
+});
+
 test("rate-limit records cannot be created or updated without a matching leaderboard write", async () => {
   const db = testEnv.authenticatedContext("alice").firestore();
 
