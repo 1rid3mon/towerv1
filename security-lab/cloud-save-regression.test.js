@@ -64,7 +64,7 @@ test('cloud pull verifies signature and shape before applying a remote save', ()
 
 test('cloud push signs V2 state and writes only under the authenticated current UID', () => {
   const start = uiSource.indexOf('async function forceCloudPush(');
-  const end = uiSource.indexOf('\nasync function forceCloudPull()', start);
+  const end = uiSource.indexOf('\nasync function forceCloudPull(', start);
   assert.ok(start >= 0 && end > start);
   const push = uiSource.slice(start, end);
   assert.match(push, /game\._sigVersion = 2/);
