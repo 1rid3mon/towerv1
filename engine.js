@@ -1141,8 +1141,9 @@ window.onload = function () {
             if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Geçersiz kristal artışı engellendi!');
         }
 
-        const maxPossibleSouls = calculatePendingSouls() + 50;
-        if (game.souls - shadow.souls > maxPossibleSouls && game.souls - shadow.souls > 200) {
+        // Ruh Taşı SADECE evrim (rebirth) anında artar ve o kod kendi gölgesini anında eşitler;
+        // bu yüzden buraya kadar gelen HER artış (200 altı dahil) meşru değildir.
+        if (game.souls - shadow.souls > 0) {
             game.souls = shadow.souls;
             cheatFlags++;
             if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Geçersiz Ruh Taşı müdahalesi engellendi!');
