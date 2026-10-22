@@ -33,11 +33,19 @@ service cloud.firestore {
   }
   function minSecondsBetweenWrites(){return 20;}
   function maxWaveJumpPerWrite(){return 15;}
-  function withinRateLimit(){
-   return resource==null || (
-    request.time > resource.data.updatedAt + duration.value(minSecondsBetweenWrites(),'s')
-    && request.resource.data.highestWave <= resource.data.highestWave + maxWaveJumpPerWrite()
-   );
+  function rateLimitPath(userId){
+   return /databases/$(database)/documents/leaderboardRateLimits/$(userId);
+  }
+  function withinRateLimit(userId){
+   let p = rateLimitPath(userId);
+   let nextLimit = getAfter(p);
+   return nextLimit.data.uid == userId
+    && nextLimit.data.updatedAt == request.time
+    && (!exists(p) || request.time > get(p).data.updatedAt + duration.value(minSecondsBetweenWrites(),'s'))
+    && (resource == null || (
+      request.time > resource.data.updatedAt + duration.value(minSecondsBetweenWrites(),'s')
+      && request.resource.data.highestWave <= resource.data.highestWave + maxWaveJumpPerWrite()
+    ));
   }
   match /users/{userId}{
    allow read: if isOwner(userId);
@@ -46,9 +54,22 @@ service cloud.firestore {
   }
   match /leaderboard/{userId}{
    allow read: if true;
-   allow create,update: if isOwner(userId)&&validBoardDoc(userId)&&withinRateLimit();
-   // Client deletion is disabled: otherwise a user can delete and recreate the row to reset its rate limit.
-   // This is a candidate policy for emulator testing only; do not deploy without checking the live write flow.
+   allow create,update: if isOwner(userId)&&validBoardDoc(userId)&&withinRateLimit(userId);
+   // Keep account deletion working; the separate rate-limit record survives leaderboard-row deletion.
+   allow delete: if isOwner(userId);
+  }
+  match /leaderboardRateLimits/{userId}{
+   allow read: if isOwner(userId);
+   allow create: if isOwner(userId)
+    && request.resource.data.keys().hasOnly(['uid','updatedAt'])
+    && request.resource.data.uid == userId
+    && request.resource.data.updatedAt == request.time;
+   allow update: if isOwner(userId)
+    && request.resource.data.keys().hasOnly(['uid','updatedAt'])
+    && request.resource.data.uid == userId
+    && request.resource.data.updatedAt == request.time
+    && request.time > resource.data.updatedAt + duration.value(minSecondsBetweenWrites(),'s');
+   // This record must survive leaderboard deletion or the timer could be reset.
    allow delete: if false;
   }
  }
