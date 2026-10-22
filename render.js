@@ -1150,6 +1150,24 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
 
             c.fillStyle = '#f97316';
             c.fillRect(-r * 0.15, -r * 0.38, r * 0.28, r * 0.76);
+
+            // Small bolts and an offset armor seam make the heavy unit read as assembled metal.
+            c.strokeStyle = 'rgba(15, 23, 42, 0.8)';
+            c.lineWidth = Math.max(1, r * 0.045);
+            c.beginPath();
+            c.moveTo(-r * 0.48, 0);
+            c.lineTo(-r * 0.16, 0);
+            c.moveTo(r * 0.02, -r * 0.48);
+            c.lineTo(r * 0.02, r * 0.48);
+            c.stroke();
+            c.fillStyle = '#f8fafc';
+            for (const bolt of [[-0.45, -0.45], [-0.45, 0.45], [0.52, -0.45], [0.52, 0.45]]) {
+                c.beginPath();
+                c.arc(r * bolt[0], r * bolt[1], Math.max(0.8, r * 0.055), 0, Math.PI * 2);
+                c.fill();
+            }
+            c.fillStyle = 'rgba(148, 163, 184, 0.8)';
+            c.fillRect(-r * 0.55, -r * 0.10, r * 0.16, r * 0.20);
             c.restore();
             break;
         }
@@ -1281,10 +1299,48 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.arc(-r * 0.2, 0, r * 0.45, -Math.PI * 0.4, Math.PI * 0.4);
             c.stroke();
 
+            // Hand-drawn surface markings give the common creature a less generic silhouette.
+            c.fillStyle = 'rgba(20, 83, 45, 0.34)';
+            c.beginPath();
+            c.ellipse(-r * 0.30, -r * 0.22, r * 0.17, r * 0.10, -0.35, 0, Math.PI * 2);
+            c.ellipse(-r * 0.12, r * 0.29, r * 0.12, r * 0.08, 0.45, 0, Math.PI * 2);
+            c.ellipse(-r * 0.58, r * 0.03, r * 0.10, r * 0.15, -0.2, 0, Math.PI * 2);
+            c.fill();
+
+            c.fillStyle = 'rgba(220, 252, 231, 0.22)';
+            c.beginPath();
+            c.ellipse(r * 0.08, r * 0.36, r * 0.34, r * 0.16, 0.1, 0, Math.PI * 2);
+            c.fill();
+
+            // Tiny feet and a crooked mouth add a little character without image assets.
+            c.fillStyle = '#166534';
+            c.beginPath();
+            c.ellipse(-r * 0.34, r * 0.62, r * 0.18, r * 0.09, -0.15, 0, Math.PI * 2);
+            c.ellipse(-r * 0.34, -r * 0.62, r * 0.18, r * 0.09, 0.15, 0, Math.PI * 2);
+            c.fill();
+
+            c.strokeStyle = '#14532d';
+            c.lineWidth = Math.max(1, r * 0.055);
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(r * 0.52, -r * 0.03);
+            c.quadraticCurveTo(r * 0.70, r * 0.12, r * 0.58, r * 0.20);
+            c.stroke();
+
             c.fillStyle = '#fef08a';
             c.beginPath();
-            c.arc(r * 0.42, -r * 0.25, 1.8, 0, Math.PI * 2);
-            c.arc(r * 0.42, r * 0.25, 1.8, 0, Math.PI * 2);
+            c.arc(r * 0.42, -r * 0.25, Math.max(1.8, r * 0.11), 0, Math.PI * 2);
+            c.arc(r * 0.42, r * 0.25, Math.max(1.8, r * 0.11), 0, Math.PI * 2);
+            c.fill();
+            c.fillStyle = '#1f2937';
+            c.beginPath();
+            c.arc(r * 0.46, -r * 0.25, Math.max(0.8, r * 0.045), 0, Math.PI * 2);
+            c.arc(r * 0.46, r * 0.25, Math.max(0.8, r * 0.045), 0, Math.PI * 2);
+            c.fill();
+            c.fillStyle = 'rgba(255,255,255,0.9)';
+            c.beginPath();
+            c.arc(r * 0.44, -r * 0.29, Math.max(0.6, r * 0.025), 0, Math.PI * 2);
+            c.arc(r * 0.44, r * 0.21, Math.max(0.6, r * 0.025), 0, Math.PI * 2);
             c.fill();
             c.restore();
             break;
