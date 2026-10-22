@@ -27,6 +27,9 @@ Run these in the Firebase Emulator with authenticated test users; do not experim
 | Negative or nonnumeric wave/currency fields where validated | Denied |
 | Leaderboard timestamp supplied by client instead of serverTimestamp | Denied |
 | Rapid leaderboard update | Denied within the configured interval |
+| Leaderboard row written without its matching rate-limit record | Denied |
+| Rate-limit record created/updated separately or with a mismatched highestWave | Denied |
+| Client attempts to delete persistent rate-limit record | Denied |
 | Leaderboard first create, delete, then recreate | Candidate keeps deletion available for account removal; separate non-deletable rate-limit state blocks immediate recreation. Initial creation can still contain fabricated values and remains a known gap |
 | Extremely high damage, prestige, or unowned activeSkin | Denied if these fields are intended to be trusted; otherwise explicitly documented as client-reported |
 
