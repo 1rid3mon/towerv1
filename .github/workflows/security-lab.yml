@@ -1,0 +1,44 @@
+name: Security lab tests
+
+on:
+  pull_request:
+    paths:
+      - "security-lab/**"
+      - ".github/workflows/security-lab.yml"
+  push:
+    branches:
+      - security-hardening-review
+    paths:
+      - "security-lab/**"
+      - ".github/workflows/security-lab.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  firestore-emulator-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java for Firestore Emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install security lab dependencies
+        working-directory: security-lab
+        run: npm install --no-audit --no-fund
+
+      - name: Run Firestore Rules tests in local emulator
+        working-directory: security-lab
+        run: npm test
