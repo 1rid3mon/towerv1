@@ -38,6 +38,7 @@ This is the execution checklist for the isolated `security-hardening-review` bra
 - [ ] Verify local migration-backup storage and recovery on actual browser storage, including quota/write failures; unit tests cannot prove device storage behavior.
 - [x] Added a guarded one-time migration for accepted unsigned **local** saves: preserve the exact original JSON in a migration-backup key before writing a V2-signed local save; signed V1 saves remain unchanged. Added regression tests for migration, V1 compatibility, and rejection without overwrite.
 - [ ] Test existing V1 saves/codes and V2 saves/codes against real representative backups. Genuine old unsigned **cloud** saves remain blocked by cloud-pull validation; decide and test an explicit, trusted migration in the disposable Firebase project before release.
+- [x] Added unit regression coverage for cloud-save signature/shape validation order and the silent-pull conflict policy: preserve a higher local best wave; when best wave ties, restore the newer timestamped cloud save. CI #211 passed these tests with the Firestore Emulator suite.
 - [ ] Test sign-up, login, logout, cloud push/pull, equal-or-lower cloud wave, cross-device sync, and account deletion in a separate Firebase test project.
 - [ ] Check the actual deployed Firestore Rules in Firebase Console. The repository snapshot is not proof of the live rules.
 - [ ] Review candidate rules and candidate client code together. Never deploy only one side: candidate client writes paired documents; candidate rules require them.
