@@ -13,6 +13,7 @@ This is the execution checklist for the isolated `security-hardening-review` bra
 
 - [x] Added JavaScript syntax checks and Firestore Emulator regression tests.
 - [x] Added a candidate rule design requiring atomic leaderboard + persistent rate-limit writes.
+- [x] Added regression coverage for client/candidate-rules compatibility: atomic leaderboard + rate-limit batch, matching ownership/timestamps, cloud-save field shape, and the intentional rate-limit retention on account deletion.
 - [x] Added a client batch write to match that candidate rule design.
 - [x] Added tests for limiter deletion/independent changes, missing or mismatched paired writes, rapid recreation, save payload size, and basic schema bounds.
 - [x] Added full-save V2 checksum coverage for local/save-code tamper detection while retaining legacy V1 verification.
