@@ -1020,6 +1020,23 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.beginPath(); c.arc(0, 0, corePulse, 0, Math.PI * 2); c.fill();
             c.fillStyle = '#fef08a';
             c.beginPath(); c.arc(0, 0, corePulse * 0.5, 0, Math.PI * 2); c.fill();
+
+            // Offset armor seams and rivets: original canvas marks, not a texture.
+            c.strokeStyle = isHit ? 'rgba(255, 255, 255, 0.85)' : 'rgba(69, 26, 3, 0.88)';
+            c.lineWidth = Math.max(1, r * 0.045);
+            c.beginPath();
+            c.moveTo(-r * 0.62, -r * 0.30);
+            c.lineTo(-r * 0.40, -r * 0.12);
+            c.lineTo(-r * 0.58, r * 0.18);
+            c.moveTo(r * 0.22, -r * 0.62);
+            c.lineTo(r * 0.44, -r * 0.46);
+            c.lineTo(r * 0.36, -r * 0.30);
+            c.stroke();
+            c.fillStyle = isHit ? '#ffffff' : '#fef3c7';
+            c.beginPath();
+            c.arc(-r * 0.48, -r * 0.40, Math.max(1, r * 0.055), 0, Math.PI * 2);
+            c.arc(r * 0.52, r * 0.40, Math.max(1, r * 0.055), 0, Math.PI * 2);
+            c.fill();
             c.restore();
             break;
         }
