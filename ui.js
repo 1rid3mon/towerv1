@@ -1939,6 +1939,11 @@ async function forceCloudPull(silent = false) {
             const doc = await fbDb.collection('users').doc(currentUser.uid).get();
             if (doc.exists && doc.data().saveData) {
                 cloudGame = JSON.parse(doc.data().saveData);
+                // Bound and validate the parsed payload before asking the signature routine to traverse it.
+                if (!isCompatibleSaveShape(cloudGame)) {
+                    if (!silent) showToast('⚠️ Kayıt yapısı bozuk; kayıt yüklenmedi.');
+                    return;
+                }
                 if (!cloudGame._sig || typeof window._verifySaveSignature !== 'function' || !window._verifySaveSignature(cloudGame)) {
                     if (!silent) showToast('🛡️ Bulut kaydının imzası geçersiz; kayıt yüklenmedi.');
                     return;
