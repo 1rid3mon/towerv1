@@ -5,12 +5,20 @@ on:
     paths:
       - "security-lab/**"
       - ".github/workflows/security-lab.yml"
+      - "ui.js"
+      - "engine.js"
+      - "render.js"
+      - "data.js"
   push:
     branches:
       - security-hardening-review
     paths:
       - "security-lab/**"
       - ".github/workflows/security-lab.yml"
+      - "ui.js"
+      - "engine.js"
+      - "render.js"
+      - "data.js"
   workflow_dispatch:
 
 permissions:
@@ -34,6 +42,13 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check ui.js
+          node --check engine.js
+          node --check render.js
+          node --check data.js
 
       - name: Install security lab dependencies
         working-directory: security-lab
