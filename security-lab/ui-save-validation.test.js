@@ -53,6 +53,11 @@ test('save-shape validator accepts compatible saves and rejects malformed known 
   assert.equal(validate([]), false);
 });
 
+test('save-code export does not falsely claim client signatures prevent cheating', () => {
+  assert.doesNotMatch(uiSource, /Güvenli kayıt kodu kopyalandı/);
+  assert.match(uiSource, /imza hileye karşı güvenlik garantisi değildir/);
+});
+
 test('all cloud/local save paths validate shape before applying parsed state', () => {
   assert.match(uiSource, /if \(!isCompatibleSaveShape\(parsed\)\)/);
   assert.match(uiSource, /if \(cloudGame && !isCompatibleSaveShape\(cloudGame\)\)/);
