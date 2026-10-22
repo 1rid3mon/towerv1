@@ -1349,7 +1349,7 @@ function isCompatibleSaveShape(parsed) {
     let visited = 0;
     function matchesShape(value, template, depth) {
         if (++visited > 5000 || depth > 12) return false;
-        if (Array.isArray(template)) return Array.isArray(value) && value.length <= 5000;
+        if (Array.isArray(template)) return Array.isArray(value) && value.length <= 5000 && value.every(item => typeof item === 'string' && item.length <= 100);
         if (template === null) return value === null || value === undefined;
         if (typeof template === 'number') return typeof value === 'number' && Number.isFinite(value);
         if (typeof template === 'boolean') return typeof value === 'boolean';
