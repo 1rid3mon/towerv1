@@ -21,6 +21,7 @@ This is the execution checklist for the isolated `security-hardening-review` bra
 - [x] Added regression coverage for leaderboard username HTML escaping to reduce the risk of stored XSS from client-controlled profile names.
 - [x] Password-based registration now displays a clear “username already taken” message when Firebase rejects a duplicate synthetic username email; credential errors use clearer login feedback.
 - [x] Clarified that client-side checks are not a security guarantee against modified clients.
+- [x] Added a visible leaderboard notice explaining that scores are client-reported and not yet server-verified, with a regression test.
 - [x] Documented the account-deletion vs. retained rate-limit metadata trade-off.
 - [x] Added an Android WebView packaging/security plan; no Android wrapper or APK has been built yet.
 
