@@ -1449,7 +1449,7 @@ function exportSaveCode() {
         t.value = btoa(unescape(encodeURIComponent(JSON.stringify(game))));
         t.select();
         document.execCommand('copy');
-        showToast('Güvenli kayıt kodu kopyalandı!');
+        showToast('Kayıt kodu kopyalandı; imza hileye karşı güvenlik garantisi değildir.');
     } catch (e) {}
 }
 
