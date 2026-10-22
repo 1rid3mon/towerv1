@@ -47,9 +47,9 @@ Avoid arbitrary wave caps or jump limits until tested against legitimate long se
 
 ### Stage 3 — Close the delete/recreate and field-validation gaps
 After Stage 1 is live in preview and tested:
-- Deny client deletion of canonical leaderboard records.
+- If keeping client-side account deletion, preserve leaderboard-row deletion but move rate-limit state to a separate per-user document that clients cannot delete; require leaderboard writes and rate-state updates in one atomic batch. Alternatively, move deletion and rate limiting behind a trusted backend.
 - Deny client create/update of canonical leaderboard records once server ownership is active.
-- Store rate-limit state separately from any client-deletable document, or enforce it entirely in a trusted server transaction.
+- Store rate-limit state separately from any client-deletable document, or enforce it entirely in a trusted server transaction. The review branch has a test-only candidate for the separate-document/atomic-batch approach.
 - Validate allowed fields and types; validate skin ownership server-side if skins affect competitive integrity.
 - Add emulator tests for delete/recreate, fake damage, invalid skin, forged UID, rapid repeated requests, and legitimate updates.
 
