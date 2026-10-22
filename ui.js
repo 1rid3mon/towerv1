@@ -1736,6 +1736,44 @@ async function changeDisplayNickname() {
     showToast(`✨ Komutan adın "${currentUser.username}" olarak güncellendi!`);
 }
 
+function openDeleteAccountConfirm() {
+    if (!currentUser || !currentUser.isCloud) { showToast('Önce bir hesapla giriş yapmalısın.'); return; }
+    openConfirmModal(
+        'Hesabı Sil',
+        'Hesabın, bulut kaydın ve liderlik tablosu kaydın KALICI olarak silinecek. Bu işlem GERİ ALINAMAZ. Devam edilsin mi?',
+        deleteMyAccount
+    );
+}
+
+async function deleteMyAccount() {
+    if (!currentUser || !currentUser.isCloud) return;
+    const uid = currentUser.uid;
+    try {
+        if (isFirebaseReady && fbDb) {
+            await fbDb.collection('leaderboard').doc(uid).delete();
+            await fbDb.collection('users').doc(uid).delete();
+        }
+    } catch (e) {}
+
+    try {
+        if (isFirebaseReady && fbAuth && fbAuth.currentUser) {
+            await fbAuth.currentUser.delete();
+        }
+    } catch (e) {
+        if (e && e.code === 'auth/requires-recent-login') {
+            showToast('⚠️ Güvenlik gereği önce çıkış yapıp tekrar giriş yap, hemen ardından tekrar "Hesabı Sil" de.');
+            return;
+        }
+        // Hesap zaten silinmiş olabilir, yine de yerel oturumu temizleyip devam ediyoruz.
+    }
+
+    currentUser = null;
+    localStorage.removeItem(LOCAL_CURRENT_USER_KEY);
+    updateAccountHeaderUI();
+    refreshLeaderboard(false);
+    showToast('🗑️ Hesabın kalıcı olarak silindi.');
+}
+
 async function logoutAccount() {
     if (isFirebaseReady && fbAuth) {
         try { await fbAuth.signOut(); } catch (e) {}
