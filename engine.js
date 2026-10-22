@@ -639,16 +639,28 @@ function updateGame(dt) {
                 e.attackCooldown = e.attackInterval || (e.isRanged ? 1.35 : 1.05);
                 if (e.isRanged) {
                     const pSpd = e.projSpeed || 220;
-                    projectiles.push({
-                        x: e.x, y: e.y,
-                        vx: Math.cos(ang) * pSpd, vy: Math.sin(ang) * pSpd,
-                        radius: e.type === 'boss' ? 6.5 : 4.5,
-                        color: e.isFrost ? '#38bdf8' : e.color,
-                        damage: e.dmg, life: 3.5, fromEnemy: true,
-                        isFrost: e.isFrost || false,
-                        freezeDuration: e.freezeDuration || 0,
-                        frostSlowDuration: e.frostSlowDuration || 0
-                    });
+                    // v1.1.0 boss signature: artillery and Leviathan fire a readable three-shot fan.
+                    // Split damage keeps the pattern threatening without tripling total damage.
+                    const isBossFan = e.type === 'boss' && (e.subType === 'ranged_boss' || e.subType === 'leviathan');
+                    const shotAngles = isBossFan ? [-0.17, 0, 0.17] : [0];
+                    for (const offset of shotAngles) {
+                        const shotAngle = ang + offset;
+                        projectiles.push({
+                            x: e.x, y: e.y,
+                            vx: Math.cos(shotAngle) * pSpd, vy: Math.sin(shotAngle) * pSpd,
+                            radius: e.type === 'boss' ? 6.5 : 4.5,
+                            color: e.isFrost ? '#38bdf8' : e.color,
+                            damage: isBossFan ? e.dmg * 0.58 : e.dmg,
+                            life: 3.5, fromEnemy: true,
+                            isFrost: e.isFrost || false,
+                            freezeDuration: e.freezeDuration || 0,
+                            frostSlowDuration: e.frostSlowDuration || 0
+                        });
+                    }
+                    if (isBossFan) {
+                        rings.push({ x: e.x, y: e.y, radius: 10, color: e.color || '#c084fc', life: 0.32 });
+                        createParticles(e.x, e.y, e.secColor || '#ffffff', 4, 42);
+                    }
                 } else {
                     damageTower(e.dmg, e);
                     if (e.isFrost) applyFrostToTower(e.freezeDuration, e.frostSlowDuration);
