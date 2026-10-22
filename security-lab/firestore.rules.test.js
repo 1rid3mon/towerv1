@@ -86,6 +86,33 @@ test("leaderboard update inside the 20-second interval is rejected", async () =>
   await assertFails(writeBoard(db, { highestWave: 11, wave: 9 }));
 });
 
+test("rate-limit records cannot be created or updated without a matching leaderboard write", async () => {
+  const db = testEnv.authenticatedContext("alice").firestore();
+
+  // A client must not be able to create the persistent limiter independently.
+  await assertFails(setDoc(doc(db, "leaderboardRateLimits/alice"), {
+    uid: "alice", highestWave: 10, updatedAt: serverTimestamp()
+  }));
+
+  // Seed an existing, expired pair so a direct limiter update is not rejected
+  // merely because of the 20-second cooldown; it must fail due to missing atomic board update.
+  await testEnv.withSecurityRulesDisabled(async context => {
+    const adminDb = context.firestore();
+    const oldTime = new Date(Date.now() - 60000);
+    await setDoc(doc(adminDb, "leaderboard/alice"), {
+      uid: "alice", username: "Alice", highestWave: 10, wave: 8,
+      damage: 120, prestiges: 0, activeSkin: "default_cyber", updatedAt: oldTime
+    });
+    await setDoc(doc(adminDb, "leaderboardRateLimits/alice"), {
+      uid: "alice", highestWave: 10, updatedAt: oldTime
+    });
+  });
+
+  await assertFails(setDoc(doc(db, "leaderboardRateLimits/alice"), {
+    uid: "alice", highestWave: 11, updatedAt: serverTimestamp()
+  }));
+});
+
 test("leaderboard deletion remains available, but persistent rate-limit state blocks immediate recreation", async () => {
   const db = testEnv.authenticatedContext("alice").firestore();
   await assertSucceeds(writeBoard(db));
