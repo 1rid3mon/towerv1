@@ -6,7 +6,7 @@ const {
   assertSucceeds,
   assertFails
 } = require("@firebase/rules-unit-testing");
-const { doc, getDoc, setDoc, deleteDoc, serverTimestamp } = require("firebase/firestore");
+const { doc, getDoc, setDoc, deleteDoc, writeBatch, serverTimestamp } = require("firebase/firestore");
 
 const PROJECT_ID = "demo-towerv1-security-lab";
 let testEnv;
@@ -23,6 +23,15 @@ function validBoard(overrides = {}) {
     updatedAt: serverTimestamp(),
     ...overrides
   };
+}
+
+async function writeBoard(db, overrides = {}) {
+  const batch = writeBatch(db);
+  batch.set(doc(db, "leaderboardRateLimits/alice"), {
+    uid: "alice", updatedAt: serverTimestamp()
+  }, { merge: true });
+  batch.set(doc(db, "leaderboard/alice"), validBoard(overrides), { merge: true });
+  return batch.commit();
 }
 
 before(async () => {
@@ -67,25 +76,21 @@ test("one user cannot write another user's save", async () => {
 
 test("owner can create a valid leaderboard row", async () => {
   const db = testEnv.authenticatedContext("alice").firestore();
-  await assertSucceeds(setDoc(doc(db, "leaderboard/alice"), validBoard()));
+  await assertSucceeds(writeBoard(db));
 });
 
 test("leaderboard update inside the 20-second interval is rejected", async () => {
   const db = testEnv.authenticatedContext("alice").firestore();
-  await assertSucceeds(setDoc(doc(db, "leaderboard/alice"), validBoard()));
-  await assertFails(setDoc(doc(db, "leaderboard/alice"), validBoard({
-    highestWave: 11, wave: 9, updatedAt: serverTimestamp()
-  })));
+  await assertSucceeds(writeBoard(db));
+  await assertFails(writeBoard(db, { highestWave: 11, wave: 9 }));
 });
 
-test("candidate policy denies leaderboard deletion and blocks delete/recreate rate-limit bypass", async () => {
+test("leaderboard deletion remains available, but persistent rate-limit state blocks immediate recreation", async () => {
   const db = testEnv.authenticatedContext("alice").firestore();
-  await assertSucceeds(setDoc(doc(db, "leaderboard/alice"), validBoard()));
-  await assertFails(deleteDoc(doc(db, "leaderboard/alice")));
-  // Since the row still exists, an immediate high-jump update remains subject to the normal rate limit.
-  await assertFails(setDoc(doc(db, "leaderboard/alice"), validBoard({
-    highestWave: 5000, wave: 5000, updatedAt: serverTimestamp()
-  })));
+  await assertSucceeds(writeBoard(db));
+  await assertSucceeds(deleteDoc(doc(db, "leaderboard/alice")));
+  // Deletion does not remove leaderboardRateLimits/alice; recreating the row immediately is rejected.
+  await assertFails(writeBoard(db, { highestWave: 5000, wave: 5000, damage: 999999999 }));
 });
 
 
@@ -101,10 +106,10 @@ test("KNOWN LIMITATION: leaderboard schema still accepts extreme damage and an u
   const db = testEnv.authenticatedContext("alice").firestore();
   // Deliberately demonstrates what the current client-writable schema cannot prove.
   // Do not interpret this passing test as protection against score manipulation.
-  await assertSucceeds(setDoc(doc(db, "leaderboard/alice"), validBoard({
+  await assertSucceeds(writeBoard(db, {
     highestWave: 5000, wave: 5000, damage: 999999999,
     activeSkin: "skin-the-player-may-not-own"
-  })));
+  }));
 });
 
 test("leaderboard reads are public by design", async () => {
