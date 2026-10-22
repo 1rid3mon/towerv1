@@ -348,6 +348,7 @@ function openPrestigeConfirm() {
     }
     openConfirmModal('Sıfırlama (Prestij)', `Dalgan ${getStartWaveLevel()}'e dönecek ancak ${formatNumber(pending)} Ruh Taşı kazanacaksın. Onaylıyor musun?`, () => {
         game.souls += pending;
+        if (window._syncShadow) window._syncShadow(); // büyük ruh kazancı anti-cheat tarafından geri alınmasın
         game.stats.prestiges++;
         game.wave = getStartWaveLevel();
         game.highestWave = Math.max(game.highestWave, game.wave);
@@ -1866,13 +1867,20 @@ async function pushScoreToLeaderboard() {
         wave: game.wave || 1,
         activeSkin: game.activeSkin || 'default_cyber',
         damage: typeof getTowerDamage === 'function' ? Math.round(getTowerDamage()) : 12,
-        prestiges: (game.stats && game.stats.prestiges) ? game.stats.prestiges : 0,
-        updatedAt: Date.now()
+        prestiges: (game.stats && game.stats.prestiges) ? game.stats.prestiges : 0
     };
 
     if (isFirebaseReady && fbDb && currentUser && currentUser.isCloud) {
-        try { await fbDb.collection('leaderboard').doc(currentUser.uid).set(playerEntry, { merge: true }); } catch (e) {}
+        // updatedAt istemci saatiyle değil Firestore sunucu saatiyle yazılır; kurallar bunu zorunlu tutuyor
+        // (yoksa biri hem skoru hem zamanı uydurup hız sınırını atlatabilir)
+        try {
+            await fbDb.collection('leaderboard').doc(currentUser.uid).set(
+                { ...playerEntry, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
+                { merge: true }
+            );
+        } catch (e) {}
     }
+    playerEntry.updatedAt = Date.now();
 
     try {
         let list = JSON.parse(localStorage.getItem(LOCAL_LEADERBOARD_KEY) || 'null');
