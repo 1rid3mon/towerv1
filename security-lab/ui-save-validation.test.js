@@ -22,6 +22,6 @@ test('save-code import requires a signature and an available passing verifier', 
 test('cloud save loading fails closed if the verifier is missing or rejects the save', () => {
   assert.match(
     uiSource,
-    /if \(typeof window\._verifySaveSignature !== 'function' \|\| !window\._verifySaveSignature\(cloudGame\)\)/
+    /if \(!cloudGame\._sig \|\| typeof window\._verifySaveSignature !== 'function' \|\| !window\._verifySaveSignature\(cloudGame\)\)/
   );
 });
