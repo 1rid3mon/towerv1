@@ -1223,8 +1223,19 @@ function updateHUD() {
     setElText('ui-crystals', formatNumber(game.crystals));
     setElText('ui-souls', formatNumber(game.souls));
     setElText('ui-hp-text', `${formatNumber(tower.hp)} / ${formatNumber(tower.maxHp)}`);
+    const hpRatio = Math.max(0, Math.min(1, tower.hp / Math.max(1, tower.maxHp)));
     const hpBar = document.getElementById('ui-hp-bar');
-    if (hpBar) hpBar.style.width = `${Math.max(0, Math.min(100, (tower.hp / Math.max(1, tower.maxHp)) * 100))}%`;
+    const hpCard = document.getElementById('hud-hp-card');
+    const hpCriticalBadge = document.getElementById('ui-hp-critical');
+    const hpText = document.getElementById('ui-hp-text');
+    const isCriticalHp = tower.hp > 0 && hpRatio <= 0.25;
+    if (hpBar) {
+        hpBar.style.width = `${hpRatio * 100}%`;
+        hpBar.classList.toggle('hud-critical-bar', isCriticalHp);
+    }
+    if (hpCard) hpCard.classList.toggle('hud-critical', isCriticalHp);
+    if (hpCriticalBadge) hpCriticalBadge.classList.toggle('hidden', !isCriticalHp);
+    if (hpText) hpText.classList.toggle('hud-critical-text', isCriticalHp);
 
     const shieldCont = document.getElementById('shield-container');
     if (shieldCont) {
@@ -1341,8 +1352,55 @@ function showToast(msg) {
 // =======================================================
 // KAYIT SİSTEMİ (LOCALSTORAGE + İMZA DOĞRULAMA + BULUT SENKRONİZASYONU)
 // =======================================================
+function isCompatibleSaveShape(parsed) {
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return false;
+    if (typeof getDefaultState !== 'function') return false;
+
+    const defaults = getDefaultState();
+    let visited = 0;
+    function matchesShape(value, template, depth) {
+        if (++visited > 5000 || depth > 12) return false;
+        if (Array.isArray(template)) return Array.isArray(value) && value.length <= 5000 && value.every(item => typeof item === 'string' && item.length <= 100);
+        if (template === null) return value === null || value === undefined;
+        if (typeof template === 'number') return typeof value === 'number' && Number.isFinite(value);
+        if (typeof template === 'boolean') return typeof value === 'boolean';
+        if (typeof template === 'string') return typeof value === 'string' && value.length <= 1000;
+        if (template && typeof template === 'object') {
+            if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+            if (Object.keys(value).length > 500) return false;
+            for (const key of Object.keys(template)) {
+                if (Object.prototype.hasOwnProperty.call(value, key) &&
+                    !matchesShape(value[key], template[key], depth + 1)) return false;
+            }
+            return true;
+        }
+        return true;
+    }
+
+    let boundedNodes = 0;
+    function isBoundedTree(value, depth) {
+        if (++boundedNodes > 5000 || depth > 12) return false;
+        if (value === null || typeof value === 'boolean') return true;
+        if (typeof value === 'number') return Number.isFinite(value);
+        if (typeof value === 'string') return value.length <= 1000;
+        if (Array.isArray(value)) {
+            if (value.length > 5000) return false;
+            return value.every(item => isBoundedTree(item, depth + 1));
+        }
+        if (typeof value === 'object') {
+            const keys = Object.keys(value);
+            if (keys.length > 500) return false;
+            return keys.every(key => isBoundedTree(value[key], depth + 1));
+        }
+        return false;
+    }
+
+    // Validate unknown fields too: they must not smuggle huge/deep objects into game state.
+    return isBoundedTree(parsed, 0) && matchesShape(parsed, defaults, 0);
+}
+
 function applyParsedGameData(parsed) {
-    if (typeof getDefaultState !== 'function' || !parsed) return;
+    if (!isCompatibleSaveShape(parsed)) return false;
     const def = getDefaultState();
     game = {
         ...def, ...parsed,
@@ -1378,6 +1436,7 @@ function saveGame(silent = false) {
     try {
         if (typeof game === 'undefined') return;
         game.lastSaveTime = Date.now();
+        game._sigVersion = 2;
         if (typeof window._generateSaveSignature === 'function') {
             game._sig = window._generateSaveSignature(game);
         }
@@ -1392,14 +1451,41 @@ function loadGame() {
         const raw = localStorage.getItem(SAVE_KEY);
         if (!raw) return;
         const parsed = JSON.parse(raw);
-        if (typeof window._verifySaveSignature === 'function' && !window._verifySaveSignature(parsed)) {
+        if (!isCompatibleSaveShape(parsed)) {
+            console.warn('Kayıt yapısı geçersiz; yükleme reddedildi.');
+            try { localStorage.setItem(SAVE_KEY + '_rejected_backup', raw); } catch (e2) {}
+            try { if (typeof showToast === 'function') showToast('⚠️ Kayıt yapısı bozuk. Yedek korundu; kayıt yüklenmedi.'); } catch (e3) {}
+            return;
+        }
+        if (typeof window._verifySaveSignature !== 'function' || !window._verifySaveSignature(parsed)) {
             console.warn('Kayıt imzası doğrulanamadı, varsayılan durum korunuyor.');
             // Hiçbir şeyi kaybetmemek için reddedilen kaydı yedekle (otomatik kayıt ana anahtarın üzerine yazacak)
             try { localStorage.setItem(SAVE_KEY + '_rejected_backup', raw); } catch (e2) {}
             try { if (typeof showToast === 'function') showToast('🛡️ Kayıt imzası geçersiz. Hesabın varsa bulut kaydın yüklenecek.'); } catch (e3) {}
             return;
         }
+        const isUnsignedLegacySave = !parsed._sig;
         applyParsedGameData(parsed);
+
+        // One-time local migration: preserve the original bytes before upgrading an accepted
+        // unsigned legacy save. Cloud saves and imported save codes use separate, stricter paths.
+        if (isUnsignedLegacySave && typeof window._generateSaveSignature === 'function') {
+            try {
+                const legacyBackupKey = SAVE_KEY + '_legacy_migration_backup';
+                if (!localStorage.getItem(legacyBackupKey)) {
+                    localStorage.setItem(legacyBackupKey, raw);
+                }
+                game._sigVersion = 2;
+                game._sig = window._generateSaveSignature(game);
+                if (game._sig) {
+                    localStorage.setItem(SAVE_KEY, JSON.stringify(game));
+                    localStorage.setItem(SIGNED_MARK_KEY, '1');
+                }
+            } catch (migrationError) {
+                // Keep the in-memory load usable; never report migration as successful here.
+                console.warn('Eski kayıt yükseltilemedi; yedek ve kayıt alanı korunmaya çalışıldı.', migrationError);
+            }
+        }
     } catch (e) {}
 }
 
@@ -1407,13 +1493,14 @@ function exportSaveCode() {
     try {
         const t = document.getElementById('save-code-textarea');
         if (!t) return;
+        game._sigVersion = 2;
         if (typeof window._generateSaveSignature === 'function') {
             game._sig = window._generateSaveSignature(game);
         }
         t.value = btoa(unescape(encodeURIComponent(JSON.stringify(game))));
         t.select();
         document.execCommand('copy');
-        showToast('Güvenli kayıt kodu kopyalandı!');
+        showToast('Kayıt kodu kopyalandı; imza hileye karşı güvenlik garantisi değildir.');
     } catch (e) {}
 }
 
@@ -1425,7 +1512,11 @@ function importSaveCode() {
         if (!code) return;
         const decodedStr = decodeURIComponent(escape(atob(code)));
         const parsed = JSON.parse(decodedStr);
-        if (!parsed._sig || (typeof window._verifySaveSignature === 'function' && !window._verifySaveSignature(parsed))) {
+        if (!isCompatibleSaveShape(parsed)) {
+            showToast('⚠️ Kayıt yapısı bozuk veya desteklenmiyor.');
+            return;
+        }
+        if (!parsed._sig || typeof window._verifySaveSignature !== 'function' || !window._verifySaveSignature(parsed)) {
             showToast('🛡️ HATA: Değiştirilmiş veya sahte kayıt kodu!');
             return;
         }
@@ -1651,9 +1742,22 @@ async function submitUsernameAuth() {
             refreshLeaderboard(false);
             return;
         } catch (err) {
-            showAuthError(`❌ Giriş Hatası: ${err.message || 'Bilgileri kontrol et.'}`);
+            if (authFormMode === 'register' && err && err.code === 'auth/email-already-in-use') {
+                showAuthError('⚠️ Bu kullanıcı adı alınmış! Lütfen başka bir kullanıcı adı seç veya Giriş Yap sekmesini kullan.');
+            } else if (err && (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found')) {
+                showAuthError('❌ Kullanıcı adı veya şifre hatalı. Bilgilerini kontrol et.');
+            } else {
+                showAuthError(`❌ Giriş Hatası: ${err.message || 'Bilgileri kontrol et.'}`);
+            }
             return;
         }
+    }
+
+    // Never create new password accounts in localStorage: Base64 is reversible, not password hashing.
+    // Keep the legacy local-login path below temporarily so existing local-only players are not locked out.
+    if (authFormMode === 'register') {
+        showAuthError('⚠️ Hesap oluşturmak için güvenli bağlantı gerekli. İnternet bağlantını kontrol edip tekrar dene.');
+        return;
     }
 
     let accounts = {};
@@ -1703,19 +1807,8 @@ async function submitUsernameAuth() {
 }
 
 async function loginWithGoogle() {
-    if (isFirebaseReady && fbAuth) {
-        return signInWithGoogle();
-    }
-
-    const randomNum = Math.floor(100 + Math.random() * 900);
-    const gName = (currentUser && currentUser.username) ? currentUser.username : `Komutan_${randomNum}`;
-    currentUser = { uid: 'google_sim_' + gName.toLowerCase(), username: gName, isCloud: false };
-    localStorage.setItem(LOCAL_CURRENT_USER_KEY, JSON.stringify(currentUser));
-    await forceCloudPush(true);
-    updateAccountHeaderUI();
-    refreshLeaderboard(false);
-    closeAuthModal();
-    showToast(`✅ Google (${gName}) ile hızlı giriş yapıldı!`);
+    // Never simulate Google authentication: an offline/local profile is not a verified Google account.
+    return signInWithGoogle();
 }
 
 async function changeDisplayNickname() {
@@ -1753,7 +1846,10 @@ async function deleteMyAccount() {
             await fbDb.collection('leaderboard').doc(uid).delete();
             await fbDb.collection('users').doc(uid).delete();
         }
-    } catch (e) {}
+    } catch (e) {
+        showToast('❌ Hesap verileri silinemedi. Hiçbir şeyin tamamen silindiğini varsayma; tekrar dene.');
+        return;
+    }
 
     try {
         if (isFirebaseReady && fbAuth && fbAuth.currentUser) {
@@ -1764,14 +1860,15 @@ async function deleteMyAccount() {
             showToast('⚠️ Güvenlik gereği önce çıkış yapıp tekrar giriş yap, hemen ardından tekrar "Hesabı Sil" de.');
             return;
         }
-        // Hesap zaten silinmiş olabilir, yine de yerel oturumu temizleyip devam ediyoruz.
+        showToast('❌ Firebase hesabı silinemedi. Bazı veriler silinmiş olabilir; tekrar giriş yapıp silme işlemini yeniden dene.');
+        return;
     }
 
     currentUser = null;
     localStorage.removeItem(LOCAL_CURRENT_USER_KEY);
     updateAccountHeaderUI();
     refreshLeaderboard(false);
-    showToast('🗑️ Hesabın kalıcı olarak silindi.');
+    showToast('🗑️ Hesap ve oyun verileri silindi. Bazı güvenlik kayıtları ayrı tutulabilir.');
 }
 
 async function logoutAccount() {
@@ -1802,6 +1899,7 @@ async function forceCloudPush(silent = false) {
 
     try {
         // Bulut kopyası push anındaki değerlerle imzalansın (kayıttan sonra altın/kristal değişmiş olabilir)
+        game._sigVersion = 2;
         if (typeof window._generateSaveSignature === 'function') game._sig = window._generateSaveSignature(game);
         if (isFirebaseReady && fbDb && currentUser.isCloud) {
             await fbDb.collection('users').doc(currentUser.uid).set({
@@ -1835,18 +1933,34 @@ async function forceCloudPull(silent = false) {
         let cloudGame = null;
         if (isFirebaseReady && fbDb && currentUser.isCloud) {
             const doc = await fbDb.collection('users').doc(currentUser.uid).get();
-            if (doc.exists && doc.data().saveData) cloudGame = JSON.parse(doc.data().saveData);
+            if (doc.exists && doc.data().saveData) {
+                cloudGame = JSON.parse(doc.data().saveData);
+                // Bound and validate the parsed payload before asking the signature routine to traverse it.
+                if (!isCompatibleSaveShape(cloudGame)) {
+                    if (!silent) showToast('⚠️ Kayıt yapısı bozuk; kayıt yüklenmedi.');
+                    return;
+                }
+                if (!cloudGame._sig || typeof window._verifySaveSignature !== 'function' || !window._verifySaveSignature(cloudGame)) {
+                    if (!silent) showToast('🛡️ Bulut kaydının imzası geçersiz; kayıt yüklenmedi.');
+                    return;
+                }
+            }
         } else {
             const accounts = JSON.parse(localStorage.getItem(LOCAL_ACCOUNTS_KEY) || '{}');
             const acc = accounts[currentUser.username.toLowerCase()];
             if (acc && acc.savedGame) cloudGame = acc.savedGame;
         }
 
-        if (cloudGame) {
-            const cloudMax = Math.max(cloudGame.highestWave || 1, cloudGame.wave || 1);
-            const localMax = Math.max(game.highestWave || 1, game.wave || 1);
+        if (cloudGame && !isCompatibleSaveShape(cloudGame)) {
+            if (!silent) showToast('⚠️ Kayıt yapısı bozuk; kayıt yüklenmedi.');
+            return;
+        }
 
-            if (!silent || cloudMax > localMax) {
+        if (cloudGame) {
+            // On a silent login pull, preserve the higher best-wave progress. When best wave
+            // ties, prefer the newer save timestamp so a fresh device can recover same-wave
+            // upgrades/currency/inventory instead of silently keeping its default local state.
+            if (shouldApplyCloudSave(cloudGame, game, silent)) {
                 applyParsedGameData(cloudGame);
                 tower.maxHp = getTowerMaxHp();
                 tower.hp = tower.maxHp;
@@ -1864,6 +1978,15 @@ async function forceCloudPull(silent = false) {
     } catch (err) {
         if (!silent) showToast('❌ Buluttan veri çekilemedi.');
     }
+}
+
+function shouldApplyCloudSave(cloudGame, localGame, silent) {
+    if (!silent) return true;
+    const cloudMax = Math.max(cloudGame.highestWave || 1, cloudGame.wave || 1);
+    const localMax = Math.max(localGame.highestWave || 1, localGame.wave || 1);
+    if (cloudMax > localMax) return true;
+    if (cloudMax < localMax) return false;
+    return Number(cloudGame.lastSaveTime || 0) > Number(localGame.lastSaveTime || 0);
 }
 
 function getDefaultRivalsForLeaderboard() {
@@ -1893,6 +2016,9 @@ function setLeaderboardSort(sortType) {
     refreshLeaderboard(false);
 }
 
+// Reduce needless rejected Firestore writes; server-side rules remain the actual enforcement.
+const leaderboardCloudWriteAttempts = new Map();
+
 async function pushScoreToLeaderboard() {
     if (typeof game === 'undefined') return;
     if (typeof window._isSessionClean === 'function' && !window._isSessionClean()) return;
@@ -1909,14 +2035,27 @@ async function pushScoreToLeaderboard() {
     };
 
     if (isFirebaseReady && fbDb && currentUser && currentUser.isCloud) {
-        // updatedAt istemci saatiyle değil Firestore sunucu saatiyle yazılır; kurallar bunu zorunlu tutuyor
-        // (yoksa biri hem skoru hem zamanı uydurup hız sınırını atlatabilir)
-        try {
-            await fbDb.collection('leaderboard').doc(currentUser.uid).set(
-                { ...playerEntry, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
-                { merge: true }
-            );
-        } catch (e) {}
+        const uid = currentUser.uid;
+        const lastAttempt = leaderboardCloudWriteAttempts.get(uid) || 0;
+        if (Date.now() - lastAttempt >= 20000) {
+            leaderboardCloudWriteAttempts.set(uid, Date.now());
+            // Score and persistent rate-limit timestamp must be committed atomically.
+            // The rate-limit document intentionally survives leaderboard-row deletion.
+            try {
+                const batch = fbDb.batch();
+                const serverTime = firebase.firestore.FieldValue.serverTimestamp();
+                batch.set(fbDb.collection('leaderboardRateLimits').doc(uid), {
+                    uid,
+                    highestWave: playerEntry.highestWave,
+                    updatedAt: serverTime
+                }, { merge: true });
+                batch.set(fbDb.collection('leaderboard').doc(uid), {
+                    ...playerEntry,
+                    updatedAt: serverTime
+                }, { merge: true });
+                await batch.commit();
+            } catch (e) {}
+        }
     }
     playerEntry.updatedAt = Date.now();
 

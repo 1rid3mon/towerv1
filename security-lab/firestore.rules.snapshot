@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function maxWave(){return 5000;}
+  function isOwner(userId){return request.auth != null && request.auth.uid == userId;}
+  function validNum(v,lo,hi){return v is number && v>=lo && v<=hi;}
+  function validUserDoc(){
+   let d=request.resource.data;
+   return d.keys().size()<=20
+    && d.get('username','x') is string
+    && d.get('username','x').size()<=60
+    && d.get('saveData','') is string
+    && d.get('saveData','').size()<=200000
+    && validNum(d.get('highestWave',1),1,maxWave())
+    && d.get('updatedAt',0) is number;
+  }
+  function validBoardDoc(userId){
+   let d=request.resource.data;
+   return d.keys().size()<=20
+    && d.get('uid',userId)==userId
+    && d.get('username','x') is string
+    && d.get('username','x').size()>=1
+    && d.get('username','x').size()<=20
+    && validNum(d.get('highestWave',1),1,maxWave())
+    && validNum(d.get('wave',1),1,maxWave())
+    && d.get('wave',1)<=d.get('highestWave',1)
+    && d.get('damage',0) is number
+    && d.get('damage',0)>=0
+    && validNum(d.get('prestiges',0),0,100000)
+    && d.get('activeSkin','default_cyber') is string
+    && d.get('activeSkin','default_cyber').size()<=40
+    && d.get('updatedAt',null)==request.time;
+  }
+  function minSecondsBetweenWrites(){return 20;}
+  function maxWaveJumpPerWrite(){return 15;}
+  function withinRateLimit(){
+   return resource==null || (
+    request.time > resource.data.updatedAt + duration.value(minSecondsBetweenWrites(),'s')
+    && request.resource.data.highestWave <= resource.data.highestWave + maxWaveJumpPerWrite()
+   );
+  }
+  match /users/{userId}{
+   allow read: if isOwner(userId);
+   allow create,update: if isOwner(userId)&&validUserDoc();
+   allow delete: if isOwner(userId);
+  }
+  match /leaderboard/{userId}{
+   allow read: if true;
+   allow create,update: if isOwner(userId)&&validBoardDoc(userId)&&withinRateLimit();
+   allow delete: if isOwner(userId);
+  }
+ }
+}

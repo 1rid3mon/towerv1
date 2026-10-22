@@ -892,6 +892,72 @@ function adjustColorBrightness(col, amt) {
 // =======================================================
 // ÖZEL DÜŞMAN VE BOSS GÖRSEL ÇİZİM MOTORU
 // =======================================================
+// Shared hand-ink pass: a few restrained seams and edge catches tie every enemy family together.
+function drawEnemyInkAccents(c, kind, r, faceAngle, isHit) {
+    if (isHit || r < 5) return;
+
+    let seam = 'rgba(15, 23, 42, 0.46)';
+    let edge = 'rgba(255, 255, 255, 0.34)';
+    if (kind === 'frost' || kind === 'frost_boss') {
+        seam = 'rgba(8, 47, 73, 0.62)';
+        edge = 'rgba(224, 242, 254, 0.72)';
+    } else if (kind === 'tank' || kind === 'tank_boss') {
+        seam = 'rgba(15, 23, 42, 0.66)';
+        edge = 'rgba(226, 232, 240, 0.58)';
+    } else if (kind === 'leviathan' || kind === 'boss') {
+        seam = 'rgba(30, 10, 55, 0.68)';
+        edge = 'rgba(216, 180, 254, 0.52)';
+    } else if (kind === 'speed_boss' || kind === 'runner') {
+        seam = 'rgba(76, 5, 25, 0.58)';
+        edge = 'rgba(255, 228, 230, 0.54)';
+    } else if (kind === 'ranged' || kind === 'ranged_boss') {
+        seam = 'rgba(8, 47, 73, 0.60)';
+        edge = 'rgba(186, 230, 253, 0.58)';
+    } else if (kind === 'teleporter') {
+        seam = 'rgba(120, 53, 15, 0.58)';
+        edge = 'rgba(254, 240, 138, 0.60)';
+    } else if (kind === 'green') {
+        seam = 'rgba(20, 83, 45, 0.58)';
+        edge = 'rgba(220, 252, 231, 0.60)';
+    }
+
+    c.save();
+    c.rotate(faceAngle);
+    c.lineCap = 'round';
+    c.lineJoin = 'round';
+    c.lineWidth = Math.max(0.8, r * 0.035);
+    c.strokeStyle = seam;
+    c.beginPath();
+    c.moveTo(-r * 0.48, -r * 0.20);
+    c.lineTo(-r * 0.30, -r * 0.08);
+    c.lineTo(-r * 0.36, r * 0.08);
+    c.moveTo(-r * 0.18, r * 0.34);
+    c.lineTo(-r * 0.05, r * 0.25);
+    c.stroke();
+
+    c.strokeStyle = edge;
+    c.lineWidth = Math.max(0.7, r * 0.025);
+    c.beginPath();
+    c.moveTo(-r * 0.54, -r * 0.42);
+    c.lineTo(-r * 0.40, -r * 0.48);
+    c.moveTo(r * 0.18, -r * 0.58);
+    c.lineTo(r * 0.30, -r * 0.52);
+    c.stroke();
+
+    // Bosses get one extra old scar, not a bigger glow or a busier particle effect.
+    if (kind === 'tank_boss' || kind === 'ranged_boss' || kind === 'speed_boss' ||
+        kind === 'frost_boss' || kind === 'leviathan' || kind === 'boss') {
+        c.strokeStyle = seam;
+        c.lineWidth = Math.max(1, r * 0.045);
+        c.beginPath();
+        c.moveTo(-r * 0.30, -r * 0.05);
+        c.lineTo(-r * 0.12, r * 0.02);
+        c.lineTo(-r * 0.20, r * 0.18);
+        c.stroke();
+    }
+    c.restore();
+}
+
 function drawCustomEnemy(c, e, tx, ty, nowTime) {
     const r = e.radius;
     const isHit = e.hitFlash > 0;
@@ -954,6 +1020,23 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.beginPath(); c.arc(0, 0, corePulse, 0, Math.PI * 2); c.fill();
             c.fillStyle = '#fef08a';
             c.beginPath(); c.arc(0, 0, corePulse * 0.5, 0, Math.PI * 2); c.fill();
+
+            // Offset armor seams and rivets: original canvas marks, not a texture.
+            c.strokeStyle = isHit ? 'rgba(255, 255, 255, 0.85)' : 'rgba(69, 26, 3, 0.88)';
+            c.lineWidth = Math.max(1, r * 0.045);
+            c.beginPath();
+            c.moveTo(-r * 0.62, -r * 0.30);
+            c.lineTo(-r * 0.40, -r * 0.12);
+            c.lineTo(-r * 0.58, r * 0.18);
+            c.moveTo(r * 0.22, -r * 0.62);
+            c.lineTo(r * 0.44, -r * 0.46);
+            c.lineTo(r * 0.36, -r * 0.30);
+            c.stroke();
+            c.fillStyle = isHit ? '#ffffff' : '#fef3c7';
+            c.beginPath();
+            c.arc(-r * 0.48, -r * 0.40, Math.max(1, r * 0.055), 0, Math.PI * 2);
+            c.arc(r * 0.52, r * 0.40, Math.max(1, r * 0.055), 0, Math.PI * 2);
+            c.fill();
             c.restore();
             break;
         }
@@ -1082,6 +1165,26 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.arc(-4, -2, 2.2, 0, Math.PI * 2);
             c.arc(4, -2, 2.2, 0, Math.PI * 2);
             c.fill();
+
+            // A darker, off-centre ice seam gives the boss a carved, old-glacier feel.
+            c.strokeStyle = 'rgba(7, 89, 133, 0.82)';
+            c.lineWidth = Math.max(1, r * 0.045);
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(-r * 0.48, -r * 0.18);
+            c.lineTo(-r * 0.22, -r * 0.05);
+            c.lineTo(-r * 0.30, r * 0.22);
+            c.lineTo(-r * 0.08, r * 0.36);
+            c.moveTo(r * 0.34, -r * 0.52);
+            c.lineTo(r * 0.22, -r * 0.34);
+            c.stroke();
+            c.fillStyle = '#67e8f9';
+            c.beginPath();
+            c.moveTo(-r * 0.18, -r * 0.12);
+            c.lineTo(r * 0.02, -r * 0.02);
+            c.lineTo(-r * 0.08, r * 0.12);
+            c.closePath();
+            c.fill();
             break;
         }
         case 'leviathan':
@@ -1124,6 +1227,45 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.arc(r * 0.28, r * 0.26, 3.2, 0, Math.PI * 2);
             c.arc(r * 0.42, 0, 4.0, 0, Math.PI * 2);
             c.fill();
+
+            // Two worn plates and a single scar break up the boss's otherwise smooth face.
+            c.fillStyle = '#4c1d95';
+            c.strokeStyle = 'rgba(216, 180, 254, 0.65)';
+            c.lineWidth = Math.max(1, r * 0.035);
+            c.beginPath();
+            c.moveTo(-r * 0.62, -r * 0.43);
+            c.lineTo(-r * 0.24, -r * 0.56);
+            c.lineTo(-r * 0.08, -r * 0.34);
+            c.lineTo(-r * 0.34, -r * 0.18);
+            c.closePath();
+            c.fill(); c.stroke();
+            c.beginPath();
+            c.moveTo(-r * 0.60, r * 0.38);
+            c.lineTo(-r * 0.30, r * 0.22);
+            c.lineTo(-r * 0.12, r * 0.43);
+            c.lineTo(-r * 0.38, r * 0.55);
+            c.closePath();
+            c.fill(); c.stroke();
+
+            c.strokeStyle = 'rgba(30, 10, 55, 0.85)';
+            c.lineWidth = Math.max(1, r * 0.04);
+            c.beginPath();
+            c.moveTo(-r * 0.08, -r * 0.12);
+            c.lineTo(r * 0.02, r * 0.02);
+            c.lineTo(-r * 0.02, r * 0.18);
+            c.stroke();
+
+            // Offset crown etching gives this boss a distinct silhouette without a copied texture.
+            c.strokeStyle = 'rgba(233, 213, 255, 0.72)';
+            c.lineWidth = Math.max(0.8, r * 0.028);
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(-r * 0.54, -r * 0.66);
+            c.lineTo(-r * 0.34, -r * 0.78);
+            c.lineTo(-r * 0.18, -r * 0.62);
+            c.moveTo(r * 0.48, r * 0.62);
+            c.lineTo(r * 0.62, r * 0.46);
+            c.stroke();
             c.restore();
             break;
         }
@@ -1150,6 +1292,25 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
 
             c.fillStyle = '#f97316';
             c.fillRect(-r * 0.15, -r * 0.38, r * 0.28, r * 0.76);
+
+            // Small bolts and an offset armor seam make the heavy unit read as assembled metal.
+            c.strokeStyle = 'rgba(15, 23, 42, 0.8)';
+            c.lineWidth = Math.max(1, r * 0.045);
+            c.beginPath();
+            c.moveTo(-r * 0.48, 0);
+            c.lineTo(-r * 0.16, 0);
+            c.moveTo(r * 0.02, -r * 0.48);
+            c.lineTo(r * 0.02, r * 0.48);
+            c.stroke();
+            c.fillStyle = '#f8fafc';
+            c.beginPath();
+            c.arc(-r * 0.45, -r * 0.45, Math.max(0.8, r * 0.055), 0, Math.PI * 2);
+            c.arc(-r * 0.45, r * 0.45, Math.max(0.8, r * 0.055), 0, Math.PI * 2);
+            c.arc(r * 0.52, -r * 0.45, Math.max(0.8, r * 0.055), 0, Math.PI * 2);
+            c.arc(r * 0.52, r * 0.45, Math.max(0.8, r * 0.055), 0, Math.PI * 2);
+            c.fill();
+            c.fillStyle = 'rgba(148, 163, 184, 0.8)';
+            c.fillRect(-r * 0.55, -r * 0.10, r * 0.16, r * 0.20);
             c.restore();
             break;
         }
@@ -1170,6 +1331,31 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
 
             c.fillStyle = '#e0f2fe';
             c.beginPath(); c.arc(0, 0, r * 0.35, 0, Math.PI * 2); c.fill();
+
+            // Natural fracture lines: a few uneven cuts, not a perfect decorative pattern.
+            c.strokeStyle = 'rgba(8, 47, 73, 0.72)';
+            c.lineWidth = Math.max(1, r * 0.055);
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(-r * 0.62, -r * 0.12);
+            c.lineTo(-r * 0.25, -r * 0.04);
+            c.lineTo(-r * 0.12, r * 0.20);
+            c.moveTo(r * 0.18, -r * 0.62);
+            c.lineTo(r * 0.08, -r * 0.32);
+            c.lineTo(r * 0.27, -r * 0.16);
+            c.moveTo(r * 0.50, r * 0.38);
+            c.lineTo(r * 0.28, r * 0.26);
+            c.stroke();
+
+            c.strokeStyle = 'rgba(255, 255, 255, 0.78)';
+            c.lineWidth = Math.max(0.8, r * 0.035);
+            c.beginPath();
+            c.moveTo(-r * 0.72, -r * 0.34);
+            c.lineTo(-r * 0.48, -r * 0.53);
+            c.lineTo(-r * 0.32, -r * 0.48);
+            c.moveTo(r * 0.36, r * 0.55);
+            c.lineTo(r * 0.55, r * 0.43);
+            c.stroke();
             c.restore();
             break;
         }
@@ -1194,6 +1380,28 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
 
             c.fillStyle = '#fef08a';
             c.beginPath(); c.arc(r * 0.25, 0, r * 0.22, 0, Math.PI * 2); c.fill();
+
+            // Hand-cut speed grooves: dark, offset marks rather than a copied texture.
+            c.strokeStyle = 'rgba(136, 19, 55, 0.82)';
+            c.lineWidth = Math.max(0.7, r * 0.065);
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(-r * 0.42, -r * 0.43);
+            c.lineTo(-r * 0.12, -r * 0.22);
+            c.moveTo(-r * 0.42, r * 0.43);
+            c.lineTo(-r * 0.12, r * 0.22);
+            c.moveTo(r * 0.18, -r * 0.38);
+            c.lineTo(r * 0.48, -r * 0.18);
+            c.stroke();
+
+            c.strokeStyle = 'rgba(255, 228, 230, 0.78)';
+            c.lineWidth = Math.max(0.6, r * 0.045);
+            c.beginPath();
+            c.moveTo(r * 0.68, 0);
+            c.lineTo(r * 0.38, -r * 0.13);
+            c.moveTo(r * 0.38, r * 0.13);
+            c.lineTo(r * 0.68, 0);
+            c.stroke();
             c.restore();
             break;
         }
@@ -1219,6 +1427,28 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.beginPath();
             c.arc(Math.cos(faceAngle) * 1.5, Math.sin(faceAngle) * 1.5, r * 0.20, 0, Math.PI * 2);
             c.fill();
+
+            // Broken, offset phase marks keep the teleporter readable without a glow texture.
+            c.strokeStyle = 'rgba(120, 53, 15, 0.78)';
+            c.lineWidth = Math.max(0.7, r * 0.065);
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(-r * 0.72, -r * 0.12);
+            c.lineTo(-r * 0.42, -r * 0.30);
+            c.lineTo(-r * 0.22, -r * 0.12);
+            c.moveTo(r * 0.24, r * 0.28);
+            c.lineTo(r * 0.48, r * 0.12);
+            c.lineTo(r * 0.70, r * 0.22);
+            c.stroke();
+
+            c.strokeStyle = 'rgba(255, 251, 235, 0.82)';
+            c.lineWidth = Math.max(0.6, r * 0.045);
+            c.beginPath();
+            c.moveTo(-r * 0.16, -r * 0.70);
+            c.lineTo(r * 0.08, -r * 0.54);
+            c.moveTo(-r * 0.04, r * 0.60);
+            c.lineTo(r * 0.18, r * 0.48);
+            c.stroke();
             break;
         }
         case 'ranged': {
@@ -1244,6 +1474,33 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
 
             c.fillStyle = '#f43f5e';
             c.beginPath(); c.arc(0, 0, r * 0.28, 0, Math.PI * 2); c.fill();
+
+            // A few worn sensor plates make the ranged unit read as a deliberate marksman.
+            c.strokeStyle = 'rgba(7, 89, 133, 0.82)';
+            c.lineWidth = Math.max(0.8, r * 0.07);
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(-r * 0.46, -r * 0.48);
+            c.lineTo(-r * 0.12, -r * 0.28);
+            c.lineTo(r * 0.08, -r * 0.40);
+            c.moveTo(-r * 0.46, r * 0.48);
+            c.lineTo(-r * 0.12, r * 0.28);
+            c.lineTo(r * 0.08, r * 0.40);
+            c.stroke();
+
+            c.strokeStyle = 'rgba(224, 242, 254, 0.78)';
+            c.lineWidth = Math.max(0.7, r * 0.045);
+            c.beginPath();
+            c.moveTo(r * 0.54, -r * 0.24);
+            c.lineTo(r * 0.78, -r * 0.24);
+            c.moveTo(r * 0.66, -r * 0.36);
+            c.lineTo(r * 0.66, -r * 0.12);
+            c.stroke();
+
+            c.fillStyle = isHit ? '#ffffff' : '#fda4af';
+            c.beginPath();
+            c.arc(r * 0.12, 0, Math.max(1.1, r * 0.10), 0, Math.PI * 2);
+            c.fill();
             c.restore();
             break;
         }
@@ -1281,15 +1538,55 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.arc(-r * 0.2, 0, r * 0.45, -Math.PI * 0.4, Math.PI * 0.4);
             c.stroke();
 
+            // Hand-drawn surface markings give the common creature a less generic silhouette.
+            c.fillStyle = 'rgba(20, 83, 45, 0.34)';
+            c.beginPath();
+            c.ellipse(-r * 0.30, -r * 0.22, r * 0.17, r * 0.10, -0.35, 0, Math.PI * 2);
+            c.ellipse(-r * 0.12, r * 0.29, r * 0.12, r * 0.08, 0.45, 0, Math.PI * 2);
+            c.ellipse(-r * 0.58, r * 0.03, r * 0.10, r * 0.15, -0.2, 0, Math.PI * 2);
+            c.fill();
+
+            c.fillStyle = 'rgba(220, 252, 231, 0.22)';
+            c.beginPath();
+            c.ellipse(r * 0.08, r * 0.36, r * 0.34, r * 0.16, 0.1, 0, Math.PI * 2);
+            c.fill();
+
+            // Tiny feet and a crooked mouth add a little character without image assets.
+            c.fillStyle = '#166534';
+            c.beginPath();
+            c.ellipse(-r * 0.34, r * 0.62, r * 0.18, r * 0.09, -0.15, 0, Math.PI * 2);
+            c.ellipse(-r * 0.34, -r * 0.62, r * 0.18, r * 0.09, 0.15, 0, Math.PI * 2);
+            c.fill();
+
+            c.strokeStyle = '#14532d';
+            c.lineWidth = Math.max(1, r * 0.055);
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(r * 0.52, -r * 0.03);
+            c.quadraticCurveTo(r * 0.70, r * 0.12, r * 0.58, r * 0.20);
+            c.stroke();
+
             c.fillStyle = '#fef08a';
             c.beginPath();
-            c.arc(r * 0.42, -r * 0.25, 1.8, 0, Math.PI * 2);
-            c.arc(r * 0.42, r * 0.25, 1.8, 0, Math.PI * 2);
+            c.arc(r * 0.42, -r * 0.25, Math.max(1.8, r * 0.11), 0, Math.PI * 2);
+            c.arc(r * 0.42, r * 0.25, Math.max(1.8, r * 0.11), 0, Math.PI * 2);
+            c.fill();
+            c.fillStyle = '#1f2937';
+            c.beginPath();
+            c.arc(r * 0.46, -r * 0.25, Math.max(0.8, r * 0.045), 0, Math.PI * 2);
+            c.arc(r * 0.46, r * 0.25, Math.max(0.8, r * 0.045), 0, Math.PI * 2);
+            c.fill();
+            c.fillStyle = 'rgba(255,255,255,0.9)';
+            c.beginPath();
+            c.arc(r * 0.44, -r * 0.29, Math.max(0.6, r * 0.025), 0, Math.PI * 2);
+            c.arc(r * 0.44, r * 0.21, Math.max(0.6, r * 0.025), 0, Math.PI * 2);
             c.fill();
             c.restore();
             break;
         }
     }
+
+    drawEnemyInkAccents(c, kind, r, faceAngle, isHit);
 }
 
 // =======================================================
