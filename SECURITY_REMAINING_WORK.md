@@ -17,6 +17,7 @@ This is the execution checklist for the isolated `security-hardening-review` bra
 - [x] Added a client batch write to match that candidate rule design.
 - [x] Added tests for limiter deletion/independent changes, missing or mismatched paired writes, rapid recreation, save payload size, and basic schema bounds.
 - [x] Added full-save V2 checksum coverage for local/save-code tamper detection while retaining legacy V1 verification.
+- [x] Expanded adversarial V2 checksum tests across gold, crystals, souls, wave progression, prestige, skin ownership/selection, and companion state; these tests prove stale checksums are rejected, not that a modified client cannot regenerate them.
 - [x] Made local save, save-code import, and cloud pull fail closed if verification is missing or fails; cloud pulls reject unsigned saves.
 - [x] Added structural save validation for local, imported, and cloud saves; malformed known fields, oversized strings, and excessively deep/large unknown payloads are rejected before state application, with regression tests.
 - [x] Added regression coverage for leaderboard username HTML escaping to reduce the risk of stored XSS from client-controlled profile names.
