@@ -1909,13 +1909,20 @@ async function pushScoreToLeaderboard() {
     };
 
     if (isFirebaseReady && fbDb && currentUser && currentUser.isCloud) {
-        // updatedAt istemci saatiyle değil Firestore sunucu saatiyle yazılır; kurallar bunu zorunlu tutuyor
-        // (yoksa biri hem skoru hem zamanı uydurup hız sınırını atlatabilir)
+        // Score and persistent rate-limit timestamp must be committed atomically.
+        // The rate-limit document intentionally survives leaderboard-row deletion.
         try {
-            await fbDb.collection('leaderboard').doc(currentUser.uid).set(
-                { ...playerEntry, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
-                { merge: true }
-            );
+            const batch = fbDb.batch();
+            const serverTime = firebase.firestore.FieldValue.serverTimestamp();
+            batch.set(fbDb.collection('leaderboardRateLimits').doc(currentUser.uid), {
+                uid: currentUser.uid,
+                updatedAt: serverTime
+            }, { merge: true });
+            batch.set(fbDb.collection('leaderboard').doc(currentUser.uid), {
+                ...playerEntry,
+                updatedAt: serverTime
+            }, { merge: true });
+            await batch.commit();
         } catch (e) {}
     }
     playerEntry.updatedAt = Date.now();
