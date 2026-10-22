@@ -96,6 +96,17 @@ test('enemy identity is grounded in engine definitions: red fast runner and yell
 });
 
 
+test('purple boss has asymmetric crown etching drawn directly on canvas', () => {
+  const start = renderSource.indexOf("case 'boss':");
+  const end = renderSource.indexOf("case 'tank':", start);
+  assert.ok(start >= 0 && end > start, 'boss drawing case must exist');
+  const art = renderSource.slice(start, end);
+  assert.match(art, /Offset crown etching/);
+  assert.match(art, /rgba\(233, 213, 255, 0\.72\)/);
+  assert.match(art, /r \* 0\.78/);
+  assert.doesNotMatch(art, /new Image\(|https?:\/\//);
+});
+
 test('yellow teleporter has restrained broken phase marks without external textures', () => {
   const start = renderSource.indexOf("case 'teleporter':");
   const end = renderSource.indexOf("case 'ranged':", start);
