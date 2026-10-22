@@ -521,6 +521,16 @@ function updateGame(dt) {
                 damageTower(p.damage, null);
                 if (p.isFrost) {
                     applyFrostToTower(p.freezeDuration || 0.8, p.frostSlowDuration || 3.0);
+                    // v1.1.0: frost boss impacts leave a readable crystalline burst.
+                    if (p.isBossFrost) {
+                        rings.push({ x: tower.x, y: tower.y, radius: 22, color: '#7dd3fc', life: 0.72 });
+                        rings.push({ x: tower.x, y: tower.y, radius: 34, color: '#e0f2fe', life: 0.48 });
+                        createParticles(tower.x, tower.y, '#7dd3fc', 12, 85);
+                        createParticles(tower.x, tower.y, '#f0f9ff', 7, 58);
+                        addFloatingText(tower.x, tower.y - 38, 'KRİYO DARBE!', '#bae6fd', 11);
+                    } else {
+                        createParticles(p.x, p.y, p.color || '#06b6d4', 5, 48);
+                    }
                 } else {
                     createParticles(p.x, p.y, p.color || '#06b6d4', 4, 40);
                 }
@@ -653,6 +663,7 @@ function updateGame(dt) {
                             damage: isBossFan ? e.dmg * 0.58 : e.dmg,
                             life: 3.5, fromEnemy: true,
                             isFrost: e.isFrost || false,
+                            isBossFrost: e.type === 'boss' && e.subType === 'frost_boss',
                             freezeDuration: e.freezeDuration || 0,
                             frostSlowDuration: e.frostSlowDuration || 0
                         });
