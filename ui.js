@@ -1753,6 +1753,13 @@ async function submitUsernameAuth() {
         }
     }
 
+    // Never create new password accounts in localStorage: Base64 is reversible, not password hashing.
+    // Keep the legacy local-login path below temporarily so existing local-only players are not locked out.
+    if (authFormMode === 'register') {
+        showAuthError('⚠️ Hesap oluşturmak için güvenli bağlantı gerekli. İnternet bağlantını kontrol edip tekrar dene.');
+        return;
+    }
+
     let accounts = {};
     try { accounts = JSON.parse(localStorage.getItem(LOCAL_ACCOUNTS_KEY) || '{}'); } catch (e) {}
     const key = username.toLowerCase();
