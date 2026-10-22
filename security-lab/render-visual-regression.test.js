@@ -96,6 +96,17 @@ test('enemy identity is grounded in engine definitions: red fast runner and yell
 });
 
 
+test('red runner has original speed grooves and a light leading-edge accent', () => {
+  const start = renderSource.indexOf("case 'runner':");
+  const end = renderSource.indexOf("case 'teleporter':", start);
+  assert.ok(start >= 0 && end > start, 'runner drawing case must exist');
+  const art = renderSource.slice(start, end);
+  assert.match(art, /Hand-cut speed grooves/);
+  assert.match(art, /rgba\(136, 19, 55, 0\.82\)/);
+  assert.match(art, /rgba\(255, 228, 230, 0\.78\)/);
+  assert.match(art, /r \* 0\.68/);
+});
+
 test('ranged marksman has restrained sensor plates and a visible aiming reticle', () => {
   const start = renderSource.indexOf("case 'ranged':");
   const end = renderSource.indexOf("case 'green':", start);
