@@ -53,3 +53,18 @@ test('Google sign-in never fabricates a local identity when Firebase is unavaila
   assert.match(googleHandler, /return signInWithGoogle\(\);/);
   assert.doesNotMatch(googleHandler, /google_sim_|Komutan_\$\{|forceCloudPush|localStorage\.setItem/);
 });
+
+test('offline registration never stores a reversible Base64 password', () => {
+  const auth = extractFunction(
+    uiSource,
+    'async function submitUsernameAuth()',
+    'function openDeleteAccountConfirm()'
+  );
+  const guard = auth.indexOf("if (authFormMode === 'register')");
+  const localStorageAccounts = auth.indexOf('let accounts = {}');
+  assert.ok(guard >= 0 && localStorageAccounts > guard, 'offline registration guard must run before reading/writing local accounts');
+  const guardSection = auth.slice(guard, localStorageAccounts);
+  assert.match(guardSection, /showAuthError\(/);
+  assert.match(guardSection, /return;/);
+  assert.doesNotMatch(guardSection, /btoa\(|localStorage\.setItem/);
+});
