@@ -19,6 +19,7 @@ This is the execution checklist for the isolated `security-hardening-review` bra
 - [x] Made local save, save-code import, and cloud pull fail closed if verification is missing or fails; cloud pulls reject unsigned saves.
 - [x] Clarified that client-side checks are not a security guarantee against modified clients.
 - [x] Documented the account-deletion vs. retained rate-limit metadata trade-off.
+- [x] Added an Android WebView packaging/security plan; no Android wrapper or APK has been built yet.
 
 ## Must do before any production rollout
 
@@ -59,6 +60,15 @@ This is the execution checklist for the isolated `security-hardening-review` bra
 - [ ] Test anti-cheat checks against legitimate reward bursts and long sessions before changing thresholds.
 - [ ] Test desktop, mobile portrait/landscape, browser console, and cross-device account sync.
 
+### P2 — Android/WebView release gates
+
+- [ ] Build the Android wrapper on a separate branch/project; do not change the live Vercel app while prototyping.
+- [ ] Audit external CDN dependencies in `index.html` (Tailwind, Google Fonts, Font Awesome, Firebase SDK). Decide which should be bundled and which intentionally require network access.
+- [ ] Restrict WebView navigation to trusted app content and approved HTTPS destinations; do not expose a broad JavaScript-to-native bridge.
+- [ ] Verify Firebase Auth persistence, Firestore operations, DOM storage, canvas resizing, audio, app pause/resume, and portrait/landscape behavior in the packaged build.
+- [ ] Run the same save/leaderboard/economy abuse cases against a disposable Android test account; APK packaging is not an anti-cheat boundary.
+- [ ] Keep signing keys and all privileged backend credentials out of the web assets and public repository.
+
 ## Release gate
 
-Do not merge the draft PR or deploy Firebase rules until P0 checks are complete, candidate rules/client compatibility is confirmed in a test project, the old-save migration decision is documented, and a preview playtest succeeds. CI passing means the automated checks passed; it does not mean a modified browser client cannot cheat.
+Do not merge the draft PR or deploy Firebase rules until P0 checks are complete, candidate rules/client compatibility is confirmed in a test project, the old-save migration decision is documented, and a preview playtest succeeds. CI passing means the automated checks passed; it does not mean a modified browser client cannot cheat. Android release additionally requires the WebView gates above and a real-device smoke test.
