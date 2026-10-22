@@ -25,6 +25,8 @@ This is the execution checklist for the isolated `security-hardening-review` bra
 - [x] Documented the account-deletion vs. retained rate-limit metadata trade-off.
 - [x] Added an Android WebView packaging/security plan; no Android wrapper or APK has been built yet.
 - [x] First gameplay/UI feature drop: the tower health HUD shows a red pulsing critical state and a “KRİTİK” label at 25% HP or lower; the warning clears above the threshold and respects reduced-motion preferences. Added a regression test.
+- [x] Second gameplay/UI feature drop: every fifth wave's skull warning now explicitly reads “BOSS”, has an accessible status label, and remains hidden on non-boss waves. Added a regression test.
+- [x] Added a separate real-Firebase integration test runbook; live-project tests remain blocked until a disposable Firebase test project is configured.
 
 ## Must do before any production rollout
 
