@@ -27,10 +27,11 @@ function validBoard(overrides = {}) {
 
 async function writeBoard(db, overrides = {}) {
   const batch = writeBatch(db);
+  const board = validBoard(overrides);
   batch.set(doc(db, "leaderboardRateLimits/alice"), {
-    uid: "alice", updatedAt: serverTimestamp()
+    uid: "alice", updatedAt: serverTimestamp(), highestWave: board.highestWave
   }, { merge: true });
-  batch.set(doc(db, "leaderboard/alice"), validBoard(overrides), { merge: true });
+  batch.set(doc(db, "leaderboard/alice"), board, { merge: true });
   return batch.commit();
 }
 
@@ -90,6 +91,13 @@ test("leaderboard deletion remains available, but persistent rate-limit state bl
   await assertSucceeds(writeBoard(db));
   await assertSucceeds(deleteDoc(doc(db, "leaderboard/alice")));
   // Deletion does not remove leaderboardRateLimits/alice; recreating the row immediately is rejected.
+  await assertFails(writeBoard(db, { highestWave: 5000, wave: 5000, damage: 999999999 }));
+  // Even after the normal wait, the persisted highest wave prevents an unlimited jump after deletion.
+  await testEnv.withSecurityRulesDisabled(async context => {
+    await setDoc(doc(context.firestore(), "leaderboardRateLimits/alice"), {
+      uid: "alice", updatedAt: new Date(Date.now() - 60000), highestWave: 10
+    });
+  });
   await assertFails(writeBoard(db, { highestWave: 5000, wave: 5000, damage: 999999999 }));
 });
 
