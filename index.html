@@ -45,6 +45,23 @@
         #hud-top-bar, #hud-hp-card, #hud-wave-card, #hud-quick-stats, #hud-bottom-controls {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        /* First feature drop: clear, non-intrusive low-health feedback. */
+        #hud-hp-card.hud-critical {
+            border-color: rgba(248, 113, 113, 0.9) !important;
+            box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.18), 0 0 22px rgba(239, 68, 68, 0.18);
+            animation: hud-critical-pulse 1.8s ease-in-out infinite;
+        }
+        #ui-hp-bar.hud-critical-bar {
+            background: linear-gradient(90deg, #b91c1c, #fb7185) !important;
+            box-shadow: 0 0 10px rgba(248, 113, 113, 0.65);
+        }
+        @keyframes hud-critical-pulse {
+            0%, 100% { box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.12), 0 0 10px rgba(239, 68, 68, 0.10); }
+            50% { box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.28), 0 0 22px rgba(239, 68, 68, 0.24); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #hud-hp-card.hud-critical { animation: none; }
+        }
         
         .playing-card {
             width: 42px; height: 60px; background: #ffffff; color: #0f172a; border-radius: 6px;
@@ -245,7 +262,7 @@
                 <div id="hud-hp-card" class="bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-1.5 sm:p-2 rounded-xl w-[155px] sm:w-52 shadow-lg pointer-events-auto tablet-compact flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between text-[10px] sm:text-xs mb-0.5">
-                            <span class="font-semibold text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-heart-pulse"></i> Can</span>
+                            <span class="font-semibold text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-heart-pulse"></i> Can <span id="ui-hp-critical" class="hidden px-1 py-0.5 rounded bg-red-500/20 border border-red-400/40 text-red-300 text-[8px] font-bold tracking-wide">KRİTİK</span></span>
                             <span id="ui-hp-text" class="font-tech font-bold text-slate-200 text-shrink">100 / 100</span>
                         </div>
                         <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-1 border border-slate-700/50">
