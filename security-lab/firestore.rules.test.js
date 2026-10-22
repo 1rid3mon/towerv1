@@ -182,3 +182,24 @@ test("leaderboard reads are public by design", async () => {
   });
   await assertSucceeds(getDoc(doc(db, "leaderboard/alice")));
 });
+
+test("user save payload above the 200000-character limit is rejected", async () => {
+  const db = testEnv.authenticatedContext("alice").firestore();
+  await assertFails(setDoc(doc(db, "users/alice"), {
+    username: "Alice", saveData: "x".repeat(200001), highestWave: 1, updatedAt: Date.now()
+  }));
+});
+
+test("user document rejects a highestWave above the configured maximum", async () => {
+  const db = testEnv.authenticatedContext("alice").firestore();
+  await assertFails(setDoc(doc(db, "users/alice"), {
+    username: "Alice", saveData: "{}", highestWave: 5001, updatedAt: Date.now()
+  }));
+});
+
+test("user document rejects an oversized username", async () => {
+  const db = testEnv.authenticatedContext("alice").firestore();
+  await assertFails(setDoc(doc(db, "users/alice"), {
+    username: "A".repeat(61), saveData: "{}", highestWave: 1, updatedAt: Date.now()
+  }));
+});
