@@ -1161,11 +1161,12 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.lineTo(r * 0.02, r * 0.48);
             c.stroke();
             c.fillStyle = '#f8fafc';
-            for (const bolt of [[-0.45, -0.45], [-0.45, 0.45], [0.52, -0.45], [0.52, 0.45]]) {
-                c.beginPath();
-                c.arc(r * bolt[0], r * bolt[1], Math.max(0.8, r * 0.055), 0, Math.PI * 2);
-                c.fill();
-            }
+            c.beginPath();
+            c.arc(-r * 0.45, -r * 0.45, Math.max(0.8, r * 0.055), 0, Math.PI * 2);
+            c.arc(-r * 0.45, r * 0.45, Math.max(0.8, r * 0.055), 0, Math.PI * 2);
+            c.arc(r * 0.52, -r * 0.45, Math.max(0.8, r * 0.055), 0, Math.PI * 2);
+            c.arc(r * 0.52, r * 0.45, Math.max(0.8, r * 0.055), 0, Math.PI * 2);
+            c.fill();
             c.fillStyle = 'rgba(148, 163, 184, 0.8)';
             c.fillRect(-r * 0.55, -r * 0.10, r * 0.16, r * 0.20);
             c.restore();
