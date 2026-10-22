@@ -70,3 +70,20 @@ The owner should confirm whether the leaderboard is meant to be:
 2. A competitive leaderboard where scores must be defensible against modified clients.
 
 For option 2, server-authoritative score validation is required; a server that merely stores browser-submitted values is not enough.
+
+## Account deletion and retained anti-abuse metadata
+
+The candidate rules intentionally deny client deletion of `leaderboardRateLimits/{uid}`; otherwise, a user could delete the limiter and immediately recreate a leaderboard row to bypass cooldowns. The current client-side `deleteMyAccount()` deletes `leaderboard/{uid}`, `users/{uid}`, and the Firebase Auth user, but it does not delete the rate-limit document. That is a deliberate anti-abuse trade-off, but it means the UI's “permanently deleted” wording can overstate what is removed.
+
+Before production rollout, choose and implement one of these approaches:
+
+1. **Preferred: trusted deletion endpoint.** Require a freshly authenticated request, derive UID from the verified identity, delete the user's save and leaderboard data, and remove or anonymize the limiter as part of a controlled server-side deletion workflow. The endpoint must not accept an arbitrary UID from the client.
+2. **Explicit retention policy.** If keeping the limiter is necessary to prevent account recreation abuse, document its minimal fields, purpose, and retention period; use a server-managed expiry/cleanup process where compatible with the anti-abuse policy, and adjust the UI copy so it does not imply every backend metadata record vanishes immediately.
+3. **Do not** simply permit clients to delete the limiter. That reopens the delete/recreate bypass this candidate rule is intended to close.
+
+This is not yet implemented. The candidate emulator test currently verifies that the limiter cannot be client-deleted and survives deletion of the public leaderboard row. Add tests for the chosen deletion workflow before promoting the candidate rules.
+
+## Deployment prerequisites for a trusted backend
+
+No Cloud Functions source/configuration is present in this repository snapshot, so do not add a callable endpoint to the browser and assume it is trusted. Before coding/deploying one, confirm the Firebase project is configured for Functions, select the supported runtime and billing plan, create a separate test project or emulator suite, and keep any Admin SDK credentials out of the client and repository. A function that accepts client-provided currency or score values and writes them with Admin privileges is not a security fix.
+
