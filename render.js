@@ -1587,6 +1587,81 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
     }
 
     drawEnemyInkAccents(c, kind, r, faceAngle, isHit);
+
+    // v1.1.0: elite enemies get their own silhouette and layered armor, not just a ring.
+    if (e.isElite) {
+        const pulse = 1 + Math.sin(nowTime * 0.009 + (e.animPhase || 0)) * 0.045;
+        c.save();
+        c.rotate(nowTime * 0.00075 + (e.animPhase || 0) * 0.35);
+
+        // Six uneven armor fins create a jagged, readable silhouette.
+        c.fillStyle = isHit ? '#ffffff' : '#92400e';
+        c.strokeStyle = isHit ? '#ffffff' : '#fbbf24';
+        c.lineWidth = Math.max(1.2, r * 0.075);
+        c.beginPath();
+        for (let i = 0; i < 12; i++) {
+            const a = i * Math.PI / 6;
+            const rad = i % 2 === 0 ? r * 1.34 : r * 1.08;
+            const px = Math.cos(a) * rad;
+            const py = Math.sin(a) * rad;
+            if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+        }
+        c.closePath(); c.fill(); c.stroke();
+
+        // Segmented plates and rivets suggest a creature encased in forged metal.
+        c.fillStyle = isHit ? '#ffffff' : '#d97706';
+        c.strokeStyle = '#fde68a';
+        c.lineWidth = Math.max(0.8, r * 0.04);
+        for (let i = 0; i < 6; i++) {
+            const a = i * Math.PI / 3;
+            c.save();
+            c.rotate(a);
+            c.beginPath();
+            c.moveTo(r * 0.60, -r * 0.18);
+            c.lineTo(r * 0.98, -r * 0.28);
+            c.lineTo(r * 1.08, 0);
+            c.lineTo(r * 0.98, r * 0.28);
+            c.lineTo(r * 0.60, r * 0.18);
+            c.closePath(); c.fill(); c.stroke();
+            c.fillStyle = '#fff7ed';
+            c.beginPath(); c.arc(r * 0.88, 0, Math.max(0.8, r * 0.045), 0, Math.PI * 2); c.fill();
+            c.restore();
+            c.fillStyle = isHit ? '#ffffff' : '#d97706';
+        }
+
+        c.restore();
+
+        // A compact energy core stays visible even on small mobile screens.
+        c.save();
+        c.rotate(faceAngle);
+        const coreR = Math.max(2.2, r * 0.24 * pulse);
+        c.shadowColor = '#f59e0b';
+        c.shadowBlur = Math.min(9, r * 0.35);
+        c.fillStyle = isHit ? '#ffffff' : '#451a03';
+        c.strokeStyle = '#fef3c7';
+        c.lineWidth = Math.max(1, r * 0.06);
+        c.beginPath();
+        c.moveTo(r * 0.12, -coreR * 1.45);
+        c.lineTo(r * 0.62, 0);
+        c.lineTo(r * 0.12, coreR * 1.45);
+        c.lineTo(-r * 0.22, 0);
+        c.closePath(); c.fill(); c.stroke();
+
+        c.shadowBlur = 0;
+        c.fillStyle = isHit ? '#ffffff' : '#fde047';
+        c.beginPath();
+        c.ellipse(r * 0.16, 0, Math.max(1.2, coreR * 0.42), Math.max(1.2, coreR * 0.72), 0, 0, Math.PI * 2);
+        c.fill();
+
+        // Tiny brow ridges sharpen the face without hiding each enemy's original features.
+        c.strokeStyle = '#451a03';
+        c.lineWidth = Math.max(1, r * 0.07);
+        c.beginPath();
+        c.moveTo(r * 0.08, -r * 0.34); c.lineTo(r * 0.48, -r * 0.23);
+        c.moveTo(r * 0.08, r * 0.34); c.lineTo(r * 0.48, r * 0.23);
+        c.stroke();
+        c.restore();
+    }
 }
 
 // =======================================================
