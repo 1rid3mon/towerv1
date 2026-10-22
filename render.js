@@ -892,6 +892,69 @@ function adjustColorBrightness(col, amt) {
 // =======================================================
 // ÖZEL DÜŞMAN VE BOSS GÖRSEL ÇİZİM MOTORU
 // =======================================================
+// Shared hand-ink pass: a few restrained seams and edge catches tie every enemy family together.
+function drawEnemyInkAccents(c, kind, r, faceAngle, isHit) {
+    if (isHit || r < 5) return;
+
+    let seam = 'rgba(15, 23, 42, 0.46)';
+    let edge = 'rgba(255, 255, 255, 0.34)';
+    if (kind === 'frost' || kind === 'frost_boss') {
+        seam = 'rgba(8, 47, 73, 0.62)';
+        edge = 'rgba(224, 242, 254, 0.72)';
+    } else if (kind === 'tank' || kind === 'tank_boss') {
+        seam = 'rgba(15, 23, 42, 0.66)';
+        edge = 'rgba(226, 232, 240, 0.58)';
+    } else if (kind === 'leviathan' || kind === 'boss') {
+        seam = 'rgba(30, 10, 55, 0.68)';
+        edge = 'rgba(216, 180, 254, 0.52)';
+    } else if (kind === 'speed_boss' || kind === 'runner') {
+        seam = 'rgba(76, 5, 25, 0.58)';
+        edge = 'rgba(255, 228, 230, 0.54)';
+    } else if (kind === 'ranged' || kind === 'ranged_boss') {
+        seam = 'rgba(8, 47, 73, 0.60)';
+        edge = 'rgba(186, 230, 253, 0.58)';
+    } else if (kind === 'teleporter') {
+        seam = 'rgba(120, 53, 15, 0.58)';
+        edge = 'rgba(254, 240, 138, 0.60)';
+    }
+
+    c.save();
+    c.rotate(faceAngle);
+    c.lineCap = 'round';
+    c.lineJoin = 'round';
+    c.lineWidth = Math.max(0.8, r * 0.035);
+    c.strokeStyle = seam;
+    c.beginPath();
+    c.moveTo(-r * 0.48, -r * 0.20);
+    c.lineTo(-r * 0.30, -r * 0.08);
+    c.lineTo(-r * 0.36, r * 0.08);
+    c.moveTo(-r * 0.18, r * 0.34);
+    c.lineTo(-r * 0.05, r * 0.25);
+    c.stroke();
+
+    c.strokeStyle = edge;
+    c.lineWidth = Math.max(0.7, r * 0.025);
+    c.beginPath();
+    c.moveTo(-r * 0.54, -r * 0.42);
+    c.lineTo(-r * 0.40, -r * 0.48);
+    c.moveTo(r * 0.18, -r * 0.58);
+    c.lineTo(r * 0.30, -r * 0.52);
+    c.stroke();
+
+    // Bosses get one extra old scar, not a bigger glow or a busier particle effect.
+    if (kind === 'tank_boss' || kind === 'ranged_boss' || kind === 'speed_boss' ||
+        kind === 'frost_boss' || kind === 'leviathan' || kind === 'boss') {
+        c.strokeStyle = seam;
+        c.lineWidth = Math.max(1, r * 0.045);
+        c.beginPath();
+        c.moveTo(-r * 0.30, -r * 0.05);
+        c.lineTo(-r * 0.12, r * 0.02);
+        c.lineTo(-r * 0.20, r * 0.18);
+        c.stroke();
+    }
+    c.restore();
+}
+
 function drawCustomEnemy(c, e, tx, ty, nowTime) {
     const r = e.radius;
     const isHit = e.hitFlash > 0;
@@ -1419,6 +1482,8 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             break;
         }
     }
+
+    drawEnemyInkAccents(c, kind, r, faceAngle, isHit);
 }
 
 // =======================================================
