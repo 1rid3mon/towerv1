@@ -90,3 +90,8 @@ test('Firebase registration explains that a taken username cannot be reused', ()
   assert.match(uiSource, /auth\/email-already-in-use/);
   assert.match(uiSource, /Bu kullanıcı adı alınmış! Lütfen başka bir kullanıcı adı seç veya Giriş Yap sekmesini kullan\./);
 });
+
+test('leaderboard discloses that scores are client-reported and not server-verified', () => {
+  const indexSource = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  assert.match(indexSource, /Sıralama puanları şu an oyun istemcisinden bildirilir; henüz sunucu tarafından oynanışla doğrulanmaz\./);
+});
