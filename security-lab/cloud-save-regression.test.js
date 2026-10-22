@@ -55,11 +55,11 @@ test('cloud pull verifies signature and shape before applying a remote save', ()
   const pullEnd = uiSource.indexOf('\nfunction getDefaultRivalsForLeaderboard()', pullStart);
   assert.ok(pullStart >= 0 && pullEnd > pullStart);
   const pull = uiSource.slice(pullStart, pullEnd);
+  const shapeCheck = pull.indexOf('if (!isCompatibleSaveShape(cloudGame))');
   const signatureCheck = pull.indexOf('!cloudGame._sig || typeof window._verifySaveSignature');
-  const shapeCheck = pull.indexOf('if (cloudGame && !isCompatibleSaveShape(cloudGame))');
   const apply = pull.indexOf('applyParsedGameData(cloudGame)');
-  assert.ok(signatureCheck >= 0 && shapeCheck > signatureCheck && apply > shapeCheck,
-    'remote data must pass signature and shape checks before state application');
+  assert.ok(shapeCheck >= 0 && signatureCheck > shapeCheck && apply > signatureCheck,
+    'remote data must pass bounded shape validation before signature traversal and state application');
 });
 
 test('cloud push signs V2 state and writes only under the authenticated current UID', () => {
