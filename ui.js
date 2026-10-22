@@ -1710,7 +1710,13 @@ async function submitUsernameAuth() {
             refreshLeaderboard(false);
             return;
         } catch (err) {
-            showAuthError(`❌ Giriş Hatası: ${err.message || 'Bilgileri kontrol et.'}`);
+            if (authFormMode === 'register' && err && err.code === 'auth/email-already-in-use') {
+                showAuthError('⚠️ Bu kullanıcı adı alınmış! Lütfen başka bir kullanıcı adı seç veya Giriş Yap sekmesini kullan.');
+            } else if (err && (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found')) {
+                showAuthError('❌ Kullanıcı adı veya şifre hatalı. Bilgilerini kontrol et.');
+            } else {
+                showAuthError(`❌ Giriş Hatası: ${err.message || 'Bilgileri kontrol et.'}`);
+            }
             return;
         }
     }
