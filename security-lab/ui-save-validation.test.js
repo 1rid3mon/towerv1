@@ -95,3 +95,14 @@ test('leaderboard discloses that scores are client-reported and not server-verif
   const indexSource = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
   assert.match(indexSource, /Sıralama puanları şu an oyun istemcisinden bildirilir; henüz sunucu tarafından oynanışla doğrulanmaz\./);
 });
+
+test('critical-health HUD warning activates at 25% HP and clears above the threshold', () => {
+  const indexSource = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  assert.match(indexSource, /id="ui-hp-critical"[^>]*>KRİTİK<\/span>/);
+  assert.match(indexSource, /#hud-hp-card\.hud-critical/);
+  assert.match(indexSource, /#ui-hp-bar\.hud-critical-bar/);
+  assert.match(uiSource, /const isCriticalHp = tower\.hp > 0 && hpRatio <= 0\.25;/);
+  assert.match(uiSource, /hpCard\.classList\.toggle\('hud-critical', isCriticalHp\)/);
+  assert.match(uiSource, /hpBar\.classList\.toggle\('hud-critical-bar', isCriticalHp\)/);
+  assert.match(uiSource, /hpCriticalBadge\.classList\.toggle\('hidden', !isCriticalHp\)/);
+});
