@@ -32,3 +32,31 @@ test('creature art remains procedural canvas drawing with no new asset/network d
   assert.doesNotMatch(renderSource, /https?:\/\//);
   assert.doesNotMatch(renderSource, /new Image\(/);
 });
+
+test('frost art has uneven fracture and highlight strokes', () => {
+ const start = renderSource.indexOf("case 'frost':");
+ const end = renderSource.indexOf("case 'runner':", start);
+ const art = renderSource.slice(start, end);
+ assert.ok(start >= 0 && end > start);
+ assert.match(art, /Natural fracture lines/);
+ assert.match(art, /rgba\(8, 47, 73, 0\.72\)/);
+ assert.match(art, /rgba\(255, 255, 255, 0\.78\)/);
+});
+
+test('frost boss has a distinct glacier seam', () => {
+ const start = renderSource.indexOf("case 'frost_boss':");
+ const end = renderSource.indexOf("case 'leviathan':", start);
+ const art = renderSource.slice(start, end);
+ assert.ok(start >= 0 && end > start);
+ assert.match(art, /old-glacier feel/);
+ assert.match(art, /#67e8f9/);
+});
+
+test('leviathan has asymmetrical worn plate details', () => {
+ const start = renderSource.indexOf("case 'leviathan':");
+ const end = renderSource.indexOf("case 'tank':", start);
+ const art = renderSource.slice(start, end);
+ assert.ok(start >= 0 && end > start);
+ assert.match(art, /Two worn plates/);
+ assert.match(art, /rgba\(30, 10, 55, 0\.85\)/);
+});
