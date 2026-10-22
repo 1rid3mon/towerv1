@@ -51,6 +51,11 @@ test('save-shape validator accepts compatible saves and rejects malformed known 
   assert.equal(validate({ gold: Number.NaN }), false);
   assert.equal(validate({ inventory: new Array(5001) }), false);
   assert.equal(validate({ inventory: [{ id: 'item_1' }] }), false);
+  assert.equal(validate({ extraField: 'x'.repeat(1001) }), false);
+  const deepPayload = {};
+  let cursor = deepPayload;
+  for (let i = 0; i < 14; i++) { cursor.child = {}; cursor = cursor.child; }
+  assert.equal(validate({ extraField: deepPayload }), false);
   assert.equal(validate([]), false);
 });
 
