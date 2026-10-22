@@ -55,5 +55,5 @@ test('save-shape validator accepts compatible saves and rejects malformed known 
 test('all cloud/local save paths validate shape before applying parsed state', () => {
   assert.match(uiSource, /if \(!isCompatibleSaveShape\(parsed\)\)/);
   assert.match(uiSource, /if \(cloudGame && !isCompatibleSaveShape\(cloudGame\)\)/);
-  assert.match(uiSource, /function applyParsedGameData\(parsed\) \{\\s*if \(!isCompatibleSaveShape\(parsed\)\) return false;/);
+  assert.match(uiSource, /function applyParsedGameData\(parsed\) \{\s*if \(!isCompatibleSaveShape\(parsed\)\) return false;/);
 });
