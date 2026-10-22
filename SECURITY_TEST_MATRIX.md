@@ -23,7 +23,7 @@ Run these in the Firebase Emulator with authenticated test users; do not experim
 | User A reads/writes User A document | Allowed only when schema and limits are valid |
 | User A reads/writes User B document | Denied |
 | Unauthenticated user writes user or leaderboard documents | Denied |
-| Invalid/oversized saveData or extra fields | Denied |
+| saveData over 200000 characters, username over 60 characters, or highestWave above 5000 | Denied (automated emulator tests) |\n| Extra fields | Review separately; the current candidate policy permits some extra user fields within the overall key-count limit |
 | Negative or nonnumeric wave/currency fields where validated | Denied |
 | Leaderboard timestamp supplied by client instead of serverTimestamp | Denied |
 | Rapid leaderboard update | Denied within the configured interval |
