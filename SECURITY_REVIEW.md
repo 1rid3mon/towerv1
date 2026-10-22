@@ -30,6 +30,11 @@ The 400 ms shadow check and browser-side cheatFlags can deter casual edits, but 
 
 **Safe direction:** do not increase or tighten these thresholds blindly. Test legitimate high-wave sessions and move important validation server-side.
 
+### Low — Local fallback passwords are only Base64-encoded
+When Firebase is unavailable, the fallback account flow stores a Base64-encoded password in browser localStorage. Base64 is reversible encoding, not password hashing or encryption, so anyone with access to that browser profile can recover it.
+
+**Safe direction:** do not store real/reused passwords in the local fallback. A future low-risk improvement is to make the fallback explicitly local-only and use a non-secret local profile identifier, or disable password-style local accounts when Firebase is unavailable. This should be tested against offline play before changing behavior.
+
 ### Medium — Firestore rules supplied in chat need targeted edge-case tests
 The supplied rules enforce owner access, data shape/size limits, leaderboard numeric ranges, server timestamps, and an update interval. Review these cases in the Firebase Emulator before changing production rules:
 - first leaderboard creation, deletion/recreation, and rapid re-creation; the candidate rule blocks deletion of an existing leaderboard row but still allows a fabricated score on first creation;
