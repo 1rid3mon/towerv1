@@ -60,3 +60,25 @@ test('leviathan has asymmetrical worn plate details', () => {
  assert.match(art, /Two worn plates/);
  assert.match(art, /rgba\(30, 10, 55, 0\.85\)/);
 });
+
+test('all enemy families receive the same restrained hand-ink pass', () => {
+  const start = renderSource.indexOf('function drawEnemyInkAccents');
+  const end = renderSource.indexOf('function drawCustomEnemy', start);
+  assert.ok(start >= 0 && end > start, 'shared ink helper must exist before the enemy renderer');
+  const helper = renderSource.slice(start, end);
+  for (const kind of ['frost', 'frost_boss', 'tank', 'tank_boss', 'leviathan', 'boss', 'runner', 'speed_boss', 'ranged', 'ranged_boss', 'teleporter']) {
+    assert.ok(helper.includes("kind === '" + kind + "'"), 'shared material mapping should include ' + kind);
+  }
+  assert.match(renderSource, /drawEnemyInkAccents\(c, kind, r, faceAngle, isHit\);/);
+  assert.match(helper, /if \(isHit \|\| r < 5\) return/);
+});
+
+test('shared enemy art pass stays lightweight and adds no asset or animation dependency', () => {
+  const start = renderSource.indexOf('function drawEnemyInkAccents');
+  const end = renderSource.indexOf('function drawCustomEnemy', start);
+  const helper = renderSource.slice(start, end);
+  assert.doesNotMatch(helper, /new Image\(|requestAnimationFrame|createRadialGradient|https?:\/\//);
+  assert.match(helper, /Bosses get one extra old scar/);
+  assert.match(helper, /c\.save\(\);/);
+  assert.match(helper, /c\.restore\(\);/);
+});
