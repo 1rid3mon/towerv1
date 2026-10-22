@@ -622,8 +622,14 @@ function updateGame(dt) {
                 if (currDist > 75) {
                     const dashDist = Math.min(currDist - 38, 65);
                     const ang = Math.atan2(tower.y - e.y, tower.x - e.x);
+                    const dashStartX = e.x, dashStartY = e.y;
+                    createParticles(dashStartX, dashStartY, '#ef4444', 7, 72);
+                    createParticles(dashStartX, dashStartY, '#fecaca', 4, 48);
                     e.x += Math.cos(ang) * dashDist; e.y += Math.sin(ang) * dashDist;
-                    createParticles(e.x, e.y, '#ef4444', 10, 95);
+                    rings.push({ x: dashStartX, y: dashStartY, radius: 18, color: '#ef4444', life: 0.45 });
+                    rings.push({ x: e.x, y: e.y, radius: 25, color: '#fca5a5', life: 0.58 });
+                    createParticles(e.x, e.y, '#ef4444', 12, 105);
+                    createParticles(e.x, e.y, '#fecaca', 6, 62);
                     addFloatingText(e.x, e.y, '⚡ ATILDI!', '#fca5a5', 11);
                 }
             }
