@@ -1351,6 +1351,28 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
 
             c.fillStyle = '#fef08a';
             c.beginPath(); c.arc(r * 0.25, 0, r * 0.22, 0, Math.PI * 2); c.fill();
+
+            // Hand-cut speed grooves: dark, offset marks rather than a copied texture.
+            c.strokeStyle = 'rgba(136, 19, 55, 0.82)';
+            c.lineWidth = Math.max(0.7, r * 0.065);
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(-r * 0.42, -r * 0.43);
+            c.lineTo(-r * 0.12, -r * 0.22);
+            c.moveTo(-r * 0.42, r * 0.43);
+            c.lineTo(-r * 0.12, r * 0.22);
+            c.moveTo(r * 0.18, -r * 0.38);
+            c.lineTo(r * 0.48, -r * 0.18);
+            c.stroke();
+
+            c.strokeStyle = 'rgba(255, 228, 230, 0.78)';
+            c.lineWidth = Math.max(0.6, r * 0.045);
+            c.beginPath();
+            c.moveTo(r * 0.68, 0);
+            c.lineTo(r * 0.38, -r * 0.13);
+            c.moveTo(r * 0.38, r * 0.13);
+            c.lineTo(r * 0.68, 0);
+            c.stroke();
             c.restore();
             break;
         }
