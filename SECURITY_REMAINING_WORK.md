@@ -64,8 +64,10 @@ This is the execution checklist for the isolated `security-hardening-review` bra
 
 - [ ] Choose an explicit retention policy for `leaderboardRateLimits/{uid}`.
 - [ ] Implement a trusted deletion workflow that authenticates the caller, derives UID server-side, deletes/anonymizes intended records, and handles retries.
-- [ ] Ensure the UI does not claim all backend data is deleted while rate-limit metadata remains.
-- [ ] Test recent-login failures, partial failures, retries, and orphan cleanup. Do not simply allow clients to delete the limiter.
+- [x] Client UI reports Firestore/Auth deletion failures instead of silently claiming success, and the success notice warns that separate security records may remain.
+- [ ] Test recent-login failures, partial failures, retries, and orphan cleanup in a disposable Firebase test project. Do not simply allow clients to delete the limiter.
+
+**Current limitation:** this is honest client-side error reporting, not an atomic deletion workflow. The current sequence can delete game documents before Firebase Auth rejects deletion for a recent-login requirement. A trusted backend workflow is still needed to avoid partial deletion and clean up retained rate-limit records safely.
 
 ### P2 — Local fallback and client hardening
 
