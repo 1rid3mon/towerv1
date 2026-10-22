@@ -1223,8 +1223,17 @@ function updateHUD() {
     setElText('ui-crystals', formatNumber(game.crystals));
     setElText('ui-souls', formatNumber(game.souls));
     setElText('ui-hp-text', `${formatNumber(tower.hp)} / ${formatNumber(tower.maxHp)}`);
+    const hpRatio = Math.max(0, Math.min(1, tower.hp / Math.max(1, tower.maxHp)));
     const hpBar = document.getElementById('ui-hp-bar');
-    if (hpBar) hpBar.style.width = `${Math.max(0, Math.min(100, (tower.hp / Math.max(1, tower.maxHp)) * 100))}%`;
+    const hpCard = document.getElementById('hud-hp-card');
+    const hpCriticalBadge = document.getElementById('ui-hp-critical');
+    const isCriticalHp = tower.hp > 0 && hpRatio <= 0.25;
+    if (hpBar) {
+        hpBar.style.width = `${hpRatio * 100}%`;
+        hpBar.classList.toggle('hud-critical-bar', isCriticalHp);
+    }
+    if (hpCard) hpCard.classList.toggle('hud-critical', isCriticalHp);
+    if (hpCriticalBadge) hpCriticalBadge.classList.toggle('hidden', !isCriticalHp);
 
     const shieldCont = document.getElementById('shield-container');
     if (shieldCont) {
