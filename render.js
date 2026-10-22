@@ -2308,6 +2308,23 @@ function renderGame() {
             ctx.restore();
         }
 
+        // Armored Titan wind-up: a ground warning ring marks its next heavy strike.
+        if (e.type === 'boss' && e.subType === 'tank_boss' &&
+            Math.hypot(tower.x - e.x, tower.y - e.y) <= (e.stopDistOverride || 38) + 12 &&
+            e.attackCooldown > 0 && e.attackCooldown <= 0.55) {
+            const progress = 1 - e.attackCooldown / 0.55;
+            ctx.save();
+            ctx.globalAlpha = 0.25 + progress * 0.55;
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 2 + progress * 1.5;
+            ctx.setLineDash([5, 4]);
+            ctx.beginPath();
+            ctx.arc(tower.x, tower.y, 25 + progress * 24, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+        }
+
         drawCustomEnemy(ctx, e, tx, ty, nowCompTime);
 
         if (e.hp < e.maxHp || e.type === 'boss' || e.isElite) {
