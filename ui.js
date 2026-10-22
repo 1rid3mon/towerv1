@@ -1464,7 +1464,28 @@ function loadGame() {
             try { if (typeof showToast === 'function') showToast('🛡️ Kayıt imzası geçersiz. Hesabın varsa bulut kaydın yüklenecek.'); } catch (e3) {}
             return;
         }
+        const isUnsignedLegacySave = !parsed._sig;
         applyParsedGameData(parsed);
+
+        // One-time local migration: preserve the original bytes before upgrading an accepted
+        // unsigned legacy save. Cloud saves and imported save codes use separate, stricter paths.
+        if (isUnsignedLegacySave && typeof window._generateSaveSignature === 'function') {
+            try {
+                const legacyBackupKey = SAVE_KEY + '_legacy_migration_backup';
+                if (!localStorage.getItem(legacyBackupKey)) {
+                    localStorage.setItem(legacyBackupKey, raw);
+                }
+                game._sigVersion = 2;
+                game._sig = window._generateSaveSignature(game);
+                if (game._sig) {
+                    localStorage.setItem(SAVE_KEY, JSON.stringify(game));
+                    localStorage.setItem(SIGNED_MARK_KEY, '1');
+                }
+            } catch (migrationError) {
+                // Keep the in-memory load usable; never report migration as successful here.
+                console.warn('Eski kayıt yükseltilemedi; yedek ve kayıt alanı korunmaya çalışıldı.', migrationError);
+            }
+        }
     } catch (e) {}
 }
 
