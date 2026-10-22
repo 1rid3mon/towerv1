@@ -20,6 +20,7 @@ This is the execution checklist for the isolated `security-hardening-review` bra
 - [x] Expanded adversarial V2 checksum tests across gold, crystals, souls, wave progression, prestige, skin ownership/selection, and companion state; these tests prove stale checksums are rejected, not that a modified client cannot regenerate them.
 - [x] Made local save, save-code import, and cloud pull fail closed if verification is missing or fails; cloud pulls reject unsigned saves.
 - [x] Added structural save validation for local, imported, and cloud saves; malformed known fields, oversized strings, and excessively deep/large unknown payloads are rejected before state application, with regression tests.
+- [x] Cloud pull now runs bounded shape validation immediately after parsing the Firebase JSON and before signature verification traverses the payload; regression coverage asserts shape-check → signature-check → state-apply ordering. Latest CI run #220 passed JavaScript syntax checks and Firestore Emulator tests.
 - [x] Added regression coverage for leaderboard username HTML escaping to reduce the risk of stored XSS from client-controlled profile names.
 - [x] Password-based registration now displays a clear “username already taken” message when Firebase rejects a duplicate synthetic username email; credential errors use clearer login feedback.
 - [x] Clarified that client-side checks are not a security guarantee against modified clients.
