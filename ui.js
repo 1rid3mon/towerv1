@@ -1227,6 +1227,7 @@ function updateHUD() {
     const hpBar = document.getElementById('ui-hp-bar');
     const hpCard = document.getElementById('hud-hp-card');
     const hpCriticalBadge = document.getElementById('ui-hp-critical');
+    const hpText = document.getElementById('ui-hp-text');
     const isCriticalHp = tower.hp > 0 && hpRatio <= 0.25;
     if (hpBar) {
         hpBar.style.width = `${hpRatio * 100}%`;
@@ -1234,6 +1235,7 @@ function updateHUD() {
     }
     if (hpCard) hpCard.classList.toggle('hud-critical', isCriticalHp);
     if (hpCriticalBadge) hpCriticalBadge.classList.toggle('hidden', !isCriticalHp);
+    if (hpText) hpText.classList.toggle('hud-critical-text', isCriticalHp);
 
     const shieldCont = document.getElementById('shield-container');
     if (shieldCont) {
