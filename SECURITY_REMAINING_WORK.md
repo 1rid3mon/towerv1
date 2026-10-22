@@ -23,7 +23,8 @@ This is the execution checklist for the isolated `security-hardening-review` bra
 - [x] Cloud pull now runs bounded shape validation immediately after parsing the Firebase JSON and before signature verification traverses the payload; regression coverage asserts shape-check → signature-check → state-apply ordering. Latest CI run #220 passed JavaScript syntax checks and Firestore Emulator tests.
 - [x] Added regression coverage for leaderboard username HTML escaping to reduce the risk of stored XSS from client-controlled profile names.
 - [x] Password-based registration now displays a clear “username already taken” message when Firebase rejects a duplicate synthetic username email; credential errors use clearer login feedback.
-- [x] Removed the simulated Google-login fallback: if Firebase/Google Auth is unavailable, the game now reports that real sign-in is unavailable instead of creating a fake `google_sim_` identity. Added regression coverage; latest security CI run #238 passed.
+- [x] Removed the simulated Google-login fallback: if Firebase/Google Auth is unavailable, the game now reports that real sign-in is unavailable instead of creating a fake `google_sim_` identity. Added regression coverage; security CI run #238 passed.
+- [x] Blocked creation of new local-only password accounts when Firebase is unavailable, preventing new reversible Base64 passwords from being stored. Existing local-only account login is temporarily preserved to avoid locking out legacy users; legacy password storage still needs a tested migration/removal plan.
 - [x] Clarified that client-side checks are not a security guarantee against modified clients.
 - [x] Added a visible leaderboard notice explaining that scores are client-reported and not yet server-verified, with a regression test.
 - [x] Documented the account-deletion vs. retained rate-limit metadata trade-off.
@@ -77,7 +78,7 @@ This is the execution checklist for the isolated `security-hardening-review` bra
 
 ### P2 — Local fallback and client hardening
 
-- [ ] Remove Base64-encoded passwords from localStorage by replacing password-style local fallback with a clearly local-only profile, or disable password-style fallback when Firebase is unavailable. Test offline play and account migration first.
+- [ ] Migrate or retire legacy Base64-encoded passwords already stored in localStorage. New offline registrations are blocked, but legacy local-only login remains temporarily for compatibility. Design a recovery path before removing it so existing local users are not locked out.
 - [ ] Treat `_generateSaveSignature`, `_verifySaveSignature`, `_syncShadow`, and `_isSessionClean` as diagnostics only; a modified client can alter or call them.
 - [ ] Test anti-cheat checks against legitimate reward bursts and long sessions before changing thresholds.
 - [ ] Test desktop, mobile portrait/landscape, browser console, and cross-device account sync.
