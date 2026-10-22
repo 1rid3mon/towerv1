@@ -49,6 +49,7 @@ test('save-shape validator accepts compatible saves and rejects malformed known 
   assert.equal(validate({ gold: 10, settings: 'not-an-object' }), false);
   assert.equal(validate({ gold: Number.NaN }), false);
   assert.equal(validate({ inventory: new Array(5001) }), false);
+  assert.equal(validate({ inventory: [{ id: 'item_1' }] }), false);
   assert.equal(validate([]), false);
 });
 
