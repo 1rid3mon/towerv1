@@ -94,3 +94,15 @@ test('enemy identity is grounded in engine definitions: red fast runner and yell
   assert.match(helper, /kind === 'runner'[\s\S]*?rgba\(76, 5, 25, 0\.58\)/);
   assert.match(helper, /kind === 'teleporter'[\s\S]*?rgba\(254, 240, 138, 0\.60\)/);
 });
+
+
+test('ranged marksman has restrained sensor plates and a visible aiming reticle', () => {
+  const start = renderSource.indexOf("case 'ranged':");
+  const end = renderSource.indexOf("case 'green':", start);
+  assert.ok(start >= 0 && end > start, 'ranged enemy drawing case must exist');
+  const art = renderSource.slice(start, end);
+  assert.match(art, /worn sensor plates/);
+  assert.match(art, /rgba\(7, 89, 133, 0\.82\)/);
+  assert.match(art, /rgba\(224, 242, 254, 0\.78\)/);
+  assert.match(art, /r \* 0\.66/);
+});
