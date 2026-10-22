@@ -1082,6 +1082,26 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.arc(-4, -2, 2.2, 0, Math.PI * 2);
             c.arc(4, -2, 2.2, 0, Math.PI * 2);
             c.fill();
+
+            // A darker, off-centre ice seam gives the boss a carved, old-glacier feel.
+            c.strokeStyle = 'rgba(7, 89, 133, 0.82)';
+            c.lineWidth = Math.max(1, r * 0.045);
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(-r * 0.48, -r * 0.18);
+            c.lineTo(-r * 0.22, -r * 0.05);
+            c.lineTo(-r * 0.30, r * 0.22);
+            c.lineTo(-r * 0.08, r * 0.36);
+            c.moveTo(r * 0.34, -r * 0.52);
+            c.lineTo(r * 0.22, -r * 0.34);
+            c.stroke();
+            c.fillStyle = '#67e8f9';
+            c.beginPath();
+            c.moveTo(-r * 0.18, -r * 0.12);
+            c.lineTo(r * 0.02, -r * 0.02);
+            c.lineTo(-r * 0.08, r * 0.12);
+            c.closePath();
+            c.fill();
             break;
         }
         case 'leviathan':
@@ -1124,6 +1144,33 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.arc(r * 0.28, r * 0.26, 3.2, 0, Math.PI * 2);
             c.arc(r * 0.42, 0, 4.0, 0, Math.PI * 2);
             c.fill();
+
+            // Two worn plates and a single scar break up the boss's otherwise smooth face.
+            c.fillStyle = '#4c1d95';
+            c.strokeStyle = 'rgba(216, 180, 254, 0.65)';
+            c.lineWidth = Math.max(1, r * 0.035);
+            c.beginPath();
+            c.moveTo(-r * 0.62, -r * 0.43);
+            c.lineTo(-r * 0.24, -r * 0.56);
+            c.lineTo(-r * 0.08, -r * 0.34);
+            c.lineTo(-r * 0.34, -r * 0.18);
+            c.closePath();
+            c.fill(); c.stroke();
+            c.beginPath();
+            c.moveTo(-r * 0.60, r * 0.38);
+            c.lineTo(-r * 0.30, r * 0.22);
+            c.lineTo(-r * 0.12, r * 0.43);
+            c.lineTo(-r * 0.38, r * 0.55);
+            c.closePath();
+            c.fill(); c.stroke();
+
+            c.strokeStyle = 'rgba(30, 10, 55, 0.85)';
+            c.lineWidth = Math.max(1, r * 0.04);
+            c.beginPath();
+            c.moveTo(-r * 0.08, -r * 0.12);
+            c.lineTo(r * 0.02, r * 0.02);
+            c.lineTo(-r * 0.02, r * 0.18);
+            c.stroke();
             c.restore();
             break;
         }
@@ -1189,6 +1236,31 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
 
             c.fillStyle = '#e0f2fe';
             c.beginPath(); c.arc(0, 0, r * 0.35, 0, Math.PI * 2); c.fill();
+
+            // Natural fracture lines: a few uneven cuts, not a perfect decorative pattern.
+            c.strokeStyle = 'rgba(8, 47, 73, 0.72)';
+            c.lineWidth = Math.max(1, r * 0.055);
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(-r * 0.62, -r * 0.12);
+            c.lineTo(-r * 0.25, -r * 0.04);
+            c.lineTo(-r * 0.12, r * 0.20);
+            c.moveTo(r * 0.18, -r * 0.62);
+            c.lineTo(r * 0.08, -r * 0.32);
+            c.lineTo(r * 0.27, -r * 0.16);
+            c.moveTo(r * 0.50, r * 0.38);
+            c.lineTo(r * 0.28, r * 0.26);
+            c.stroke();
+
+            c.strokeStyle = 'rgba(255, 255, 255, 0.78)';
+            c.lineWidth = Math.max(0.8, r * 0.035);
+            c.beginPath();
+            c.moveTo(-r * 0.72, -r * 0.34);
+            c.lineTo(-r * 0.48, -r * 0.53);
+            c.lineTo(-r * 0.32, -r * 0.48);
+            c.moveTo(r * 0.36, r * 0.55);
+            c.lineTo(r * 0.55, r * 0.43);
+            c.stroke();
             c.restore();
             break;
         }
