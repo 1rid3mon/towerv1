@@ -23,10 +23,11 @@ This is the execution checklist for the isolated `security-hardening-review` bra
 - [x] Cloud pull now runs bounded shape validation immediately after parsing the Firebase JSON and before signature verification traverses the payload; regression coverage asserts shape-check → signature-check → state-apply ordering. Latest CI run #220 passed JavaScript syntax checks and Firestore Emulator tests.
 - [x] Added regression coverage for leaderboard username HTML escaping to reduce the risk of stored XSS from client-controlled profile names.
 - [x] Password-based registration now displays a clear “username already taken” message when Firebase rejects a duplicate synthetic username email; credential errors use clearer login feedback.
+- [x] Removed the simulated Google-login fallback: if Firebase/Google Auth is unavailable, the game now reports that real sign-in is unavailable instead of creating a fake `google_sim_` identity. Added regression coverage; latest security CI run #238 passed.
 - [x] Clarified that client-side checks are not a security guarantee against modified clients.
 - [x] Added a visible leaderboard notice explaining that scores are client-reported and not yet server-verified, with a regression test.
 - [x] Documented the account-deletion vs. retained rate-limit metadata trade-off.
-- [x] Added an Android WebView packaging/security plan; no Android wrapper or APK has been built yet.
+- [x] Android work is explicitly paused until security, game content, audio, and monetization are ready; no Android wrapper or APK is part of this security branch.
 - [x] First gameplay/UI feature drop: the tower health HUD shows a red pulsing critical state and a “KRİTİK” label at 25% HP or lower; the warning clears above the threshold and respects reduced-motion preferences. Added a regression test.
 - [x] Second gameplay/UI feature drop: every fifth wave's skull warning now explicitly reads “BOSS”, has an accessible status label, remains hidden on non-boss waves, and uses motion-safe animation. Added regression coverage.
 - [x] Added a separate real-Firebase integration test runbook; live-project tests remain blocked until a disposable Firebase test project is configured.
