@@ -114,3 +114,23 @@ test('duplicate equipped IDs never stack the same item stat bonus', () => {
   );
   assert.equal(sandbox.getItemStatBonus('damage'), 0.38);
 });
+
+test('duplicate equipped IDs never stack multishot either', () => {
+  const start = dataSource.indexOf('function getEffectiveMultishot()');
+  const end = dataSource.indexOf('function getBulkUpgradeInfo(', start);
+  assert.ok(start >= 0 && end > start, 'multishot helper should exist');
+  const sandbox = {
+    game: {
+      equippedItems: ['legendary_infinity_bow', 'legendary_infinity_bow'],
+      upgrades: { multishot: 2 }
+    },
+    ITEM_DATABASE: {
+      legendary_infinity_bow: { type: 'multishot_buff', val: 1 }
+    }
+  };
+  vm.runInNewContext(
+    dataSource.slice(start, end) + '\\nglobalThis.getEffectiveMultishot = getEffectiveMultishot;',
+    sandbox
+  );
+  assert.equal(sandbox.getEffectiveMultishot(), 4);
+});
