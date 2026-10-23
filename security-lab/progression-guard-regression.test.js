@@ -31,7 +31,7 @@ function loadToggleEquipItem() {
     updateHUD() {},
     saveGame() {}
   };
-  vm.runInNewContext(body + '\\nglobalThis.toggleEquipItem = toggleEquipItem;', sandbox);
+  vm.runInNewContext(body + '\nglobalThis.toggleEquipItem = toggleEquipItem;', sandbox);
   return sandbox;
 }
 
