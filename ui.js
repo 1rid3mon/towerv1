@@ -173,6 +173,7 @@ function buyUpgrade(key) {
     const prevMaxHp = getTowerMaxHp();
     game.gold -= info.totalCost;
     game.upgrades[key] += info.count;
+    if (typeof window._syncShadow === 'function') window._syncShadow();
     if (key === 'maxHp') {
         const newMaxHp = getTowerMaxHp();
         tower.maxHp = newMaxHp;
@@ -277,6 +278,7 @@ function buyCompanion(key) {
         st.level = Math.min(5, star + 1);
         showToast(`🌟 ${def.name} ${st.level}★ seviyesine yükseldi!`);
     }
+    if (typeof window._syncShadow === 'function') window._syncShadow();
     buildCompanionsUI();
     updateHUD();
     saveGame(true);
@@ -1085,9 +1087,31 @@ function toggleRaritySortOrder() {
 
 function toggleEquipItem(itemId) {
     if (!Array.isArray(game.equippedItems)) game.equippedItems = [];
+    if (!Array.isArray(game.inventory)) game.inventory = [];
+
+    // Normalize corrupted/legacy state first: only known owned items, unique IDs, max 3 slots.
+    game.equippedItems = [...new Set(game.equippedItems)]
+        .filter(id => typeof id === 'string' && ITEM_DATABASE[id] && game.inventory.includes(id))
+        .slice(0, 3);
+
+    if (typeof itemId !== 'string' || !ITEM_DATABASE[itemId] || !game.inventory.includes(itemId)) {
+        showToast('🛡️ Bu eşyaya sahip değilsin veya eşya geçersiz.');
+        return;
+    }
+
     const idx = game.equippedItems.indexOf(itemId);
-    if (idx > -1) { game.equippedItems.splice(idx, 1); showToast('Eşya çıkarıldı.'); }
-    else { if (game.equippedItems.length >= 3) { showToast('En fazla 3 eşya kuşanabilirsin!'); return; } game.equippedItems.push(itemId); showToast('Eşya kuşanıldı!'); }
+    if (idx > -1) {
+        game.equippedItems.splice(idx, 1);
+        showToast('Eşya çıkarıldı.');
+    } else {
+        if (game.equippedItems.length >= 3) {
+            showToast('En fazla 3 farklı eşya kuşanabilirsin!');
+            return;
+        }
+        game.equippedItems.push(itemId);
+        showToast('Eşya kuşanıldı!');
+    }
+    if (typeof window._syncShadow === 'function') window._syncShadow();
     buildInventoryUI(); buildUpgradesUI(); updateHUD(); saveGame(true);
 }
 
@@ -1100,6 +1124,9 @@ function buildInventoryUI() {
     if (typeof game === 'undefined') return;
     if (!Array.isArray(game.equippedItems)) game.equippedItems = [];
     if (!Array.isArray(game.inventory)) game.inventory = [];
+    game.equippedItems = [...new Set(game.equippedItems)]
+        .filter(id => typeof id === 'string' && ITEM_DATABASE[id] && game.inventory.includes(id))
+        .slice(0, 3);
     if (!Array.isArray(game.ownedSkins)) game.ownedSkins = ['default_cyber'];
     if (!Array.isArray(game.ownedCompanionSkins)) game.ownedCompanionSkins = ['default_tech'];
 
