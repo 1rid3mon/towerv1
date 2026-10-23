@@ -1703,18 +1703,13 @@ async function reserveUniqueUsername(uid, requestedName, oldName = '', allowSuff
         }
     }
 
-    const oldKey = normalizeUsernameKey(oldName);
     for (const candidate of candidates) {
         const key = normalizeUsernameKey(candidate);
         if (key.length < 3) continue;
         const candidateRef = fbDb.collection('usernameRegistry').doc(key);
-        const oldRef = oldKey && oldKey !== key
-            ? fbDb.collection('usernameRegistry').doc(oldKey)
-            : null;
         try {
             await fbDb.runTransaction(async tx => {
                 const candidateSnap = await tx.get(candidateRef);
-                const oldSnap = oldRef ? await tx.get(oldRef) : null;
                 if (candidateSnap.exists && candidateSnap.data().uid !== uid) {
                     throw new Error('USERNAME_TAKEN');
                 }
@@ -1723,9 +1718,6 @@ async function reserveUniqueUsername(uid, requestedName, oldName = '', allowSuff
                     username: key,
                     updatedAt: Date.now()
                 });
-                if (oldSnap && oldSnap.exists && oldSnap.data().uid === uid) {
-                    tx.delete(oldRef);
-                }
             });
             return candidate;
         } catch (err) {
@@ -1734,6 +1726,18 @@ async function reserveUniqueUsername(uid, requestedName, oldName = '', allowSuff
         }
     }
     throw new Error('USERNAME_TAKEN');
+}
+
+async function releaseUsernameReservation(uid, username, keepUsername = '') {
+    if (!fbDb || !uid || !username) return;
+    const key = normalizeUsernameKey(username);
+    const keepKey = normalizeUsernameKey(keepUsername);
+    if (!key || key === keepKey) return;
+    const ref = fbDb.collection('usernameRegistry').doc(key);
+    await fbDb.runTransaction(async tx => {
+        const snap = await tx.get(ref);
+        if (snap.exists && snap.data().uid === uid) tx.delete(ref);
+    });
 }
 
 function switchAuthMode(mode) {
@@ -1840,8 +1844,11 @@ async function signInWithGoogle() {
             (googleUser.email ? googleUser.email.split('@')[0] : 'Komutan');
         let username = requestedName;
         try {
-            username = await reserveUniqueUsername(googleUser.uid, requestedName, requestedName, true);
-            if (username !== requestedName) await googleUser.updateProfile({ displayName: username });
+            username = await reserveUniqueUsername(googleUser.uid, requestedName, googleUser.displayName || requestedName, true);
+            if (username !== requestedName) {
+                await googleUser.updateProfile({ displayName: username });
+                await releaseUsernameReservation(googleUser.uid, googleUser.displayName || requestedName, username);
+            }
             if (currentUser && currentUser.uid === googleUser.uid) {
                 currentUser.username = username;
                 updateAccountHeaderUI();
@@ -1881,11 +1888,19 @@ async function submitUsernameAuth() {
                 const cred = await fbAuth.createUserWithEmailAndPassword(email, password);
                 if (cred.user) {
                     await cred.user.updateProfile({ displayName: username });
+                    let reservedNameForCleanup = '';
                     try {
                         const reservedName = await reserveUniqueUsername(cred.user.uid, username, '', true);
+                        reservedNameForCleanup = reservedName;
                         if (reservedName !== username) await cred.user.updateProfile({ displayName: reservedName });
+                        reservedNameForCleanup = '';
                     } catch (reserveErr) {
-                        // Do not leave a newly-created account pretending the name was reserved.
+                        // Roll back a claim if the account/profile setup failed after reserving it.
+                        if (reservedNameForCleanup) {
+                            try { await releaseUsernameReservation(cred.user.uid, reservedNameForCleanup); } catch (releaseErr) {
+                                console.error('[Username Registry] Failed to release rolled-back reservation:', releaseErr);
+                            }
+                        }
                         try { await cred.user.delete(); } catch (deleteErr) {
                             console.error('[Username Registry] Failed to roll back unreserved account:', deleteErr);
                         }
@@ -1897,12 +1912,27 @@ async function submitUsernameAuth() {
                 const loginCred = await fbAuth.signInWithEmailAndPassword(email, password);
                 if (loginCred.user) {
                     const existingName = loginCred.user.displayName || username;
+                    let reservedNameForCleanup = '';
                     try {
                         const reservedName = await reserveUniqueUsername(loginCred.user.uid, existingName, existingName, true);
-                        if (reservedName !== existingName) await loginCred.user.updateProfile({ displayName: reservedName });
+                        reservedNameForCleanup = reservedName !== existingName ? reservedName : '';
+                        if (reservedName !== existingName) {
+                            await loginCred.user.updateProfile({ displayName: reservedName });
+                            await releaseUsernameReservation(loginCred.user.uid, existingName, reservedName);
+                        }
+                        reservedNameForCleanup = '';
                     } catch (reserveErr) {
+                        if (reservedNameForCleanup) {
+                            try { await releaseUsernameReservation(loginCred.user.uid, reservedNameForCleanup); } catch (releaseErr) {
+                                console.error('[Username Registry] Failed to release rolled-back reservation:', releaseErr);
+                            }
+                        }
                         console.error('[Username Registry] Login name reservation failed:', reserveErr);
-                        showAuthError('⚠️ Hesap açıldı ancak kullanıcı adı kontrol edilemedi. Firebase usernameRegistry kurallarını kontrol et.');
+                        try { await fbAuth.signOut(); } catch (signOutErr) {}
+                        currentUser = null;
+                        localStorage.removeItem(LOCAL_CURRENT_USER_KEY);
+                        updateAccountHeaderUI();
+                        showAuthError('⚠️ Kullanıcı adı kontrol edilemedi; güvenli şekilde oturum kapatıldı. Firebase usernameRegistry kurallarını kontrol et.');
                         return;
                     }
                 }
@@ -2000,6 +2030,7 @@ async function changeDisplayNickname() {
             if (fbAuth.currentUser.displayName !== reservedName) {
                 await fbAuth.currentUser.updateProfile({ displayName: reservedName });
             }
+            await releaseUsernameReservation(currentUser.uid, currentUser.username, reservedName);
             currentUser.username = reservedName;
         } catch (err) {
             if (err && err.message === 'USERNAME_TAKEN') {
