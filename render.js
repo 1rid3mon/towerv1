@@ -1311,6 +1311,21 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.fill();
             c.fillStyle = 'rgba(148, 163, 184, 0.8)';
             c.fillRect(-r * 0.55, -r * 0.10, r * 0.16, r * 0.20);
+
+            // v1.1.0 heavy silhouette: side treads and overlapping shoulder plates.
+            c.fillStyle = '#0f172a';
+            c.strokeStyle = '#94a3b8';
+            c.lineWidth = Math.max(1, r * 0.055);
+            c.beginPath();
+            c.roundRect(-r * 0.55, -r * 0.98, r * 0.78, r * 0.22, r * 0.08);
+            c.roundRect(-r * 0.55, r * 0.76, r * 0.78, r * 0.22, r * 0.08);
+            c.fill(); c.stroke();
+            c.fillStyle = '#64748b';
+            for (let bolt = 0; bolt < 3; bolt++) {
+                const bx = -r * 0.42 + bolt * r * 0.25;
+                c.beginPath(); c.arc(bx, -r * 0.87, Math.max(0.8, r * 0.045), 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.arc(bx, r * 0.87, Math.max(0.8, r * 0.045), 0, Math.PI * 2); c.fill();
+            }
             c.restore();
             break;
         }
@@ -1355,6 +1370,22 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.lineTo(-r * 0.32, -r * 0.48);
             c.moveTo(r * 0.36, r * 0.55);
             c.lineTo(r * 0.55, r * 0.43);
+            c.stroke();
+
+            // v1.1.0: three tall crystal shards make frost units readable at a glance.
+            c.fillStyle = isHit ? '#ffffff' : '#67e8f9';
+            c.strokeStyle = '#ecfeff';
+            c.lineWidth = Math.max(0.8, r * 0.045);
+            c.beginPath();
+            c.moveTo(-r * 0.38, -r * 0.66); c.lineTo(-r * 0.58, -r * 1.28); c.lineTo(-r * 0.12, -r * 0.78);
+            c.moveTo(r * 0.24, -r * 0.70); c.lineTo(r * 0.48, -r * 1.16); c.lineTo(r * 0.52, -r * 0.54);
+            c.moveTo(-r * 0.20, r * 0.72); c.lineTo(-r * 0.52, r * 1.18); c.lineTo(r * 0.02, r * 0.78);
+            c.closePath(); c.fill(); c.stroke();
+            c.strokeStyle = 'rgba(255,255,255,0.8)';
+            c.lineWidth = Math.max(0.7, r * 0.035);
+            c.beginPath();
+            c.moveTo(-r * 0.45, -r * 1.08); c.lineTo(-r * 0.30, -r * 0.88);
+            c.moveTo(r * 0.42, -r * 1.00); c.lineTo(r * 0.40, -r * 0.76);
             c.stroke();
             c.restore();
             break;
@@ -1401,6 +1432,29 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.lineTo(r * 0.38, -r * 0.13);
             c.moveTo(r * 0.38, r * 0.13);
             c.lineTo(r * 0.68, 0);
+            c.stroke();
+
+            // v1.1.0 speed profile: swept-back fins and a split tail stabilizer.
+            c.fillStyle = isHit ? '#ffffff' : '#9f1239';
+            c.strokeStyle = '#fecdd3';
+            c.lineWidth = Math.max(0.8, r * 0.045);
+            c.beginPath();
+            c.moveTo(-r * 0.28, -r * 0.42);
+            c.lineTo(-r * 1.05, -r * 1.02);
+            c.lineTo(-r * 0.78, -r * 0.34);
+            c.lineTo(-r * 0.48, -r * 0.12);
+            c.closePath();
+            c.moveTo(-r * 0.28, r * 0.42);
+            c.lineTo(-r * 1.05, r * 1.02);
+            c.lineTo(-r * 0.78, r * 0.34);
+            c.lineTo(-r * 0.48, r * 0.12);
+            c.closePath();
+            c.fill(); c.stroke();
+            c.strokeStyle = '#fff1f2';
+            c.lineWidth = Math.max(0.7, r * 0.035);
+            c.beginPath();
+            c.moveTo(-r * 0.48, -r * 0.48); c.lineTo(-r * 0.82, -r * 0.78);
+            c.moveTo(-r * 0.48, r * 0.48); c.lineTo(-r * 0.82, r * 0.78);
             c.stroke();
             c.restore();
             break;
@@ -1501,6 +1555,26 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.beginPath();
             c.arc(r * 0.12, 0, Math.max(1.1, r * 0.10), 0, Math.PI * 2);
             c.fill();
+
+            // v1.1.0 ranged profile: compact shoulder modules, vents and a reinforced barrel.
+            c.fillStyle = isHit ? '#ffffff' : '#0f172a';
+            c.strokeStyle = '#38bdf8';
+            c.lineWidth = Math.max(0.8, r * 0.045);
+            c.beginPath();
+            c.roundRect(-r * 0.62, -r * 0.82, r * 0.48, r * 0.34, r * 0.06);
+            c.roundRect(-r * 0.62, r * 0.48, r * 0.48, r * 0.34, r * 0.06);
+            c.fill(); c.stroke();
+            c.fillStyle = '#7dd3fc';
+            c.fillRect(-r * 0.54, -r * 0.72, r * 0.28, r * 0.06);
+            c.fillRect(-r * 0.54, r * 0.62, r * 0.28, r * 0.06);
+            c.fillStyle = '#334155';
+            c.strokeStyle = '#bae6fd';
+            c.lineWidth = Math.max(0.8, r * 0.04);
+            c.beginPath();
+            c.roundRect(r * 0.58, -r * 0.10, r * 0.72, r * 0.20, r * 0.05);
+            c.fill(); c.stroke();
+            c.fillStyle = '#e0f2fe';
+            c.fillRect(r * 1.12, -r * 0.045, r * 0.12, r * 0.09);
             c.restore();
             break;
         }
@@ -1587,6 +1661,81 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
     }
 
     drawEnemyInkAccents(c, kind, r, faceAngle, isHit);
+
+    // v1.1.0: elite enemies get their own silhouette and layered armor, not just a ring.
+    if (e.isElite) {
+        const pulse = 1 + Math.sin(nowTime * 0.009 + (e.animPhase || 0)) * 0.045;
+        c.save();
+        c.rotate(nowTime * 0.00075 + (e.animPhase || 0) * 0.35);
+
+        // Six uneven armor fins create a jagged, readable silhouette.
+        c.fillStyle = isHit ? '#ffffff' : '#92400e';
+        c.strokeStyle = isHit ? '#ffffff' : '#fbbf24';
+        c.lineWidth = Math.max(1.2, r * 0.075);
+        c.beginPath();
+        for (let i = 0; i < 12; i++) {
+            const a = i * Math.PI / 6;
+            const rad = i % 2 === 0 ? r * 1.34 : r * 1.08;
+            const px = Math.cos(a) * rad;
+            const py = Math.sin(a) * rad;
+            if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+        }
+        c.closePath(); c.fill(); c.stroke();
+
+        // Segmented plates and rivets suggest a creature encased in forged metal.
+        c.fillStyle = isHit ? '#ffffff' : '#d97706';
+        c.strokeStyle = '#fde68a';
+        c.lineWidth = Math.max(0.8, r * 0.04);
+        for (let i = 0; i < 6; i++) {
+            const a = i * Math.PI / 3;
+            c.save();
+            c.rotate(a);
+            c.beginPath();
+            c.moveTo(r * 0.60, -r * 0.18);
+            c.lineTo(r * 0.98, -r * 0.28);
+            c.lineTo(r * 1.08, 0);
+            c.lineTo(r * 0.98, r * 0.28);
+            c.lineTo(r * 0.60, r * 0.18);
+            c.closePath(); c.fill(); c.stroke();
+            c.fillStyle = '#fff7ed';
+            c.beginPath(); c.arc(r * 0.88, 0, Math.max(0.8, r * 0.045), 0, Math.PI * 2); c.fill();
+            c.restore();
+            c.fillStyle = isHit ? '#ffffff' : '#d97706';
+        }
+
+        c.restore();
+
+        // A compact energy core stays visible even on small mobile screens.
+        c.save();
+        c.rotate(faceAngle);
+        const coreR = Math.max(2.2, r * 0.24 * pulse);
+        c.shadowColor = '#f59e0b';
+        c.shadowBlur = Math.min(9, r * 0.35);
+        c.fillStyle = isHit ? '#ffffff' : '#451a03';
+        c.strokeStyle = '#fef3c7';
+        c.lineWidth = Math.max(1, r * 0.06);
+        c.beginPath();
+        c.moveTo(r * 0.12, -coreR * 1.45);
+        c.lineTo(r * 0.62, 0);
+        c.lineTo(r * 0.12, coreR * 1.45);
+        c.lineTo(-r * 0.22, 0);
+        c.closePath(); c.fill(); c.stroke();
+
+        c.shadowBlur = 0;
+        c.fillStyle = isHit ? '#ffffff' : '#fde047';
+        c.beginPath();
+        c.ellipse(r * 0.16, 0, Math.max(1.2, coreR * 0.42), Math.max(1.2, coreR * 0.72), 0, 0, Math.PI * 2);
+        c.fill();
+
+        // Tiny brow ridges sharpen the face without hiding each enemy's original features.
+        c.strokeStyle = '#451a03';
+        c.lineWidth = Math.max(1, r * 0.07);
+        c.beginPath();
+        c.moveTo(r * 0.08, -r * 0.34); c.lineTo(r * 0.48, -r * 0.23);
+        c.moveTo(r * 0.08, r * 0.34); c.lineTo(r * 0.48, r * 0.23);
+        c.stroke();
+        c.restore();
+    }
 }
 
 // =======================================================
@@ -2017,6 +2166,27 @@ function renderGame() {
     }
 
     for (const p of projectiles) {
+        // Frost boss bolts carry a crystalline shard silhouette and icy wake.
+        if (p.fromEnemy && p.isBossFrost) {
+            ctx.save();
+            const angle = Math.atan2(p.vy, p.vx);
+            ctx.translate(p.x, p.y);
+            ctx.rotate(angle);
+            ctx.globalAlpha = 0.48;
+            ctx.strokeStyle = '#bae6fd';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-19, 0); ctx.lineTo(-5, 0);
+            ctx.moveTo(-13, -4); ctx.lineTo(-7, 0); ctx.lineTo(-13, 4);
+            ctx.stroke();
+            ctx.globalAlpha = 0.95;
+            ctx.fillStyle = '#e0f2fe';
+            ctx.beginPath();
+            ctx.moveTo(8, 0); ctx.lineTo(1, -5); ctx.lineTo(-4, 0); ctx.lineTo(1, 5);
+            ctx.closePath(); ctx.fill();
+            ctx.strokeStyle = '#7dd3fc'; ctx.lineWidth = 1.2; ctx.stroke();
+            ctx.restore();
+        }
         if (p.history && p.history.length > 1) {
             ctx.save(); ctx.beginPath();
             ctx.moveTo(p.x, p.y);
@@ -2119,9 +2289,89 @@ function renderGame() {
             ctx.strokeStyle = 'rgba(56, 189, 248, 0.65)'; ctx.lineWidth = 1.5; ctx.stroke();
         }
 
+        // v1.1.0 elite telegraph: restrained rotating gold ring and three markers.
+        if (e.isElite) {
+            const pulse = 1 + Math.sin(nowCompTime * 0.006 + (e.animPhase || 0)) * 0.08;
+            ctx.save();
+            ctx.rotate(nowCompTime * 0.0009 + (e.animPhase || 0));
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.88)';
+            ctx.lineWidth = 1.8;
+            ctx.beginPath(); ctx.arc(0, 0, (e.radius + 5) * pulse, 0, Math.PI * 2); ctx.stroke();
+            ctx.fillStyle = '#fef3c7';
+            for (let marker = 0; marker < 3; marker++) {
+                const a = marker * Math.PI * 2 / 3;
+                const mx = Math.cos(a) * (e.radius + 7) * pulse;
+                const my = Math.sin(a) * (e.radius + 7) * pulse;
+                ctx.save(); ctx.translate(mx, my); ctx.rotate(Math.PI / 4);
+                ctx.fillRect(-2.2, -2.2, 4.4, 4.4); ctx.restore();
+            }
+            ctx.restore();
+        }
+
+        // v1.1.0: subtle aim telegraph warns players before artillery/Leviathan fan shots.
+        if (e.type === 'boss' &&
+            (e.subType === 'ranged_boss' || e.subType === 'leviathan') &&
+            e.attackCooldown > 0 && e.attackCooldown <= 0.48) {
+            const aim = Math.atan2(ty - e.y, tx - e.x);
+            const warnAlpha = 0.22 + (1 - e.attackCooldown / 0.48) * 0.42;
+            const warnLen = Math.min(150, Math.hypot(tx - e.x, ty - e.y));
+            ctx.save();
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = e.color || '#f0abfc';
+            ctx.globalAlpha = warnAlpha;
+            ctx.lineWidth = 1.5;
+            for (const offset of [-0.17, 0, 0.17]) {
+                ctx.beginPath();
+                ctx.moveTo(e.x, e.y);
+                ctx.lineTo(e.x + Math.cos(aim + offset) * warnLen, e.y + Math.sin(aim + offset) * warnLen);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // Red Vector dash wind-up: warn the player before the boss closes distance.
+        if (e.type === 'boss' && e.subType === 'speed_boss' &&
+            e.dashCooldown > 0 && e.dashCooldown <= 0.6 &&
+            Math.hypot(tower.x - e.x, tower.y - e.y) > 75) {
+            const dashProgress = 1 - e.dashCooldown / 0.6;
+            const dashAngle = Math.atan2(ty - e.y, tx - e.x);
+            const dashLength = Math.min(100, Math.hypot(tx - e.x, ty - e.y));
+            ctx.save();
+            ctx.globalAlpha = 0.25 + dashProgress * 0.55;
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 1.5 + dashProgress * 2;
+            ctx.setLineDash([7, 5]);
+            ctx.beginPath();
+            ctx.moveTo(e.x, e.y);
+            ctx.lineTo(e.x + Math.cos(dashAngle) * dashLength, e.y + Math.sin(dashAngle) * dashLength);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.arc(e.x, e.y, e.radius + 7 + dashProgress * 5, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Armored Titan wind-up: a ground warning ring marks its next heavy strike.
+        if (e.type === 'boss' && e.subType === 'tank_boss' &&
+            Math.hypot(tower.x - e.x, tower.y - e.y) <= (e.stopDistOverride || 38) &&
+            e.attackCooldown > 0 && e.attackCooldown <= 0.55) {
+            const progress = 1 - e.attackCooldown / 0.55;
+            ctx.save();
+            ctx.globalAlpha = 0.25 + progress * 0.55;
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 2 + progress * 1.5;
+            ctx.setLineDash([5, 4]);
+            ctx.beginPath();
+            ctx.arc(tower.x, tower.y, 25 + progress * 24, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+        }
+
         drawCustomEnemy(ctx, e, tx, ty, nowCompTime);
 
-        if (e.hp < e.maxHp || e.type === 'boss') {
+        if (e.hp < e.maxHp || e.type === 'boss' || e.isElite) {
             const barW = Math.max(24, e.radius * 2.1);
             const pct = e.maxHp > 0 ? Math.max(0, Math.min(1, e.hp / e.maxHp)) : 0;
             const barY = -e.radius - 12;
@@ -2131,9 +2381,9 @@ function renderGame() {
             ctx.fillStyle = e.type === 'boss' ? (e.color || '#d8b4fe') : '#86efac';
             ctx.fillRect(-barW / 2, barY, barW * pct, 4);
 
-            if (e.type === 'boss' && e.name) {
-                ctx.font = "bold 9.5px 'Rajdhani', sans-serif";
-                ctx.fillStyle = '#fef08a';
+            if ((e.type === 'boss' || e.isElite) && e.name) {
+                ctx.font = e.type === 'boss' ? "bold 9.5px 'Rajdhani', sans-serif" : "bold 8.5px 'Rajdhani', sans-serif";
+                ctx.fillStyle = e.isElite && e.type !== 'boss' ? '#fcd34d' : '#fef08a';
                 ctx.textAlign = 'center';
                 ctx.fillText(e.name, 0, barY - 4);
             }

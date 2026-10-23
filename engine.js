@@ -177,7 +177,8 @@ function spawnEnemy(isBoss = false) {
     const y = tower.y + Math.sin(angle) * spawnDist;
 
     const w = game.wave;
-    const earlyBuffer = w <= 10 ? (0.75 + (w * 0.025)) : 1.0; 
+    const earlyBuffer = w <= 10 ? (0.75 + (w * 0.025)) : 1.0;
+    // Preserve the established endless-wave balance until measured playtest data supports a change.
     const tierMult = Math.pow(1.22, Math.floor(w / 10)) * Math.pow(1.35, Math.floor(w / 25));
 
     const baseHp = (18 + (w - 1) * 7.5) * Math.pow(1.095, w - 1) * tierMult * earlyBuffer;
@@ -306,11 +307,24 @@ function spawnEnemy(isBoss = false) {
         }
     }
 
+    // v1.1.0: rare elite enemies add a high-value threat without changing save data or wave rules.
+    let isElite = false;
+    if (!isBoss && w >= 8 && Math.random() < 0.07) {
+        isElite = true;
+        name = `ÉLITE • ${name}`;
+        hp *= 1.75;
+        dmg *= 1.12;
+        gold *= 2.25;
+        radius += 2;
+        speed *= 1.06;
+        customPal = { color: '#f59e0b', secColor: '#fef3c7' };
+    }
+
     const fallbackPal = (typeof getEnemyColors === 'function' ? getEnemyColors(type === 'boss' ? 'boss' : (isTeleporter ? 'teleporter' : (isRanged ? 'ranged' : 'green'))) : null) || { color: '#22c55e', secColor: '#ffffff' };
     const pal = customPal || fallbackPal;
 
     enemies.push({
-        x, y, type, subType, name, radius, speed,
+        x, y, type, subType, name, radius, speed, isElite,
         hp: Math.round(hp), maxHp: Math.round(hp), dmg: Math.round(dmg * 10) / 10,
         color: pal.color, secColor: pal.secColor, gold,
         isRanged, isTeleporter, isFrost, freezeDuration, frostSlowDuration,
@@ -508,6 +522,16 @@ function updateGame(dt) {
                 damageTower(p.damage, null);
                 if (p.isFrost) {
                     applyFrostToTower(p.freezeDuration || 0.8, p.frostSlowDuration || 3.0);
+                    // v1.1.0: frost boss impacts leave a readable crystalline burst.
+                    if (p.isBossFrost) {
+                        rings.push({ x: tower.x, y: tower.y, radius: 22, color: '#7dd3fc', life: 0.72 });
+                        rings.push({ x: tower.x, y: tower.y, radius: 34, color: '#e0f2fe', life: 0.48 });
+                        createParticles(tower.x, tower.y, '#7dd3fc', 12, 85);
+                        createParticles(tower.x, tower.y, '#f0f9ff', 7, 58);
+                        addFloatingText(tower.x, tower.y - 38, 'KRİYO DARBE!', '#bae6fd', 11);
+                    } else {
+                        createParticles(p.x, p.y, p.color || '#06b6d4', 5, 48);
+                    }
                 } else {
                     createParticles(p.x, p.y, p.color || '#06b6d4', 4, 40);
                 }
@@ -596,8 +620,14 @@ function updateGame(dt) {
                 if (currDist > 75) {
                     const dashDist = Math.min(currDist - 38, 65);
                     const ang = Math.atan2(tower.y - e.y, tower.x - e.x);
+                    const dashStartX = e.x, dashStartY = e.y;
+                    createParticles(dashStartX, dashStartY, '#ef4444', 7, 72);
+                    createParticles(dashStartX, dashStartY, '#fecaca', 4, 48);
                     e.x += Math.cos(ang) * dashDist; e.y += Math.sin(ang) * dashDist;
-                    createParticles(e.x, e.y, '#ef4444', 10, 95);
+                    rings.push({ x: dashStartX, y: dashStartY, radius: 18, color: '#ef4444', life: 0.45 });
+                    rings.push({ x: e.x, y: e.y, radius: 25, color: '#fca5a5', life: 0.58 });
+                    createParticles(e.x, e.y, '#ef4444', 12, 105);
+                    createParticles(e.x, e.y, '#fecaca', 6, 62);
                     addFloatingText(e.x, e.y, '⚡ ATILDI!', '#fca5a5', 11);
                 }
             }
@@ -626,20 +656,54 @@ function updateGame(dt) {
                 e.attackCooldown = e.attackInterval || (e.isRanged ? 1.35 : 1.05);
                 if (e.isRanged) {
                     const pSpd = e.projSpeed || 220;
-                    projectiles.push({
-                        x: e.x, y: e.y,
-                        vx: Math.cos(ang) * pSpd, vy: Math.sin(ang) * pSpd,
-                        radius: e.type === 'boss' ? 6.5 : 4.5,
-                        color: e.isFrost ? '#38bdf8' : e.color,
-                        damage: e.dmg, life: 3.5, fromEnemy: true,
-                        isFrost: e.isFrost || false,
-                        freezeDuration: e.freezeDuration || 0,
-                        frostSlowDuration: e.frostSlowDuration || 0
-                    });
+                    // v1.1.0 boss signature: artillery and Leviathan fire a readable three-shot fan.
+                    // Split damage keeps the pattern threatening without tripling total damage.
+                    const isBossFan = e.type === 'boss' && (e.subType === 'ranged_boss' || e.subType === 'leviathan');
+                    const shotAngles = isBossFan ? [-0.17, 0, 0.17] : [0];
+                    // Armor is applied separately to each projectile, so split raw damage alone
+                    // would under-deal against armored towers. Invert damageTower's reduction
+                    // to keep three successful hits close to one ordinary hit after armor.
+                    let fanShotDamage = e.dmg;
+                    if (isBossFan) {
+                        const armorVal = getTowerArmor();
+                        const singleHitDamage = Math.max(1, Math.round(Math.max(e.dmg * 0.25, e.dmg - armorVal)));
+                        const targetDamagePerShot = singleHitDamage / 3;
+                        fanShotDamage = targetDamagePerShot <= armorVal / 3
+                            ? targetDamagePerShot * 4
+                            : targetDamagePerShot + armorVal;
+                    }
+                    for (const offset of shotAngles) {
+                        const shotAngle = ang + offset;
+                        projectiles.push({
+                            x: e.x, y: e.y,
+                            vx: Math.cos(shotAngle) * pSpd, vy: Math.sin(shotAngle) * pSpd,
+                            radius: e.type === 'boss' ? 6.5 : 4.5,
+                            color: e.isFrost ? '#38bdf8' : e.color,
+                            damage: fanShotDamage,
+                            life: 3.5, fromEnemy: true,
+                            isFrost: e.isFrost || false,
+                            isBossFrost: e.type === 'boss' && e.subType === 'frost_boss',
+                            freezeDuration: e.freezeDuration || 0,
+                            frostSlowDuration: e.frostSlowDuration || 0
+                        });
+                    }
+                    if (isBossFan) {
+                        rings.push({ x: e.x, y: e.y, radius: 10, color: e.color || '#c084fc', life: 0.32 });
+                        createParticles(e.x, e.y, e.secColor || '#ffffff', 4, 42);
+                    }
                 } else {
                     damageTower(e.dmg, e);
                     if (e.isFrost) applyFrostToTower(e.freezeDuration, e.frostSlowDuration);
-                    if (e.type === 'boss') rings.push({ x: tower.x, y: tower.y, radius: 14, color: e.color, life: 0.5 });
+                    if (e.type === 'boss') {
+                        rings.push({ x: tower.x, y: tower.y, radius: 14, color: e.color, life: 0.5 });
+                        if (e.subType === 'tank_boss') {
+                            // Heavy titan impact: strong feedback without adding hidden bonus damage.
+                            rings.push({ x: tower.x, y: tower.y, radius: 30, color: '#fbbf24', life: 0.72 });
+                            createParticles(tower.x, tower.y, '#fbbf24', 14, 105);
+                            createParticles(tower.x, tower.y, '#f8fafc', 7, 65);
+                            addFloatingText(tower.x, tower.y - 26, 'AĞIR DARBE!', '#fde68a', 12);
+                        }
+                    }
                 }
             }
         }
@@ -819,6 +883,12 @@ function killEnemy(enemy) {
 
     createParticles(enemy.x, enemy.y, enemy.color, enemy.type === 'boss' ? 24 : 10, 85);
     rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 0.5, color: enemy.color, life: 1.0 });
+    if (enemy.isElite) {
+        // Elite defeat gets a brief gold shockwave and extra sparks, using existing effects.
+        createParticles(enemy.x, enemy.y, '#fbbf24', 12, 125);
+        rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 0.8, color: '#fbbf24', life: 1.15 });
+        rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 1.25, color: '#fef3c7', life: 0.75 });
+    }
 
     game.stats.totalKills++; game.waveKills++;
     if (game.waveKills >= game.waveTargetKills) completeWave();
@@ -1097,7 +1167,10 @@ window.onload = function () {
             souls: Number(game.souls) || 0,
             wave: Number(game.wave) || 1,
             highestWave: Number(game.highestWave) || 1,
-            prestiges: Number(game.stats?.prestiges) || 0
+            prestiges: Number(game.stats?.prestiges) || 0,
+            upgrades: JSON.parse(JSON.stringify(game.upgrades || {})),
+            companions: JSON.parse(JSON.stringify(game.companions || {})),
+            equippedItems: [...new Set(Array.isArray(game.equippedItems) ? game.equippedItems : [])]
         };
     }
 
@@ -1154,6 +1227,16 @@ window.onload = function () {
         if (typeof game === 'undefined') return;
         if (!shadow) { syncShadow(); return; }
 
+        // Reject non-finite/corrupt progression values before comparing deltas; NaN makes
+        // ordinary greater-than checks false, while Infinity can leak into saved progression.
+        if (!Number.isFinite(game.wave) || !Number.isFinite(game.highestWave) ||
+            game.wave < 1 || game.highestWave < 1) {
+            game.wave = shadow.wave;
+            game.highestWave = Math.max(shadow.highestWave, shadow.wave);
+            cheatFlags++;
+            if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Bozuk dalga verisi geri alındı!');
+        }
+
         const maxAllowedWaveJump = Math.max(3, getStartWaveLevel() - shadow.wave + 2);
         if (game.wave - shadow.wave > maxAllowedWaveJump || game.highestWave - shadow.highestWave > maxAllowedWaveJump) {
             game.wave = shadow.wave;
@@ -1176,11 +1259,47 @@ window.onload = function () {
             if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Geçersiz Ruh Taşı müdahalesi engellendi!');
         }
 
-        if (isNaN(game.gold) || game.gold < 0) game.gold = shadow.gold;
-        if (isNaN(game.crystals) || game.crystals < 0) game.crystals = shadow.crystals;
-        if (isNaN(game.souls) || game.souls < 0) game.souls = shadow.souls;
+        if (!Number.isFinite(game.gold) || game.gold < 0) game.gold = shadow.gold;
+        if (!Number.isFinite(game.crystals) || game.crystals < 0) game.crystals = shadow.crystals;
+        if (!Number.isFinite(game.souls) || game.souls < 0) game.souls = shadow.souls;
+
+        // Skill/upgrade levels and companion stars are only accepted after their normal
+        // purchase handler explicitly refreshes the shadow snapshot. Direct runtime edits
+        // are rolled back before they can be saved by the regular game flow.
+        let mustPersistRollback = false;
+        const currentUpgrades = JSON.stringify(game.upgrades || {});
+        const trustedUpgrades = JSON.stringify(shadow.upgrades || {});
+        if (currentUpgrades !== trustedUpgrades) {
+            game.upgrades = JSON.parse(JSON.stringify(shadow.upgrades || {}));
+            cheatFlags++;
+            mustPersistRollback = true;
+            if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Yetkisiz skill seviyesi değişimi geri alındı!');
+        }
+
+        const currentCompanions = JSON.stringify(game.companions || {});
+        const trustedCompanions = JSON.stringify(shadow.companions || {});
+        if (currentCompanions !== trustedCompanions) {
+            game.companions = JSON.parse(JSON.stringify(shadow.companions || {}));
+            cheatFlags++;
+            mustPersistRollback = true;
+            if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Yetkisiz yoldaş seviyesi değişimi geri alındı!');
+        }
+
+        const validEquipped = [...new Set(Array.isArray(game.equippedItems) ? game.equippedItems : [])]
+            .filter(id => typeof id === 'string' && ITEM_DATABASE && ITEM_DATABASE[id] &&
+                Array.isArray(game.inventory) && game.inventory.includes(id))
+            .slice(0, 3);
+        const currentEquipped = JSON.stringify(Array.isArray(game.equippedItems) ? game.equippedItems : []);
+        if (currentEquipped !== JSON.stringify(validEquipped) ||
+            JSON.stringify(validEquipped) !== JSON.stringify(shadow.equippedItems || [])) {
+            game.equippedItems = validEquipped;
+            cheatFlags++;
+            mustPersistRollback = true;
+            if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Tekrarlı veya geçersiz ekipman engellendi!');
+        }
 
         syncShadow();
+        if (mustPersistRollback && typeof saveGame === 'function') saveGame(true);
     }, 400);
 
     window._isSessionClean = function() {

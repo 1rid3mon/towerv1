@@ -244,7 +244,9 @@ function getMultishotRequiredWave(nextLevelIndex) { return MULTISHOT_WAVE_REQS[n
 
 function getItemStatBonus(type) {
     let total = 0;
-    for (const itemId of (game.equippedItems || [])) {
+    // A malformed or cheat-edited save must never stack the same item multiple times.
+    const equipped = new Set(Array.isArray(game.equippedItems) ? game.equippedItems : []);
+    for (const itemId of equipped) {
         const item = ITEM_DATABASE[itemId];
         if (item && item.type === type) total += item.val;
     }
@@ -253,7 +255,8 @@ function getItemStatBonus(type) {
 
 function getEffectiveMultishot() {
     let base = 1 + game.upgrades.multishot;
-    for (const itemId of (game.equippedItems || [])) {
+    const equipped = new Set(Array.isArray(game.equippedItems) ? game.equippedItems : []);
+    for (const itemId of equipped) {
         const item = ITEM_DATABASE[itemId];
         if (item && item.type === 'multishot_buff') base += item.val;
     }

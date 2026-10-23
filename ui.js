@@ -168,11 +168,21 @@ function buildUpgradesUI() {
 }
 
 function buyUpgrade(key) {
+    // Reject unknown upgrade keys and malformed state before reading costs or mutating progression.
+    if (!game || !game.upgrades || !UPGRADE_DEFS ||
+        typeof key !== 'string' || !Object.prototype.hasOwnProperty.call(UPGRADE_DEFS, key) ||
+        !Number.isFinite(game.gold) || !Number.isFinite(game.upgrades[key])) return;
+
+    const def = UPGRADE_DEFS[key];
     const info = getBulkUpgradeInfo(key);
-    if (info.maxed || info.lockedReason || !info.canAfford) return;
+    if (!def || !info || info.maxed || info.lockedReason || !info.canAfford ||
+        !Number.isFinite(info.totalCost) || info.totalCost < 0 || info.totalCost > game.gold ||
+        !Number.isInteger(info.count) || info.count < 1 ||
+        game.upgrades[key] + info.count > def.maxLevel) return;
     const prevMaxHp = getTowerMaxHp();
     game.gold -= info.totalCost;
     game.upgrades[key] += info.count;
+    if (typeof window._syncShadow === 'function') window._syncShadow();
     if (key === 'maxHp') {
         const newMaxHp = getTowerMaxHp();
         tower.maxHp = newMaxHp;
@@ -260,13 +270,19 @@ function buildCompanionsUI() {
 }
 
 function buyCompanion(key) {
+    // UI callbacks are user-controlled; validate the requested companion before dereferencing it.
+    if (!game || !game.companions || !COMPANION_DEFS ||
+        typeof key !== 'string' || !Object.prototype.hasOwnProperty.call(COMPANION_DEFS, key) ||
+        !Number.isFinite(game.crystals)) return;
+
     const def = COMPANION_DEFS[key];
     const st = game.companions[key];
-    const star = st.unlocked ? Math.min(5, Math.max(1, st.level || 1)) : 0;
+    if (!def || !st || !Array.isArray(def.starCosts)) return;
+    const star = st.unlocked ? Math.min(5, Math.max(1, Number(st.level) || 1)) : 0;
     if (star >= 5) return;
 
     const cost = def.starCosts[star];
-    if (game.crystals < cost) return;
+    if (!Number.isFinite(cost) || cost < 0 || game.crystals < cost) return;
 
     game.crystals -= cost;
     if (!st.unlocked) {
@@ -277,6 +293,7 @@ function buyCompanion(key) {
         st.level = Math.min(5, star + 1);
         showToast(`🌟 ${def.name} ${st.level}★ seviyesine yükseldi!`);
     }
+    if (typeof window._syncShadow === 'function') window._syncShadow();
     buildCompanionsUI();
     updateHUD();
     saveGame(true);
@@ -369,6 +386,7 @@ function openPrestigeConfirm() {
         enemies = [];
         projectiles = [];
 
+        if (typeof window._syncShadow === 'function') window._syncShadow();
         buildUpgradesUI();
         updateHUD();
         saveGame(true);
@@ -377,11 +395,19 @@ function openPrestigeConfirm() {
 }
 
 function buyPrestigeUpgrade(key) {
+    if (!game || !game.prestigeUpgrades || !PRESTIGE_DEFS ||
+        typeof key !== 'string' || !Object.prototype.hasOwnProperty.call(PRESTIGE_DEFS, key) ||
+        !Number.isFinite(game.souls)) return;
+
     const def = PRESTIGE_DEFS[key];
+    if (!def || !Number.isFinite(def.baseCost) || !Number.isFinite(def.costScale) ||
+        !Number.isFinite(def.maxLevel)) return;
     const lvl = game.prestigeUpgrades[key] || 0;
+    if (!Number.isFinite(lvl) || lvl < 0 || !Number.isFinite(def.maxLevel) ||
+        !Number.isFinite(def.baseCost) || !Number.isFinite(def.costScale)) return;
     const cost = Math.floor(def.baseCost * Math.pow(def.costScale, lvl));
 
-    if (lvl >= def.maxLevel || game.souls < cost) return;
+    if (!Number.isFinite(cost) || cost < 0 || lvl >= def.maxLevel || game.souls < cost) return;
 
     game.souls -= cost;
     game.prestigeUpgrades[key] = lvl + 1;
@@ -764,7 +790,12 @@ let lootboxAnimTimer = null;
 let currentLootSession = null;
 
 function openLootbox(count) {
-    const totalItems = Object.keys(ITEM_DATABASE || {}).length;
+    // Only the two UI-supported pack sizes are valid; negative counts would mint currency.
+    if (![1, 5].includes(count) || !game || !Number.isFinite(game.crystals) ||
+        !game.lootboxBonuses || !Number.isFinite(game.lootboxBonuses.totalOpened) ||
+        !Array.isArray(game.inventory) || !ITEM_DATABASE) return;
+
+    const totalItems = Object.keys(ITEM_DATABASE).length;
     const ownedItems = (game.inventory || []).filter(id => ITEM_DATABASE && ITEM_DATABASE[id]).length;
     if (totalItems > 0 && ownedItems >= totalItems) {
         showToast(`🎉 Tüm eşyaları (${ownedItems}/${totalItems}) zaten topladın!`);
@@ -788,8 +819,15 @@ function openLootbox(count) {
         else if (roll < 17) rarity = 'epic';
         else if (roll < 45) rarity = 'super_rare';
 
-        const pool = Object.values(ITEM_DATABASE).filter(item => item.rarity === rarity);
+        let pool = Object.values(ITEM_DATABASE).filter(item => item && item.rarity === rarity);
+        // Keep opening functional if a rarity has no entries in the current item database.
+        if (pool.length === 0) {
+            pool = Object.values(ITEM_DATABASE).filter(item => item && typeof item.id === 'string' && !game.inventory.includes(item.id));
+        }
+        if (pool.length === 0) break;
+
         const item = pool[Math.floor(Math.random() * pool.length)];
+        if (!item || typeof item.id !== 'string') continue;
         const isDuplicate = game.inventory.includes(item.id);
 
         if (!isDuplicate) game.inventory.push(item.id);
@@ -804,6 +842,7 @@ function openLootbox(count) {
 }
 
 function openSkinBox(count) {
+    if (![1, 5].includes(count) || !game || !Number.isFinite(game.crystals)) return;
     if (!Array.isArray(game.ownedSkins)) game.ownedSkins = ['default_cyber'];
     const totalSkins = Object.keys(SKIN_DATABASE || {}).length;
     const ownedSkins = game.ownedSkins.filter(id => SKIN_DATABASE && SKIN_DATABASE[id]).length;
@@ -846,6 +885,7 @@ function openSkinBox(count) {
 }
 
 function openCompanionSkinBox(count) {
+    if (![1, 5].includes(count) || !game || !Number.isFinite(game.crystals)) return;
     if (!Array.isArray(game.ownedCompanionSkins)) game.ownedCompanionSkins = ['default_tech'];
     const totalCompSkins = Object.keys(COMPANION_SKIN_DATABASE || {}).length;
     const ownedCompSkins = game.ownedCompanionSkins.filter(id => COMPANION_SKIN_DATABASE && COMPANION_SKIN_DATABASE[id]).length;
@@ -1050,14 +1090,21 @@ function reopenLastBox() {
 }
 
 function selectTowerSkin(skinId) {
-    if (!game.ownedSkins.includes(skinId)) return; game.activeSkin = skinId;
-    const skin = SKIN_DATABASE[skinId]; showToast(`Kule Skini Kuşanıldı: ${skin.emoji} ${skin.name}`);
+    if (!game || !Array.isArray(game.ownedSkins) || !SKIN_DATABASE ||
+        typeof skinId !== 'string' || !Object.prototype.hasOwnProperty.call(SKIN_DATABASE, skinId) ||
+        !game.ownedSkins.includes(skinId)) return;
+    game.activeSkin = skinId;
+    const skin = SKIN_DATABASE[skinId];
+    showToast(`Kule Skini Kuşanıldı: ${skin.emoji} ${skin.name}`);
     buildInventoryUI(); saveGame(true);
 }
 
 function selectCompanionSkin(skinId) {
+    if (!game) return;
     if (!Array.isArray(game.ownedCompanionSkins)) game.ownedCompanionSkins = ['default_tech'];
-    if (!game.ownedCompanionSkins.includes(skinId)) return;
+    if (!COMPANION_SKIN_DATABASE || typeof skinId !== 'string' ||
+        !Object.prototype.hasOwnProperty.call(COMPANION_SKIN_DATABASE, skinId) ||
+        !game.ownedCompanionSkins.includes(skinId)) return;
     game.activeCompanionSkin = skinId;
     const cSkin = COMPANION_SKIN_DATABASE[skinId];
     showToast(`Yoldaş Skini Kuşanıldı: ${cSkin.emoji} ${cSkin.name}`);
@@ -1085,9 +1132,31 @@ function toggleRaritySortOrder() {
 
 function toggleEquipItem(itemId) {
     if (!Array.isArray(game.equippedItems)) game.equippedItems = [];
+    if (!Array.isArray(game.inventory)) game.inventory = [];
+
+    // Normalize corrupted/legacy state first: only known owned items, unique IDs, max 3 slots.
+    game.equippedItems = [...new Set(game.equippedItems)]
+        .filter(id => typeof id === 'string' && ITEM_DATABASE[id] && game.inventory.includes(id))
+        .slice(0, 3);
+
+    if (typeof itemId !== 'string' || !ITEM_DATABASE[itemId] || !game.inventory.includes(itemId)) {
+        showToast('🛡️ Bu eşyaya sahip değilsin veya eşya geçersiz.');
+        return;
+    }
+
     const idx = game.equippedItems.indexOf(itemId);
-    if (idx > -1) { game.equippedItems.splice(idx, 1); showToast('Eşya çıkarıldı.'); }
-    else { if (game.equippedItems.length >= 3) { showToast('En fazla 3 eşya kuşanabilirsin!'); return; } game.equippedItems.push(itemId); showToast('Eşya kuşanıldı!'); }
+    if (idx > -1) {
+        game.equippedItems.splice(idx, 1);
+        showToast('Eşya çıkarıldı.');
+    } else {
+        if (game.equippedItems.length >= 3) {
+            showToast('En fazla 3 farklı eşya kuşanabilirsin!');
+            return;
+        }
+        game.equippedItems.push(itemId);
+        showToast('Eşya kuşanıldı!');
+    }
+    if (typeof window._syncShadow === 'function') window._syncShadow();
     buildInventoryUI(); buildUpgradesUI(); updateHUD(); saveGame(true);
 }
 
@@ -1100,6 +1169,9 @@ function buildInventoryUI() {
     if (typeof game === 'undefined') return;
     if (!Array.isArray(game.equippedItems)) game.equippedItems = [];
     if (!Array.isArray(game.inventory)) game.inventory = [];
+    game.equippedItems = [...new Set(game.equippedItems)]
+        .filter(id => typeof id === 'string' && ITEM_DATABASE[id] && game.inventory.includes(id))
+        .slice(0, 3);
     if (!Array.isArray(game.ownedSkins)) game.ownedSkins = ['default_cyber'];
     if (!Array.isArray(game.ownedCompanionSkins)) game.ownedCompanionSkins = ['default_tech'];
 
@@ -1416,17 +1488,64 @@ function applyParsedGameData(parsed) {
         ownedCompanionSkins: Array.isArray(parsed.ownedCompanionSkins) ? parsed.ownedCompanionSkins : ['default_tech'],
         activeCompanionSkin: parsed.activeCompanionSkin || 'default_tech'
     };
-    if (typeof COMPANION_DEFS !== 'undefined') {
-        for (const key of Object.keys(COMPANION_DEFS)) {
-            if (game.companions[key]) {
-                if (game.companions[key].unlocked) {
-                    game.companions[key].level = Math.min(5, Math.max(1, game.companions[key].level || 1));
-                } else {
-                    game.companions[key].level = 0;
-                }
+    // Normalize semantic values as well as JSON shape: valid-looking saves can still contain
+    // impossible levels, unknown inventory IDs, or duplicate equipment slots.
+    if (typeof UPGRADE_DEFS !== 'undefined') {
+        for (const key of Object.keys(game.upgrades)) {
+            const upgradeDef = UPGRADE_DEFS[key];
+            if (!upgradeDef) {
+                delete game.upgrades[key];
+                continue;
             }
+            const rawLevel = Number(game.upgrades[key]);
+            game.upgrades[key] = Math.min(upgradeDef.maxLevel, Math.max(0, Number.isFinite(rawLevel) ? Math.floor(rawLevel) : 0));
         }
     }
+    if (typeof PRESTIGE_DEFS !== 'undefined') {
+        for (const key of Object.keys(game.prestigeUpgrades)) {
+            const prestigeDef = PRESTIGE_DEFS[key];
+            if (!prestigeDef) {
+                delete game.prestigeUpgrades[key];
+                continue;
+            }
+            const rawLevel = Number(game.prestigeUpgrades[key]);
+            game.prestigeUpgrades[key] = Math.min(prestigeDef.maxLevel, Math.max(0, Number.isFinite(rawLevel) ? Math.floor(rawLevel) : 0));
+        }
+    }
+    if (typeof ITEM_DATABASE !== 'undefined') {
+        game.inventory = [...new Set(game.inventory.filter(id => typeof id === 'string' && Object.prototype.hasOwnProperty.call(ITEM_DATABASE, id)))];
+        game.equippedItems = [...new Set(game.equippedItems)]
+            .filter(id => typeof id === 'string' && Object.prototype.hasOwnProperty.call(ITEM_DATABASE, id) && game.inventory.includes(id))
+            .slice(0, 3);
+    }
+    if (typeof SKIN_DATABASE !== 'undefined') {
+        game.ownedSkins = [...new Set(['default_cyber', ...game.ownedSkins.filter(id => typeof id === 'string' && Object.prototype.hasOwnProperty.call(SKIN_DATABASE, id))])];
+        if (!game.ownedSkins.includes(game.activeSkin)) game.activeSkin = 'default_cyber';
+    }
+    if (typeof COMPANION_SKIN_DATABASE !== 'undefined') {
+        game.ownedCompanionSkins = [...new Set(['default_tech', ...game.ownedCompanionSkins.filter(id => typeof id === 'string' && Object.prototype.hasOwnProperty.call(COMPANION_SKIN_DATABASE, id))])];
+        if (!game.ownedCompanionSkins.includes(game.activeCompanionSkin)) game.activeCompanionSkin = 'default_tech';
+    }
+    if (typeof COMPANION_DEFS !== 'undefined') {
+        for (const key of Object.keys(COMPANION_DEFS)) {
+            if (!game.companions[key]) game.companions[key] = { unlocked: false, level: 0 };
+            if (game.companions[key].unlocked) {
+                const rawLevel = Number(game.companions[key].level);
+                game.companions[key].level = Math.min(5, Math.max(1, Number.isFinite(rawLevel) ? Math.floor(rawLevel) : 1));
+            } else {
+                game.companions[key].level = 0;
+            }
+        }
+        for (const key of Object.keys(game.companions)) {
+            if (!Object.prototype.hasOwnProperty.call(COMPANION_DEFS, key)) delete game.companions[key];
+        }
+    }
+    for (const key of ['gold', 'crystals', 'souls']) {
+        const value = Number(game[key]);
+        game[key] = Number.isFinite(value) ? Math.max(0, value) : 0;
+    }
+    game.wave = Math.max(1, Math.floor(Number(game.wave) || 1));
+    game.highestWave = Math.max(game.wave, Math.floor(Number(game.highestWave) || 1));
     // Yüklenen kayıt (bulut / kod / hesap) meşru bir atlayış: anti-cheat gölgesini yeni duruma eşitle,
     // yoksa 400 ms sonra "geçersiz artış" diye dalga ve kristal geri alınır.
     if (typeof window._syncShadow === 'function') window._syncShadow();
