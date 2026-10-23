@@ -1476,17 +1476,64 @@ function applyParsedGameData(parsed) {
         ownedCompanionSkins: Array.isArray(parsed.ownedCompanionSkins) ? parsed.ownedCompanionSkins : ['default_tech'],
         activeCompanionSkin: parsed.activeCompanionSkin || 'default_tech'
     };
-    if (typeof COMPANION_DEFS !== 'undefined') {
-        for (const key of Object.keys(COMPANION_DEFS)) {
-            if (game.companions[key]) {
-                if (game.companions[key].unlocked) {
-                    game.companions[key].level = Math.min(5, Math.max(1, game.companions[key].level || 1));
-                } else {
-                    game.companions[key].level = 0;
-                }
+    // Normalize semantic values as well as JSON shape: valid-looking saves can still contain
+    // impossible levels, unknown inventory IDs, or duplicate equipment slots.
+    if (typeof UPGRADE_DEFS !== 'undefined') {
+        for (const key of Object.keys(game.upgrades)) {
+            const upgradeDef = UPGRADE_DEFS[key];
+            if (!upgradeDef) {
+                delete game.upgrades[key];
+                continue;
             }
+            const rawLevel = Number(game.upgrades[key]);
+            game.upgrades[key] = Math.min(upgradeDef.maxLevel, Math.max(0, Number.isFinite(rawLevel) ? Math.floor(rawLevel) : 0));
         }
     }
+    if (typeof PRESTIGE_DEFS !== 'undefined') {
+        for (const key of Object.keys(game.prestigeUpgrades)) {
+            const prestigeDef = PRESTIGE_DEFS[key];
+            if (!prestigeDef) {
+                delete game.prestigeUpgrades[key];
+                continue;
+            }
+            const rawLevel = Number(game.prestigeUpgrades[key]);
+            game.prestigeUpgrades[key] = Math.min(prestigeDef.maxLevel, Math.max(0, Number.isFinite(rawLevel) ? Math.floor(rawLevel) : 0));
+        }
+    }
+    if (typeof ITEM_DATABASE !== 'undefined') {
+        game.inventory = [...new Set(game.inventory.filter(id => typeof id === 'string' && Object.prototype.hasOwnProperty.call(ITEM_DATABASE, id)))];
+        game.equippedItems = [...new Set(game.equippedItems)]
+            .filter(id => typeof id === 'string' && Object.prototype.hasOwnProperty.call(ITEM_DATABASE, id) && game.inventory.includes(id))
+            .slice(0, 3);
+    }
+    if (typeof SKIN_DATABASE !== 'undefined') {
+        game.ownedSkins = [...new Set(['default_cyber', ...game.ownedSkins.filter(id => typeof id === 'string' && Object.prototype.hasOwnProperty.call(SKIN_DATABASE, id))])];
+        if (!game.ownedSkins.includes(game.activeSkin)) game.activeSkin = 'default_cyber';
+    }
+    if (typeof COMPANION_SKIN_DATABASE !== 'undefined') {
+        game.ownedCompanionSkins = [...new Set(['default_tech', ...game.ownedCompanionSkins.filter(id => typeof id === 'string' && Object.prototype.hasOwnProperty.call(COMPANION_SKIN_DATABASE, id))])];
+        if (!game.ownedCompanionSkins.includes(game.activeCompanionSkin)) game.activeCompanionSkin = 'default_tech';
+    }
+    if (typeof COMPANION_DEFS !== 'undefined') {
+        for (const key of Object.keys(COMPANION_DEFS)) {
+            if (!game.companions[key]) game.companions[key] = { unlocked: false, level: 0 };
+            if (game.companions[key].unlocked) {
+                const rawLevel = Number(game.companions[key].level);
+                game.companions[key].level = Math.min(5, Math.max(1, Number.isFinite(rawLevel) ? Math.floor(rawLevel) : 1));
+            } else {
+                game.companions[key].level = 0;
+            }
+        }
+        for (const key of Object.keys(game.companions)) {
+            if (!Object.prototype.hasOwnProperty.call(COMPANION_DEFS, key)) delete game.companions[key];
+        }
+    }
+    for (const key of ['gold', 'crystals', 'souls']) {
+        const value = Number(game[key]);
+        game[key] = Number.isFinite(value) ? Math.max(0, value) : 0;
+    }
+    game.wave = Math.max(1, Math.floor(Number(game.wave) || 1));
+    game.highestWave = Math.max(game.wave, Math.floor(Number(game.highestWave) || 1));
     // Yüklenen kayıt (bulut / kod / hesap) meşru bir atlayış: anti-cheat gölgesini yeni duruma eşitle,
     // yoksa 400 ms sonra "geçersiz artış" diye dalga ve kristal geri alınır.
     if (typeof window._syncShadow === 'function') window._syncShadow();
