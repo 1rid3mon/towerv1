@@ -1806,8 +1806,21 @@ function drawCargoDrone(c, d, nowTime) {
     c.fillText(iconTxt, 0, 0);
 
     c.font = "bold 9.5px 'Rajdhani', sans-serif";
-    c.fillStyle = d.secColor || '#fef08a';
-    c.fillText('DOKUN!', 0, -d.radius - 11);
+    c.fillStyle = d.qteActive ? '#ffffff' : (d.qteAttempted ? '#cbd5e1' : (d.secColor || '#fef08a'));
+    c.fillText(d.qteActive ? 'TEKRAR DOKUN!' : (d.qteAttempted ? 'TOPLA' : 'DOKUN!'), 0, -d.radius - 11);
+
+    if (d.qteActive && d.qteTimer > 0) {
+        const progress = Math.max(0, Math.min(1, d.qteTimer / 1.25));
+        c.beginPath();
+        c.arc(0, 0, d.radius + 13, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
+        c.strokeStyle = '#a3e635';
+        c.lineWidth = 3;
+        c.setLineDash([]);
+        c.stroke();
+        c.font = "bold 10px 'Rajdhani', sans-serif";
+        c.fillStyle = '#d9f99d';
+        c.fillText(progress.toFixed(1) + 's', 0, d.radius + 20);
+    }
 
     c.restore();
 }
