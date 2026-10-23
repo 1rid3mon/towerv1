@@ -2520,8 +2520,8 @@ function updateSeasonMusicButton() {
         ? 'px-2 py-1.5 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 border border-teal-400/40 text-teal-200 font-tech font-bold text-xs transition flex items-center gap-1'
         : 'px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-tech font-bold text-xs transition flex items-center gap-1';
     button.innerHTML = seasonMusicOn
-        ? '<i class="fa-solid fa-volume-high text-xs"></i><span class="hidden sm:inline">Müzik Açık</span>'
-        : '<i class="fa-solid fa-music text-xs"></i><span class="hidden sm:inline">Müzik</span>';
+        ? '<i class="fa-solid fa-volume-high text-xs"></i><span>Müzik Açık</span>'
+        : '<i class="fa-solid fa-music text-xs"></i><span>Müzik</span>';
 }
 
 function getDefaultRivalsForLeaderboard() {
