@@ -294,8 +294,6 @@
                 <i id="ui-account-icon" class="fa-solid fa-user-astronaut text-xs"></i>
                 <span id="ui-account-name" class="hidden md:inline max-w-[90px] truncate">Giriş Yap</span>
             </button>
-            <button onclick="openDailyMissionsModal()" class="p-2 rounded-lg bg-amber-600/15 hover:bg-amber-600/25 border border-amber-400/30 text-amber-300 transition text-xs" title="Günlük görevler" aria-label="Günlük görevler"><i class="fa-solid fa-calendar-check w-3 text-center"></i></button>
-            <button id="btn-season-music" onclick="toggleSeasonMusic()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition text-xs" title="Özgün sezon ambient müziği" aria-label="Sezon müziğini aç veya kapat"><i class="fa-solid fa-music w-3 text-center"></i></button>
             <button onclick="openAchievementsModal()" class="p-2 rounded-lg bg-amber-600/15 hover:bg-amber-600/25 border border-amber-400/30 text-amber-300 transition text-xs" title="Başarımlar ve istatistikler" aria-label="Başarımlar ve istatistikler">
                 <i class="fa-solid fa-medal w-3 text-center"></i>
             </button>
@@ -949,6 +947,10 @@
                         <div id="achievement-progress" class="mt-1 font-tech text-lg font-bold text-emerald-300">0 / 12 tamamlandı</div>
                     </div>
                 </div>
+            </div>
+            <div class="mt-3 grid grid-cols-2 gap-2">
+                <button onclick="closeAchievementsModal(); openDailyMissionsModal()" class="rounded-xl border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-200 hover:bg-amber-500/20"><i class="fa-solid fa-calendar-check mr-1.5"></i>Günlük Görevler</button>
+                <button id="btn-season-music" onclick="toggleSeasonMusic()" class="rounded-xl border border-teal-400/25 bg-teal-500/10 px-3 py-2 text-xs font-bold text-teal-200 hover:bg-teal-500/20"><i class="fa-solid fa-music mr-1.5"></i><span>Müzik</span></button>
             </div>
             <div class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <div class="rounded-xl border border-white/10 bg-slate-950/70 p-3"><div class="text-[10px] text-slate-400">En yüksek dalga</div><div id="profile-stat-wave" class="mt-1 font-tech text-lg font-bold text-amber-300">1</div></div>
