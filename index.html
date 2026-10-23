@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kule Savunma: Sonsuz Döngü | v1.1.0</title>
+    <title>Kule Savunma: Sonsuz Döngü | v1.2.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -268,7 +268,7 @@
             <div class="flex flex-col">
                 <div class="hidden sm:flex items-center gap-2">
                     <h1 class="font-tech font-bold text-sm sm:text-xl text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 tracking-wider">KULE SAVUNMA</h1>
-                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 1.1.0 yeniliklerini göster" class="rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[10px] font-bold tracking-wide text-cyan-300 hover:bg-cyan-500/20 transition">v1.1.0</button>
+                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 1.2.0 yeniliklerini göster" class="rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[10px] font-bold tracking-wide text-cyan-300 hover:bg-cyan-500/20 transition">v1.2.0</button>
                 </div>
                 <div class="flex items-center space-x-3 sm:space-x-4 mt-0.5">
                     <div class="flex items-center gap-1.5" title="Altın">
@@ -283,7 +283,7 @@
                         <i class="fa-solid fa-fire text-[10px] sm:text-sm text-purple-400 neon-text-purple"></i>
                         <div id="ui-souls" class="font-tech font-bold text-xs sm:text-base text-purple-400 neon-text-purple leading-tight">0</div>
                     </div>
-                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 1.1.0 yeniliklerini göster" class="sm:hidden rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[9px] font-bold tracking-wide text-cyan-300">v1.1.0</button>
+                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 1.2.0 yeniliklerini göster" class="sm:hidden rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[9px] font-bold tracking-wide text-cyan-300">v1.2.0</button>
                 </div>
             </div>
         </div>
@@ -904,61 +904,37 @@
         </div>
     </div>
 
-    <!-- v1.1.0 update notes -->
+    <!-- v1.2.0 development notes -->
     <div id="update-notes-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md items-center justify-center p-4 z-[70]" role="dialog" aria-modal="true" aria-labelledby="update-notes-title" onclick="if(event.target === this) closeUpdateNotesModal()">
-        <div class="w-full max-w-md rounded-2xl border border-cyan-400/25 bg-slate-900 p-5 shadow-2xl">
+        <div class="w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-2xl border border-cyan-400/25 bg-slate-900 p-5 shadow-2xl">
             <div class="flex items-start justify-between gap-3">
                 <div>
-                    <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300">BÜYÜK YENİLİK SERİSİ</div>
-                    <h2 id="update-notes-title" class="mt-1 font-tech text-2xl font-bold text-white">Kule Savunma <span class="text-cyan-300">v1.1.0</span></h2>
-                    <p class="mt-1 text-xs text-slate-400">Büyük içerik güncellemesi • Sonsuz Döngü</p>
+                    <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300">YENİ GELİŞTİRME SERİSİ</div>
+                    <h2 id="update-notes-title" class="mt-1 font-tech text-2xl font-bold text-white">Kule Savunma <span class="text-cyan-300">v1.2.0</span></h2>
+                    <p class="mt-1 text-xs text-slate-400">Güvenlik, kayıt bütünlüğü ve mobil kalite • Geliştirme sürümü</p>
                 </div>
                 <button type="button" onclick="closeUpdateNotesModal()" aria-label="Yenilikler penceresini kapat" class="rounded-lg bg-slate-800 px-3 py-2 text-slate-300 hover:bg-slate-700">✕</button>
             </div>
             <div class="mt-5 space-y-3">
-                <div class="flex gap-3 rounded-xl border border-amber-400/20 bg-amber-500/5 p-3">
-                    <i class="fa-solid fa-crown mt-0.5 text-amber-300"></i>
-                    <div><div class="text-sm font-semibold text-white">Elit düşmanlar</div><p class="mt-1 text-xs leading-relaxed text-slate-300">8. dalgadan itibaren bazı normal düşmanlar nadiren elit olarak ortaya çıkar. Daha dayanıklı ve tehlikelidirler; onları alt etmek normalden daha fazla altın kazandırır.</p></div>
-                </div>
-                <div class="flex gap-3 rounded-xl border border-fuchsia-400/20 bg-fuchsia-500/5 p-3">
-                    <i class="fa-solid fa-crosshairs mt-0.5 text-fuchsia-300"></i>
-                    <div><div class="text-sm font-semibold text-white">Bosslara özel saldırı düzeni</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Hiperiyon Topçusu ve Kozmik Leviathan artık tek atış yerine yelpaze biçiminde üç mermi yollar. Atıştan hemen önce hedef yönünü gösteren ince uyarı çizgileri belirir. Üçlü yelpaze saldırısında kule zırhının her mermiye ayrı uygulanması hesaba katılır; üç mermi de isabet ederse toplam alınan hasar yaklaşık tek atış düzeyinde tutulur.</p></div>
-                </div>
-                <div class="flex gap-3 rounded-xl border border-amber-400/20 bg-amber-500/5 p-3">
-                    <i class="fa-solid fa-shield-halved mt-0.5 text-amber-300"></i>
-                    <div><div class="text-sm font-semibold text-white">Zırhlı Titan'ın ağır darbesi</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Zırhlı Titan saldırı menziline girip darbe hazırlarken kulenin çevresinde uyarı halkası belirir. Geri itildiğinde saldırı menzili dışındaysa halka görünmez; darbe indiğinde altın renkli şok halkası ve parçacıklar belirir. Gizli bonus hasar eklenmez.</p></div>
-                </div>
-                <div class="flex gap-3 rounded-xl border border-sky-400/20 bg-sky-500/5 p-3">
-                    <i class="fa-solid fa-snowflake mt-0.5 text-sky-300"></i>
-                    <div><div class="text-sm font-semibold text-white">Kutup Hükümdarı'nın kristal atışı</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Kryos'un buz mermileri artık kristal biçimli bir silüete ve buzlu iz efektine sahip. Kuleye çarptığında kristal parçacıklar ve iki katmanlı soğuk renkli darbe halkası oluşur; mevcut dondurma ve yavaşlatma mekanikleri korunur.</p></div>
-                </div>
-                <div class="flex gap-3 rounded-xl border border-rose-400/20 bg-rose-500/5 p-3">
-                    <i class="fa-solid fa-forward-fast mt-0.5 text-rose-300"></i>
-                    <div><div class="text-sm font-semibold text-white">Kızıl Fırtına'nın atılma uyarısı</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Kızıl Fırtına Vektörü atılma mesafesindeyken hedef yönünde kırmızı kesikli bir çizgi ve uyarı halkası belirir. Kuleye çok yakınken atılma gerçekleşmeyecekse yanıltıcı uyarı da gösterilmez.</p></div>
-                </div>
                 <div class="flex gap-3 rounded-xl border border-emerald-400/20 bg-emerald-500/5 p-3">
-                    <i class="fa-solid fa-chart-line mt-0.5 text-emerald-300"></i>
-                    <div><div class="text-sm font-semibold text-white">Sonsuz dalga dengesi korunuyor</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Mevcut can, hasar ve dalga ölçekleme formülleri korundu. Zorluk eğrisini değiştirmek için önce oynanış verisi ve dalga bazlı karşılaştırma gerekiyor; ölçüm olmadan dengeyi değiştirmiyoruz.</p></div>
+                    <i class="fa-solid fa-shield-halved mt-0.5 text-emerald-300"></i>
+                    <div><div class="text-sm font-semibold text-white">Kayıt ve envanter doğrulaması</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Kayıt yüklenirken geçersiz eşya kimlikleri, yinelenen ekipmanlar ve tanımsız yükseltmeler temizlenir. Bu istemci tarafı kontrolleri tek başına hileye karşı kesin koruma sağlamaz.</p></div>
                 </div>
                 <div class="flex gap-3 rounded-xl border border-cyan-400/20 bg-cyan-500/5 p-3">
-                    <i class="fa-solid fa-mobile-screen-button mt-0.5 text-cyan-300"></i>
-                    <div><div class="text-sm font-semibold text-white">Telefon ve yatay ekran düzeni</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Küçük telefonlarda can/dalga kartları ekran genişliğine daha iyi uyum sağlar. Yatay ve kısa ekranlarda üst çubuk, HUD ve yükseltme paneli için daha sıkı ölçüler uygulanır.</p></div>
+                    <i class="fa-solid fa-cloud mt-0.5 text-cyan-300"></i>
+                    <div><div class="text-sm font-semibold text-white">Bulut kayıtları ve liderlik tablosu</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Firebase erişim kuralları, oyuncu kimliği ve liderlik tablosuna yazılan veriler ayrı ayrı incelenecek. Güvenilmeyen istemciden gelen ilerleme verileri sunucu doğrulaması olmadan yetkili kabul edilmeyecek.</p></div>
                 </div>
-                <div class="flex gap-3 rounded-xl border border-white/5 bg-slate-800/60 p-3">
-                    <i class="fa-solid fa-bolt mt-0.5 text-yellow-300"></i>
-                    <div><div class="text-sm font-semibold text-white">Savaş alanında yeni görsel işaretler</div><p class="mt-1 text-xs leading-relaxed text-slate-400">Elit düşmanlar altın renkli hareketli bir halka, işaretler ve isim/sağlık göstergesiyle ayırt edilir. Yeni görseller oyunun mevcut çizim sistemiyle oluşturulur.</p></div>
+                <div class="flex gap-3 rounded-xl border border-amber-400/20 bg-amber-500/5 p-3">
+                    <i class="fa-solid fa-mobile-screen-button mt-0.5 text-amber-300"></i>
+                    <div><div class="text-sm font-semibold text-white">Telefon ve tablet deneyimi</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Dikey ve yatay ekranda taşan paneller, küçük dokunma hedefleri ve okunabilirlik sorunları gözden geçirilecek; masaüstü düzeni korunacak.</p></div>
                 </div>
-                <div class="flex gap-3 rounded-xl border border-white/5 bg-slate-800/60 p-3">
-                    <i class="fa-solid fa-cloud-arrow-up mt-0.5 text-cyan-300"></i>
-                    <div><div class="text-sm font-semibold text-white">Bulut kayıt teşhisi</div><p class="mt-1 text-xs leading-relaxed text-slate-400">Firestore bağlantısı için alternatif aktarım algılama ayarı ve daha açıklayıcı kayıt hata günlükleri eklendi. Gerçek cihaz/ağ doğrulaması ayrıca gereklidir.</p></div>
+                <div class="flex gap-3 rounded-xl border border-fuchsia-400/20 bg-fuchsia-500/5 p-3">
+                    <i class="fa-solid fa-gauge-high mt-0.5 text-fuchsia-300"></i>
+                    <div><div class="text-sm font-semibold text-white">Performans ve kararlılık</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Oyun döngüsü, kayıt yükleme ve arayüz güncellemeleri gereksiz iş ve hata riskleri açısından incelenecek. Dalga dengesi ölçüm olmadan değiştirilmemeye devam edecek.</p></div>
                 </div>
-                <div class="rounded-xl border border-purple-400/15 bg-purple-500/5 p-3">
-                    <div class="text-xs font-bold text-purple-200"><i class="fa-solid fa-shield-halved mr-1"></i> Kayıt uyumluluğu</div>
-                    <p class="mt-1 text-xs leading-relaxed text-slate-400">Elit düşman özelliği yeni bir kayıt alanı veya sıfırlama gerektirmez. Mevcut dalga, yükseltme ve envanter ilerlemesi korunacak şekilde eklendi.</p>
-                </div>
-                <div class="rounded-xl border border-emerald-400/20 bg-emerald-500/5 p-3">
-                    <div class="text-xs font-bold text-emerald-200"><i class="fa-solid fa-shield-halved mr-1"></i> Ekipman ve seviye bütünlüğü</div>
-                    <p class="mt-1 text-xs leading-relaxed text-slate-400">Aynı eşyanın birden fazla slota eklenmesi temizlenir ve bonusu birden fazla kez hesaplanmaz. Normal satın alma akışından gelmeyen skill/yoldaş seviyesi değişiklikleri geri alınmaya çalışılır; bu istemci kontrolleri tek başına sunucu güvenliği değildir.</p>
+                <div class="rounded-xl border border-white/10 bg-slate-800/60 p-3">
+                    <div class="text-xs font-bold text-slate-200"><i class="fa-solid fa-circle-info mr-1"></i> Geliştirme durumu</div>
+                    <p class="mt-1 text-xs leading-relaxed text-slate-400">Bu dal, v1.2.0 geliştirmesini temsil eder. Değişiklikler tamamlanıp doğrulanana kadar canlı sürümün yayımlandığı veya testlerin geçtiği anlamına gelmez.</p>
                 </div>
             </div>
             <button type="button" onclick="closeUpdateNotesModal()" class="mt-5 w-full rounded-xl border border-cyan-400/30 bg-cyan-500/15 py-2.5 font-tech font-bold text-cyan-200 transition hover:bg-cyan-500/25">OYUNA DÖN</button>
