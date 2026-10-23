@@ -2331,7 +2331,8 @@ function renderGame() {
 
         // Red Vector dash wind-up: warn the player before the boss closes distance.
         if (e.type === 'boss' && e.subType === 'speed_boss' &&
-            e.dashCooldown > 0 && e.dashCooldown <= 0.6) {
+            e.dashCooldown > 0 && e.dashCooldown <= 0.6 &&
+            Math.hypot(tower.x - e.x, tower.y - e.y) > 75) {
             const dashProgress = 1 - e.dashCooldown / 0.6;
             const dashAngle = Math.atan2(ty - e.y, tx - e.x);
             const dashLength = Math.min(100, Math.hypot(tx - e.x, ty - e.y));
