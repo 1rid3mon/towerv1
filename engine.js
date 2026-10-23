@@ -98,15 +98,18 @@ function spawnCargoDrone() {
         rot: 0,
         pulsePhase: 0,
         trailTick: 0,
-        life: 20
+        life: 20,
+        qteAttempted: false,
+        qteActive: false,
+        qteTimer: 0
     });
 
     if (typeof showToast === 'function') {
-        showToast(`🛸 ${label} göründü! Yakalamak için dokun!`);
+        showToast(`🛸 ${label} göründü! İlk dokunuş QTE'yi başlatır; bonus için 1,25 sn içinde tekrar dokun!`);
     }
 }
 
-function collectCargoDrone(index) {
+function collectCargoDrone(index, reflexBonus = false) {
     const d = cargoDrones[index];
     if (!d) return;
     cargoDrones.splice(index, 1);
@@ -117,28 +120,28 @@ function collectCargoDrone(index) {
 
     const w = game.wave || 1;
     if (d.rewardType === 'overdrive') {
-        tower.overdriveTimer = 10.0;
-        const bonusGold = Math.max(10, Math.round(getWaveBaseGold(w) * getGoldMultiplier() * 5));
+        tower.overdriveTimer = reflexBonus ? 15.0 : 10.0;
+        const bonusGold = Math.max(10, Math.round(getWaveBaseGold(w) * getGoldMultiplier() * 5 * (reflexBonus ? 1.5 : 1)));
         game.gold += bonusGold;
-        addFloatingText(d.x, d.y - 10, `⚡ 2X HIZ (10sn)!`, '#f97316', 14);
+        addFloatingText(d.x, d.y - 10, `⚡ 2X HIZ (${reflexBonus ? 15 : 10}sn)!`, '#f97316', 14);
         addFloatingText(d.x, d.y + 8, `+${formatNumber(bonusGold)} 🪙`, '#fbbf24', 12);
         rings.push({ x: tower.x, y: tower.y, radius: 16, color: '#f97316', life: 0.85 });
         if (typeof showToast === 'function') {
-            showToast(`⚡ Overdrive Aktif! 10 Saniye 2x Atış Hızı + ${formatNumber(bonusGold)} Altın!`);
+            showToast(`⚡ Overdrive Aktif! ${reflexBonus ? '15' : '10'} sn 2x Atış Hızı + ${formatNumber(bonusGold)} Altın!${reflexBonus ? ' REFLEKS BONUSU!' : ''}`);
         }
     } else if (d.rewardType === 'crystal') {
-        const cAmt = Math.max(3, Math.round((4 + Math.floor(w * 0.35)) * getCrystalDropMult()));
+        const cAmt = Math.max(3, Math.round((4 + Math.floor(w * 0.35)) * getCrystalDropMult() * (reflexBonus ? 1.5 : 1)));
         game.crystals += cAmt;
         addFloatingText(d.x, d.y - 8, `+${formatNumber(cAmt)} 💎`, '#22d3ee', 15);
         if (typeof showToast === 'function') {
-            showToast(`💎 Kargo İmha Edildi! +${formatNumber(cAmt)} Kristal Kazandın!`);
+            showToast(`💎 Kargo İmha Edildi! +${formatNumber(cAmt)} Kristal Kazandın!${reflexBonus ? ' REFLEKS BONUSU!' : ''}`);
         }
     } else {
-        const goldAmt = Math.max(25, Math.round(getWaveBaseGold(w) * getGoldMultiplier() * 12));
+        const goldAmt = Math.max(25, Math.round(getWaveBaseGold(w) * getGoldMultiplier() * 12 * (reflexBonus ? 1.5 : 1)));
         game.gold += goldAmt;
         addFloatingText(d.x, d.y - 8, `+${formatNumber(goldAmt)} 🪙`, '#fbbf24', 15);
         if (typeof showToast === 'function') {
-            showToast(`🪙 Altın Kargosu Toplandı! +${formatNumber(goldAmt)} Altın!`);
+            showToast(`🪙 Altın Kargosu Toplandı! +${formatNumber(goldAmt)} Altın!${reflexBonus ? ' REFLEKS BONUSU!' : ''}`);
         }
     }
 
@@ -163,7 +166,16 @@ function handleCanvasPointerDown(e) {
         const d = cargoDrones[i];
         if (Math.hypot(d.x - clickX, d.y - clickY) <= d.radius + 20) {
             if (e.cancelable) e.preventDefault();
-            collectCargoDrone(i);
+            if (!d.qteAttempted) {
+                d.qteAttempted = true;
+                d.qteActive = true;
+                d.qteTimer = 1.25;
+                if (typeof showToast === 'function') showToast('⚡ REFLEKS TESTİ! 1,25 saniye içinde drona tekrar dokun: %50 daha fazla ganimet!');
+            } else if (d.qteActive && d.qteTimer > 0) {
+                collectCargoDrone(i, true);
+            } else {
+                collectCargoDrone(i, false);
+            }
             break;
         }
     }
@@ -438,6 +450,13 @@ function updateGame(dt) {
         d.rot += dt * 2.2;
         d.pulsePhase += dt * 5;
         d.life -= dt;
+        if (d.qteActive) {
+            d.qteTimer = Math.max(0, d.qteTimer - dt);
+            if (d.qteTimer <= 0) {
+                d.qteActive = false;
+                if (typeof showToast === 'function') showToast('⏱️ Bonus süresi doldu. Drona dokunarak normal ganimeti alabilirsin.');
+            }
+        }
         d.trailTick = (d.trailTick || 0) + dt;
         if (d.trailTick >= 0.08 && particles.length < 160) {
             d.trailTick = 0;
