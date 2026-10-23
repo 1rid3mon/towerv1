@@ -1224,6 +1224,16 @@ window.onload = function () {
         if (typeof game === 'undefined') return;
         if (!shadow) { syncShadow(); return; }
 
+        // Reject non-finite/corrupt progression values before comparing deltas; NaN makes
+        // ordinary greater-than checks false, while Infinity can leak into saved progression.
+        if (!Number.isFinite(game.wave) || !Number.isFinite(game.highestWave) ||
+            game.wave < 1 || game.highestWave < 1) {
+            game.wave = shadow.wave;
+            game.highestWave = Math.max(shadow.highestWave, shadow.wave);
+            cheatFlags++;
+            if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Bozuk dalga verisi geri alındı!');
+        }
+
         const maxAllowedWaveJump = Math.max(3, getStartWaveLevel() - shadow.wave + 2);
         if (game.wave - shadow.wave > maxAllowedWaveJump || game.highestWave - shadow.highestWave > maxAllowedWaveJump) {
             game.wave = shadow.wave;
@@ -1246,9 +1256,9 @@ window.onload = function () {
             if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Geçersiz Ruh Taşı müdahalesi engellendi!');
         }
 
-        if (isNaN(game.gold) || game.gold < 0) game.gold = shadow.gold;
-        if (isNaN(game.crystals) || game.crystals < 0) game.crystals = shadow.crystals;
-        if (isNaN(game.souls) || game.souls < 0) game.souls = shadow.souls;
+        if (!Number.isFinite(game.gold) || game.gold < 0) game.gold = shadow.gold;
+        if (!Number.isFinite(game.crystals) || game.crystals < 0) game.crystals = shadow.crystals;
+        if (!Number.isFinite(game.souls) || game.souls < 0) game.souls = shadow.souls;
 
         syncShadow();
     }, 400);
