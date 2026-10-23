@@ -1842,15 +1842,16 @@ async function signInWithGoogle() {
         const requestedName =
             googleUser.displayName ||
             (googleUser.email ? googleUser.email.split('@')[0] : 'Komutan');
+        const previousGoogleName = googleUser.displayName || requestedName;
         let username = requestedName;
         let reservedNameForCleanup = '';
         try {
-            username = await reserveUniqueUsername(googleUser.uid, requestedName, googleUser.displayName || requestedName, true);
+            username = await reserveUniqueUsername(googleUser.uid, requestedName, previousGoogleName, true);
             reservedNameForCleanup = normalizeUsernameKey(username) !== normalizeUsernameKey(requestedName) ? username : '';
             if (username !== requestedName) {
                 await googleUser.updateProfile({ displayName: username });
                 reservedNameForCleanup = '';
-                await releaseUsernameReservation(googleUser.uid, googleUser.displayName || requestedName, username);
+                await releaseUsernameReservation(googleUser.uid, previousGoogleName, username);
             }
             if (currentUser && currentUser.uid === googleUser.uid) {
                 currentUser.username = username;
