@@ -4,6 +4,7 @@ const SIGNED_MARK_KEY = 'CoreTowerDefense_signedOnce';
 
 const THEME_DEFS = {
     cyber: { id: 'cyber', name: 'Siber Çekirdek', towerName: 'Siber Izgara Arka Planı', reqWave: 1, icon: 'fa-solid fa-microchip', color: 'text-blue-400', desc: 'Klasik siber savunma atmosferi.' },
+    aurora: { id: 'aurora', name: 'Kuzey Işıkları Sezonu', towerName: 'Aurora Borealis Sezon Alanı', reqWave: 1, icon: 'fa-solid fa-meteor', color: 'text-teal-300', desc: 'Dalgalanan kutup ışıkları, yıldız tozu ve özgün sentetik ambient müzik.' },
     cengiz: { id: 'cengiz', name: 'Cengiz Hakanlığı', towerName: 'Bozkır & Kızıl Tuğ Arka Planı', reqWave: 15, icon: 'fa-solid fa-khanda', color: 'text-red-400', desc: '15. Dalgada açılır. Destansı kılıçlar, kızıl korlar ve hakanlık mührü.' },
     snow: { id: 'snow', name: 'Buzul Gezegeni (Kar)', towerName: 'Kar & Kuzey Işıkları Arka Planı', reqWave: 30, icon: 'fa-solid fa-snowflake', color: 'text-sky-300', desc: '30. Dalgada açılır. Çam ağaçları, kuzey ışıkları ve kristal kar fırtınası.' },
     desert: { id: 'desert', name: 'Kızıl Çöl & Kaktüs', towerName: 'Çöl Kumulları Arka Planı', reqWave: 45, icon: 'fa-solid fa-sun', color: 'text-amber-400', desc: '45. Dalgada açılır. Dev kaktüsler, kum tepeleri ve çöl güneşi.' },
