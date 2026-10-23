@@ -24,7 +24,7 @@ test('daily missions have per-day state, bounded progress, and one-time claims',
   assert.match(ui, /state\.claimed\.includes\(mission\.id\)/);
   assert.match(ui, /state\.claimed\.push\(mission\.id\)/);
   assert.match(index, /id="daily-missions-modal"/);
-  assert.match(index, /onclick="openDailyMissionsModal\(\)"/);
+  assert.match(index, /closeAchievementsModal\(\); openDailyMissionsModal\(\)/);
 });
 
 test('season music is original Web Audio synthesis, user-initiated, and switchable', () => {
