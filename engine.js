@@ -1167,7 +1167,10 @@ window.onload = function () {
             souls: Number(game.souls) || 0,
             wave: Number(game.wave) || 1,
             highestWave: Number(game.highestWave) || 1,
-            prestiges: Number(game.stats?.prestiges) || 0
+            prestiges: Number(game.stats?.prestiges) || 0,
+            upgrades: JSON.parse(JSON.stringify(game.upgrades || {})),
+            companions: JSON.parse(JSON.stringify(game.companions || {})),
+            equippedItems: [...new Set(Array.isArray(game.equippedItems) ? game.equippedItems : [])]
         };
     }
 
@@ -1259,6 +1262,37 @@ window.onload = function () {
         if (!Number.isFinite(game.gold) || game.gold < 0) game.gold = shadow.gold;
         if (!Number.isFinite(game.crystals) || game.crystals < 0) game.crystals = shadow.crystals;
         if (!Number.isFinite(game.souls) || game.souls < 0) game.souls = shadow.souls;
+
+        // Skill/upgrade levels and companion stars are only accepted after their normal
+        // purchase handler explicitly refreshes the shadow snapshot. Direct runtime edits
+        // are rolled back before they can be saved by the regular game flow.
+        const currentUpgrades = JSON.stringify(game.upgrades || {});
+        const trustedUpgrades = JSON.stringify(shadow.upgrades || {});
+        if (currentUpgrades !== trustedUpgrades) {
+            game.upgrades = JSON.parse(JSON.stringify(shadow.upgrades || {}));
+            cheatFlags++;
+            if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Yetkisiz skill seviyesi değişimi geri alındı!');
+        }
+
+        const currentCompanions = JSON.stringify(game.companions || {});
+        const trustedCompanions = JSON.stringify(shadow.companions || {});
+        if (currentCompanions !== trustedCompanions) {
+            game.companions = JSON.parse(JSON.stringify(shadow.companions || {}));
+            cheatFlags++;
+            if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Yetkisiz yoldaş seviyesi değişimi geri alındı!');
+        }
+
+        const validEquipped = [...new Set(Array.isArray(game.equippedItems) ? game.equippedItems : [])]
+            .filter(id => typeof id === 'string' && ITEM_DATABASE && ITEM_DATABASE[id] &&
+                Array.isArray(game.inventory) && game.inventory.includes(id))
+            .slice(0, 3);
+        const currentEquipped = JSON.stringify(Array.isArray(game.equippedItems) ? game.equippedItems : []);
+        if (currentEquipped !== JSON.stringify(validEquipped) ||
+            JSON.stringify(validEquipped) !== JSON.stringify(shadow.equippedItems || [])) {
+            game.equippedItems = validEquipped;
+            cheatFlags++;
+            if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Tekrarlı veya geçersiz ekipman engellendi!');
+        }
 
         syncShadow();
     }, 400);
