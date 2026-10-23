@@ -2354,7 +2354,7 @@ function renderGame() {
 
         // Armored Titan wind-up: a ground warning ring marks its next heavy strike.
         if (e.type === 'boss' && e.subType === 'tank_boss' &&
-            Math.hypot(tower.x - e.x, tower.y - e.y) <= (e.stopDistOverride || 38) + 12 &&
+            Math.hypot(tower.x - e.x, tower.y - e.y) <= (e.stopDistOverride || 38) &&
             e.attackCooldown > 0 && e.attackCooldown <= 0.55) {
             const progress = 1 - e.attackCooldown / 0.55;
             ctx.save();
