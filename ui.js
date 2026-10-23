@@ -2336,6 +2336,193 @@ function renderAchievementsModal() {
     }).join('');
 }
 
+
+const DAILY_MISSION_KEY = 'CoreTowerDefense_DailyMissions_v1';
+let seasonMusicContext = null;
+let seasonMusicOn = false;
+let seasonMusicNodes = [];
+
+function getLocalDayKey() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function readDailyMissionState() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(DAILY_MISSION_KEY) || 'null'); } catch (e) {}
+    const today = getLocalDayKey();
+    if (!saved || saved.date !== today || !saved.baseline) {
+        saved = {
+            date: today,
+            baseline: {
+                kills: Math.max(0, Number(game?.stats?.totalKills) || 0),
+                bosses: Math.max(0, Number(game?.stats?.bossKills) || 0),
+                playTime: Math.max(0, Number(game?.stats?.playTimeSeconds) || 0),
+                wave: Math.max(1, Number(game?.wave) || 1)
+            },
+            claimed: []
+        };
+        try { localStorage.setItem(DAILY_MISSION_KEY, JSON.stringify(saved)); } catch (e) {}
+    }
+    if (!Array.isArray(saved.claimed)) saved.claimed = [];
+    return saved;
+}
+
+function getDailyMissionDefinitions(state = readDailyMissionState()) {
+    const stats = game?.stats || {};
+    const kills = Math.max(0, Number(stats.totalKills) || 0) - state.baseline.kills;
+    const bosses = Math.max(0, Number(stats.bossKills) || 0) - state.baseline.bosses;
+    const playTime = Math.max(0, Number(stats.playTimeSeconds) || 0) - state.baseline.playTime;
+    const waveDelta = Math.max(0, (Number(game?.wave) || 1) - state.baseline.wave);
+    return [
+        { id: 'daily-kills', icon: '🎯', title: 'Tehdit Temizliği', desc: 'Bugün 50 düşman imha et', progress: Math.min(50, kills), target: 50, rewardGold: 250, rewardCrystals: 4 },
+        { id: 'daily-boss', icon: '🐉', title: 'Boss Avı', desc: 'Bugün 1 boss yen', progress: Math.min(1, bosses), target: 1, rewardGold: 200, rewardCrystals: 8 },
+        { id: 'daily-time', icon: '⏱️', title: 'Nöbet Mesaisi', desc: 'Bugün 10 dakika savaş alanında kal', progress: Math.min(600, playTime), target: 600, rewardGold: 300, rewardCrystals: 5, format: v => `${Math.floor(v / 60)} dk` },
+        { id: 'daily-waves', icon: '🌊', title: 'Dalga Dalgaya', desc: 'Bugün 5 dalga ilerle', progress: Math.min(5, waveDelta), target: 5, rewardGold: 350, rewardCrystals: 6 }
+    ];
+}
+
+function openDailyMissionsModal() {
+    renderDailyMissions();
+    const modal = document.getElementById('daily-missions-modal');
+    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+}
+
+function closeDailyMissionsModal() {
+    const modal = document.getElementById('daily-missions-modal');
+    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+}
+
+function renderDailyMissions() {
+    if (typeof game === 'undefined') return;
+    const state = readDailyMissionState();
+    const missions = getDailyMissionDefinitions(state);
+    const claimedCount = missions.filter(m => state.claimed.includes(m.id)).length;
+    setElText('daily-missions-date', `Günlük hedefler • ${state.date}`);
+    setElText('daily-missions-progress', `${claimedCount} / ${missions.length} ödül alındı`);
+    const list = document.getElementById('daily-missions-list');
+    if (!list) return;
+    list.innerHTML = missions.map(m => {
+        const value = Math.max(0, Number(m.progress) || 0);
+        const done = value >= m.target;
+        const claimed = state.claimed.includes(m.id);
+        const percent = Math.max(0, Math.min(100, value / m.target * 100));
+        const current = m.format ? m.format(value) : formatNumber(value);
+        const target = m.format ? m.format(m.target) : formatNumber(m.target);
+        const button = claimed
+            ? '<button disabled class="shrink-0 rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-[10px] font-bold text-emerald-300">ALINDI ✓</button>'
+            : done
+                ? `<button onclick="claimDailyMission('${m.id}')" class="shrink-0 rounded-lg bg-amber-500 px-3 py-2 text-[10px] font-bold text-slate-950 hover:bg-amber-400">ÖDÜLÜ AL</button>`
+                : '<button disabled class="shrink-0 rounded-lg bg-slate-800 px-3 py-2 text-[10px] font-bold text-slate-500">DEVAM ET</button>';
+        return `<div class="rounded-xl border ${claimed ? 'border-emerald-400/25' : 'border-white/10'} bg-slate-950/70 p-3">
+            <div class="flex items-start gap-2.5">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-xl">${m.icon}</div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-xs font-bold text-white">${m.title}</div><p class="mt-0.5 text-[10px] text-slate-400">${m.desc}</p>
+                    <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800"><div class="h-full rounded-full ${done ? 'bg-emerald-400' : 'bg-cyan-500'}" style="width:${percent}%"></div></div>
+                    <div class="mt-1 flex flex-wrap justify-between gap-1 text-[9px] text-slate-500"><span>${current} / ${target}</span><span class="text-amber-300">+${formatNumber(m.rewardGold)} 🪙 · +${m.rewardCrystals} 💎</span></div>
+                </div>
+                ${button}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function claimDailyMission(missionId) {
+    const state = readDailyMissionState();
+    const mission = getDailyMissionDefinitions(state).find(m => m.id === missionId);
+    if (!mission || state.claimed.includes(mission.id) || mission.progress < mission.target) {
+        showToast('Bu hedef henüz tamamlanmadı veya ödülü zaten alındı.');
+        renderDailyMissions();
+        return;
+    }
+    // Client-side daily goals are a convenience feature, not a trusted competitive reward system.
+    game.gold = Math.max(0, Number(game.gold) || 0) + mission.rewardGold;
+    game.crystals = Math.max(0, Number(game.crystals) || 0) + mission.rewardCrystals;
+    state.claimed.push(mission.id);
+    try { localStorage.setItem(DAILY_MISSION_KEY, JSON.stringify(state)); } catch (e) {}
+    if (typeof updateHUD === 'function') updateHUD();
+    if (typeof saveGame === 'function') saveGame(true);
+    renderDailyMissions();
+    showToast(`🎁 Günlük hedef tamamlandı: +${formatNumber(mission.rewardGold)} altın, +${mission.rewardCrystals} kristal!`);
+}
+
+async function toggleSeasonMusic() {
+    if (seasonMusicOn) {
+        seasonMusicNodes.forEach(node => { try { node.stop(); } catch (e) {} try { node.disconnect(); } catch (e) {} });
+        seasonMusicNodes = [];
+        if (seasonMusicContext) {
+            const oldContext = seasonMusicContext;
+            seasonMusicContext = null;
+            try { await oldContext.close(); } catch (e) {}
+        }
+        seasonMusicOn = false;
+        updateSeasonMusicButton();
+        showToast('🎵 Sezon müziği kapatıldı.');
+        return;
+    }
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) {
+        showToast('Bu tarayıcıda Web Audio desteklenmiyor.');
+        return;
+    }
+    try {
+        const audio = new AudioContextClass();
+        const master = audio.createGain();
+        const filter = audio.createBiquadFilter();
+        master.gain.value = 0.035;
+        filter.type = 'lowpass';
+        filter.frequency.value = 720;
+        filter.Q.value = 0.4;
+        filter.connect(master);
+        master.connect(audio.destination);
+        const tones = [
+            { frequency: 110, type: 'sine', gain: 0.28 },
+            { frequency: 164.81, type: 'sine', gain: 0.16 },
+            { frequency: 220, type: 'triangle', gain: 0.08 }
+        ];
+        const nodes = [];
+        tones.forEach(tone => {
+            const osc = audio.createOscillator();
+            const gain = audio.createGain();
+            osc.type = tone.type;
+            osc.frequency.value = tone.frequency;
+            gain.gain.value = tone.gain;
+            osc.connect(gain);
+            gain.connect(filter);
+            osc.start();
+            nodes.push(osc, gain);
+        });
+        const lfo = audio.createOscillator();
+        const lfoGain = audio.createGain();
+        lfo.frequency.value = 0.07;
+        lfoGain.gain.value = 0.012;
+        lfo.connect(lfoGain);
+        lfoGain.connect(master.gain);
+        lfo.start();
+        nodes.push(lfo, lfoGain, filter, master);
+        seasonMusicNodes = nodes;
+        seasonMusicContext = audio;
+        seasonMusicOn = true;
+        updateSeasonMusicButton();
+        showToast('🌌 Kuzey Işıkları ambient müziği açıldı.');
+    } catch (err) {
+        console.warn('[Season Music] Audio initialization failed:', err);
+        showToast('Sezon müziği başlatılamadı; tarayıcı ses iznini kontrol et.');
+    }
+}
+
+function updateSeasonMusicButton() {
+    const button = document.getElementById('btn-season-music');
+    if (!button) return;
+    button.className = seasonMusicOn
+        ? 'px-2 py-1.5 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 border border-teal-400/40 text-teal-200 font-tech font-bold text-xs transition flex items-center gap-1'
+        : 'px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-tech font-bold text-xs transition flex items-center gap-1';
+    button.innerHTML = seasonMusicOn
+        ? '<i class="fa-solid fa-volume-high text-xs"></i><span class="hidden sm:inline">Müzik Açık</span>'
+        : '<i class="fa-solid fa-music text-xs"></i><span class="hidden sm:inline">Müzik</span>';
+}
+
 function getDefaultRivalsForLeaderboard() {
     return [
         { uid: 'npc_1', username: 'CyberValkyrie', highestWave: 85, wave: 82, activeSkin: 'cosmic_emperor', damage: 148500, prestiges: 14, updatedAt: Date.now() - 120000 },
