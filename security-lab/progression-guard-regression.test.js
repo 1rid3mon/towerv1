@@ -134,3 +134,18 @@ test('duplicate equipped IDs never stack multishot either', () => {
   );
   assert.equal(sandbox.getEffectiveMultishot(), 4);
 });
+
+
+test('manual save-code import/export UI and handlers are removed', () => {
+  const indexSource = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const uiSource = fs.readFileSync(path.join(root, 'ui.js'), 'utf8');
+  assert.doesNotMatch(indexSource, /save-code-textarea|exportSaveCode|importSaveCode|Kayıt Kodu \(Yedekle \/ Cihaz Değiştir\)/);
+  assert.doesNotMatch(uiSource, /function exportSaveCode\s*\(|function importSaveCode\s*\(|save-code-textarea/);
+});
+
+test('account/cloud-save code remains separate from manual save-code import/export', () => {
+  const indexSource = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const uiSource = fs.readFileSync(path.join(root, 'ui.js'), 'utf8');
+  assert.match(indexSource, /Hesap|Giriş|Giriş Yap|Kayıt Ol/i);
+  assert.match(uiSource, /Firebase|cloud|bulut/i);
+});

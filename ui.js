@@ -1608,49 +1608,6 @@ function loadGame() {
     } catch (e) {}
 }
 
-function exportSaveCode() {
-    try {
-        const t = document.getElementById('save-code-textarea');
-        if (!t) return;
-        game._sigVersion = 2;
-        if (typeof window._generateSaveSignature === 'function') {
-            game._sig = window._generateSaveSignature(game);
-        }
-        t.value = btoa(unescape(encodeURIComponent(JSON.stringify(game))));
-        t.select();
-        document.execCommand('copy');
-        showToast('Kayıt kodu kopyalandı; imza hileye karşı güvenlik garantisi değildir.');
-    } catch (e) {}
-}
-
-function importSaveCode() {
-    try {
-        const t = document.getElementById('save-code-textarea');
-        if (!t) return;
-        const code = t.value.trim();
-        if (!code) return;
-        const decodedStr = decodeURIComponent(escape(atob(code)));
-        const parsed = JSON.parse(decodedStr);
-        if (!isCompatibleSaveShape(parsed)) {
-            showToast('⚠️ Kayıt yapısı bozuk veya desteklenmiyor.');
-            return;
-        }
-        if (!parsed._sig || typeof window._verifySaveSignature !== 'function' || !window._verifySaveSignature(parsed)) {
-            showToast('🛡️ HATA: Değiştirilmiş veya sahte kayıt kodu!');
-            return;
-        }
-        localStorage.setItem(SAVE_KEY, JSON.stringify(parsed));
-        loadGame();
-        applyBodyClasses();
-        buildUpgradesUI();
-        buildInventoryUI();
-        updateHUD();
-        showToast('Kayıt kodu doğrulandı ve yüklendi!');
-    } catch (e) {
-        showToast('Geçersiz kod!');
-    }
-}
-
 // =======================================================
 // 🔐 HESAP (LOGIN/KAYIT) + ☁️ BULUT KAYIT + 🏆 LİDERLİK TABLOSU
 // =======================================================

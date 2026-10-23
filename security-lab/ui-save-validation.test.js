@@ -13,11 +13,10 @@ test('local save loading fails closed if the verifier is missing or rejects the 
   );
 });
 
-test('save-code import requires a signature and an available passing verifier', () => {
-  assert.match(
-    uiSource,
-    /if \(!parsed\._sig \|\| typeof window\._verifySaveSignature !== 'function' \|\| !window\._verifySaveSignature\(parsed\)\)/
-  );
+test('manual save-code import handler stays removed', () => {
+  const indexSource = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  assert.doesNotMatch(indexSource, /save-code-textarea|exportSaveCode|importSaveCode/);
+  assert.doesNotMatch(uiSource, /function importSaveCode\s*\(|save-code-textarea/);
 });
 
 test('cloud save loading fails closed if the verifier is missing or rejects the save', () => {
@@ -75,9 +74,10 @@ test('leaderboard usernames are HTML-escaped before insertion', () => {
   assert.ok(uiSource.includes('${escapeHtml(pName)}'), 'leaderboard template must escape the player name');
 });
 
-test('save-code export does not falsely claim client signatures prevent cheating', () => {
-  assert.doesNotMatch(uiSource, /Güvenli kayıt kodu kopyalandı/);
-  assert.match(uiSource, /imza hileye karşı güvenlik garantisi değildir/);
+test('manual save-code export handler stays removed', () => {
+  const indexSource = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  assert.doesNotMatch(indexSource, /save-code-textarea|exportSaveCode|importSaveCode/);
+  assert.doesNotMatch(uiSource, /function exportSaveCode\s*\(|save-code-textarea/);
 });
 
 test('all cloud/local save paths validate shape before applying parsed state', () => {
