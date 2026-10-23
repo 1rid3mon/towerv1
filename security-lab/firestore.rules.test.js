@@ -97,6 +97,17 @@ test("username registry rejects uppercase or malformed document keys", async () 
   }));
 });
 
+
+test("username registry owner can refresh their own existing reservation", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  await assertSucceeds(setDoc(doc(alice, "usernameRegistry/kerem"), {
+    uid: "alice", username: "kerem", updatedAt: Date.now()
+  }));
+  await assertSucceeds(setDoc(doc(alice, "usernameRegistry/kerem"), {
+    uid: "alice", username: "kerem", updatedAt: Date.now() + 1
+  }));
+});
+
 test("unauthenticated user cannot write a user save", async () => {
   const db = testEnv.unauthenticatedContext().firestore();
   await assertFails(setDoc(doc(db, "users/alice"), {
