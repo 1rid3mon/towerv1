@@ -109,7 +109,7 @@ test('duplicate equipped IDs never stack the same item stat bonus', () => {
     }
   };
   vm.runInNewContext(
-    dataSource.slice(start, end) + '\\nglobalThis.getItemStatBonus = getItemStatBonus;',
+    dataSource.slice(start, end) + '\nglobalThis.getItemStatBonus = getItemStatBonus;',
     sandbox
   );
   assert.equal(sandbox.getItemStatBonus('damage'), 0.38);
