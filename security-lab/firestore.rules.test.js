@@ -59,7 +59,7 @@ test("username registry allows the first owner but blocks another user claiming 
   const alice = testEnv.authenticatedContext("alice").firestore();
   const bob = testEnv.authenticatedContext("bob").firestore();
   await assertSucceeds(setDoc(doc(alice, "usernameRegistry/kerem"), {
-    uid: "alice", username: "Kerem", updatedAt: Date.now()
+    uid: "alice", username: "kerem", updatedAt: Date.now()
   }));
   await assertFails(setDoc(doc(bob, "usernameRegistry/kerem"), {
     uid: "bob", username: "kerem", updatedAt: Date.now()
@@ -70,13 +70,31 @@ test("username registry only lets its owner update or release a reserved name", 
   const alice = testEnv.authenticatedContext("alice").firestore();
   const bob = testEnv.authenticatedContext("bob").firestore();
   await assertSucceeds(setDoc(doc(alice, "usernameRegistry/kerem"), {
-    uid: "alice", username: "Kerem", updatedAt: Date.now()
+    uid: "alice", username: "kerem", updatedAt: Date.now()
   }));
   await assertFails(setDoc(doc(bob, "usernameRegistry/kerem"), {
     uid: "bob", username: "Kerem2", updatedAt: Date.now()
   }));
   await assertFails(deleteDoc(doc(bob, "usernameRegistry/kerem")));
   await assertSucceeds(deleteDoc(doc(alice, "usernameRegistry/kerem")));
+});
+
+
+test("username registry rejects a value that does not match its normalized document key", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  await assertFails(setDoc(doc(alice, "usernameRegistry/kerem"), {
+    uid: "alice", username: "different-name", updatedAt: Date.now()
+  }));
+});
+
+test("username registry rejects uppercase or malformed document keys", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  await assertFails(setDoc(doc(alice, "usernameRegistry/Kerem"), {
+    uid: "alice", username: "kerem", updatedAt: Date.now()
+  }));
+  await assertFails(setDoc(doc(alice, "usernameRegistry/ab"), {
+    uid: "alice", username: "ab", updatedAt: Date.now()
+  }));
 });
 
 test("unauthenticated user cannot write a user save", async () => {
