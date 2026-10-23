@@ -28,3 +28,27 @@ test('QTE feature is additive: missed timing still allows standard cargo rewards
   assert.match(engine, /collectCargoDrone\(i, false\)/);
   assert.match(engine, /collectCargoDrone\(i, true\)/);
 });
+
+test('v1.3.0 exposes a responsive achievements and statistics profile without resetting save data', () => {
+  assert.match(index, /v1\.3\.0/);
+  assert.match(index, /id="achievements-modal"/);
+  assert.match(index, /id="achievements-list"/);
+  assert.match(index, /onclick="openAchievementsModal\(\)"/);
+  assert.match(ui, /function getAchievementDefinitions\(\)/);
+  assert.match(ui, /function renderAchievementsModal\(\)/);
+  assert.match(ui, /function getCommanderBadge\(/);
+  assert.match(ui, /profile-stat-wave/);
+  assert.match(ui, /profile-stat-kills/);
+  assert.match(ui, /profile-stat-bosses/);
+  assert.match(ui, /profile-stat-time/);
+});
+
+test('achievement and badge progression derives from existing save stats and preserves legacy schema', () => {
+  assert.match(ui, /game\?\.stats/);
+  assert.match(ui, /stats\.totalKills/);
+  assert.match(ui, /stats\.bossKills/);
+  assert.match(ui, /stats\.playTimeSeconds/);
+  assert.match(ui, /game\?\.ownedSkins/);
+  assert.match(ui, /getCommanderBadge\(p\.highestWave, p\.prestiges\)/);
+  assert.match(index, /eski kayıtların sıfırlanmaz/i);
+});
