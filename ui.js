@@ -2241,6 +2241,101 @@ function shouldApplyCloudSave(cloudGame, localGame, silent) {
     return Number(cloudGame.lastSaveTime || 0) > Number(localGame.lastSaveTime || 0);
 }
 
+function getCommanderBadge(highestWave = 1, prestiges = 0) {
+    const wave = Math.max(1, Number(highestWave) || 1);
+    const prestige = Math.max(0, Number(prestiges) || 0);
+    if (wave >= 250 || prestige >= 20) return { id: 'eternal', name: 'Sonsuz Komutan', icon: '♾️', className: 'text-fuchsia-200 bg-fuchsia-500/15 border-fuchsia-400/40' };
+    if (wave >= 100 || prestige >= 10) return { id: 'legend', name: 'Efsane', icon: '👑', className: 'text-amber-200 bg-amber-500/15 border-amber-400/40' };
+    if (wave >= 50 || prestige >= 5) return { id: 'elite', name: 'Elit Muhafız', icon: '💠', className: 'text-cyan-200 bg-cyan-500/15 border-cyan-400/40' };
+    if (wave >= 25 || prestige >= 1) return { id: 'vanguard', name: 'Öncü', icon: '🛡️', className: 'text-emerald-200 bg-emerald-500/15 border-emerald-400/40' };
+    return { id: 'rookie', name: 'Yeni Komutan', icon: '⚔️', className: 'text-slate-200 bg-slate-500/15 border-slate-400/30' };
+}
+
+function getAchievementDefinitions() {
+    const stats = game?.stats || {};
+    const highestWave = Math.max(Number(game?.highestWave) || 1, Number(game?.wave) || 1);
+    const kills = Math.max(0, Number(stats.totalKills) || 0);
+    const bosses = Math.max(0, Number(stats.bossKills) || 0);
+    const prestiges = Math.max(0, Number(stats.prestiges) || 0);
+    const seconds = Math.max(0, Number(stats.playTimeSeconds) || 0);
+    const skins = Array.isArray(game?.ownedSkins) ? new Set(game.ownedSkins).size : 1;
+    const items = Array.isArray(game?.inventory) ? new Set(game.inventory).size : 0;
+    const unlockedCompanions = Object.values(game?.companions || {}).filter(c => c && c.unlocked).length;
+    return [
+        { id: 'wave5', icon: '🌱', name: 'İlk Savunma', desc: '5. dalgaya ulaş', value: highestWave, target: 5, done: highestWave >= 5 },
+        { id: 'wave25', icon: '🛡️', name: 'Öncü Komutan', desc: '25. dalgaya ulaş', value: highestWave, target: 25, done: highestWave >= 25 },
+        { id: 'wave50', icon: '💠', name: 'Elit Muhafız', desc: '50. dalgaya ulaş', value: highestWave, target: 50, done: highestWave >= 50 },
+        { id: 'wave100', icon: '👑', name: 'Dalga Efsanesi', desc: '100. dalgaya ulaş', value: highestWave, target: 100, done: highestWave >= 100 },
+        { id: 'kills100', icon: '🎯', name: 'İlk Yüz', desc: '100 düşman imha et', value: kills, target: 100, done: kills >= 100 },
+        { id: 'kills1000', icon: '💥', name: 'Temizleyici', desc: '1.000 düşman imha et', value: kills, target: 1000, done: kills >= 1000 },
+        { id: 'boss10', icon: '🐉', name: 'Boss Avcısı', desc: '10 boss yen', value: bosses, target: 10, done: bosses >= 10 },
+        { id: 'prestige1', icon: '🔥', name: 'Yeniden Doğuş', desc: 'İlk prestijini yap', value: prestiges, target: 1, done: prestiges >= 1 },
+        { id: 'skins5', icon: '🎨', name: 'Koleksiyoncu', desc: '5 kule görünümü topla', value: skins, target: 5, done: skins >= 5 },
+        { id: 'companions3', icon: '🛰️', name: 'Filo Komutanı', desc: '3 yoldaşın kilidini aç', value: unlockedCompanions, target: 3, done: unlockedCompanions >= 3 },
+        { id: 'play10h', icon: '⏱️', name: 'Kıdemli Savunmacı', desc: '10 saat oyna', value: seconds, target: 36000, done: seconds >= 36000, format: v => `${(v / 3600).toFixed(1)} sa` },
+        { id: 'items10', icon: '💎', name: 'Emanetçi', desc: '10 farklı eşya biriktir', value: items, target: 10, done: items >= 10 }
+    ];
+}
+
+function openAchievementsModal() {
+    renderAchievementsModal();
+    const modal = document.getElementById('achievements-modal');
+    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+}
+
+function closeAchievementsModal() {
+    const modal = document.getElementById('achievements-modal');
+    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+}
+
+function renderAchievementsModal() {
+    if (typeof game === 'undefined') return;
+    const stats = game.stats || {};
+    const highWave = Math.max(Number(game.highestWave) || 1, Number(game.wave) || 1);
+    const badge = getCommanderBadge(highWave, stats.prestiges);
+    const minutes = Math.floor(Math.max(0, Number(stats.playTimeSeconds) || 0) / 60);
+    const ownedSkins = Array.isArray(game.ownedSkins) ? new Set(game.ownedSkins).size : 1;
+    const ownedItems = Array.isArray(game.inventory) ? new Set(game.inventory).size : 0;
+    const achievements = getAchievementDefinitions();
+    const unlocked = achievements.filter(a => a.done).length;
+    const progressEl = document.getElementById('achievement-progress');
+    if (progressEl) progressEl.textContent = `${unlocked} / ${achievements.length} tamamlandı`;
+    const badgeEl = document.getElementById('profile-badge');
+    if (badgeEl) {
+        badgeEl.className = `inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold ${badge.className}`;
+        badgeEl.innerHTML = `<span class="text-xl">${badge.icon}</span><span>${badge.name}</span>`;
+    }
+    const values = {
+        'profile-stat-wave': formatNumber(highWave),
+        'profile-stat-kills': formatNumber(stats.totalKills || 0),
+        'profile-stat-bosses': formatNumber(stats.bossKills || 0),
+        'profile-stat-prestige': formatNumber(stats.prestiges || 0),
+        'profile-stat-time': minutes >= 60 ? `${Math.floor(minutes / 60)} sa ${minutes % 60} dk` : `${minutes} dk`,
+        'profile-stat-skins': formatNumber(ownedSkins),
+        'profile-stat-items': formatNumber(ownedItems),
+        'profile-stat-gold': formatNumber(game.gold || 0)
+    };
+    Object.entries(values).forEach(([id, value]) => setElText(id, value));
+    const list = document.getElementById('achievements-list');
+    if (list) list.innerHTML = achievements.map(a => {
+        const current = Math.max(0, Number(a.value) || 0);
+        const ratio = Math.max(0, Math.min(100, current / Math.max(1, a.target) * 100));
+        const currentText = a.format ? a.format(current) : formatNumber(current);
+        const targetText = a.format ? a.format(a.target) : formatNumber(a.target);
+        return `<div class="rounded-xl border ${a.done ? 'border-emerald-400/35 bg-emerald-500/5' : 'border-white/10 bg-slate-950/60'} p-3">
+            <div class="flex items-start gap-2.5">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${a.done ? 'bg-emerald-500/15' : 'bg-slate-800'} text-xl">${a.icon}</div>
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between gap-2"><div class="text-xs font-bold text-white">${a.name}</div><span class="text-[9px] font-bold ${a.done ? 'text-emerald-300' : 'text-slate-500'}">${a.done ? 'TAMAMLANDI ✓' : 'KİLİTLİ'}</span></div>
+                    <p class="mt-0.5 text-[10px] text-slate-400">${a.desc}</p>
+                    <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800"><div class="h-full rounded-full ${a.done ? 'bg-emerald-400' : 'bg-cyan-500'}" style="width:${ratio}%"></div></div>
+                    <div class="mt-1 text-right text-[9px] text-slate-500">${currentText} / ${targetText}</div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
 function getDefaultRivalsForLeaderboard() {
     return [
         { uid: 'npc_1', username: 'CyberValkyrie', highestWave: 85, wave: 82, activeSkin: 'cosmic_emperor', damage: 148500, prestiges: 14, updatedAt: Date.now() - 120000 },
@@ -2374,6 +2469,7 @@ async function refreshLeaderboard(showNotification = false) {
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5">
                             <span class="font-tech font-bold text-xs sm:text-sm ${isMe ? 'text-emerald-300' : 'text-white'} truncate">${escapeHtml(pName)}</span>
+                            <span title="${getCommanderBadge(p.highestWave, p.prestiges).name}" class="inline-flex shrink-0 items-center rounded border px-1 py-0.5 text-[9px] ${getCommanderBadge(p.highestWave, p.prestiges).className}">${getCommanderBadge(p.highestWave, p.prestiges).icon}</span>
                             ${isMe ? '<span class="px-1.5 py-0.2 rounded bg-emerald-500/20 border border-emerald-400/40 text-[9px] font-tech font-bold text-emerald-300">SEN</span>' : ''}
                         </div>
                         <div class="text-[10px] text-slate-400 truncate">${skinDef.emoji} ${skinDef.name}</div>
