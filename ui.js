@@ -2468,6 +2468,7 @@ async function toggleSeasonMusic() {
     }
     try {
         const audio = new AudioContextClass();
+        if (audio.state === 'suspended') await audio.resume();
         const master = audio.createGain();
         const filter = audio.createBiquadFilter();
         master.gain.value = 0.035;
