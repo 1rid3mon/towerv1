@@ -173,10 +173,12 @@ function buyUpgrade(key) {
         typeof key !== 'string' || !Object.prototype.hasOwnProperty.call(UPGRADE_DEFS, key) ||
         !Number.isFinite(game.gold) || !Number.isFinite(game.upgrades[key])) return;
 
+    const def = UPGRADE_DEFS[key];
     const info = getBulkUpgradeInfo(key);
-    if (!info || info.maxed || info.lockedReason || !info.canAfford ||
-        !Number.isFinite(info.totalCost) || info.totalCost < 0 ||
-        !Number.isInteger(info.count) || info.count < 1) return;
+    if (!def || !info || info.maxed || info.lockedReason || !info.canAfford ||
+        !Number.isFinite(info.totalCost) || info.totalCost < 0 || info.totalCost > game.gold ||
+        !Number.isInteger(info.count) || info.count < 1 ||
+        game.upgrades[key] + info.count > def.maxLevel) return;
     const prevMaxHp = getTowerMaxHp();
     game.gold -= info.totalCost;
     game.upgrades[key] += info.count;
@@ -280,7 +282,7 @@ function buyCompanion(key) {
     if (star >= 5) return;
 
     const cost = def.starCosts[star];
-    if (game.crystals < cost) return;
+    if (!Number.isFinite(cost) || cost < 0 || game.crystals < cost) return;
 
     game.crystals -= cost;
     if (!st.unlocked) {
@@ -401,9 +403,11 @@ function buyPrestigeUpgrade(key) {
     if (!def || !Number.isFinite(def.baseCost) || !Number.isFinite(def.costScale) ||
         !Number.isFinite(def.maxLevel)) return;
     const lvl = game.prestigeUpgrades[key] || 0;
+    if (!Number.isFinite(lvl) || lvl < 0 || !Number.isFinite(def.maxLevel) ||
+        !Number.isFinite(def.baseCost) || !Number.isFinite(def.costScale)) return;
     const cost = Math.floor(def.baseCost * Math.pow(def.costScale, lvl));
 
-    if (lvl >= def.maxLevel || game.souls < cost) return;
+    if (!Number.isFinite(cost) || cost < 0 || lvl >= def.maxLevel || game.souls < cost) return;
 
     game.souls -= cost;
     game.prestigeUpgrades[key] = lvl + 1;
