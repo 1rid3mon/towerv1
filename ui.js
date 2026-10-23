@@ -1720,7 +1720,7 @@ async function reserveUniqueUsername(uid, requestedName, oldName = '', allowSuff
                 }
                 tx.set(candidateRef, {
                     uid,
-                    username: candidate,
+                    username: key,
                     updatedAt: Date.now()
                 });
                 if (oldSnap && oldSnap.exists && oldSnap.data().uid === uid) {
