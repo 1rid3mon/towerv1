@@ -129,7 +129,7 @@ test('duplicate equipped IDs never stack multishot either', () => {
     }
   };
   vm.runInNewContext(
-    dataSource.slice(start, end) + '\\nglobalThis.getEffectiveMultishot = getEffectiveMultishot;',
+    dataSource.slice(start, end) + '\nglobalThis.getEffectiveMultishot = getEffectiveMultishot;',
     sandbox
   );
   assert.equal(sandbox.getEffectiveMultishot(), 4);
