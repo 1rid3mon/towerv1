@@ -1078,14 +1078,21 @@ function reopenLastBox() {
 }
 
 function selectTowerSkin(skinId) {
-    if (!game.ownedSkins.includes(skinId)) return; game.activeSkin = skinId;
-    const skin = SKIN_DATABASE[skinId]; showToast(`Kule Skini Kuşanıldı: ${skin.emoji} ${skin.name}`);
+    if (!game || !Array.isArray(game.ownedSkins) || !SKIN_DATABASE ||
+        typeof skinId !== 'string' || !Object.prototype.hasOwnProperty.call(SKIN_DATABASE, skinId) ||
+        !game.ownedSkins.includes(skinId)) return;
+    game.activeSkin = skinId;
+    const skin = SKIN_DATABASE[skinId];
+    showToast(`Kule Skini Kuşanıldı: ${skin.emoji} ${skin.name}`);
     buildInventoryUI(); saveGame(true);
 }
 
 function selectCompanionSkin(skinId) {
+    if (!game) return;
     if (!Array.isArray(game.ownedCompanionSkins)) game.ownedCompanionSkins = ['default_tech'];
-    if (!game.ownedCompanionSkins.includes(skinId)) return;
+    if (!COMPANION_SKIN_DATABASE || typeof skinId !== 'string' ||
+        !Object.prototype.hasOwnProperty.call(COMPANION_SKIN_DATABASE, skinId) ||
+        !game.ownedCompanionSkins.includes(skinId)) return;
     game.activeCompanionSkin = skinId;
     const cSkin = COMPANION_SKIN_DATABASE[skinId];
     showToast(`Yoldaş Skini Kuşanıldı: ${cSkin.emoji} ${cSkin.name}`);
