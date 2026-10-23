@@ -80,6 +80,7 @@ test("username registry only lets its owner update or release a reserved name", 
 });
 
 
+// Regression guard: the rules must bind the normalized key and stored value.
 test("username registry rejects a value that does not match its normalized document key", async () => {
   const alice = testEnv.authenticatedContext("alice").firestore();
   await assertFails(setDoc(doc(alice, "usernameRegistry/kerem"), {
