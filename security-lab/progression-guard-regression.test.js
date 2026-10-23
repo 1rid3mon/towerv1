@@ -79,3 +79,20 @@ test('shadow anti-cheat rejects duplicate, unknown, and unowned equipped IDs on 
 // Security boundary reminder: these tests cover accidental/direct state tampering in the
 // shipped client code. A modified client can change the guard itself, so this is not
 // evidence of server-authoritative anti-cheat.
+
+test('mobile portrait/landscape layouts retain viewport-bounded, scrollable controls', () => {
+  const indexSource = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(indexSource, /@media \(max-width: 480px\) and \(orientation: portrait\)/);
+  assert.match(indexSource, /@media \(max-width: 900px\) and \(orientation: landscape\) and \(max-height: 500px\)/);
+  assert.match(indexSource, /#upgrade-drawer\s*\{[^}]*max-height:\s*calc\(100dvh\s*-\s*44px\)[^}]*overflow-y:\s*auto/s);
+  assert.match(indexSource, /touch-action:\s*manipulation/);
+  assert.match(indexSource, /#settings-modal > div[\s\S]*?max-width:\s*calc\(100vw\s*-\s*16px\)/);
+});
+
+test('low-health and boss-wave HUD affordances remain present and motion-safe', () => {
+  const indexSource = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(indexSource, /hud-critical-pulse/);
+  assert.match(indexSource, /prefers-reduced-motion:\s*reduce/);
+  assert.match(indexSource, />KRİTİK<\/span>/);
+  assert.match(indexSource, />BOSS<\/span>/);
+});
