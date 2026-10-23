@@ -371,6 +371,7 @@ function openPrestigeConfirm() {
         enemies = [];
         projectiles = [];
 
+        if (typeof window._syncShadow === 'function') window._syncShadow();
         buildUpgradesUI();
         updateHUD();
         saveGame(true);
