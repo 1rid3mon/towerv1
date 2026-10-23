@@ -7,6 +7,7 @@ const vm = require('node:vm');
 const root = path.join(__dirname, '..');
 const uiSource = fs.readFileSync(path.join(root, 'ui.js'), 'utf8');
 const engineSource = fs.readFileSync(path.join(root, 'engine.js'), 'utf8');
+const dataSource = fs.readFileSync(path.join(root, 'data.js'), 'utf8');
 
 function extractFunction(source, declaration, nextDeclaration) {
   const start = source.indexOf(declaration);
@@ -95,4 +96,21 @@ test('low-health and boss-wave HUD affordances remain present and motion-safe', 
   assert.match(indexSource, /prefers-reduced-motion:\s*reduce/);
   assert.match(indexSource, />KRİTİK<\/span>/);
   assert.match(indexSource, />BOSS<\/span>/);
+});
+
+test('duplicate equipped IDs never stack the same item stat bonus', () => {
+  const start = dataSource.indexOf('function getItemStatBonus(type)');
+  const end = dataSource.indexOf('function getEffectiveMultishot()', start);
+  assert.ok(start >= 0 && end > start, 'item bonus helper should exist');
+  const sandbox = {
+    game: { equippedItems: ['epic_crimson_archer', 'epic_crimson_archer'] },
+    ITEM_DATABASE: {
+      epic_crimson_archer: { type: 'damage', val: 0.38 }
+    }
+  };
+  vm.runInNewContext(
+    dataSource.slice(start, end) + '\\nglobalThis.getItemStatBonus = getItemStatBonus;',
+    sandbox
+  );
+  assert.equal(sandbox.getItemStatBonus('damage'), 0.38);
 });
