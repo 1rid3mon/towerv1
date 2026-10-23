@@ -792,9 +792,10 @@ let currentLootSession = null;
 function openLootbox(count) {
     // Only the two UI-supported pack sizes are valid; negative counts would mint currency.
     if (![1, 5].includes(count) || !game || !Number.isFinite(game.crystals) ||
-        !game.lootboxBonuses || !Number.isFinite(game.lootboxBonuses.totalOpened)) return;
+        !game.lootboxBonuses || !Number.isFinite(game.lootboxBonuses.totalOpened) ||
+        !Array.isArray(game.inventory) || !ITEM_DATABASE) return;
 
-    const totalItems = Object.keys(ITEM_DATABASE || {}).length;
+    const totalItems = Object.keys(ITEM_DATABASE).length;
     const ownedItems = (game.inventory || []).filter(id => ITEM_DATABASE && ITEM_DATABASE[id]).length;
     if (totalItems > 0 && ownedItems >= totalItems) {
         showToast(`🎉 Tüm eşyaları (${ownedItems}/${totalItems}) zaten topladın!`);
@@ -818,8 +819,15 @@ function openLootbox(count) {
         else if (roll < 17) rarity = 'epic';
         else if (roll < 45) rarity = 'super_rare';
 
-        const pool = Object.values(ITEM_DATABASE).filter(item => item.rarity === rarity);
+        let pool = Object.values(ITEM_DATABASE).filter(item => item && item.rarity === rarity);
+        // Keep opening functional if a rarity has no entries in the current item database.
+        if (pool.length === 0) {
+            pool = Object.values(ITEM_DATABASE).filter(item => item && typeof item.id === 'string' && !game.inventory.includes(item.id));
+        }
+        if (pool.length === 0) break;
+
         const item = pool[Math.floor(Math.random() * pool.length)];
+        if (!item || typeof item.id !== 'string') continue;
         const isDuplicate = game.inventory.includes(item.id);
 
         if (!isDuplicate) game.inventory.push(item.id);
