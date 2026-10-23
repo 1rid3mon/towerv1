@@ -30,7 +30,7 @@ test('QTE feature is additive: missed timing still allows standard cargo rewards
 });
 
 test('v1.3.0 exposes a responsive achievements and statistics profile without resetting save data', () => {
-  assert.match(index, /v1\.3\.0/);
+  assert.match(index, /v2\.0\.0/);
   assert.match(index, /id="achievements-modal"/);
   assert.match(index, /id="achievements-list"/);
   assert.match(index, /onclick="openAchievementsModal\(\)"/);
