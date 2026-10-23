@@ -62,22 +62,55 @@ service cloud.firestore {
     ));
   }
   match /usernameRegistry/{usernameKey} {
+   // Registry keys and values are the same normalized ASCII name.
+   // This prevents clients from reserving one key while claiming a different username.
+   function validUsernameReservation() {
+    return request.resource.data.keys().hasOnly(['uid','username','updatedAt'])
+     && request.resource.data.uid == request.auth.uid
+     && request.resource.data.username is string
+     && request.resource.data.username == usernameKey
+     && usernameKey.matches('^[a-z0-9_.-]{3,18}
+  match /users/{userId}{
+   allow read: if isOwner(userId);
+   allow create,update: if isOwner(userId)&&validUserDoc();
+   allow delete: if isOwner(userId);
+  }
+  match /leaderboard/{userId}{
+   allow read: if true;
+   allow create,update: if isOwner(userId)&&validBoardDoc(userId)&&withinRateLimit(userId);
+   // Keep account deletion working; the separate rate-limit record survives leaderboard-row deletion.
+   allow delete: if isOwner(userId);
+  }
+  match /leaderboardRateLimits/{userId}{
+   allow read: if isOwner(userId);
+   allow create: if isOwner(userId)
+    && request.resource.data.keys().hasOnly(['uid','updatedAt','highestWave'])
+    && request.resource.data.uid == userId
+    && request.resource.data.updatedAt == request.time
+    && validNum(request.resource.data.highestWave,1,maxWave())
+    && rateLimitMatchesBoard(userId)
+    && (!exists(boardPath(userId))
+      || request.resource.data.highestWave <= get(boardPath(userId)).data.highestWave + maxWaveJumpPerWrite());
+   allow update: if isOwner(userId)
+    && request.resource.data.keys().hasOnly(['uid','updatedAt','highestWave'])
+    && request.resource.data.uid == userId
+    && request.resource.data.updatedAt == request.time
+    && validNum(request.resource.data.highestWave,1,maxWave())
+    && rateLimitMatchesBoard(userId)
+    && request.resource.data.highestWave <= resource.data.highestWave + maxWaveJumpPerWrite()
+    && request.time > resource.data.updatedAt + duration.value(minSecondsBetweenWrites(),'s');
+   // This record must survive leaderboard deletion or the timer could be reset.
+   allow delete: if false;
+  }
+ }
+})
+     && request.resource.data.updatedAt is number;
+   }
    allow read: if request.auth != null;
-   allow create: if request.auth != null
-    && request.resource.data.keys().hasOnly(['uid','username','updatedAt'])
-    && request.resource.data.uid == request.auth.uid
-    && request.resource.data.username is string
-    && request.resource.data.username.size() >= 3
-    && request.resource.data.username.size() <= 18
-    && request.resource.data.updatedAt is number;
+   allow create: if request.auth != null && validUsernameReservation();
    allow update: if request.auth != null
     && resource.data.uid == request.auth.uid
-    && request.resource.data.keys().hasOnly(['uid','username','updatedAt'])
-    && request.resource.data.uid == request.auth.uid
-    && request.resource.data.username is string
-    && request.resource.data.username.size() >= 3
-    && request.resource.data.username.size() <= 18
-    && request.resource.data.updatedAt is number;
+    && validUsernameReservation();
    allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
   }
   match /users/{userId}{
