@@ -1035,7 +1035,11 @@
     }
 
     document.addEventListener('keydown', event => {
-        if (event.key === 'Escape') closeUpdateNotesModal();
+        if (event.key === 'Escape') {
+            closeUpdateNotesModal();
+            if (typeof closeAchievementsModal === 'function') closeAchievementsModal();
+            if (typeof closeDailyMissionsModal === 'function') closeDailyMissionsModal();
+        }
     });
 
     // Sağ tık menüsünü kapat
