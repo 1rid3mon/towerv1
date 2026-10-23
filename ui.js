@@ -1843,10 +1843,13 @@ async function signInWithGoogle() {
             googleUser.displayName ||
             (googleUser.email ? googleUser.email.split('@')[0] : 'Komutan');
         let username = requestedName;
+        let reservedNameForCleanup = '';
         try {
             username = await reserveUniqueUsername(googleUser.uid, requestedName, googleUser.displayName || requestedName, true);
+            reservedNameForCleanup = normalizeUsernameKey(username) !== normalizeUsernameKey(requestedName) ? username : '';
             if (username !== requestedName) {
                 await googleUser.updateProfile({ displayName: username });
+                reservedNameForCleanup = '';
                 await releaseUsernameReservation(googleUser.uid, googleUser.displayName || requestedName, username);
             }
             if (currentUser && currentUser.uid === googleUser.uid) {
@@ -1854,8 +1857,17 @@ async function signInWithGoogle() {
                 updateAccountHeaderUI();
             }
         } catch (reserveErr) {
+            if (reservedNameForCleanup) {
+                try { await releaseUsernameReservation(googleUser.uid, reservedNameForCleanup); } catch (releaseErr) {
+                    console.error('[Username Registry] Failed to release Google reservation:', releaseErr);
+                }
+            }
             console.error('[Username Registry] Google name reservation failed:', reserveErr);
-            showAuthError('⚠️ Kullanıcı adı benzersizliği doğrulanamadı. Firebase usernameRegistry kurallarını kontrol et.');
+            try { await fbAuth.signOut(); } catch (signOutErr) {}
+            currentUser = null;
+            localStorage.removeItem(LOCAL_CURRENT_USER_KEY);
+            updateAccountHeaderUI();
+            showAuthError('⚠️ Kullanıcı adı kontrol edilemedi; güvenli şekilde oturum kapatıldı. Firebase usernameRegistry kurallarını kontrol et.');
             return;
         }
 
@@ -1918,6 +1930,7 @@ async function submitUsernameAuth() {
                         reservedNameForCleanup = reservedName !== existingName ? reservedName : '';
                         if (reservedName !== existingName) {
                             await loginCred.user.updateProfile({ displayName: reservedName });
+                            reservedNameForCleanup = '';
                             await releaseUsernameReservation(loginCred.user.uid, existingName, reservedName);
                         }
                         reservedNameForCleanup = '';
@@ -2023,16 +2036,24 @@ async function changeDisplayNickname() {
     }
 
     if (isFirebaseReady && fbAuth && fbAuth.currentUser && currentUser.isCloud) {
+        let reservedNameForCleanup = '';
         try {
             const reservedName = await reserveUniqueUsername(
                 currentUser.uid, cleanNick, currentUser.username, false
             );
+            reservedNameForCleanup = normalizeUsernameKey(reservedName) !== normalizeUsernameKey(currentUser.username) ? reservedName : '';
             if (fbAuth.currentUser.displayName !== reservedName) {
                 await fbAuth.currentUser.updateProfile({ displayName: reservedName });
+                reservedNameForCleanup = '';
             }
             await releaseUsernameReservation(currentUser.uid, currentUser.username, reservedName);
             currentUser.username = reservedName;
         } catch (err) {
+            if (reservedNameForCleanup) {
+                try { await releaseUsernameReservation(currentUser.uid, reservedNameForCleanup); } catch (releaseErr) {
+                    console.error('[Username Registry] Failed to release nickname reservation:', releaseErr);
+                }
+            }
             if (err && err.message === 'USERNAME_TAKEN') {
                 showToast('⚠️ Bu kullanıcı adı zaten alınmış. Başka bir ad seç.');
             } else {
