@@ -149,3 +149,10 @@ test('account/cloud-save code remains separate from manual save-code import/expo
   assert.match(indexSource, /Hesap|Giriş|Giriş Yap|Kayıt Ol/i);
   assert.match(uiSource, /Firebase|cloud|bulut/i);
 });
+
+
+test('leaderboard clearly labels scores as client-reported until server verification exists', () => {
+  const indexSource = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(indexSource, /puanları şu an oyun istemcisinden bildirilir/);
+  assert.match(indexSource, /henüz sunucu tarafından oynanışla doğrulanmaz/);
+});
