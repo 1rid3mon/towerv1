@@ -195,7 +195,7 @@ function getDefaultState() {
         holdWave: false, holdWaveTimer: 0, consecutiveDefeats: 0, consecutiveHoldWins: 0,
         deviceMode: 'pc',
         stats: { totalKills: 0, bossKills: 0, prestiges: 0, playTimeSeconds: 0 },
-        settings: { showRange: true, showDamageText: true, activeTheme: 'cyber' },
+        settings: { showRange: true, showDamageText: true, activeTheme: 'aurora' },
         upgrades: {
             damage: 1, attackSpeed: 1, range: 1, critChance: 0, critMult: 1, multishot: 0, bounce: 0, knockback: 0,
             maxHp: 1, hpRegen: 1, armor: 0, thorns: 0, shield: 0, lifesteal: 0,
