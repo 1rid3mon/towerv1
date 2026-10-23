@@ -1680,6 +1680,62 @@ function sanitizeUsernameToEmail(username) {
     return `${clean || 'oyuncu_' + Math.floor(Math.random()*1000)}@kulesavunma.local`;
 }
 
+
+function normalizeUsernameKey(username) {
+    const trMap = { 'ç':'c', 'ğ':'g', 'ı':'i', 'i':'i', 'ö':'o', 'ş':'s', 'ü':'u' };
+    return String(username || '').trim().toLowerCase()
+        .replace(/[çğıiöşü]/g, char => trMap[char] || char)
+        .replace(/[^a-z0-9_.-]/g, '');
+}
+
+// Reserve names in Firestore, not only in the UI. The transaction makes two users
+// racing for the same normalized name mutually exclusive.
+async function reserveUniqueUsername(uid, requestedName, oldName = '', allowSuffix = false) {
+    if (!fbDb || !uid) throw new Error('USERNAME_REGISTRY_UNAVAILABLE');
+    const base = String(requestedName || '').trim().slice(0, 18);
+    if (base.length < 3) throw new Error('USERNAME_INVALID');
+
+    const candidates = [base];
+    if (allowSuffix) {
+        for (let i = 2; i <= 100; i++) {
+            const suffix = '_' + i;
+            candidates.push(base.slice(0, 18 - suffix.length) + suffix);
+        }
+    }
+
+    const oldKey = normalizeUsernameKey(oldName);
+    for (const candidate of candidates) {
+        const key = normalizeUsernameKey(candidate);
+        if (key.length < 3) continue;
+        const candidateRef = fbDb.collection('usernameRegistry').doc(key);
+        const oldRef = oldKey && oldKey !== key
+            ? fbDb.collection('usernameRegistry').doc(oldKey)
+            : null;
+        try {
+            await fbDb.runTransaction(async tx => {
+                const candidateSnap = await tx.get(candidateRef);
+                const oldSnap = oldRef ? await tx.get(oldRef) : null;
+                if (candidateSnap.exists && candidateSnap.data().uid !== uid) {
+                    throw new Error('USERNAME_TAKEN');
+                }
+                tx.set(candidateRef, {
+                    uid,
+                    username: candidate,
+                    updatedAt: Date.now()
+                });
+                if (oldSnap && oldSnap.exists && oldSnap.data().uid === uid) {
+                    tx.delete(oldRef);
+                }
+            });
+            return candidate;
+        } catch (err) {
+            if (err && err.message === 'USERNAME_TAKEN' && allowSuffix) continue;
+            throw err;
+        }
+    }
+    throw new Error('USERNAME_TAKEN');
+}
+
 function switchAuthMode(mode) {
     authFormMode = mode === 'register' ? 'register' : 'login';
     const tabLogin = document.getElementById('auth-tab-login');
@@ -1779,9 +1835,22 @@ async function signInWithGoogle() {
         }
 
         const googleUser = result.user;
-        const username =
+        const requestedName =
             googleUser.displayName ||
             (googleUser.email ? googleUser.email.split('@')[0] : 'Komutan');
+        let username = requestedName;
+        try {
+            username = await reserveUniqueUsername(googleUser.uid, requestedName, requestedName, true);
+            if (username !== requestedName) await googleUser.updateProfile({ displayName: username });
+            if (currentUser && currentUser.uid === googleUser.uid) {
+                currentUser.username = username;
+                updateAccountHeaderUI();
+            }
+        } catch (reserveErr) {
+            console.error('[Username Registry] Google name reservation failed:', reserveErr);
+            showAuthError('⚠️ Kullanıcı adı benzersizliği doğrulanamadı. Firebase usernameRegistry kurallarını kontrol et.');
+            return;
+        }
 
         closeAuthModal();
         showToast(`Google ile giriş başarılı, ${username}!`);
@@ -1810,11 +1879,34 @@ async function submitUsernameAuth() {
         try {
             if (authFormMode === 'register') {
                 const cred = await fbAuth.createUserWithEmailAndPassword(email, password);
-                if (cred.user) await cred.user.updateProfile({ displayName: username });
-                showToast(`🎉 Hoş geldin ${username}! Hesabın oluşturuldu.`);
+                if (cred.user) {
+                    await cred.user.updateProfile({ displayName: username });
+                    try {
+                        const reservedName = await reserveUniqueUsername(cred.user.uid, username, '', true);
+                        if (reservedName !== username) await cred.user.updateProfile({ displayName: reservedName });
+                    } catch (reserveErr) {
+                        // Do not leave a newly-created account pretending the name was reserved.
+                        try { await cred.user.delete(); } catch (deleteErr) {
+                            console.error('[Username Registry] Failed to roll back unreserved account:', deleteErr);
+                        }
+                        throw reserveErr;
+                    }
+                }
+                showToast(`🎉 Hoş geldin ${fbAuth.currentUser.displayName || username}! Hesabın oluşturuldu.`);
             } else {
-                await fbAuth.signInWithEmailAndPassword(email, password);
-                showToast(`✅ Tekrar hoş geldin ${username}!`);
+                const loginCred = await fbAuth.signInWithEmailAndPassword(email, password);
+                if (loginCred.user) {
+                    const existingName = loginCred.user.displayName || username;
+                    try {
+                        const reservedName = await reserveUniqueUsername(loginCred.user.uid, existingName, existingName, true);
+                        if (reservedName !== existingName) await loginCred.user.updateProfile({ displayName: reservedName });
+                    } catch (reserveErr) {
+                        console.error('[Username Registry] Login name reservation failed:', reserveErr);
+                        showAuthError('⚠️ Hesap açıldı ancak kullanıcı adı kontrol edilemedi. Firebase usernameRegistry kurallarını kontrol et.');
+                        return;
+                    }
+                }
+                showToast(`✅ Tekrar hoş geldin ${fbAuth.currentUser.displayName || username}!`);
             }
             if (passInp) passInp.value = '';
             closeAuthModal();
@@ -1895,12 +1987,35 @@ async function changeDisplayNickname() {
     const newName = prompt('Liderlik tablosunda görünecek yeni komutan adını gir:', currentUser.username);
     if (!newName || newName.trim().length < 3) return;
     const cleanNick = newName.trim().slice(0, 18);
-    currentUser.username = cleanNick;
-    localStorage.setItem(LOCAL_CURRENT_USER_KEY, JSON.stringify(currentUser));
-
-    if (isFirebaseReady && fbAuth && fbAuth.currentUser) {
-        try { await fbAuth.currentUser.updateProfile({ displayName: cleanNick }); } catch (e) {}
+    if (cleanNick.length < 3) {
+        showToast('⚠️ Komutan adı en az 3 karakter olmalı.');
+        return;
     }
+
+    if (isFirebaseReady && fbAuth && fbAuth.currentUser && currentUser.isCloud) {
+        try {
+            const reservedName = await reserveUniqueUsername(
+                currentUser.uid, cleanNick, currentUser.username, false
+            );
+            if (fbAuth.currentUser.displayName !== reservedName) {
+                await fbAuth.currentUser.updateProfile({ displayName: reservedName });
+            }
+            currentUser.username = reservedName;
+        } catch (err) {
+            if (err && err.message === 'USERNAME_TAKEN') {
+                showToast('⚠️ Bu kullanıcı adı zaten alınmış. Başka bir ad seç.');
+            } else {
+                console.error('[Username Registry] Nickname update failed:', err);
+                showToast('❌ İsim değişmedi. Benzersiz kullanıcı adı servisine ulaşılamadı.');
+            }
+            return;
+        }
+    } else {
+        // Local-only profiles cannot enforce a global unique name; do not imply otherwise.
+        showToast('⚠️ Benzersiz isim için Firebase hesabıyla giriş yapmalısın.');
+        return;
+    }
+    localStorage.setItem(LOCAL_CURRENT_USER_KEY, JSON.stringify(currentUser));
 
     updateAccountHeaderUI();
     await forceCloudPush(true);
