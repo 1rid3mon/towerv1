@@ -393,7 +393,13 @@ function openPrestigeConfirm() {
 }
 
 function buyPrestigeUpgrade(key) {
+    if (!game || !game.prestigeUpgrades || !PRESTIGE_DEFS ||
+        typeof key !== 'string' || !Object.prototype.hasOwnProperty.call(PRESTIGE_DEFS, key) ||
+        !Number.isFinite(game.souls)) return;
+
     const def = PRESTIGE_DEFS[key];
+    if (!def || !Number.isFinite(def.baseCost) || !Number.isFinite(def.costScale) ||
+        !Number.isFinite(def.maxLevel)) return;
     const lvl = game.prestigeUpgrades[key] || 0;
     const cost = Math.floor(def.baseCost * Math.pow(def.costScale, lvl));
 
@@ -780,6 +786,10 @@ let lootboxAnimTimer = null;
 let currentLootSession = null;
 
 function openLootbox(count) {
+    // Only the two UI-supported pack sizes are valid; negative counts would mint currency.
+    if (![1, 5].includes(count) || !game || !Number.isFinite(game.crystals) ||
+        !game.lootboxBonuses || !Number.isFinite(game.lootboxBonuses.totalOpened)) return;
+
     const totalItems = Object.keys(ITEM_DATABASE || {}).length;
     const ownedItems = (game.inventory || []).filter(id => ITEM_DATABASE && ITEM_DATABASE[id]).length;
     if (totalItems > 0 && ownedItems >= totalItems) {
@@ -820,6 +830,7 @@ function openLootbox(count) {
 }
 
 function openSkinBox(count) {
+    if (![1, 5].includes(count) || !game || !Number.isFinite(game.crystals)) return;
     if (!Array.isArray(game.ownedSkins)) game.ownedSkins = ['default_cyber'];
     const totalSkins = Object.keys(SKIN_DATABASE || {}).length;
     const ownedSkins = game.ownedSkins.filter(id => SKIN_DATABASE && SKIN_DATABASE[id]).length;
@@ -862,6 +873,7 @@ function openSkinBox(count) {
 }
 
 function openCompanionSkinBox(count) {
+    if (![1, 5].includes(count) || !game || !Number.isFinite(game.crystals)) return;
     if (!Array.isArray(game.ownedCompanionSkins)) game.ownedCompanionSkins = ['default_tech'];
     const totalCompSkins = Object.keys(COMPANION_SKIN_DATABASE || {}).length;
     const ownedCompSkins = game.ownedCompanionSkins.filter(id => COMPANION_SKIN_DATABASE && COMPANION_SKIN_DATABASE[id]).length;
