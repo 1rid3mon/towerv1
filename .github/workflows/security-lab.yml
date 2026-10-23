@@ -12,6 +12,7 @@ on:
       - "data.js"
   push:
     branches:
+      - main
       - security-hardening-review
     paths:
       - "security-lab/**"
