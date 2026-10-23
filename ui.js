@@ -168,8 +168,15 @@ function buildUpgradesUI() {
 }
 
 function buyUpgrade(key) {
+    // Reject unknown upgrade keys and malformed state before reading costs or mutating progression.
+    if (!game || !game.upgrades || !UPGRADE_DEFS ||
+        typeof key !== 'string' || !Object.prototype.hasOwnProperty.call(UPGRADE_DEFS, key) ||
+        !Number.isFinite(game.gold) || !Number.isFinite(game.upgrades[key])) return;
+
     const info = getBulkUpgradeInfo(key);
-    if (info.maxed || info.lockedReason || !info.canAfford) return;
+    if (!info || info.maxed || info.lockedReason || !info.canAfford ||
+        !Number.isFinite(info.totalCost) || info.totalCost < 0 ||
+        !Number.isInteger(info.count) || info.count < 1) return;
     const prevMaxHp = getTowerMaxHp();
     game.gold -= info.totalCost;
     game.upgrades[key] += info.count;
@@ -261,9 +268,15 @@ function buildCompanionsUI() {
 }
 
 function buyCompanion(key) {
+    // UI callbacks are user-controlled; validate the requested companion before dereferencing it.
+    if (!game || !game.companions || !COMPANION_DEFS ||
+        typeof key !== 'string' || !Object.prototype.hasOwnProperty.call(COMPANION_DEFS, key) ||
+        !Number.isFinite(game.crystals)) return;
+
     const def = COMPANION_DEFS[key];
     const st = game.companions[key];
-    const star = st.unlocked ? Math.min(5, Math.max(1, st.level || 1)) : 0;
+    if (!def || !st || !Array.isArray(def.starCosts)) return;
+    const star = st.unlocked ? Math.min(5, Math.max(1, Number(st.level) || 1)) : 0;
     if (star >= 5) return;
 
     const cost = def.starCosts[star];
