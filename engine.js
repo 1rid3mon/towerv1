@@ -1266,11 +1266,13 @@ window.onload = function () {
         // Skill/upgrade levels and companion stars are only accepted after their normal
         // purchase handler explicitly refreshes the shadow snapshot. Direct runtime edits
         // are rolled back before they can be saved by the regular game flow.
+        let mustPersistRollback = false;
         const currentUpgrades = JSON.stringify(game.upgrades || {});
         const trustedUpgrades = JSON.stringify(shadow.upgrades || {});
         if (currentUpgrades !== trustedUpgrades) {
             game.upgrades = JSON.parse(JSON.stringify(shadow.upgrades || {}));
             cheatFlags++;
+            mustPersistRollback = true;
             if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Yetkisiz skill seviyesi değişimi geri alındı!');
         }
 
@@ -1279,6 +1281,7 @@ window.onload = function () {
         if (currentCompanions !== trustedCompanions) {
             game.companions = JSON.parse(JSON.stringify(shadow.companions || {}));
             cheatFlags++;
+            mustPersistRollback = true;
             if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Yetkisiz yoldaş seviyesi değişimi geri alındı!');
         }
 
@@ -1291,10 +1294,12 @@ window.onload = function () {
             JSON.stringify(validEquipped) !== JSON.stringify(shadow.equippedItems || [])) {
             game.equippedItems = validEquipped;
             cheatFlags++;
+            mustPersistRollback = true;
             if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Tekrarlı veya geçersiz ekipman engellendi!');
         }
 
         syncShadow();
+        if (mustPersistRollback && typeof saveGame === 'function') saveGame(true);
     }, 400);
 
     window._isSessionClean = function() {
