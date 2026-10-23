@@ -50,5 +50,5 @@ test('username normalization maps Turkish I and accented letters before key vali
   const fn = ui.slice(start, end);
   assert.match(fn, /'ı':'i'/);
   assert.match(fn, /'ş':'s'/);
-  assert.match(fn, /replace\(\/\[\^a-z0-9_\\.\\-\]\/g, ''\)/);
+  assert.ok(fn.includes(".replace(/[^a-z0-9_.-]/g, '');"));
 });
