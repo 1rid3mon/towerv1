@@ -6,7 +6,7 @@ const vm = require('node:vm');
 
 const uiSource = fs.readFileSync(path.join(__dirname, '..', 'ui.js'), 'utf8');
 const start = uiSource.indexOf('function loadGame() {');
-const end = uiSource.indexOf('\nfunction exportSaveCode()', start);
+const end = uiSource.indexOf('\n// =======================================================\n// 🔐 HESAP', start);
 assert.ok(start >= 0 && end > start, 'actual loadGame function must exist');
 const loadGameSource = uiSource.slice(start, end);
 
