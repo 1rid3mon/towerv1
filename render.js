@@ -1873,7 +1873,54 @@ function renderGame() {
     }
     const env = window._themeEnvData;
 
-    if (theme === 'cengiz') {
+    if (theme === 'aurora') {
+        const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        grad.addColorStop(0, '#061b2b'); grad.addColorStop(0.48, '#0b1630'); grad.addColorStop(1, '#170b2b');
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const glow = ctx.createRadialGradient(canvas.width * 0.52, canvas.height * 0.12, 5, canvas.width * 0.52, canvas.height * 0.12, maxDim * 0.72);
+        glow.addColorStop(0, 'rgba(45, 212, 191, 0.16)'); glow.addColorStop(0.55, 'rgba(34, 211, 238, 0.06)'); glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = glow; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        for (let band = 0; band < 4; band++) {
+            ctx.beginPath();
+            const baseY = canvas.height * (0.12 + band * 0.075);
+            ctx.moveTo(0, baseY);
+            for (let x = 0; x <= canvas.width + 12; x += 12) {
+                const waveY = baseY + Math.sin(x * (0.004 + band * 0.0004) + nowThemeTime * (0.00045 + band * 0.00008) + band * 1.7) * (18 + band * 5)
+                    + Math.sin(x * 0.009 - nowThemeTime * 0.0003) * 7;
+                ctx.lineTo(x, waveY);
+            }
+            ctx.strokeStyle = ['rgba(45,212,191,0.23)','rgba(56,189,248,0.18)','rgba(167,139,250,0.16)','rgba(74,222,128,0.12)'][band];
+            ctx.lineWidth = 16 - band * 2;
+            ctx.shadowColor = band % 2 ? '#22d3ee' : '#2dd4bf';
+            ctx.shadowBlur = 18;
+            ctx.stroke();
+        }
+        ctx.shadowBlur = 0;
+
+        ctx.save();
+        ctx.translate(tx, ty);
+        ctx.rotate(nowThemeTime * 0.00008);
+        ctx.strokeStyle = 'rgba(94, 234, 212, 0.10)';
+        ctx.lineWidth = 1.4;
+        for (let ring = 0; ring < 5; ring++) {
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 90 + ring * 42, 34 + ring * 18, ring * 0.18, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        for (let i = 0; i < bgStars.length; i++) {
+            const star = bgStars[i];
+            const sx = star.x % canvas.width, sy = star.y % canvas.height;
+            const twinkle = 0.35 + 0.65 * Math.sin(nowThemeTime * 0.0015 + i * 1.7) ** 2;
+            ctx.globalAlpha = star.alpha * twinkle;
+            ctx.fillStyle = i % 4 === 0 ? '#99f6e4' : (i % 4 === 1 ? '#bae6fd' : '#e2e8f0');
+            ctx.beginPath(); ctx.arc(sx, sy, star.size * 1.1, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+    } else if (theme === 'cengiz') {
         const grad = ctx.createRadialGradient(tx, ty, 30, tx, ty, maxDim * 0.8);
         grad.addColorStop(0, '#3b1319'); grad.addColorStop(0.55, '#220c10'); grad.addColorStop(1, '#110608');
         ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
