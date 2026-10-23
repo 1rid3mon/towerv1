@@ -54,6 +54,31 @@ beforeEach(async () => {
   await testEnv.clearFirestore();
 });
 
+
+test("username registry allows the first owner but blocks another user claiming the same normalized key", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  await assertSucceeds(setDoc(doc(alice, "usernameRegistry/kerem"), {
+    uid: "alice", username: "Kerem", updatedAt: Date.now()
+  }));
+  await assertFails(setDoc(doc(bob, "usernameRegistry/kerem"), {
+    uid: "bob", username: "kerem", updatedAt: Date.now()
+  }));
+});
+
+test("username registry only lets its owner update or release a reserved name", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  await assertSucceeds(setDoc(doc(alice, "usernameRegistry/kerem"), {
+    uid: "alice", username: "Kerem", updatedAt: Date.now()
+  }));
+  await assertFails(setDoc(doc(bob, "usernameRegistry/kerem"), {
+    uid: "bob", username: "Kerem2", updatedAt: Date.now()
+  }));
+  await assertFails(deleteDoc(doc(bob, "usernameRegistry/kerem")));
+  await assertSucceeds(deleteDoc(doc(alice, "usernameRegistry/kerem")));
+});
+
 test("unauthenticated user cannot write a user save", async () => {
   const db = testEnv.unauthenticatedContext().firestore();
   await assertFails(setDoc(doc(db, "users/alice"), {
