@@ -32,7 +32,7 @@ service cloud.firestore {
     && d.get('updatedAt',null)==request.time;
   }
   function minSecondsBetweenWrites(){return 20;}
-  function maxWaveJumpPerWrite(){return 15;}
+  function maxWaveJumpPerWrite(){return 100;}
   function rateLimitPath(userId){
    return /databases/$(database)/documents/leaderboardRateLimits/$(userId);
   }
