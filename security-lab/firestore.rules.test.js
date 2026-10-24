@@ -54,6 +54,61 @@ beforeEach(async () => {
   await testEnv.clearFirestore();
 });
 
+
+test("username registry allows the first owner but blocks another user claiming the same normalized key", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  await assertSucceeds(setDoc(doc(alice, "usernameRegistry/kerem"), {
+    uid: "alice", username: "kerem", updatedAt: Date.now()
+  }));
+  await assertFails(setDoc(doc(bob, "usernameRegistry/kerem"), {
+    uid: "bob", username: "kerem", updatedAt: Date.now()
+  }));
+});
+
+test("username registry only lets its owner update or release a reserved name", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  await assertSucceeds(setDoc(doc(alice, "usernameRegistry/kerem"), {
+    uid: "alice", username: "kerem", updatedAt: Date.now()
+  }));
+  await assertFails(setDoc(doc(bob, "usernameRegistry/kerem"), {
+    uid: "bob", username: "Kerem2", updatedAt: Date.now()
+  }));
+  await assertFails(deleteDoc(doc(bob, "usernameRegistry/kerem")));
+  await assertSucceeds(deleteDoc(doc(alice, "usernameRegistry/kerem")));
+});
+
+
+// Regression guard: the rules must bind the normalized key and stored value.
+test("username registry rejects a value that does not match its normalized document key", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  await assertFails(setDoc(doc(alice, "usernameRegistry/kerem"), {
+    uid: "alice", username: "different-name", updatedAt: Date.now()
+  }));
+});
+
+test("username registry rejects uppercase or malformed document keys", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  await assertFails(setDoc(doc(alice, "usernameRegistry/Kerem"), {
+    uid: "alice", username: "kerem", updatedAt: Date.now()
+  }));
+  await assertFails(setDoc(doc(alice, "usernameRegistry/ab"), {
+    uid: "alice", username: "ab", updatedAt: Date.now()
+  }));
+});
+
+
+test("username registry owner can refresh their own existing reservation", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  await assertSucceeds(setDoc(doc(alice, "usernameRegistry/kerem"), {
+    uid: "alice", username: "kerem", updatedAt: Date.now()
+  }));
+  await assertSucceeds(setDoc(doc(alice, "usernameRegistry/kerem"), {
+    uid: "alice", username: "kerem", updatedAt: Date.now() + 1
+  }));
+});
+
 test("unauthenticated user cannot write a user save", async () => {
   const db = testEnv.unauthenticatedContext().firestore();
   await assertFails(setDoc(doc(db, "users/alice"), {

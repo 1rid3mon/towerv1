@@ -1680,6 +1680,66 @@ function sanitizeUsernameToEmail(username) {
     return `${clean || 'oyuncu_' + Math.floor(Math.random()*1000)}@kulesavunma.local`;
 }
 
+
+function normalizeUsernameKey(username) {
+    const trMap = { 'ç':'c', 'ğ':'g', 'ı':'i', 'i':'i', 'ö':'o', 'ş':'s', 'ü':'u' };
+    return String(username || '').trim().toLowerCase()
+        .replace(/[çğıiöşü]/g, char => trMap[char] || char)
+        .replace(/[^a-z0-9_.-]/g, '');
+}
+
+// Reserve names in Firestore, not only in the UI. The transaction makes two users
+// racing for the same normalized name mutually exclusive.
+async function reserveUniqueUsername(uid, requestedName, oldName = '', allowSuffix = false) {
+    if (!fbDb || !uid) throw new Error('USERNAME_REGISTRY_UNAVAILABLE');
+    const base = String(requestedName || '').trim().slice(0, 18);
+    if (base.length < 3) throw new Error('USERNAME_INVALID');
+
+    const candidates = [base];
+    if (allowSuffix) {
+        for (let i = 2; i <= 100; i++) {
+            const suffix = '_' + i;
+            candidates.push(base.slice(0, 18 - suffix.length) + suffix);
+        }
+    }
+
+    for (const candidate of candidates) {
+        const key = normalizeUsernameKey(candidate);
+        if (key.length < 3) continue;
+        const candidateRef = fbDb.collection('usernameRegistry').doc(key);
+        try {
+            await fbDb.runTransaction(async tx => {
+                const candidateSnap = await tx.get(candidateRef);
+                if (candidateSnap.exists && candidateSnap.data().uid !== uid) {
+                    throw new Error('USERNAME_TAKEN');
+                }
+                tx.set(candidateRef, {
+                    uid,
+                    username: key,
+                    updatedAt: Date.now()
+                });
+            });
+            return candidate;
+        } catch (err) {
+            if (err && err.message === 'USERNAME_TAKEN' && allowSuffix) continue;
+            throw err;
+        }
+    }
+    throw new Error('USERNAME_TAKEN');
+}
+
+async function releaseUsernameReservation(uid, username, keepUsername = '') {
+    if (!fbDb || !uid || !username) return;
+    const key = normalizeUsernameKey(username);
+    const keepKey = normalizeUsernameKey(keepUsername);
+    if (!key || key === keepKey) return;
+    const ref = fbDb.collection('usernameRegistry').doc(key);
+    await fbDb.runTransaction(async tx => {
+        const snap = await tx.get(ref);
+        if (snap.exists && snap.data().uid === uid) tx.delete(ref);
+    });
+}
+
 function switchAuthMode(mode) {
     authFormMode = mode === 'register' ? 'register' : 'login';
     const tabLogin = document.getElementById('auth-tab-login');
@@ -1779,9 +1839,38 @@ async function signInWithGoogle() {
         }
 
         const googleUser = result.user;
-        const username =
+        const requestedName =
             googleUser.displayName ||
             (googleUser.email ? googleUser.email.split('@')[0] : 'Komutan');
+        const previousGoogleName = googleUser.displayName || requestedName;
+        let username = requestedName;
+        let reservedNameForCleanup = '';
+        try {
+            username = await reserveUniqueUsername(googleUser.uid, requestedName, previousGoogleName, true);
+            reservedNameForCleanup = normalizeUsernameKey(username) !== normalizeUsernameKey(requestedName) ? username : '';
+            if (username !== requestedName) {
+                await googleUser.updateProfile({ displayName: username });
+                reservedNameForCleanup = '';
+                await releaseUsernameReservation(googleUser.uid, previousGoogleName, username);
+            }
+            if (currentUser && currentUser.uid === googleUser.uid) {
+                currentUser.username = username;
+                updateAccountHeaderUI();
+            }
+        } catch (reserveErr) {
+            if (reservedNameForCleanup) {
+                try { await releaseUsernameReservation(googleUser.uid, reservedNameForCleanup); } catch (releaseErr) {
+                    console.error('[Username Registry] Failed to release Google reservation:', releaseErr);
+                }
+            }
+            console.error('[Username Registry] Google name reservation failed:', reserveErr);
+            try { await fbAuth.signOut(); } catch (signOutErr) {}
+            currentUser = null;
+            localStorage.removeItem(LOCAL_CURRENT_USER_KEY);
+            updateAccountHeaderUI();
+            showAuthError('⚠️ Kullanıcı adı kontrol edilemedi; güvenli şekilde oturum kapatıldı. Firebase usernameRegistry kurallarını kontrol et.');
+            return;
+        }
 
         closeAuthModal();
         showToast(`Google ile giriş başarılı, ${username}!`);
@@ -1810,11 +1899,58 @@ async function submitUsernameAuth() {
         try {
             if (authFormMode === 'register') {
                 const cred = await fbAuth.createUserWithEmailAndPassword(email, password);
-                if (cred.user) await cred.user.updateProfile({ displayName: username });
-                showToast(`🎉 Hoş geldin ${username}! Hesabın oluşturuldu.`);
+                if (cred.user) {
+                    await cred.user.updateProfile({ displayName: username });
+                    let reservedNameForCleanup = '';
+                    try {
+                        const reservedName = await reserveUniqueUsername(cred.user.uid, username, '', true);
+                        reservedNameForCleanup = reservedName;
+                        if (reservedName !== username) await cred.user.updateProfile({ displayName: reservedName });
+                        reservedNameForCleanup = '';
+                    } catch (reserveErr) {
+                        // Roll back a claim if the account/profile setup failed after reserving it.
+                        if (reservedNameForCleanup) {
+                            try { await releaseUsernameReservation(cred.user.uid, reservedNameForCleanup); } catch (releaseErr) {
+                                console.error('[Username Registry] Failed to release rolled-back reservation:', releaseErr);
+                            }
+                        }
+                        try { await cred.user.delete(); } catch (deleteErr) {
+                            console.error('[Username Registry] Failed to roll back unreserved account:', deleteErr);
+                        }
+                        throw reserveErr;
+                    }
+                }
+                showToast(`🎉 Hoş geldin ${fbAuth.currentUser.displayName || username}! Hesabın oluşturuldu.`);
             } else {
-                await fbAuth.signInWithEmailAndPassword(email, password);
-                showToast(`✅ Tekrar hoş geldin ${username}!`);
+                const loginCred = await fbAuth.signInWithEmailAndPassword(email, password);
+                if (loginCred.user) {
+                    const existingName = loginCred.user.displayName || username;
+                    let reservedNameForCleanup = '';
+                    try {
+                        const reservedName = await reserveUniqueUsername(loginCred.user.uid, existingName, existingName, true);
+                        reservedNameForCleanup = reservedName !== existingName ? reservedName : '';
+                        if (reservedName !== existingName) {
+                            await loginCred.user.updateProfile({ displayName: reservedName });
+                            reservedNameForCleanup = '';
+                            await releaseUsernameReservation(loginCred.user.uid, existingName, reservedName);
+                        }
+                        reservedNameForCleanup = '';
+                    } catch (reserveErr) {
+                        if (reservedNameForCleanup) {
+                            try { await releaseUsernameReservation(loginCred.user.uid, reservedNameForCleanup); } catch (releaseErr) {
+                                console.error('[Username Registry] Failed to release rolled-back reservation:', releaseErr);
+                            }
+                        }
+                        console.error('[Username Registry] Login name reservation failed:', reserveErr);
+                        try { await fbAuth.signOut(); } catch (signOutErr) {}
+                        currentUser = null;
+                        localStorage.removeItem(LOCAL_CURRENT_USER_KEY);
+                        updateAccountHeaderUI();
+                        showAuthError('⚠️ Kullanıcı adı kontrol edilemedi; güvenli şekilde oturum kapatıldı. Firebase usernameRegistry kurallarını kontrol et.');
+                        return;
+                    }
+                }
+                showToast(`✅ Tekrar hoş geldin ${fbAuth.currentUser.displayName || username}!`);
             }
             if (passInp) passInp.value = '';
             closeAuthModal();
@@ -1895,12 +2031,44 @@ async function changeDisplayNickname() {
     const newName = prompt('Liderlik tablosunda görünecek yeni komutan adını gir:', currentUser.username);
     if (!newName || newName.trim().length < 3) return;
     const cleanNick = newName.trim().slice(0, 18);
-    currentUser.username = cleanNick;
-    localStorage.setItem(LOCAL_CURRENT_USER_KEY, JSON.stringify(currentUser));
-
-    if (isFirebaseReady && fbAuth && fbAuth.currentUser) {
-        try { await fbAuth.currentUser.updateProfile({ displayName: cleanNick }); } catch (e) {}
+    if (cleanNick.length < 3) {
+        showToast('⚠️ Komutan adı en az 3 karakter olmalı.');
+        return;
     }
+
+    if (isFirebaseReady && fbAuth && fbAuth.currentUser && currentUser.isCloud) {
+        let reservedNameForCleanup = '';
+        try {
+            const reservedName = await reserveUniqueUsername(
+                currentUser.uid, cleanNick, currentUser.username, false
+            );
+            reservedNameForCleanup = normalizeUsernameKey(reservedName) !== normalizeUsernameKey(currentUser.username) ? reservedName : '';
+            if (fbAuth.currentUser.displayName !== reservedName) {
+                await fbAuth.currentUser.updateProfile({ displayName: reservedName });
+                reservedNameForCleanup = '';
+            }
+            await releaseUsernameReservation(currentUser.uid, currentUser.username, reservedName);
+            currentUser.username = reservedName;
+        } catch (err) {
+            if (reservedNameForCleanup) {
+                try { await releaseUsernameReservation(currentUser.uid, reservedNameForCleanup); } catch (releaseErr) {
+                    console.error('[Username Registry] Failed to release nickname reservation:', releaseErr);
+                }
+            }
+            if (err && err.message === 'USERNAME_TAKEN') {
+                showToast('⚠️ Bu kullanıcı adı zaten alınmış. Başka bir ad seç.');
+            } else {
+                console.error('[Username Registry] Nickname update failed:', err);
+                showToast('❌ İsim değişmedi. Benzersiz kullanıcı adı servisine ulaşılamadı.');
+            }
+            return;
+        }
+    } else {
+        // Local-only profiles cannot enforce a global unique name; do not imply otherwise.
+        showToast('⚠️ Benzersiz isim için Firebase hesabıyla giriş yapmalısın.');
+        return;
+    }
+    localStorage.setItem(LOCAL_CURRENT_USER_KEY, JSON.stringify(currentUser));
 
     updateAccountHeaderUI();
     await forceCloudPush(true);
@@ -2073,6 +2241,289 @@ function shouldApplyCloudSave(cloudGame, localGame, silent) {
     return Number(cloudGame.lastSaveTime || 0) > Number(localGame.lastSaveTime || 0);
 }
 
+function getCommanderBadge(highestWave = 1, prestiges = 0) {
+    const wave = Math.max(1, Number(highestWave) || 1);
+    const prestige = Math.max(0, Number(prestiges) || 0);
+    if (wave >= 250 || prestige >= 20) return { id: 'eternal', name: 'Sonsuz Komutan', icon: '♾️', className: 'text-fuchsia-200 bg-fuchsia-500/15 border-fuchsia-400/40' };
+    if (wave >= 100 || prestige >= 10) return { id: 'legend', name: 'Efsane', icon: '👑', className: 'text-amber-200 bg-amber-500/15 border-amber-400/40' };
+    if (wave >= 50 || prestige >= 5) return { id: 'elite', name: 'Elit Muhafız', icon: '💠', className: 'text-cyan-200 bg-cyan-500/15 border-cyan-400/40' };
+    if (wave >= 25 || prestige >= 1) return { id: 'vanguard', name: 'Öncü', icon: '🛡️', className: 'text-emerald-200 bg-emerald-500/15 border-emerald-400/40' };
+    return { id: 'rookie', name: 'Yeni Komutan', icon: '⚔️', className: 'text-slate-200 bg-slate-500/15 border-slate-400/30' };
+}
+
+function getAchievementDefinitions() {
+    const stats = game?.stats || {};
+    const highestWave = Math.max(Number(game?.highestWave) || 1, Number(game?.wave) || 1);
+    const kills = Math.max(0, Number(stats.totalKills) || 0);
+    const bosses = Math.max(0, Number(stats.bossKills) || 0);
+    const prestiges = Math.max(0, Number(stats.prestiges) || 0);
+    const seconds = Math.max(0, Number(stats.playTimeSeconds) || 0);
+    const skins = Array.isArray(game?.ownedSkins) ? new Set(game.ownedSkins).size : 1;
+    const items = Array.isArray(game?.inventory) ? new Set(game.inventory).size : 0;
+    const unlockedCompanions = Object.values(game?.companions || {}).filter(c => c && c.unlocked).length;
+    return [
+        { id: 'wave5', icon: '🌱', name: 'İlk Savunma', desc: '5. dalgaya ulaş', value: highestWave, target: 5, done: highestWave >= 5 },
+        { id: 'wave25', icon: '🛡️', name: 'Öncü Komutan', desc: '25. dalgaya ulaş', value: highestWave, target: 25, done: highestWave >= 25 },
+        { id: 'wave50', icon: '💠', name: 'Elit Muhafız', desc: '50. dalgaya ulaş', value: highestWave, target: 50, done: highestWave >= 50 },
+        { id: 'wave100', icon: '👑', name: 'Dalga Efsanesi', desc: '100. dalgaya ulaş', value: highestWave, target: 100, done: highestWave >= 100 },
+        { id: 'kills100', icon: '🎯', name: 'İlk Yüz', desc: '100 düşman imha et', value: kills, target: 100, done: kills >= 100 },
+        { id: 'kills1000', icon: '💥', name: 'Temizleyici', desc: '1.000 düşman imha et', value: kills, target: 1000, done: kills >= 1000 },
+        { id: 'boss10', icon: '🐉', name: 'Boss Avcısı', desc: '10 boss yen', value: bosses, target: 10, done: bosses >= 10 },
+        { id: 'prestige1', icon: '🔥', name: 'Yeniden Doğuş', desc: 'İlk prestijini yap', value: prestiges, target: 1, done: prestiges >= 1 },
+        { id: 'skins5', icon: '🎨', name: 'Koleksiyoncu', desc: '5 kule görünümü topla', value: skins, target: 5, done: skins >= 5 },
+        { id: 'companions3', icon: '🛰️', name: 'Filo Komutanı', desc: '3 yoldaşın kilidini aç', value: unlockedCompanions, target: 3, done: unlockedCompanions >= 3 },
+        { id: 'play10h', icon: '⏱️', name: 'Kıdemli Savunmacı', desc: '10 saat oyna', value: seconds, target: 36000, done: seconds >= 36000, format: v => `${(v / 3600).toFixed(1)} sa` },
+        { id: 'items10', icon: '💎', name: 'Emanetçi', desc: '10 farklı eşya biriktir', value: items, target: 10, done: items >= 10 }
+    ];
+}
+
+function openAchievementsModal() {
+    renderAchievementsModal();
+    const modal = document.getElementById('achievements-modal');
+    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+}
+
+function closeAchievementsModal() {
+    const modal = document.getElementById('achievements-modal');
+    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+}
+
+function renderAchievementsModal() {
+    if (typeof game === 'undefined') return;
+    const stats = game.stats || {};
+    const highWave = Math.max(Number(game.highestWave) || 1, Number(game.wave) || 1);
+    const badge = getCommanderBadge(highWave, stats.prestiges);
+    const minutes = Math.floor(Math.max(0, Number(stats.playTimeSeconds) || 0) / 60);
+    const ownedSkins = Array.isArray(game.ownedSkins) ? new Set(game.ownedSkins).size : 1;
+    const ownedItems = Array.isArray(game.inventory) ? new Set(game.inventory).size : 0;
+    const achievements = getAchievementDefinitions();
+    const unlocked = achievements.filter(a => a.done).length;
+    const progressEl = document.getElementById('achievement-progress');
+    if (progressEl) progressEl.textContent = `${unlocked} / ${achievements.length} tamamlandı`;
+    const badgeEl = document.getElementById('profile-badge');
+    if (badgeEl) {
+        badgeEl.className = `inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold ${badge.className}`;
+        badgeEl.innerHTML = `<span class="text-xl">${badge.icon}</span><span>${badge.name}</span>`;
+    }
+    const values = {
+        'profile-stat-wave': formatNumber(highWave),
+        'profile-stat-kills': formatNumber(stats.totalKills || 0),
+        'profile-stat-bosses': formatNumber(stats.bossKills || 0),
+        'profile-stat-prestige': formatNumber(stats.prestiges || 0),
+        'profile-stat-time': minutes >= 60 ? `${Math.floor(minutes / 60)} sa ${minutes % 60} dk` : `${minutes} dk`,
+        'profile-stat-skins': formatNumber(ownedSkins),
+        'profile-stat-items': formatNumber(ownedItems),
+        'profile-stat-gold': formatNumber(game.gold || 0)
+    };
+    Object.entries(values).forEach(([id, value]) => setElText(id, value));
+    const list = document.getElementById('achievements-list');
+    if (list) list.innerHTML = achievements.map(a => {
+        const current = Math.max(0, Number(a.value) || 0);
+        const ratio = Math.max(0, Math.min(100, current / Math.max(1, a.target) * 100));
+        const currentText = a.format ? a.format(current) : formatNumber(current);
+        const targetText = a.format ? a.format(a.target) : formatNumber(a.target);
+        return `<div class="rounded-xl border ${a.done ? 'border-emerald-400/35 bg-emerald-500/5' : 'border-white/10 bg-slate-950/60'} p-3">
+            <div class="flex items-start gap-2.5">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${a.done ? 'bg-emerald-500/15' : 'bg-slate-800'} text-xl">${a.icon}</div>
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between gap-2"><div class="text-xs font-bold text-white">${a.name}</div><span class="text-[9px] font-bold ${a.done ? 'text-emerald-300' : 'text-slate-500'}">${a.done ? 'TAMAMLANDI ✓' : 'KİLİTLİ'}</span></div>
+                    <p class="mt-0.5 text-[10px] text-slate-400">${a.desc}</p>
+                    <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800"><div class="h-full rounded-full ${a.done ? 'bg-emerald-400' : 'bg-cyan-500'}" style="width:${ratio}%"></div></div>
+                    <div class="mt-1 text-right text-[9px] text-slate-500">${currentText} / ${targetText}</div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+
+const DAILY_MISSION_KEY = 'CoreTowerDefense_DailyMissions_v1';
+let seasonMusicContext = null;
+let seasonMusicOn = false;
+let seasonMusicNodes = [];
+
+function getLocalDayKey() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function readDailyMissionState() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(DAILY_MISSION_KEY) || 'null'); } catch (e) {}
+    const today = getLocalDayKey();
+    if (!saved || saved.date !== today || !saved.baseline) {
+        saved = {
+            date: today,
+            baseline: {
+                kills: Math.max(0, Number(game?.stats?.totalKills) || 0),
+                bosses: Math.max(0, Number(game?.stats?.bossKills) || 0),
+                playTime: Math.max(0, Number(game?.stats?.playTimeSeconds) || 0),
+                wave: Math.max(1, Number(game?.wave) || 1)
+            },
+            claimed: []
+        };
+        try { localStorage.setItem(DAILY_MISSION_KEY, JSON.stringify(saved)); } catch (e) {}
+    }
+    if (!Array.isArray(saved.claimed)) saved.claimed = [];
+    return saved;
+}
+
+function getDailyMissionDefinitions(state = readDailyMissionState()) {
+    const stats = game?.stats || {};
+    const kills = Math.max(0, Number(stats.totalKills) || 0) - state.baseline.kills;
+    const bosses = Math.max(0, Number(stats.bossKills) || 0) - state.baseline.bosses;
+    const playTime = Math.max(0, Number(stats.playTimeSeconds) || 0) - state.baseline.playTime;
+    const waveDelta = Math.max(0, (Number(game?.wave) || 1) - state.baseline.wave);
+    return [
+        { id: 'daily-kills', icon: '🎯', title: 'Tehdit Temizliği', desc: 'Bugün 50 düşman imha et', progress: Math.min(50, kills), target: 50, rewardGold: 250, rewardCrystals: 4 },
+        { id: 'daily-boss', icon: '🐉', title: 'Boss Avı', desc: 'Bugün 1 boss yen', progress: Math.min(1, bosses), target: 1, rewardGold: 200, rewardCrystals: 8 },
+        { id: 'daily-time', icon: '⏱️', title: 'Nöbet Mesaisi', desc: 'Bugün 10 dakika savaş alanında kal', progress: Math.min(600, playTime), target: 600, rewardGold: 300, rewardCrystals: 5, format: v => `${Math.floor(v / 60)} dk` },
+        { id: 'daily-waves', icon: '🌊', title: 'Dalga Dalgaya', desc: 'Bugün 5 dalga ilerle', progress: Math.min(5, waveDelta), target: 5, rewardGold: 350, rewardCrystals: 6 }
+    ];
+}
+
+function openDailyMissionsModal() {
+    renderDailyMissions();
+    const modal = document.getElementById('daily-missions-modal');
+    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+}
+
+function closeDailyMissionsModal() {
+    const modal = document.getElementById('daily-missions-modal');
+    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+}
+
+function renderDailyMissions() {
+    if (typeof game === 'undefined') return;
+    const state = readDailyMissionState();
+    const missions = getDailyMissionDefinitions(state);
+    const claimedCount = missions.filter(m => state.claimed.includes(m.id)).length;
+    setElText('daily-missions-date', `Günlük hedefler • ${state.date}`);
+    setElText('daily-missions-progress', `${claimedCount} / ${missions.length} ödül alındı`);
+    const list = document.getElementById('daily-missions-list');
+    if (!list) return;
+    list.innerHTML = missions.map(m => {
+        const value = Math.max(0, Number(m.progress) || 0);
+        const done = value >= m.target;
+        const claimed = state.claimed.includes(m.id);
+        const percent = Math.max(0, Math.min(100, value / m.target * 100));
+        const current = m.format ? m.format(value) : formatNumber(value);
+        const target = m.format ? m.format(m.target) : formatNumber(m.target);
+        const button = claimed
+            ? '<button disabled class="shrink-0 rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-[10px] font-bold text-emerald-300">ALINDI ✓</button>'
+            : done
+                ? `<button onclick="claimDailyMission('${m.id}')" class="shrink-0 rounded-lg bg-amber-500 px-3 py-2 text-[10px] font-bold text-slate-950 hover:bg-amber-400">ÖDÜLÜ AL</button>`
+                : '<button disabled class="shrink-0 rounded-lg bg-slate-800 px-3 py-2 text-[10px] font-bold text-slate-500">DEVAM ET</button>';
+        return `<div class="rounded-xl border ${claimed ? 'border-emerald-400/25' : 'border-white/10'} bg-slate-950/70 p-3">
+            <div class="flex items-start gap-2.5">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-xl">${m.icon}</div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-xs font-bold text-white">${m.title}</div><p class="mt-0.5 text-[10px] text-slate-400">${m.desc}</p>
+                    <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800"><div class="h-full rounded-full ${done ? 'bg-emerald-400' : 'bg-cyan-500'}" style="width:${percent}%"></div></div>
+                    <div class="mt-1 flex flex-wrap justify-between gap-1 text-[9px] text-slate-500"><span>${current} / ${target}</span><span class="text-amber-300">+${formatNumber(m.rewardGold)} 🪙 · +${m.rewardCrystals} 💎</span></div>
+                </div>
+                ${button}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function claimDailyMission(missionId) {
+    const state = readDailyMissionState();
+    const mission = getDailyMissionDefinitions(state).find(m => m.id === missionId);
+    if (!mission || state.claimed.includes(mission.id) || mission.progress < mission.target) {
+        showToast('Bu hedef henüz tamamlanmadı veya ödülü zaten alındı.');
+        renderDailyMissions();
+        return;
+    }
+    // Client-side daily goals are a convenience feature, not a trusted competitive reward system.
+    game.gold = Math.max(0, Number(game.gold) || 0) + mission.rewardGold;
+    game.crystals = Math.max(0, Number(game.crystals) || 0) + mission.rewardCrystals;
+    state.claimed.push(mission.id);
+    try { localStorage.setItem(DAILY_MISSION_KEY, JSON.stringify(state)); } catch (e) {}
+    if (typeof updateHUD === 'function') updateHUD();
+    if (typeof saveGame === 'function') saveGame(true);
+    renderDailyMissions();
+    showToast(`🎁 Günlük hedef tamamlandı: +${formatNumber(mission.rewardGold)} altın, +${mission.rewardCrystals} kristal!`);
+}
+
+async function toggleSeasonMusic() {
+    if (seasonMusicOn) {
+        seasonMusicNodes.forEach(node => { try { node.stop(); } catch (e) {} try { node.disconnect(); } catch (e) {} });
+        seasonMusicNodes = [];
+        if (seasonMusicContext) {
+            const oldContext = seasonMusicContext;
+            seasonMusicContext = null;
+            try { await oldContext.close(); } catch (e) {}
+        }
+        seasonMusicOn = false;
+        updateSeasonMusicButton();
+        showToast('🎵 Sezon müziği kapatıldı.');
+        return;
+    }
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) {
+        showToast('Bu tarayıcıda Web Audio desteklenmiyor.');
+        return;
+    }
+    try {
+        const audio = new AudioContextClass();
+        if (audio.state === 'suspended') await audio.resume();
+        const master = audio.createGain();
+        const filter = audio.createBiquadFilter();
+        master.gain.value = 0.035;
+        filter.type = 'lowpass';
+        filter.frequency.value = 720;
+        filter.Q.value = 0.4;
+        filter.connect(master);
+        master.connect(audio.destination);
+        const tones = [
+            { frequency: 110, type: 'sine', gain: 0.28 },
+            { frequency: 164.81, type: 'sine', gain: 0.16 },
+            { frequency: 220, type: 'triangle', gain: 0.08 }
+        ];
+        const nodes = [];
+        tones.forEach(tone => {
+            const osc = audio.createOscillator();
+            const gain = audio.createGain();
+            osc.type = tone.type;
+            osc.frequency.value = tone.frequency;
+            gain.gain.value = tone.gain;
+            osc.connect(gain);
+            gain.connect(filter);
+            osc.start();
+            nodes.push(osc, gain);
+        });
+        const lfo = audio.createOscillator();
+        const lfoGain = audio.createGain();
+        lfo.frequency.value = 0.07;
+        lfoGain.gain.value = 0.012;
+        lfo.connect(lfoGain);
+        lfoGain.connect(master.gain);
+        lfo.start();
+        nodes.push(lfo, lfoGain, filter, master);
+        seasonMusicNodes = nodes;
+        seasonMusicContext = audio;
+        seasonMusicOn = true;
+        updateSeasonMusicButton();
+        showToast('🌌 Kuzey Işıkları ambient müziği açıldı.');
+    } catch (err) {
+        console.warn('[Season Music] Audio initialization failed:', err);
+        showToast('Sezon müziği başlatılamadı; tarayıcı ses iznini kontrol et.');
+    }
+}
+
+function updateSeasonMusicButton() {
+    const button = document.getElementById('btn-season-music');
+    if (!button) return;
+    button.className = seasonMusicOn
+        ? 'px-2 py-1.5 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 border border-teal-400/40 text-teal-200 font-tech font-bold text-xs transition flex items-center gap-1'
+        : 'px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-tech font-bold text-xs transition flex items-center gap-1';
+    button.innerHTML = seasonMusicOn
+        ? '<i class="fa-solid fa-volume-high text-xs"></i><span>Müzik Açık</span>'
+        : '<i class="fa-solid fa-music text-xs"></i><span>Müzik</span>';
+}
+
 function getDefaultRivalsForLeaderboard() {
     return [
         { uid: 'npc_1', username: 'CyberValkyrie', highestWave: 85, wave: 82, activeSkin: 'cosmic_emperor', damage: 148500, prestiges: 14, updatedAt: Date.now() - 120000 },
@@ -2206,6 +2657,7 @@ async function refreshLeaderboard(showNotification = false) {
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5">
                             <span class="font-tech font-bold text-xs sm:text-sm ${isMe ? 'text-emerald-300' : 'text-white'} truncate">${escapeHtml(pName)}</span>
+                            <span title="${getCommanderBadge(p.highestWave, p.prestiges).name}" class="inline-flex shrink-0 items-center rounded border px-1 py-0.5 text-[9px] ${getCommanderBadge(p.highestWave, p.prestiges).className}">${getCommanderBadge(p.highestWave, p.prestiges).icon}</span>
                             ${isMe ? '<span class="px-1.5 py-0.2 rounded bg-emerald-500/20 border border-emerald-400/40 text-[9px] font-tech font-bold text-emerald-300">SEN</span>' : ''}
                         </div>
                         <div class="text-[10px] text-slate-400 truncate">${skinDef.emoji} ${skinDef.name}</div>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kule Savunma: Sonsuz Döngü | v1.2.0</title>
+    <title>Kule Savunma: Sonsuz Döngü | v2.0.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -268,7 +268,7 @@
             <div class="flex flex-col">
                 <div class="hidden sm:flex items-center gap-2">
                     <h1 class="font-tech font-bold text-sm sm:text-xl text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 tracking-wider">KULE SAVUNMA</h1>
-                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 1.2.0 yeniliklerini göster" class="rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[10px] font-bold tracking-wide text-cyan-300 hover:bg-cyan-500/20 transition">v1.2.0</button>
+                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 2.0.0 yeniliklerini göster" class="rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[10px] font-bold tracking-wide text-cyan-300 hover:bg-cyan-500/20 transition">v2.0.0</button>
                 </div>
                 <div class="flex items-center space-x-3 sm:space-x-4 mt-0.5">
                     <div class="flex items-center gap-1.5" title="Altın">
@@ -283,7 +283,7 @@
                         <i class="fa-solid fa-fire text-[10px] sm:text-sm text-purple-400 neon-text-purple"></i>
                         <div id="ui-souls" class="font-tech font-bold text-xs sm:text-base text-purple-400 neon-text-purple leading-tight">0</div>
                     </div>
-                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 1.2.0 yeniliklerini göster" class="sm:hidden rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[9px] font-bold tracking-wide text-cyan-300">v1.2.0</button>
+                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 2.0.0 yeniliklerini göster" class="sm:hidden rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[9px] font-bold tracking-wide text-cyan-300">v2.0.0</button>
                 </div>
             </div>
         </div>
@@ -293,6 +293,9 @@
             <button onclick="openAuthModal()" id="btn-header-account" class="px-2 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-tech font-bold text-xs transition flex items-center gap-1" title="Hesap & Bulut Kayıt">
                 <i id="ui-account-icon" class="fa-solid fa-user-astronaut text-xs"></i>
                 <span id="ui-account-name" class="hidden md:inline max-w-[90px] truncate">Giriş Yap</span>
+            </button>
+            <button onclick="openAchievementsModal()" class="p-2 rounded-lg bg-amber-600/15 hover:bg-amber-600/25 border border-amber-400/30 text-amber-300 transition text-xs" title="Başarımlar ve istatistikler" aria-label="Başarımlar ve istatistikler">
+                <i class="fa-solid fa-medal w-3 text-center"></i>
             </button>
             <button onclick="openThemeModal()" class="px-2 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-tech font-bold text-xs transition flex items-center gap-1">
                 <i id="ui-theme-icon" class="fa-solid fa-palette text-xs"></i>
@@ -692,6 +695,11 @@
                         <button onclick="setLeaderboardSort('damage')" id="lb-sort-damage" class="py-1.5 rounded-lg font-tech font-bold text-xs text-slate-400 hover:text-white transition"><i class="fa-solid fa-burst mr-1"></i>Kule Hasarı</button>
                     </div>
 
+                    <div class="mb-2 rounded-lg border border-amber-500/25 bg-amber-950/25 px-2.5 py-2 text-[10px] leading-relaxed text-amber-200/90" role="note" aria-label="Liderlik tablosu doğrulama durumu">
+                        <i class="fa-solid fa-triangle-exclamation mr-1 text-amber-400"></i>
+                        Sıralama değerleri şu an oyuncu istemcisinden gönderilir; sunucu tarafından doğrulanmaz. Bu nedenle hileye dayanıklı veya ödüllü rekabet için güvenilir skor sayılmaz.
+                    </div>
+
                     <!-- Oyuncu Listesi -->
                     <div id="leaderboard-list" class="space-y-2 max-h-[380px] overflow-y-auto pr-1"></div>
                 </div>
@@ -896,40 +904,108 @@
         </div>
     </div>
 
-    <!-- v1.2.0 development notes -->
+    <!-- V2.0.0 — Günlük görevler ve sezon hedefleri -->
+    <div id="daily-missions-modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md items-center justify-center p-3 sm:p-4 z-[76]" role="dialog" aria-modal="true" aria-labelledby="daily-missions-title" onclick="if(event.target === this) closeDailyMissionsModal()">
+        <div class="w-full max-w-xl max-h-[92dvh] overflow-y-auto rounded-2xl border border-teal-400/25 bg-slate-900 p-4 sm:p-5 shadow-2xl">
+            <div class="flex items-start justify-between gap-3 border-b border-white/10 pb-3">
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-teal-300">KUZEY IŞIKLARI SEZONU</div>
+                    <h2 id="daily-missions-title" class="mt-1 font-tech text-xl sm:text-2xl font-bold text-white">Günlük Görevler</h2>
+                    <p id="daily-missions-date" class="mt-1 text-xs text-slate-400">Günlük hedefler</p>
+                </div>
+                <button type="button" onclick="closeDailyMissionsModal()" aria-label="Günlük görevleri kapat" class="rounded-lg bg-slate-800 px-3 py-2 text-slate-300 hover:bg-slate-700">✕</button>
+            </div>
+            <div class="mt-3 flex items-center justify-between gap-2 rounded-xl border border-teal-400/20 bg-teal-500/5 p-3">
+                <div class="text-[10px] leading-relaxed text-slate-300">Hedefleri tamamla, altın ve kristal kazan. Görevler yerel gün değiştiğinde yenilenir.</div>
+                <div id="daily-missions-progress" class="shrink-0 font-tech text-xs font-bold text-teal-300">0 / 4 ödül alındı</div>
+            </div>
+            <div id="daily-missions-list" class="mt-3 space-y-2"></div>
+            <p class="mt-3 text-[10px] leading-relaxed text-slate-500">Günlük görevler bu cihazda saklanır ve istemci tarafında hesaplanır. Ödüller rekabetçi veya gerçek para değeri taşıyan ödüller değildir.</p>
+            <button type="button" onclick="closeDailyMissionsModal()" class="mt-4 w-full rounded-xl border border-teal-400/30 bg-teal-500/10 py-2.5 font-tech font-bold text-teal-200 transition hover:bg-teal-500/20">SAVAŞ ALANINA DÖN</button>
+        </div>
+    </div>
+
+    <!-- V2.0.0 — Başarımlar, istatistikler ve komutan profili -->
+    <div id="achievements-modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md items-center justify-center p-3 sm:p-4 z-[75]" role="dialog" aria-modal="true" aria-labelledby="achievements-title" onclick="if(event.target === this) closeAchievementsModal()">
+        <div class="w-full max-w-2xl max-h-[92dvh] overflow-y-auto rounded-2xl border border-amber-400/25 bg-slate-900 p-4 sm:p-5 shadow-2xl">
+            <div class="flex items-start justify-between gap-3 border-b border-white/10 pb-3">
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">KOMUTAN DOSYASI</div>
+                    <h2 id="achievements-title" class="mt-1 font-tech text-xl sm:text-2xl font-bold text-white">Başarımlar & İstatistikler</h2>
+                    <p class="mt-1 text-xs text-slate-400">İlerlemen mevcut kayıt verilerinden hesaplanır; eski kayıtların sıfırlanmaz.</p>
+                </div>
+                <button type="button" onclick="closeAchievementsModal()" aria-label="Profil penceresini kapat" class="rounded-lg bg-slate-800 px-3 py-2 text-slate-300 hover:bg-slate-700">✕</button>
+            </div>
+            <div class="mt-4 rounded-xl border border-amber-400/20 bg-gradient-to-r from-amber-950/40 to-slate-950/60 p-3">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400">Komutan rozeti</div>
+                        <div id="profile-badge" class="mt-1 inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold text-slate-200">⚔️ Yeni Komutan</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400">Başarım ilerlemesi</div>
+                        <div id="achievement-progress" class="mt-1 font-tech text-lg font-bold text-emerald-300">0 / 12 tamamlandı</div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3 grid grid-cols-2 gap-2">
+                <button onclick="closeAchievementsModal(); openDailyMissionsModal()" class="rounded-xl border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-200 hover:bg-amber-500/20"><i class="fa-solid fa-calendar-check mr-1.5"></i>Günlük Görevler</button>
+                <button id="btn-season-music" onclick="toggleSeasonMusic()" class="rounded-xl border border-teal-400/25 bg-teal-500/10 px-3 py-2 text-xs font-bold text-teal-200 hover:bg-teal-500/20"><i class="fa-solid fa-music mr-1.5"></i><span>Müzik</span></button>
+            </div>
+            <div class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div class="rounded-xl border border-white/10 bg-slate-950/70 p-3"><div class="text-[10px] text-slate-400">En yüksek dalga</div><div id="profile-stat-wave" class="mt-1 font-tech text-lg font-bold text-amber-300">1</div></div>
+                <div class="rounded-xl border border-white/10 bg-slate-950/70 p-3"><div class="text-[10px] text-slate-400">İmha edilen</div><div id="profile-stat-kills" class="mt-1 font-tech text-lg font-bold text-red-300">0</div></div>
+                <div class="rounded-xl border border-white/10 bg-slate-950/70 p-3"><div class="text-[10px] text-slate-400">Yenilen boss</div><div id="profile-stat-bosses" class="mt-1 font-tech text-lg font-bold text-purple-300">0</div></div>
+                <div class="rounded-xl border border-white/10 bg-slate-950/70 p-3"><div class="text-[10px] text-slate-400">Prestij</div><div id="profile-stat-prestige" class="mt-1 font-tech text-lg font-bold text-fuchsia-300">0</div></div>
+                <div class="rounded-xl border border-white/10 bg-slate-950/70 p-3"><div class="text-[10px] text-slate-400">Oyun süresi</div><div id="profile-stat-time" class="mt-1 font-tech text-lg font-bold text-cyan-300">0 dk</div></div>
+                <div class="rounded-xl border border-white/10 bg-slate-950/70 p-3"><div class="text-[10px] text-slate-400">Kule görünümleri</div><div id="profile-stat-skins" class="mt-1 font-tech text-lg font-bold text-pink-300">1</div></div>
+                <div class="rounded-xl border border-white/10 bg-slate-950/70 p-3"><div class="text-[10px] text-slate-400">Eşya koleksiyonu</div><div id="profile-stat-items" class="mt-1 font-tech text-lg font-bold text-indigo-300">0</div></div>
+                <div class="rounded-xl border border-white/10 bg-slate-950/70 p-3"><div class="text-[10px] text-slate-400">Eldeki altın</div><div id="profile-stat-gold" class="mt-1 font-tech text-lg font-bold text-amber-300">25</div></div>
+            </div>
+            <div class="mt-4 flex items-center justify-between gap-2">
+                <h3 class="font-tech text-sm font-bold text-white"><i class="fa-solid fa-trophy mr-1.5 text-amber-300"></i>Başarım koleksiyonu</h3>
+                <span class="text-[10px] text-slate-500">Ödüller otomatik hesaplanır</span>
+            </div>
+            <div id="achievements-list" class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+            <p class="mt-3 text-[10px] leading-relaxed text-slate-500">Rozet ve başarımlar mevcut oyun istatistiklerine dayanır. İstemci tarafında hesaplandıkları için tek başlarına hileye dayanıklı rekabet kanıtı değildir.</p>
+            <button type="button" onclick="closeAchievementsModal()" class="mt-4 w-full rounded-xl border border-amber-400/30 bg-amber-500/10 py-2.5 font-tech font-bold text-amber-200 transition hover:bg-amber-500/20">OYUNA DÖN</button>
+        </div>
+    </div>
+
+    <!-- v2.0.0 season update notes -->
     <div id="update-notes-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md items-center justify-center p-4 z-[70]" role="dialog" aria-modal="true" aria-labelledby="update-notes-title" onclick="if(event.target === this) closeUpdateNotesModal()">
-        <div class="w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-2xl border border-cyan-400/25 bg-slate-900 p-5 shadow-2xl">
+        <div class="w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-2xl border border-teal-400/25 bg-slate-900 p-5 shadow-2xl">
             <div class="flex items-start justify-between gap-3">
                 <div>
-                    <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300">YENİ GELİŞTİRME SERİSİ</div>
-                    <h2 id="update-notes-title" class="mt-1 font-tech text-2xl font-bold text-white">Kule Savunma <span class="text-cyan-300">v1.2.0</span></h2>
-                    <p class="mt-1 text-xs text-slate-400">Güvenlik, kayıt bütünlüğü ve mobil kalite • Geliştirme sürümü</p>
+                    <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-teal-300">BÜYÜK SEZON GÜNCELLEMESİ</div>
+                    <h2 id="update-notes-title" class="mt-1 font-tech text-2xl font-bold text-white">Kule Savunma <span class="text-teal-300">v2.0.0</span></h2>
+                    <p class="mt-1 text-xs text-slate-400">Kuzey Işıkları Sezonu • Geliştirme sürümü</p>
                 </div>
                 <button type="button" onclick="closeUpdateNotesModal()" aria-label="Yenilikler penceresini kapat" class="rounded-lg bg-slate-800 px-3 py-2 text-slate-300 hover:bg-slate-700">✕</button>
             </div>
             <div class="mt-5 space-y-3">
-                <div class="flex gap-3 rounded-xl border border-emerald-400/20 bg-emerald-500/5 p-3">
-                    <i class="fa-solid fa-shield-halved mt-0.5 text-emerald-300"></i>
-                    <div><div class="text-sm font-semibold text-white">Kayıt ve envanter doğrulaması</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Kayıt yüklenirken geçersiz eşya kimlikleri, yinelenen ekipmanlar ve tanımsız yükseltmeler temizlenir. Bu istemci tarafı kontrolleri tek başına hileye karşı kesin koruma sağlamaz.</p></div>
+                <div class="flex gap-3 rounded-xl border border-teal-400/20 bg-teal-500/5 p-3">
+                    <i class="fa-solid fa-meteor mt-0.5 text-teal-300"></i>
+                    <div><div class="text-sm font-semibold text-white">Yeni Kuzey Işıkları savaş alanı</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Canvas üzerinde çizilen, hareketli aurora şeritleri, yıldız tozu ve kuantum halkalarıyla özgün sezon teması. Dış görsel veya müzik dosyası indirmez.</p></div>
                 </div>
                 <div class="flex gap-3 rounded-xl border border-cyan-400/20 bg-cyan-500/5 p-3">
-                    <i class="fa-solid fa-cloud mt-0.5 text-cyan-300"></i>
-                    <div><div class="text-sm font-semibold text-white">Bulut kayıtları ve liderlik tablosu</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Firebase erişim kuralları, oyuncu kimliği ve liderlik tablosuna yazılan veriler ayrı ayrı incelenecek. Güvenilmeyen istemciden gelen ilerleme verileri sunucu doğrulaması olmadan yetkili kabul edilmeyecek.</p></div>
+                    <i class="fa-solid fa-music mt-0.5 text-cyan-300"></i>
+                    <div><div class="text-sm font-semibold text-white">Özgün sentetik ambient</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Müzik düğmesiyle açılıp kapatılabilen, Web Audio API ile üretilen düşük sesli atmosferik tonlar. Otomatik başlamaz ve dış servise bağlanmaz.</p></div>
                 </div>
                 <div class="flex gap-3 rounded-xl border border-amber-400/20 bg-amber-500/5 p-3">
-                    <i class="fa-solid fa-mobile-screen-button mt-0.5 text-amber-300"></i>
-                    <div><div class="text-sm font-semibold text-white">Telefon ve tablet deneyimi</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Dikey ve yatay ekranda taşan paneller, küçük dokunma hedefleri ve okunabilirlik sorunları gözden geçirilecek; masaüstü düzeni korunacak.</p></div>
+                    <i class="fa-solid fa-calendar-check mt-0.5 text-amber-300"></i>
+                    <div><div class="text-sm font-semibold text-white">Günlük görevler</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Düşman imhası, boss savaşı, oyun süresi ve dalga ilerlemesi hedefleri. Görev başına bir kez altın/kristal ödülü; günlük sıfırlama yerel tarihe göre çalışır.</p></div>
                 </div>
                 <div class="flex gap-3 rounded-xl border border-fuchsia-400/20 bg-fuchsia-500/5 p-3">
-                    <i class="fa-solid fa-gauge-high mt-0.5 text-fuchsia-300"></i>
-                    <div><div class="text-sm font-semibold text-white">Performans ve kararlılık</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Oyun döngüsü, kayıt yükleme ve arayüz güncellemeleri gereksiz iş ve hata riskleri açısından incelenecek. Dalga dengesi ölçüm olmadan değiştirilmemeye devam edecek.</p></div>
+                    <i class="fa-solid fa-mobile-screen-button mt-0.5 text-fuchsia-300"></i>
+                    <div><div class="text-sm font-semibold text-white">Önceki güncellemeler korunuyor</div><p class="mt-1 text-xs leading-relaxed text-slate-300">1.3.0 başarımlar, istatistikler, komutan rozetleri ve kargo dronu refleks görevi bu sürümde yer almaya devam eder.</p></div>
                 </div>
                 <div class="rounded-xl border border-white/10 bg-slate-800/60 p-3">
-                    <div class="text-xs font-bold text-slate-200"><i class="fa-solid fa-circle-info mr-1"></i> Geliştirme durumu</div>
-                    <p class="mt-1 text-xs leading-relaxed text-slate-400">Bu dal, v1.2.0 geliştirmesini temsil eder. Değişiklikler tamamlanıp doğrulanana kadar canlı sürümün yayımlandığı veya testlerin geçtiği anlamına gelmez.</p>
+                    <div class="text-xs font-bold text-slate-200"><i class="fa-solid fa-circle-info mr-1"></i>Geliştirme durumu</div>
+                    <p class="mt-1 text-xs leading-relaxed text-slate-400">Görevler ve ses istemci tarafındadır. Bu dal canlıya dağıtılmadı; mobil/masaüstü manuel testleri ve CI tamamlanmadan yayımlanmış sayılmaz.</p>
                 </div>
             </div>
-            <button type="button" onclick="closeUpdateNotesModal()" class="mt-5 w-full rounded-xl border border-cyan-400/30 bg-cyan-500/15 py-2.5 font-tech font-bold text-cyan-200 transition hover:bg-cyan-500/25">OYUNA DÖN</button>
+            <button type="button" onclick="closeUpdateNotesModal()" class="mt-5 w-full rounded-xl border border-teal-400/30 bg-teal-500/15 py-2.5 font-tech font-bold text-teal-200 transition hover:bg-teal-500/25">OYUNA DÖN</button>
         </div>
     </div>
 
@@ -961,7 +1037,11 @@
     }
 
     document.addEventListener('keydown', event => {
-        if (event.key === 'Escape') closeUpdateNotesModal();
+        if (event.key === 'Escape') {
+            closeUpdateNotesModal();
+            if (typeof closeAchievementsModal === 'function') closeAchievementsModal();
+            if (typeof closeDailyMissionsModal === 'function') closeDailyMissionsModal();
+        }
     });
 
     // Sağ tık menüsünü kapat
