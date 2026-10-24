@@ -409,6 +409,70 @@
         #battle-sfx-toggle[aria-pressed="true"]{color:#b9dcff;border-color:rgba(118,183,255,.38)}
         #battle-sfx-toggle .battle-sfx-dot{width:5px;height:5px;border-radius:50%;background:#66768a}
         #battle-sfx-toggle[aria-pressed="true"] .battle-sfx-dot{background:#76b7ff;box-shadow:0 0 8px rgba(118,183,255,.65)}
+        /* V2.3 visual pass — motion has hierarchy: warning, impact, then reward */
+        #battle-moment .battle-frame { transform-origin: 50% 0%; }
+        #battle-moment.is-visible .battle-frame {
+            animation: battleFrameArrive .38s cubic-bezier(.18,.78,.22,1) both;
+        }
+        #battle-moment.is-visible .battle-frame::before {
+            content:""; position:absolute; z-index:2; top:0; left:-32%; width:28%; height:2px;
+            background:linear-gradient(90deg,transparent,rgba(208,231,255,.9),transparent);
+            box-shadow:0 0 12px rgba(118,183,255,.45);
+            animation:battleSignalSweep 1.05s ease-out .04s both; pointer-events:none;
+        }
+        #battle-moment[data-kind="boss"].is-visible .battle-frame {
+            animation:battleBossImpact .48s cubic-bezier(.16,.86,.25,1.18) both;
+        }
+        #battle-moment[data-kind="boss"].is-visible .battle-frame::before {
+            background:linear-gradient(90deg,transparent,rgba(255,191,198,.95),transparent);
+            box-shadow:0 0 16px rgba(251,113,133,.62);
+            animation:battleSignalSweep .8s ease-out both;
+        }
+        #battle-moment[data-kind="bossKill"].is-visible .battle-frame {
+            animation:battleVictorySettle .48s cubic-bezier(.2,.8,.2,1) both;
+        }
+        #battle-moment.is-visible .battle-reward {
+            animation:battleRewardIn .28s cubic-bezier(.2,.8,.2,1) both;
+        }
+        #battle-moment.is-visible .battle-reward:nth-child(2) { animation-delay:.08s; }
+        #battle-moment.is-visible .battle-reward:nth-child(3) { animation-delay:.15s; }
+        #battle-moment[data-kind="boss"] .battle-reward {
+            color:#fecdd3; border-color:rgba(251,113,133,.28); background:rgba(251,113,133,.07);
+        }
+        #battle-moment[data-kind="bossKill"] .battle-reward {
+            color:#99f6e4; border-color:rgba(94,234,212,.28); background:rgba(45,212,191,.07);
+        }
+        @keyframes battleFrameArrive {
+            0% { opacity:.35; transform:translateY(-8px) scale(.985); filter:blur(2px); }
+            70% { opacity:1; transform:translateY(1px) scale(1.003); filter:blur(0); }
+            100% { opacity:1; transform:translateY(0) scale(1); filter:blur(0); }
+        }
+        @keyframes battleBossImpact {
+            0% { opacity:.3; transform:translateY(-12px) scale(.94); filter:blur(3px); }
+            55% { opacity:1; transform:translateY(2px) scale(1.012); filter:blur(0); }
+            76% { transform:translateY(-1px) scale(.998); }
+            100% { opacity:1; transform:translateY(0) scale(1); }
+        }
+        @keyframes battleVictorySettle {
+            0% { opacity:.45; transform:translateY(5px) scale(.97); }
+            65% { opacity:1; transform:translateY(-1px) scale(1.008); }
+            100% { opacity:1; transform:translateY(0) scale(1); }
+        }
+        @keyframes battleSignalSweep {
+            0% { left:-32%; opacity:0; }
+            15% { opacity:1; }
+            100% { left:112%; opacity:0; }
+        }
+        @keyframes battleRewardIn {
+            0% { opacity:0; transform:translateY(5px) scale(.94); }
+            100% { opacity:1; transform:translateY(0) scale(1); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #battle-moment.is-visible .battle-frame,
+            #battle-moment.is-visible .battle-frame::before,
+            #battle-moment.is-visible .battle-reward { animation:none !important; }
+        }
+
         @media(max-width:480px){#battle-moment{top:max(96px,calc(env(safe-area-inset-top) + 88px));width:calc(100vw - 20px)}#battle-moment .battle-frame{padding:11px 13px 10px}#battle-moment .battle-kicker{font-size:9px}#battle-moment .battle-subtitle{font-size:10px}#battle-sfx-toggle{top:auto;bottom:max(82px,calc(env(safe-area-inset-bottom) + 76px));right:8px;padding:7px 8px}}
         @media(max-width:900px) and (orientation:landscape) and (max-height:500px){#battle-moment{top:50px;width:min(440px,calc(100vw - 24px))}#battle-moment .battle-frame{padding:8px 12px}#battle-moment .battle-title{font-size:20px}#battle-moment .battle-rewards{margin-top:5px}#battle-sfx-toggle{top:44px;bottom:auto}}
         @media(prefers-reduced-motion:reduce){#battle-moment,#battle-moment.is-visible{transition:none;transform:translate(-50%,0)}}
