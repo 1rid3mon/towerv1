@@ -247,8 +247,7 @@ function buildCompanionsUI() {
         list.innerHTML += `
             <div class="premium-card p-3 flex items-center justify-between gap-2 ${isMaxed ? 'border-amber-500/40' : ''}">
                 <div class="flex items-center gap-2.5 min-w-0">
-                    <div class="w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${def.badgeClass}">
-                        <i class="${def.icon} text-sm"></i>
+                    <div class="w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${def.badgeClass}">                        <i class="${def.icon} text-sm"></i>
                     </div>
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5 flex-wrap">
@@ -497,8 +496,7 @@ function playRoulette(choice) {
     });
 
     rouletteAnim.spinning = true; rouletteAnim.startTime = performance.now(); rouletteAnim.duration = 2600; rouletteAnim.userChoice = choice; rouletteAnim.betAmount = bet; rouletteAnim.winningSector = winSec;
-    rouletteAnim.startWheelAngle = rouletteAnim.wheelAngle % (Math.PI * 2); rouletteAnim.targetWheelAngle = (-Math.PI / 2 - (winIndex * sliceAngle + sliceAngle / 2)) + Math.PI * 2 * 5;
-    rouletteAnim.startBallAngle = rouletteAnim.ballAngle % (Math.PI * 2); rouletteAnim.targetBallAngle = -Math.PI / 2 - Math.PI * 2 * 6;
+    rouletteAnim.startWheelAngle = rouletteAnim.wheelAngle % (Math.PI * 2); rouletteAnim.targetWheelAngle = (-Math.PI / 2 - (winIndex * sliceAngle + sliceAngle / 2)) + Math.PI * 2 * 5;    rouletteAnim.startBallAngle = rouletteAnim.ballAngle % (Math.PI * 2); rouletteAnim.targetBallAngle = -Math.PI / 2 - Math.PI * 2 * 6;
     setElText('roulette-wheel-display', 'ÇARK DÖNÜYOR...');
     const resEl = document.getElementById('roulette-result');
     if (resEl) resEl.innerHTML = '<span class="text-amber-300 animate-pulse">Top dönüyor, bol şans!</span>';
@@ -747,8 +745,7 @@ function updateLootboxCollectionCounters() {
     const skinsFull = totalSkins > 0 && ownedSkins >= totalSkins;
 
     const totalCompSkins = Object.keys(typeof COMPANION_SKIN_DATABASE !== 'undefined' ? COMPANION_SKIN_DATABASE : {}).length;
-    const ownedCompSkins = game.ownedCompanionSkins.filter(id => typeof COMPANION_SKIN_DATABASE !== 'undefined' && COMPANION_SKIN_DATABASE[id]).length;
-    const compSkinsFull = totalCompSkins > 0 && ownedCompSkins >= totalCompSkins;
+    const ownedCompSkins = game.ownedCompanionSkins.filter(id => typeof COMPANION_SKIN_DATABASE !== 'undefined' && COMPANION_SKIN_DATABASE[id]).length;    const compSkinsFull = totalCompSkins > 0 && ownedCompSkins >= totalCompSkins;
 
     setElText('owned-items-count', `${ownedItems}/${totalItems}`);
     setElText('inv-gear-header-count', `${ownedItems}/${totalItems}`);
@@ -997,8 +994,7 @@ function revealLootboxCards() {
     } else if (boxType === 'skin') {
         const total = Object.keys(SKIN_DATABASE || {}).length;
         isCollectionMaxed = total > 0 && (game.ownedSkins || []).length >= total;
-    } else if (boxType === 'compskin') {
-        const total = Object.keys(COMPANION_SKIN_DATABASE || {}).length;
+    } else if (boxType === 'compskin') {        const total = Object.keys(COMPANION_SKIN_DATABASE || {}).length;
         isCollectionMaxed = total > 0 && (game.ownedCompanionSkins || []).length >= total;
     }
 
@@ -1169,6 +1165,15 @@ function buildInventoryUI() {
     if (typeof game === 'undefined') return;
     if (!Array.isArray(game.equippedItems)) game.equippedItems = [];
     if (!Array.isArray(game.inventory)) game.inventory = [];
+
+    // Repair duplicate/invalid inventory IDs immediately, including data already loaded
+    // into a live session before this guard ran. An item ID represents one unique owned item.
+    const normalizedInventory = [...new Set(game.inventory)]
+        .filter(id => typeof id === 'string' && typeof ITEM_DATABASE !== 'undefined' &&
+            Object.prototype.hasOwnProperty.call(ITEM_DATABASE, id));
+    const inventoryWasNormalized = normalizedInventory.length !== game.inventory.length;
+    game.inventory = normalizedInventory;
+
     game.equippedItems = [...new Set(game.equippedItems)]
         .filter(id => typeof id === 'string' && ITEM_DATABASE[id] && game.inventory.includes(id))
         .slice(0, 3);
@@ -1177,6 +1182,9 @@ function buildInventoryUI() {
 
     setElText('badge-equipped-count', `${game.equippedItems.length}/3`);
     updateLootboxCollectionCounters();
+
+    // Persist a one-time cleanup so duplicates do not return after reload/cloud sync.
+    if (inventoryWasNormalized && typeof saveGame === 'function') saveGame(true);
 
     const eqList = document.getElementById('equipped-items-list');
     if (eqList && typeof ITEM_DATABASE !== 'undefined') {
@@ -1247,8 +1255,7 @@ function buildInventoryUI() {
 
             allSkins.forEach(skin => {
                 const pCanvas = document.getElementById(`skin-preview-${skin.id}`);
-                if (pCanvas && typeof drawCustomTowerSkin === 'function') {
-                    const pCtx = pCanvas.getContext('2d');
+                if (pCanvas && typeof drawCustomTowerSkin === 'function') {                    const pCtx = pCanvas.getContext('2d');
                     pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
                     pCtx.save();
                     pCtx.translate(pCanvas.width / 2 - 2, pCanvas.height / 2);
@@ -1497,8 +1504,7 @@ function applyParsedGameData(parsed) {
                 delete game.upgrades[key];
                 continue;
             }
-            const rawLevel = Number(game.upgrades[key]);
-            game.upgrades[key] = Math.min(upgradeDef.maxLevel, Math.max(0, Number.isFinite(rawLevel) ? Math.floor(rawLevel) : 0));
+            const rawLevel = Number(game.upgrades[key]);            game.upgrades[key] = Math.min(upgradeDef.maxLevel, Math.max(0, Number.isFinite(rawLevel) ? Math.floor(rawLevel) : 0));
         }
     }
     if (typeof PRESTIGE_DEFS !== 'undefined') {
@@ -1747,7 +1753,6 @@ function switchAuthMode(mode) {
     const submitLbl = document.getElementById('auth-submit-label');
     const errEl = document.getElementById('auth-error-msg');
     if (errEl) errEl.classList.add('hidden');
-
     if (tabLogin) {
         tabLogin.className = authFormMode === 'login'
             ? 'py-1.5 rounded-lg font-tech font-bold text-xs bg-emerald-600 text-white transition'
@@ -1997,8 +2002,7 @@ async function submitUsernameAuth() {
         if (passInp) passInp.value = '';
         closeAuthModal();
         showToast(`🎉 ${username} hesabı oluşturuldu!`);
-    } else {
-        const acc = accounts[key];
+    } else {        const acc = accounts[key];
         const encodedPass = btoa(unescape(encodeURIComponent(password)));
         if (!acc || acc.password !== encodedPass) { showAuthError('❌ Kullanıcı adı veya şifre hatalı!'); return; }
         currentUser = { uid: acc.uid, username: acc.username, isCloud: false };
@@ -2247,8 +2251,7 @@ function getCommanderBadge(highestWave = 1, prestiges = 0) {
     if (wave >= 250 || prestige >= 20) return { id: 'eternal', name: 'Sonsuz Komutan', icon: '♾️', className: 'text-fuchsia-200 bg-fuchsia-500/15 border-fuchsia-400/40' };
     if (wave >= 100 || prestige >= 10) return { id: 'legend', name: 'Efsane', icon: '👑', className: 'text-amber-200 bg-amber-500/15 border-amber-400/40' };
     if (wave >= 50 || prestige >= 5) return { id: 'elite', name: 'Elit Muhafız', icon: '💠', className: 'text-cyan-200 bg-cyan-500/15 border-cyan-400/40' };
-    if (wave >= 25 || prestige >= 1) return { id: 'vanguard', name: 'Öncü', icon: '🛡️', className: 'text-emerald-200 bg-emerald-500/15 border-emerald-400/40' };
-    return { id: 'rookie', name: 'Yeni Komutan', icon: '⚔️', className: 'text-slate-200 bg-slate-500/15 border-slate-400/30' };
+    if (wave >= 25 || prestige >= 1) return { id: 'vanguard', name: 'Öncü', icon: '🛡️', className: 'text-emerald-200 bg-emerald-500/15 border-emerald-400/40' };    return { id: 'rookie', name: 'Yeni Komutan', icon: '⚔️', className: 'text-slate-200 bg-slate-500/15 border-slate-400/30' };
 }
 
 function getAchievementDefinitions() {
@@ -2497,8 +2500,7 @@ async function toggleSeasonMusic() {
         const lfo = audio.createOscillator();
         const lfoGain = audio.createGain();
         lfo.frequency.value = 0.07;
-        lfoGain.gain.value = 0.012;
-        lfo.connect(lfoGain);
+        lfoGain.gain.value = 0.012;        lfo.connect(lfoGain);
         lfoGain.connect(master.gain);
         lfo.start();
         nodes.push(lfo, lfoGain, filter, master);
@@ -2747,8 +2749,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     border-radius: 9px !important;
                     pointer-events: auto !important;
                     background: rgba(15, 23, 42, 0.88) !important;
-                }
-                #hud-top-bar * {
+                }                #hud-top-bar * {
                     font-size: 9.5px !important;
                     line-height: 1.15 !important;
                 }
