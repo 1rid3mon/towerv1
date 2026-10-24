@@ -24,10 +24,10 @@ test('cloud save loading requires verification and explicit recovery for unsigne
   const pullEnd = uiSource.indexOf('\\nfunction shouldApplyCloudSave(', pullStart);
   assert.ok(pullStart >= 0 && pullEnd > pullStart);
   const pull = uiSource.slice(pullStart, pullEnd);
-  assert.match(pull, /typeof window\\._verifySaveSignature !== 'function'/);
-  assert.match(pull, /else if \\(!window\\._verifySaveSignature\\(cloudGame\\)\\)/);
-  assert.match(pull, /if \\(!cloudGame\\._sig\\)/);
-  assert.match(pull, /window\\.confirm\\(/);
+  assert.ok(pull.includes("typeof window._verifySaveSignature !== 'function'"));
+  assert.ok(pull.includes('else if (!window._verifySaveSignature(cloudGame))'));
+  assert.ok(pull.includes('if (!cloudGame._sig)'));
+  assert.ok(pull.includes('window.confirm('));
 });
 test('save-shape validator accepts compatible saves and rejects malformed known fields', () => {
   const start = uiSource.indexOf('function isCompatibleSaveShape(');
