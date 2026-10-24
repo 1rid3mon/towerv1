@@ -21,7 +21,7 @@ test('manual save-code import handler stays removed', () => {
 
 test('cloud save loading requires verification and explicit recovery for unsigned legacy data', () => {
   const pullStart = uiSource.indexOf('async function forceCloudPull(');
-  const pullEnd = uiSource.indexOf('\\nfunction shouldApplyCloudSave(', pullStart);
+  const pullEnd = uiSource.indexOf('function shouldApplyCloudSave(', pullStart);
   assert.ok(pullStart >= 0 && pullEnd > pullStart);
   const pull = uiSource.slice(pullStart, pullEnd);
   assert.ok(pull.includes("typeof window._verifySaveSignature !== 'function'"));
