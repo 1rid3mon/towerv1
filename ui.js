@@ -2593,6 +2593,9 @@ async function pushScoreToLeaderboard() {
             } catch (e) {
                 window._lastLeaderboardWriteError = e && e.code ? e.code : String(e);
                 console.error('[Leaderboard] Firebase write rejected:', window._lastLeaderboardWriteError, e);
+                if (typeof showToast === 'function') {
+                    showToast('Firebase skor kaydı başarısız: ' + window._lastLeaderboardWriteError);
+                }
                 leaderboardCloudWriteAttempts.set(uid, Date.now());
             }
         }
