@@ -2,6 +2,156 @@
 // BÖLÜM: ARAYÜZ (UI), MENÜLER VE MOBİL HUD DÜZENİ
 // ==========================================
 
+
+/* V2.3: small, original battle callouts and synthesized cues.
+   This layer is deliberately cosmetic: it never changes game state or reward amounts. */
+let battleSfxEnabled = true;
+let battleAudioUnlocked = false;
+let battleAudioContext = null;
+let battleMomentHideTimer = null;
+let battleMomentBossTimer = null;
+let battleIntroWaveShown = null;
+
+function unlockBattleAudio() {
+    battleAudioUnlocked = true;
+    const AudioClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioClass || battleAudioContext) {
+        if (battleAudioContext && battleAudioContext.state === 'suspended') battleAudioContext.resume().catch(() => {});
+        return;
+    }
+    try {
+        battleAudioContext = new AudioClass();
+        if (battleAudioContext.state === 'suspended') battleAudioContext.resume().catch(() => {});
+    } catch (error) {
+        battleAudioContext = null;
+    }
+}
+document.addEventListener('pointerdown', unlockBattleAudio, { once: true, passive: true });
+
+function playBattleCue(kind) {
+    if (!battleSfxEnabled || !battleAudioUnlocked || !battleAudioContext) return;
+    const audio = battleAudioContext;
+    if (audio.state === 'suspended') audio.resume().catch(() => {});
+    const patterns = {
+        wave: [{ f: 392, t: 'sine', d: .12, at: 0, v: .045 }, { f: 587.33, t: 'triangle', d: .2, at: .09, v: .035 }],
+        clear: [{ f: 523.25, t: 'triangle', d: .16, at: 0, v: .04 }, { f: 659.25, t: 'sine', d: .18, at: .1, v: .04 }, { f: 783.99, t: 'sine', d: .28, at: .2, v: .035 }],
+        boss: [{ f: 92.5, t: 'sawtooth', d: .42, at: 0, v: .055 }, { f: 138.59, t: 'triangle', d: .36, at: .16, v: .045 }, { f: 207.65, t: 'sine', d: .26, at: .32, v: .03 }]
+    };
+    const notes = patterns[kind];
+    if (!notes) return;
+    try {
+        const now = audio.currentTime;
+        notes.forEach(note => {
+            const osc = audio.createOscillator();
+            const gain = audio.createGain();
+            const start = now + note.at;
+            const end = start + note.d;
+            osc.type = note.t;
+            osc.frequency.setValueAtTime(note.f, start);
+            if (kind === 'boss') osc.frequency.exponentialRampToValueAtTime(Math.max(35, note.f * .72), end);
+            gain.gain.setValueAtTime(.0001, start);
+            gain.gain.exponentialRampToValueAtTime(note.v, start + Math.min(.035, note.d * .25));
+            gain.gain.exponentialRampToValueAtTime(.0001, end);
+            osc.connect(gain);
+            gain.connect(audio.destination);
+            osc.start(start);
+            osc.stop(end + .02);
+            osc.onended = () => { try { osc.disconnect(); gain.disconnect(); } catch (error) {} };
+        });
+    } catch (error) {
+        // Sound is optional; a browser audio limitation must never interrupt gameplay.
+    }
+}
+
+function toggleBattleSfx() {
+    battleSfxEnabled = !battleSfxEnabled;
+    const button = document.getElementById('battle-sfx-toggle');
+    const label = document.getElementById('battle-sfx-label');
+    if (button) {
+        button.setAttribute('aria-pressed', String(battleSfxEnabled));
+        button.setAttribute('aria-label', battleSfxEnabled ? 'Savaş ses efektlerini kapat' : 'Savaş ses efektlerini aç');
+    }
+    if (label) label.textContent = battleSfxEnabled ? 'SFX AÇIK' : 'SFX KAPALI';
+    if (battleSfxEnabled) {
+        unlockBattleAudio();
+        playBattleCue('wave');
+    }
+}
+(function initBattlePresentationControls() {
+    const button = document.getElementById('battle-sfx-toggle');
+    if (button) button.addEventListener('click', toggleBattleSfx);
+})();
+
+function renderBattleMoment(kind, data) {
+    const root = document.getElementById('battle-moment');
+    const kicker = document.getElementById('battle-kicker');
+    const title = document.getElementById('battle-title');
+    const subtitle = document.getElementById('battle-subtitle');
+    const rewards = document.getElementById('battle-rewards');
+    if (!root || !kicker || !title || !subtitle || !rewards) return;
+
+    clearTimeout(battleMomentHideTimer);
+    root.dataset.kind = kind;
+    rewards.replaceChildren();
+    if (kind === 'boss') {
+        kicker.textContent = 'TEHDİT ALGILANDI  /  ÖNCELİKLİ HEDEF';
+        title.textContent = data.name || 'BİLİNMEYEN HEDEF';
+        subtitle.textContent = 'Ağır hedef yaklaşıyor. Kuleyi koru.';
+        playBattleCue('boss');
+    } else if (kind === 'clear') {
+        kicker.textContent = 'BÖLGE GÜVENDE  /  DALGA TAMAMLANDI';
+        title.textContent = 'DALGA TEMİZLENDİ';
+        subtitle.textContent = 'Dalga ' + String(data.wave || 1) + ' tamamlandı. Savunma hattı ayakta.';
+        if (Number(data.gold) > 0) addBattleReward('+' + formatBattleNumber(data.gold) + ' ALTIN');
+        if (Number(data.crystals) > 0) addBattleReward('+' + formatBattleNumber(data.crystals) + ' KRİSTAL');
+        playBattleCue('clear');
+    } else {
+        const wave = Math.max(1, Number(data.wave) || 1);
+        kicker.textContent = wave % 5 === 0 ? 'SAVUNMA PROTOKOLÜ  /  BOSS DALGASI' : (wave % 3 === 0 ? 'YÜKSEK YOĞUNLUK  /  SÜRÜ DALGASI' : 'SAVUNMA HATTI  /  TEMAS BEKLENİYOR');
+        title.textContent = 'DALGA ' + String(wave).padStart(2, '0');
+        subtitle.textContent = wave % 5 === 0 ? 'Ağır hedef ihtimali yüksek. Pozisyonunu koru.' : 'Yeni düşman sinyalleri tespit edildi.';
+        playBattleCue('wave');
+    }
+    root.classList.remove('is-visible');
+    // Restart the entrance transition even when two moments occur in the same frame.
+    void root.offsetWidth;
+    root.classList.add('is-visible');
+    const duration = kind === 'boss' ? 3300 : (kind === 'clear' ? 2250 : 1650);
+    battleMomentHideTimer = setTimeout(() => root.classList.remove('is-visible'), duration);
+}
+
+function addBattleReward(label) {
+    const rewards = document.getElementById('battle-rewards');
+    if (!rewards) return;
+    const chip = document.createElement('span');
+    chip.className = 'battle-reward';
+    chip.textContent = label;
+    rewards.appendChild(chip);
+}
+function formatBattleNumber(value) {
+    const number = Math.max(0, Math.round(Number(value) || 0));
+    try { return new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(number); }
+    catch (error) { return String(number); }
+}
+function showBattleMoment(kind, data = {}) {
+    if (kind === 'wave') {
+        const wave = Math.max(1, Number(data.wave) || 1);
+        if (battleIntroWaveShown === wave) return;
+        battleIntroWaveShown = wave;
+        renderBattleMoment('wave', { wave });
+        return;
+    }
+    if (kind === 'boss') {
+        clearTimeout(battleMomentBossTimer);
+        const root = document.getElementById('battle-moment');
+        // Let the just-earned wave reward breathe before the boss announcement takes over.
+        const delay = root && root.classList.contains('is-visible') && root.dataset.kind === 'clear' ? 1500 : 0;
+        battleMomentBossTimer = setTimeout(() => renderBattleMoment('boss', data), delay);
+        return;
+    }
+    if (kind === 'clear') renderBattleMoment('clear', data);
+}
+
 // Hata paneli: JavaScript hataları ve yakalanmamış Promise hatalarını anlaşılır göster.
 function showDebugErrorBanner(message, details = '') {
     let errBanner = document.getElementById('debug-error-banner');
