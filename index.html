@@ -400,7 +400,7 @@
         #battle-moment[data-kind="boss"] .battle-frame{border-color:rgba(248,113,113,.45);border-left-color:#fb7185;background:linear-gradient(112deg,rgba(34,13,22,.98),rgba(42,24,36,.96) 60%,rgba(20,19,31,.98));box-shadow:0 16px 48px rgba(0,0,0,.42),0 0 28px rgba(248,72,94,.09),inset 0 1px rgba(255,255,255,.04)}
         #battle-moment[data-kind="boss"] .battle-kicker{color:#fda4af}
         #battle-moment[data-kind="boss"] .battle-title{text-shadow:0 0 22px rgba(251,113,133,.22)}
-        #battle-moment[data-kind="bossKill"] .battle-frame{border-color:rgba(94,234,212,.42);border-left-color:#5eead4;background:linear-gradient(112deg,rgba(8,31,34,.98),rgba(15,39,47,.96) 60%,rgba(14,22,34,.98));box-shadow:0 16px 48px rgba(0,0,0,.4),0 0 30px rgba(45,212,191,.11),inset 0 1px rgba(255,255,255,.04)}
+#battle-moment[data-kind="bossKill"] .battle-frame{border-color:rgba(94,234,212,.42);border-left-color:#5eead4;background:linear-gradient(112deg,rgba(8,31,34,.98),rgba(15,39,47,.96) 60%,rgba(14,22,34,.98));box-shadow:0 16px 48px rgba(0,0,0,.4),0 0 30px rgba(45,212,191,.11),inset 0 1px rgba(255,255,255,.04)}
         #battle-moment[data-kind="bossKill"] .battle-kicker{color:#5eead4}
         #battle-moment[data-kind="bossKill"] .battle-title{text-shadow:0 0 22px rgba(45,212,191,.2)}
         #battle-moment[data-kind="clear"] .battle-frame{border-left-color:#e8b66b}
@@ -1222,6 +1222,10 @@
             <div id="battle-rewards" class="battle-rewards"></div>
         </div>
     </section>
+    <button id="battle-sfx-toggle" type="button" aria-pressed="true" aria-label="Savaş ses efektlerini kapat">
+        <span class="battle-sfx-dot" aria-hidden="true"></span><span id="battle-sfx-label">SFX AÇIK</span>
+    </button>
+
     <!-- OYUN DOSYALARI -->
 <script src="data.js"></script>
 <script src="ui.js"></script>
