@@ -2,17 +2,42 @@
 // BÖLÜM: ARAYÜZ (UI), MENÜLER VE MOBİL HUD DÜZENİ
 // ==========================================
 
-// EKRANDA SİYAH KALMA DURUMUNDA HATAYI GÖSTEREN TESPİT SİSTEMİ
-window.addEventListener('error', function (e) {
+// Hata paneli: JavaScript hataları ve yakalanmamış Promise hatalarını anlaşılır göster.
+function showDebugErrorBanner(message, details = '') {
     let errBanner = document.getElementById('debug-error-banner');
     if (!errBanner) {
         errBanner = document.createElement('div');
         errBanner.id = 'debug-error-banner';
-        errBanner.style.cssText = 'position:fixed;bottom:55px;left:10px;right:10px;background:rgba(185,28,28,0.95);color:#fff;padding:10px 14px;border-radius:10px;font-size:12px;font-family:monospace;z-index:99999;border:1px solid #f87171;box-shadow:0 10px 25px rgba(0,0,0,0.5);';
+        errBanner.setAttribute('role', 'alert');
+        errBanner.style.cssText = 'position:fixed;bottom:max(12px,env(safe-area-inset-bottom));left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));max-height:35dvh;overflow:auto;background:rgba(127,29,29,0.97);color:#fff;padding:10px 12px;border-radius:12px;font-size:12px;font-family:ui-monospace,monospace;z-index:99999;border:1px solid #f87171;box-shadow:0 10px 25px rgba(0,0,0,0.5);';
+        const heading = document.createElement('div');
+        heading.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:800;margin-bottom:4px;';
+        const title = document.createElement('span');
+        title.textContent = '⚠️ OYUN HATASI';
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.textContent = 'Kapat';
+        close.setAttribute('aria-label', 'Hata panelini kapat');
+        close.style.cssText = 'padding:3px 8px;border:1px solid rgba(255,255,255,.35);border-radius:6px;background:rgba(0,0,0,.2);color:#fff;font-size:11px;';
+        close.addEventListener('click', () => errBanner.remove());
+        heading.append(title, close);
+        const body = document.createElement('div');
+        body.id = 'debug-error-message';
+        body.style.cssText = 'white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.4;';
+        errBanner.append(heading, body);
         document.body.appendChild(errBanner);
     }
-    const file = e.filename ? e.filename.split('/').pop() : 'Bilinmeyen Dosya';
-    errBanner.textContent = `⚠️ JS HATASI (${file} - Satır:${e.lineno}): ${e.message}`;
+    const body = document.getElementById('debug-error-message');
+    if (body) body.textContent = details ? message + '\n' + details : message;
+}
+window.addEventListener('error', function (e) {
+    const file = e.filename ? e.filename.split('/').pop() : 'Bilinmeyen dosya';
+    showDebugErrorBanner('JavaScript hatası: ' + (e.message || 'Bilinmeyen hata'), file + ' • Satır ' + (e.lineno || '?') + ':' + (e.colno || '?'));
+});
+window.addEventListener('unhandledrejection', function (e) {
+    const reason = e.reason;
+    const message = reason && reason.message ? reason.message : String(reason || 'Bilinmeyen Promise hatası');
+    showDebugErrorBanner('İşlem tamamlanamadı: ' + message, 'Yakalanmamış Promise hatası');
 });
 
 // 60 FPS DOM Performans Önbelleği: Aynı metni saniyede 60 kez tekrar yazmayı engeller
@@ -2294,13 +2319,17 @@ function shouldApplyCloudSave(cloudGame, localGame, silent) {
     return Number(cloudGame.lastSaveTime || 0) > Number(localGame.lastSaveTime || 0);
 }
 
-function getCommanderBadge(highestWave = 1, prestiges = 0) {
+function getCommanderBadge(highestWave = 1, prestiges = 0, bossKills = 0, totalKills = 0) {
     const wave = Math.max(1, Number(highestWave) || 1);
     const prestige = Math.max(0, Number(prestiges) || 0);
+    const bosses = Math.max(0, Number(bossKills) || 0);
+    const kills = Math.max(0, Number(totalKills) || 0);
     if (wave >= 250 || prestige >= 20) return { id: 'eternal', name: 'Sonsuz Komutan', icon: '♾️', className: 'text-fuchsia-200 bg-fuchsia-500/15 border-fuchsia-400/40' };
     if (wave >= 100 || prestige >= 10) return { id: 'legend', name: 'Efsane', icon: '👑', className: 'text-amber-200 bg-amber-500/15 border-amber-400/40' };
     if (wave >= 50 || prestige >= 5) return { id: 'elite', name: 'Elit Muhafız', icon: '💠', className: 'text-cyan-200 bg-cyan-500/15 border-cyan-400/40' };
     if (wave >= 25 || prestige >= 1) return { id: 'vanguard', name: 'Öncü', icon: '🛡️', className: 'text-emerald-200 bg-emerald-500/15 border-emerald-400/40' };
+    if (kills >= 1000) return { id: 'slayer', name: 'İmha Ustası', icon: '🎯', className: 'text-rose-200 bg-rose-500/15 border-rose-400/40' };
+    if (bosses >= 1) return { id: 'boss_scout', name: 'Boss Kâşifi', icon: '🐲', className: 'text-violet-200 bg-violet-500/15 border-violet-400/40' };
     return { id: 'rookie', name: 'Yeni Komutan', icon: '⚔️', className: 'text-slate-200 bg-slate-500/15 border-slate-400/30' };
 }
 
@@ -2346,7 +2375,7 @@ function renderAchievementsModal() {
     if (typeof game === 'undefined') return;
     const stats = game.stats || {};
     const highWave = Math.max(Number(game.highestWave) || 1, Number(game.wave) || 1);
-    const badge = getCommanderBadge(highWave, stats.prestiges);
+    const badge = getCommanderBadge(highWave, stats.prestiges, stats.bossKills, stats.totalKills);
     const minutes = Math.floor(Math.max(0, Number(stats.playTimeSeconds) || 0) / 60);
     const ownedSkins = Array.isArray(game.ownedSkins) ? new Set(game.ownedSkins).size : 1;
     const ownedItems = Array.isArray(game.inventory) ? new Set(game.inventory).size : 0;
