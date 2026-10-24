@@ -19,13 +19,16 @@ test('manual save-code import handler stays removed', () => {
   assert.doesNotMatch(uiSource, /function importSaveCode\s*\(|save-code-textarea/);
 });
 
-test('cloud save loading fails closed if the verifier is missing or rejects the save', () => {
-  assert.match(
-    uiSource,
-    /if \(!cloudGame\._sig \|\| typeof window\._verifySaveSignature !== 'function' \|\| !window\._verifySaveSignature\(cloudGame\)\)/
-  );
+test('cloud save loading requires verification and explicit recovery for unsigned legacy data', () => {
+  const pullStart = uiSource.indexOf('async function forceCloudPull(');
+  const pullEnd = uiSource.indexOf('function shouldApplyCloudSave(', pullStart);
+  assert.ok(pullStart >= 0 && pullEnd > pullStart);
+  const pull = uiSource.slice(pullStart, pullEnd);
+  assert.ok(pull.includes("typeof window._verifySaveSignature !== 'function'"));
+  assert.ok(pull.includes('else if (!window._verifySaveSignature(cloudGame))'));
+  assert.ok(pull.includes('if (!cloudGame._sig)'));
+  assert.ok(pull.includes('window.confirm('));
 });
-
 test('save-shape validator accepts compatible saves and rejects malformed known fields', () => {
   const start = uiSource.indexOf('function isCompatibleSaveShape(');
   const end = uiSource.indexOf('\nfunction applyParsedGameData', start);

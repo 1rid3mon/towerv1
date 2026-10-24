@@ -32,11 +32,9 @@ service cloud.firestore {
     && d.get('updatedAt',null)==request.time;
   }
   function minSecondsBetweenWrites(){return 20;}
-  function maxWaveJumpPerWrite(){return 15;}
   function withinRateLimit(){
    return resource==null || (
     request.time > resource.data.updatedAt + duration.value(minSecondsBetweenWrites(),'s')
-    && request.resource.data.highestWave <= resource.data.highestWave + maxWaveJumpPerWrite()
    );
   }
   match /users/{userId}{

@@ -131,3 +131,11 @@ test('companion anti-cheat snapshot ignores legitimate runtime movement but dete
   assert.notDeepEqual(JSON.parse(JSON.stringify(editedProgress)), JSON.parse(JSON.stringify(before)),
     'a real star-level edit must still be detected');
 });
+
+test('economy anti-cheat does not use a fixed positive crystal delta threshold', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'engine.js'), 'utf8');
+  assert.doesNotMatch(source, /game\.crystals\s*-\s*shadow\.crystals\s*>\s*650/);
+  assert.match(source, /Number\.MAX_SAFE_INTEGER/);
+  assert.match(source, /validCurrencyBalance\(game\.gold\)/);
+  assert.match(source, /validCurrencyBalance\(game\.crystals\)/);
+});

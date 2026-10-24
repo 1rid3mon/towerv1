@@ -1283,23 +1283,36 @@ window.onload = function () {
             if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Geçersiz dalga değişimi engellendi!');
         }
 
-        if (game.crystals - shadow.crystals > 650) {
+        // Economy values scale with wave and may legitimately jump by more than a fixed
+        // amount in one 400 ms window (bosses, milestone rewards, cargo, and combined drops).
+        // A client-side delta threshold causes false positives and is not a trustworthy anti-cheat
+        // boundary. Keep corruption/overflow guards here; authoritative economy validation needs a server.
+        const validCurrencyBalance = value =>
+            typeof value === 'number' && Number.isFinite(value) &&
+            value >= 0 && value <= Number.MAX_SAFE_INTEGER;
+
+        if (!validCurrencyBalance(game.gold)) {
+            game.gold = shadow.gold;
+            cheatFlags++;
+            if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Bozuk altın verisi geri alındı!');
+        }
+        if (!validCurrencyBalance(game.crystals)) {
             game.crystals = shadow.crystals;
             cheatFlags++;
-            if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Geçersiz kristal artışı engellendi!');
+            if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Bozuk kristal verisi geri alındı!');
         }
 
-        // Ruh Taşı SADECE evrim (rebirth) anında artar ve o kod kendi gölgesini anında eşitler;
-        // bu yüzden buraya kadar gelen HER artış (200 altı dahil) meşru değildir.
+        // Ruh taşı artışı yalnızca evrim (rebirth) sırasında yapılır ve o kod gölgeyi eşitler.
         if (game.souls - shadow.souls > 0) {
             game.souls = shadow.souls;
             cheatFlags++;
             if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Geçersiz Ruh Taşı müdahalesi engellendi!');
         }
-
-        if (!Number.isFinite(game.gold) || game.gold < 0) game.gold = shadow.gold;
-        if (!Number.isFinite(game.crystals) || game.crystals < 0) game.crystals = shadow.crystals;
-        if (!Number.isFinite(game.souls) || game.souls < 0) game.souls = shadow.souls;
+        if (!validCurrencyBalance(game.souls)) {
+            game.souls = shadow.souls;
+            cheatFlags++;
+            if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Bozuk Ruh Taşı verisi geri alındı!');
+        }
 
         // Skill/upgrade levels and companion stars are only accepted after their normal
         // purchase handler explicitly refreshes the shadow snapshot. Direct runtime edits

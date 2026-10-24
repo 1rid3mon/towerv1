@@ -56,10 +56,15 @@ test('cloud pull verifies signature and shape before applying a remote save', ()
   assert.ok(pullStart >= 0 && pullEnd > pullStart);
   const pull = uiSource.slice(pullStart, pullEnd);
   const shapeCheck = pull.indexOf('if (!isCompatibleSaveShape(cloudGame))');
-  const signatureCheck = pull.indexOf('!cloudGame._sig || typeof window._verifySaveSignature');
+  const verifierCheck = pull.indexOf("typeof window._verifySaveSignature !== 'function'");
+  const unsignedLegacyGate = pull.indexOf('if (!cloudGame._sig)');
+  const backup = pull.indexOf('CoreTowerDefense_CloudLegacyBackup_');
+  const confirmation = pull.indexOf('window.confirm(');
   const apply = pull.indexOf('applyParsedGameData(cloudGame)');
-  assert.ok(shapeCheck >= 0 && signatureCheck > shapeCheck && apply > signatureCheck,
-    'remote data must pass bounded shape validation before signature traversal and state application');
+  assert.ok(shapeCheck >= 0 && verifierCheck > shapeCheck && unsignedLegacyGate > verifierCheck && apply > unsignedLegacyGate,
+    'cloud payload must pass shape validation and explicit signature/migration policy before applying');
+  assert.ok(confirmation > unsignedLegacyGate && backup > confirmation,
+    'unsigned legacy cloud migration requires explicit confirmation and a backup');
 });
 
 test('cloud push signs V2 state and writes only under the authenticated current UID', () => {
@@ -71,4 +76,15 @@ test('cloud push signs V2 state and writes only under the authenticated current 
   assert.match(push, /game\._sig = window\._generateSaveSignature\(game\)/);
   assert.match(push, /fbDb\.collection\('users'\)\.doc\(currentUser\.uid\)\.set\(/);
   assert.match(push, /saveData: JSON\.stringify\(game\)/);
+});
+
+test('unsigned cloud legacy saves are never silently restored and are backed up before V2 migration', () => {
+  const pullStart = uiSource.indexOf('async function forceCloudPull(');
+  const pullEnd = uiSource.indexOf('\nfunction shouldApplyCloudSave(', pullStart);
+  const pull = uiSource.slice(pullStart, pullEnd);
+  assert.match(pull, /if \(silent\) return;/);
+  assert.match(pull, /CoreTowerDefense_PreCloudMigrationBackup_/);
+  assert.match(pull, /cloudGame\._sigVersion = 2/);
+  assert.match(pull, /cloudGame\._sig = window\._generateSaveSignature\(cloudGame\)/);
+  assert.match(pull, /await forceCloudPush\(true\)/);
 });

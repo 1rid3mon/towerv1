@@ -2085,29 +2085,102 @@ function openDeleteAccountConfirm() {
     );
 }
 
-async function deleteMyAccount() {
-    if (!currentUser || !currentUser.isCloud) return;
-    const uid = currentUser.uid;
-    try {
-        if (isFirebaseReady && fbDb) {
-            await fbDb.collection('leaderboard').doc(uid).delete();
-            await fbDb.collection('users').doc(uid).delete();
-        }
-    } catch (e) {
-        showToast('❌ Hesap verileri silinemedi. Hiçbir şeyin tamamen silindiğini varsayma; tekrar dene.');
+async function reauthenticateForAccountDeletion(authUser) {
+    if (!authUser || typeof firebase === 'undefined' || !firebase.auth) throw new Error('AUTH_USER_MISSING');
+    const providers = Array.isArray(authUser.providerData) ? authUser.providerData.map(p => p && p.providerId).filter(Boolean) : [];
+
+    if (providers.includes('password')) {
+        const password = window.prompt('Hesabını silmeden önce güvenlik için şifreni tekrar gir:');
+        if (password === null) throw new Error('DELETE_CANCELLED');
+        if (!password) throw new Error('PASSWORD_REQUIRED');
+        const credential = firebase.auth.EmailAuthProvider.credential(authUser.email, password);
+        await authUser.reauthenticateWithCredential(credential);
         return;
     }
 
+    if (providers.includes('google.com')) {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        await authUser.reauthenticateWithPopup(provider);
+        return;
+    }
+
+    throw new Error('REAUTH_PROVIDER_UNSUPPORTED');
+}
+
+async function deleteMyAccount() {
+    if (!currentUser || !currentUser.isCloud || !isFirebaseReady || !fbDb || !fbAuth || !fbAuth.currentUser) return;
+    const uid = currentUser.uid;
+    const authUser = fbAuth.currentUser;
+    if (authUser.uid !== uid) {
+        showToast('❌ Oturum kimliği eşleşmiyor; hesap silme durduruldu.');
+        return;
+    }
+
+    // Reauthenticate before deleting any Firestore data. This prevents the common
+    // requires-recent-login failure from deleting the save before Auth refuses deletion.
     try {
-        if (isFirebaseReady && fbAuth && fbAuth.currentUser) {
-            await fbAuth.currentUser.delete();
-        }
+        await reauthenticateForAccountDeletion(authUser);
     } catch (e) {
-        if (e && e.code === 'auth/requires-recent-login') {
-            showToast('⚠️ Güvenlik gereği önce çıkış yapıp tekrar giriş yap, hemen ardından tekrar "Hesabı Sil" de.');
-            return;
+        if (e && e.message === 'DELETE_CANCELLED') {
+            showToast('Hesap silme iptal edildi; verilerin korunuyor.');
+        } else if (e && e.code === 'auth/wrong-password') {
+            showToast('❌ Şifre yanlış; hiçbir hesap verisi silinmedi.');
+        } else if (e && e.code === 'auth/popup-closed-by-user') {
+            showToast('Hesap silme iptal edildi; verilerin korunuyor.');
+        } else {
+            console.error('[Account Delete] Reauthentication failed:', e);
+            showToast('❌ Yeniden kimlik doğrulama başarısız. Hiçbir hesap verisi silinmedi; tekrar giriş yapıp yeniden dene.');
         }
-        showToast('❌ Firebase hesabı silinemedi. Bazı veriler silinmiş olabilir; tekrar giriş yapıp silme işlemini yeniden dene.');
+        return;
+    }
+
+    let previousUserDoc = null;
+    let previousBoardDoc = null;
+    let previousUsernameDoc = null;
+    const usernameKey = normalizeUsernameKey(currentUser.username);
+    try {
+        const userRef = fbDb.collection('users').doc(uid);
+        const boardRef = fbDb.collection('leaderboard').doc(uid);
+        const usernameRef = usernameKey ? fbDb.collection('usernameRegistry').doc(usernameKey) : null;
+        const snapshots = await Promise.all([
+            userRef.get(),
+            boardRef.get(),
+            usernameRef ? usernameRef.get() : Promise.resolve(null)
+        ]);
+        previousUserDoc = snapshots[0].exists ? snapshots[0].data() : null;
+        previousBoardDoc = snapshots[1].exists ? snapshots[1].data() : null;
+        previousUsernameDoc = snapshots[2] && snapshots[2].exists && snapshots[2].data().uid === uid ? snapshots[2].data() : null;
+
+        // Delete only the reservation owned by this UID. Keep rate-limit/security records
+        // governed by Firestore rules; those records may intentionally survive account deletion.
+        if (usernameKey && previousUsernameDoc) await releaseUsernameReservation(uid, currentUser.username);
+        await boardRef.delete();
+        await userRef.delete();
+        await authUser.delete();
+    } catch (e) {
+        // Auth can still refuse deletion after reauthentication (for example, provider or
+        // network errors). Best-effort restore the data removed before that failure.
+        const restoreErrors = [];
+        try {
+            if (previousUsernameDoc && usernameKey) {
+                await fbDb.collection('usernameRegistry').doc(usernameKey).set(previousUsernameDoc);
+            }
+        } catch (restoreErr) { restoreErrors.push(restoreErr); }
+        try {
+            if (previousBoardDoc) await fbDb.collection('leaderboard').doc(uid).set(previousBoardDoc);
+        } catch (restoreErr) { restoreErrors.push(restoreErr); }
+        try {
+            if (previousUserDoc) await fbDb.collection('users').doc(uid).set(previousUserDoc);
+        } catch (restoreErr) { restoreErrors.push(restoreErr); }
+
+        if (e && e.code === 'auth/requires-recent-login') {
+            showToast('⚠️ Firebase hâlâ yeniden giriş istiyor. Hesap verilerini geri yüklemeyi denedim; tekrar giriş yapıp hesabı yeniden sil.');
+        } else {
+            console.error('[Account Delete] Deletion failed:', e, restoreErrors);
+            showToast(restoreErrors.length
+                ? '❌ Silme yarıda kaldı ve verilerin geri yüklenmesi tam doğrulanamadı. Hata kaydını kontrol et.'
+                : '❌ Hesap silinemedi; kaldırılan oyun verileri geri yüklendi. Tekrar deneyebilirsin.');
+        }
         return;
     }
 
@@ -2115,7 +2188,7 @@ async function deleteMyAccount() {
     localStorage.removeItem(LOCAL_CURRENT_USER_KEY);
     updateAccountHeaderUI();
     refreshLeaderboard(false);
-    showToast('🗑️ Hesap ve oyun verileri silindi. Bazı güvenlik kayıtları ayrı tutulabilir.');
+    showToast('🗑️ Hesap, oyun kaydı, kullanıcı adı rezervasyonu ve liderlik kaydı silindi. Bazı güvenlik kayıtları ayrı tutulabilir.');
 }
 
 async function logoutAccount() {
@@ -2180,6 +2253,7 @@ async function forceCloudPush(silent = false) {
 
 async function forceCloudPull(silent = false) {
     if (!currentUser || typeof game === 'undefined') return;
+    let legacyCloudMigrated = false;
 
     try {
         let cloudGame = null;
@@ -2192,7 +2266,40 @@ async function forceCloudPull(silent = false) {
                     if (!silent) showToast('⚠️ Kayıt yapısı bozuk; kayıt yüklenmedi.');
                     return;
                 }
-                if (!cloudGame._sig || typeof window._verifySaveSignature !== 'function' || !window._verifySaveSignature(cloudGame)) {
+                if (typeof window._verifySaveSignature !== 'function') {
+                    if (!silent) showToast('🛡️ Kayıt doğrulama sistemi hazır değil; kayıt yüklenmedi.');
+                    return;
+                }
+
+                if (!cloudGame._sig) {
+                    // Unsigned cloud saves are accepted only through an explicit, one-time recovery
+                    // flow. Silent login never trusts them. Preserve the raw cloud bytes and local
+                    // state before upgrading the recovered save to V2.
+                    if (silent) return;
+                    const confirmed = window.confirm(
+                        'Bu bulut kaydı eski ve imzasız. Kayıt yapısı kontrol edilebilir ama geçmişte değiştirilmediği kanıtlanamaz. ' +
+                        'Mevcut yerel kaydın ve bulut kaydının yedeği alınarak kurtarılsın mı?'
+                    );
+                    if (!confirmed) return;
+
+                    try {
+                        localStorage.setItem('CoreTowerDefense_CloudLegacyBackup_' + currentUser.uid, JSON.stringify({
+                            savedAt: Date.now(),
+                            saveData: doc.data().saveData
+                        }));
+                        localStorage.setItem('CoreTowerDefense_PreCloudMigrationBackup_' + currentUser.uid, JSON.stringify({
+                            savedAt: Date.now(),
+                            game: game
+                        }));
+                    } catch (backupError) {
+                        showToast('❌ Güvenli kurtarma için yedek oluşturulamadı; eski kayıt değiştirilmedi.');
+                        return;
+                    }
+
+                    cloudGame._sigVersion = 2;
+                    cloudGame._sig = window._generateSaveSignature(cloudGame);
+                    legacyCloudMigrated = true;
+                } else if (!window._verifySaveSignature(cloudGame)) {
                     if (!silent) showToast('🛡️ Bulut kaydının imzası geçersiz; kayıt yüklenmedi.');
                     return;
                 }
@@ -2222,7 +2329,13 @@ async function forceCloudPull(silent = false) {
                 buildUpgradesUI();
                 buildInventoryUI();
                 updateHUD();
-                showToast(`☁️ Bulut kaydı yüklendi! (Dalga ${game.wave})`);
+                if (legacyCloudMigrated) {
+                    // Push the recovered, V2-signed state so later devices use the strict path.
+                    await forceCloudPush(true);
+                    showToast(`☁️ Eski kayıt yedeklenip yerelde kurtarıldı; bulut eşitlemesi denendi. (Dalga ${game.wave})`);
+                } else {
+                    showToast(`☁️ Bulut kaydı yüklendi! (Dalga ${game.wave})`);
+                }
             }
         } else if (!silent) {
             showToast('ℹ️ Bulutta henüz kayıtlı veri bulunamadı.');
@@ -2573,9 +2686,8 @@ async function pushScoreToLeaderboard() {
         const uid = currentUser.uid;
         const lastAttempt = leaderboardCloudWriteAttempts.get(uid) || 0;
         if (Date.now() - lastAttempt >= 20000) {
-            leaderboardCloudWriteAttempts.set(uid, Date.now());
             // Score and persistent rate-limit timestamp must be committed atomically.
-            // The rate-limit document intentionally survives leaderboard-row deletion.
+            // Keep Firebase failures visible instead of silently pretending the score was saved.
             try {
                 const batch = fbDb.batch();
                 const serverTime = firebase.firestore.FieldValue.serverTimestamp();
@@ -2589,7 +2701,13 @@ async function pushScoreToLeaderboard() {
                     updatedAt: serverTime
                 }, { merge: true });
                 await batch.commit();
-            } catch (e) {}
+                leaderboardCloudWriteAttempts.set(uid, Date.now());
+                window._lastLeaderboardWriteError = null;
+            } catch (e) {
+                window._lastLeaderboardWriteError = e && e.code ? e.code : String(e);
+                console.error('[Leaderboard] Firebase write rejected:', window._lastLeaderboardWriteError, e);
+                leaderboardCloudWriteAttempts.set(uid, Date.now());
+            }
         }
     }
     playerEntry.updatedAt = Date.now();
