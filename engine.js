@@ -899,6 +899,9 @@ function killEnemy(enemy) {
         game.crystals += c; game.stats.bossKills++;
         addFloatingText(enemy.x, enemy.y - 24, `+${formatNumber(c)} 💎`, '#22d3ee', 15);
         showToast(`${enemy.name || 'Boss'} İmha Edildi! +${formatNumber(c)} Kristal!`);
+        if (typeof showBattleMoment === 'function') {
+            showBattleMoment('bossKill', { name: enemy.name || 'Boss', gold: goldEarned, crystals: c });
+        }
     } else if (Math.random() * 100 < crystalChance) {
         const cAmt = Math.max(1, Math.round(crystalMult));
         game.crystals += cAmt;
