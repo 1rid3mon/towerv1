@@ -160,7 +160,7 @@
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-6px); }
         }
-        .chest-shaking { animation: chestShake 0.45s infinite ease-in-out; }
+        .chest-shaking { animation: chestShake 0.52s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite; transform-origin: center; will-change: transform; }
         .rays-spinning { animation: spinRays 10s linear infinite; }
         .loot-card-anim { opacity: 0; animation: lootCardPop 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
         .loot-float { animation: floatSlow 2.6s ease-in-out infinite; }
