@@ -256,6 +256,29 @@
     }
 }
 
+        /* V2.1: safe-area-aware modal and inventory controls on phones/tablets. */
+        #inventory-search, #inventory-rarity-filter, #inventory-type-filter { min-height: 36px; }
+        #achievements-modal > div, #update-notes-modal > div, #lootbox-anim-modal > div {
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+        @media (max-width: 480px) {
+            #inv-panel-gear .premium-card { min-width: 0; }
+            #inventory-items-list { grid-template-columns: minmax(0, 1fr) !important; max-height: min(42dvh, 340px) !important; }
+            #equipped-items-list { gap: 4px !important; }
+            #achievements-modal, #update-notes-modal { padding: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom)) !important; }
+            #achievements-modal > div, #update-notes-modal > div { max-height: calc(100dvh - 16px) !important; }
+            #inventory-search, #inventory-rarity-filter, #inventory-type-filter { font-size: 12px; }
+        }
+        @media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+            #inventory-items-list { max-height: 38dvh !important; }
+            #achievements-modal > div, #update-notes-modal > div { max-height: 88dvh !important; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .chest-shaking, .rays-spinning, .loot-card-anim, .loot-float,
+            #hud-hp-card.hud-critical { animation: none !important; transition: none !important; }
+        }
+
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-pc color-pastel" id="main-body">
@@ -268,7 +291,7 @@
             <div class="flex flex-col">
                 <div class="hidden sm:flex items-center gap-2">
                     <h1 class="font-tech font-bold text-sm sm:text-xl text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 tracking-wider">KULE SAVUNMA</h1>
-                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 2.0.0 yeniliklerini göster" class="rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[10px] font-bold tracking-wide text-cyan-300 hover:bg-cyan-500/20 transition">v2.0.0</button>
+                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 2.1.0 yeniliklerini göster" class="rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[10px] font-bold tracking-wide text-cyan-300 hover:bg-cyan-500/20 transition">v2.1.0</button>
                 </div>
                 <div class="flex items-center space-x-3 sm:space-x-4 mt-0.5">
                     <div class="flex items-center gap-1.5" title="Altın">
@@ -283,7 +306,7 @@
                         <i class="fa-solid fa-fire text-[10px] sm:text-sm text-purple-400 neon-text-purple"></i>
                         <div id="ui-souls" class="font-tech font-bold text-xs sm:text-base text-purple-400 neon-text-purple leading-tight">0</div>
                     </div>
-                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 2.0.0 yeniliklerini göster" class="sm:hidden rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[9px] font-bold tracking-wide text-cyan-300">v2.0.0</button>
+                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 2.0.0 yeniliklerini göster" class="sm:hidden rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[9px] font-bold tracking-wide text-cyan-300">v2.1.0</button>
                 </div>
             </div>
         </div>
@@ -479,6 +502,34 @@
                                 <button onclick="toggleRaritySortOrder()" id="btn-sort-rarity" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 border border-white/10 text-[10px] font-tech font-bold text-amber-300 transition flex items-center gap-1">
                                     <i class="fa-solid fa-arrow-down-wide-short"></i> <span id="sort-rarity-label">Nadirlik: En Yüksek</span>
                                 </button>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2" aria-label="Envanter filtreleri">
+                                <input type="search" id="inventory-search" oninput="setInventoryFilter('search', this.value)" placeholder="Eşya ara..." class="col-span-2 sm:col-span-1 min-w-0 rounded-lg border border-white/10 bg-slate-950/80 px-2 py-2 text-xs text-white placeholder:text-slate-500 focus:border-cyan-400/60 focus:outline-none" aria-label="Eşya ara">
+                                <select id="inventory-rarity-filter" onchange="setInventoryFilter('rarity', this.value)" class="min-w-0 rounded-lg border border-white/10 bg-slate-950/80 px-2 py-2 text-xs text-slate-200 focus:border-cyan-400/60 focus:outline-none" aria-label="Nadirliğe göre filtrele">
+                                    <option value="all">Tüm nadirlikler</option>
+                                    <option value="rare">Nadir</option>
+                                    <option value="super_rare">Süper nadir</option>
+                                    <option value="epic">Epik</option>
+                                    <option value="mythic">Mitik</option>
+                                    <option value="legendary">Efsanevi</option>
+                                </select>
+                                <select id="inventory-type-filter" onchange="setInventoryFilter('type', this.value)" class="min-w-0 rounded-lg border border-white/10 bg-slate-950/80 px-2 py-2 text-xs text-slate-200 focus:border-cyan-400/60 focus:outline-none" aria-label="Eşya türüne göre filtrele">
+                                    <option value="all">Tüm türler</option>
+                                    <option value="damage">Hasar</option>
+                                    <option value="damage_mult">Hasar çarpanı</option>
+                                    <option value="hp">Can</option>
+                                    <option value="crit">Kritik şans</option>
+                                    <option value="critMult">Kritik hasar</option>
+                                    <option value="speed">Saldırı hızı</option>
+                                    <option value="lifesteal">Can çalma</option>
+                                    <option value="gold">Altın</option>
+                                    <option value="range">Menzil</option>
+                                    <option value="armor">Zırh</option>
+                                    <option value="regen">Can yenileme</option>
+                                    <option value="crystal">Kristal</option>
+                                    <option value="shield">Kalkan</option>
+                                    <option value="multishot_buff">Çoklu atış</option>
+                                </select>
                             </div>
                             <div id="inventory-items-list" class="grid grid-cols-2 gap-2 max-h-[310px] overflow-y-auto pr-1"></div>
                         </div>
@@ -978,12 +1029,20 @@
             <div class="flex items-start justify-between gap-3">
                 <div>
                     <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-teal-300">BÜYÜK SEZON GÜNCELLEMESİ</div>
-                    <h2 id="update-notes-title" class="mt-1 font-tech text-2xl font-bold text-white">Kule Savunma <span class="text-teal-300">v2.0.0</span></h2>
-                    <p class="mt-1 text-xs text-slate-400">Kuzey Işıkları Sezonu • Geliştirme sürümü</p>
+                    <h2 id="update-notes-title" class="mt-1 font-tech text-2xl font-bold text-white">Kule Savunma <span class="text-teal-300">v2.1.0</span></h2>
+                    <p class="mt-1 text-xs text-slate-400">Envanter 2.0 • Mobil kalite • Komutan başarımları</p>
                 </div>
                 <button type="button" onclick="closeUpdateNotesModal()" aria-label="Yenilikler penceresini kapat" class="rounded-lg bg-slate-800 px-3 py-2 text-slate-300 hover:bg-slate-700">✕</button>
             </div>
             <div class="mt-5 space-y-3">
+                <div class="flex gap-3 rounded-xl border border-cyan-400/20 bg-cyan-500/5 p-3">
+                    <i class="fa-solid fa-filter mt-0.5 text-cyan-300"></i>
+                    <div><div class="text-sm font-semibold text-white">V2.1 • Envanter 2.0</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Eşyaları ada, açıklamaya, nadirliğe ve türe göre filtrele; ayrıntılarını aç ve tekrar eden envanter kayıtlarının temizlenmesini sağla.</p></div>
+                </div>
+                <div class="flex gap-3 rounded-xl border border-amber-400/20 bg-amber-500/5 p-3">
+                    <i class="fa-solid fa-medal mt-0.5 text-amber-300"></i>
+                    <div><div class="text-sm font-semibold text-white">Komutan başarımları</div><p class="mt-1 text-xs leading-relaxed text-slate-300">İlk boss, dalga rekorları ve imha istatistikleri profilinde takip edilir; komutan rozetleri kozmetik ilerleme sağlar.</p></div>
+                </div>
                 <div class="flex gap-3 rounded-xl border border-teal-400/20 bg-teal-500/5 p-3">
                     <i class="fa-solid fa-meteor mt-0.5 text-teal-300"></i>
                     <div><div class="text-sm font-semibold text-white">Yeni Kuzey Işıkları savaş alanı</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Canvas üzerinde çizilen, hareketli aurora şeritleri, yıldız tozu ve kuantum halkalarıyla özgün sezon teması. Dış görsel veya müzik dosyası indirmez.</p></div>
