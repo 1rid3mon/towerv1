@@ -1178,6 +1178,25 @@ window.onload = function () {
     let shadow = null;
     let cheatFlags = 0;
 
+    // Companion objects also contain live combat/render fields (angle, x/y, cooldown).
+    // Those fields legitimately change during play and must never participate in anti-cheat
+    // progression comparisons. Only the persistent unlock/star progression is authoritative here.
+    function snapshotCompanionProgress(companions) {
+        const snapshot = {};
+        for (const key of Object.keys(companions || {}).sort()) {
+            const state = companions[key] || {};
+            const rawLevel = Number(state.level);
+            snapshot[key] = {
+                unlocked: state.unlocked === true,
+                level: Number.isFinite(rawLevel) ? rawLevel : 0
+            };
+        }
+        return snapshot;
+    }
+
+    // Kept as a tiny pure helper so regression tests can verify the exact production projection.
+    window._snapshotCompanionProgress = snapshotCompanionProgress;
+
     function syncShadow() {
         if (typeof game === 'undefined') return;
         shadow = {
@@ -1188,7 +1207,7 @@ window.onload = function () {
             highestWave: Number(game.highestWave) || 1,
             prestiges: Number(game.stats?.prestiges) || 0,
             upgrades: JSON.parse(JSON.stringify(game.upgrades || {})),
-            companions: JSON.parse(JSON.stringify(game.companions || {})),
+            companions: snapshotCompanionProgress(game.companions),
             equippedItems: [...new Set(Array.isArray(game.equippedItems) ? game.equippedItems : [])]
         };
     }
@@ -1295,9 +1314,11 @@ window.onload = function () {
             if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Yetkisiz skill seviyesi değişimi geri alındı!');
         }
 
-        const currentCompanions = JSON.stringify(game.companions || {});
+        const currentCompanions = JSON.stringify(snapshotCompanionProgress(game.companions));
         const trustedCompanions = JSON.stringify(shadow.companions || {});
         if (currentCompanions !== trustedCompanions) {
+            // Roll back only the trusted persistent progression snapshot. Runtime orbit state
+            // is transient and may be rebuilt naturally by updateCompanions().
             game.companions = JSON.parse(JSON.stringify(shadow.companions || {}));
             cheatFlags++;
             mustPersistRollback = true;
