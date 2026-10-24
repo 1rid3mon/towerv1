@@ -346,6 +346,11 @@ function spawnEnemy(isBoss = false) {
         slowTimer: 0, slowFactor: 1, hitFlash: 0,
         rot: Math.random() * Math.PI * 2, rotSpeed: (Math.random() - 0.5) * 3, animPhase: Math.random() * Math.PI * 2
     });
+
+    if (typeof showBattleMoment === 'function') {
+        if (isBoss) showBattleMoment('boss', { wave: w, name });
+        else showBattleMoment('wave', { wave: w });
+    }
 }
 
 function applyFrostToTower(freezeDur = 0, slowDur = 3.0) {
@@ -930,10 +935,15 @@ function damageTower(rawDamage, attacker) {
 }
 
 function completeWave() {
+    const completedWaveNumber = game.wave;
+    const wasHoldWave = game.holdWave;
+    let waveRewardGold = 0;
+    let milestoneCrystalsAwarded = 0;
     if (!game.holdWave) {
         const interestCap = Math.round(getWaveBaseGold(game.wave) * 25 * getGoldMultiplier());
         const interestGold = Math.min(interestCap, Math.floor(game.gold * (game.upgrades.interest * 0.004)));
         const total = Math.round(getWaveBonusPreview(game.upgrades.waveGold) + interestGold);
+        waveRewardGold = total;
         if (total > 0) { game.gold += total; addFloatingText(tower.x, tower.y - 35, `Dalga Ödülü: +${formatNumber(total)} 🪙`, '#f59e0b', 14); }
 
         const prevHighest = game.highestWave; game.wave++;
@@ -941,6 +951,7 @@ function completeWave() {
             game.highestWave = game.wave;
             if (game.highestWave % 10 === 0) {
                 const milestoneCrystals = 15 + Math.floor(game.highestWave * 1.0);
+                milestoneCrystalsAwarded = milestoneCrystals;
                 game.crystals += milestoneCrystals;
                 showToast(`🏆 Dalga ${game.highestWave} Rekor Ödülü: +${milestoneCrystals} 💎 Kristal!`);
             }
@@ -954,6 +965,9 @@ function completeWave() {
     } else {
         game.holdWaveTimer = 0; game.consecutiveHoldWins++; addFloatingText(tower.x, tower.y - 35, `Farm Modu (${game.consecutiveHoldWins}/4)`, '#38bdf8', 11);
         if (game.consecutiveHoldWins >= 4) { game.holdWave = false; game.consecutiveHoldWins = 0; updateHoldWaveButton(); showToast('Farm modunda 4 dalga geçildi! Otomatik İlerleme aktif.'); }
+    }
+    if (!wasHoldWave && typeof showBattleMoment === 'function') {
+        showBattleMoment('clear', { wave: completedWaveNumber, gold: waveRewardGold, crystals: milestoneCrystalsAwarded });
     }
     waveFrostSpawns = 0;
     game.waveKills = 0; game.waveTargetKills = Math.min(45, 14 + Math.floor(game.wave * 0.25)); tower.hp = Math.min(tower.maxHp, tower.hp + tower.maxHp * 0.15);
