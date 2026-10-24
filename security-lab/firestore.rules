@@ -57,8 +57,11 @@ service cloud.firestore {
       && request.resource.data.highestWave <= get(p).data.highestWave + maxWaveJumpPerWrite()
     ))
     && (resource == null || (
-      request.time > resource.data.updatedAt + duration.value(minSecondsBetweenWrites(),'s')
-      && request.resource.data.highestWave <= resource.data.highestWave + maxWaveJumpPerWrite()
+      request.resource.data.highestWave <= resource.data.highestWave + maxWaveJumpPerWrite()
+      // Legacy leaderboard documents stored updatedAt as milliseconds (number).
+      // Allow one migration write; enforce the cooldown once updatedAt is a Firestore timestamp.
+      && (!(resource.data.get('updatedAt', null) is timestamp)
+        || request.time > resource.data.updatedAt + duration.value(minSecondsBetweenWrites(),'s'))
     ));
   }
   match /usernameRegistry/{usernameKey} {
@@ -110,7 +113,9 @@ service cloud.firestore {
     && validNum(request.resource.data.highestWave,1,maxWave())
     && rateLimitMatchesBoard(userId)
     && request.resource.data.highestWave <= resource.data.highestWave + maxWaveJumpPerWrite()
-    && request.time > resource.data.updatedAt + duration.value(minSecondsBetweenWrites(),'s');
+    // Same one-time migration allowance for an older numeric updatedAt value.
+    && (!(resource.data.get('updatedAt', null) is timestamp)
+      || request.time > resource.data.updatedAt + duration.value(minSecondsBetweenWrites(),'s'));
    // This record must survive leaderboard deletion or the timer could be reset.
    allow delete: if false;
   }
