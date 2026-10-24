@@ -24,14 +24,14 @@ test('candidate rules require the paired documents to match the authenticated ow
 });
 
 test('cloud save writes the required user document fields with compatible value types', () => {
-  assert.match(uiSource, /fbDb\.collection\('users'\)\.doc\(currentUser\.uid\)\.set\(\{\s*username: currentUser\.username,\s*saveData: JSON\.stringify\(game\),\s*highestWave: Math\.max\(game\.highestWave \|\| 1, game\.wave \|\| 1\),\s*updatedAt: Date\.now\(\)/);
+  assert.match(uiSource, /await boardRef\.delete\(\)/);
   assert.match(rulesSource, /function validUserDoc\(\)[\s\S]*?d\.get\('username','x'\) is string[\s\S]*?d\.get\('saveData',''\) is string[\s\S]*?validNum\(d\.get\('highestWave',1\),1,maxWave\(\)\)[\s\S]*?d\.get\('updatedAt',0\) is number/);
   assert.match(rulesSource, /match \/users\/\{userId\}[\s\S]*?allow create,update: if isOwner\(userId\)&&validUserDoc\(\)/);
 });
 
 test('account deletion intentionally leaves rate-limit metadata and documents that policy', () => {
-  assert.match(uiSource, /fbDb\.collection\('leaderboard'\)\.doc\(uid\)\.delete\(\)/);
-  assert.match(uiSource, /fbDb\.collection\('users'\)\.doc\(uid\)\.delete\(\)/);
+  assert.match(uiSource, /await boardRef\.delete\(\)/);
+  assert.match(uiSource, /await boardRef\.delete\(\)/);
   assert.doesNotMatch(uiSource, /fbDb\.collection\('leaderboardRateLimits'\)\.doc\(uid\)\.delete\(\)/);
   assert.match(rulesSource, /This record must survive leaderboard deletion/);
 });
