@@ -2253,6 +2253,7 @@ async function forceCloudPush(silent = false) {
 
 async function forceCloudPull(silent = false) {
     if (!currentUser || typeof game === 'undefined') return;
+    let legacyCloudMigrated = false;
 
     try {
         let cloudGame = null;
@@ -2297,7 +2298,7 @@ async function forceCloudPull(silent = false) {
 
                     cloudGame._sigVersion = 2;
                     cloudGame._sig = window._generateSaveSignature(cloudGame);
-                    cloudGame._legacyCloudMigrated = true;
+                    legacyCloudMigrated = true;
                 } else if (!window._verifySaveSignature(cloudGame)) {
                     if (!silent) showToast('🛡️ Bulut kaydının imzası geçersiz; kayıt yüklenmedi.');
                     return;
@@ -2328,7 +2329,7 @@ async function forceCloudPull(silent = false) {
                 buildUpgradesUI();
                 buildInventoryUI();
                 updateHUD();
-                if (cloudGame._legacyCloudMigrated) {
+                if (legacyCloudMigrated) {
                     // Push the recovered, V2-signed state so later devices use the strict path.
                     await forceCloudPush(true);
                     showToast(`☁️ Eski bulut kaydı yedeklenip yeni imzayla kurtarıldı! (Dalga ${game.wave})`);
