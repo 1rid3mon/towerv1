@@ -2332,7 +2332,7 @@ async function forceCloudPull(silent = false) {
                 if (legacyCloudMigrated) {
                     // Push the recovered, V2-signed state so later devices use the strict path.
                     await forceCloudPush(true);
-                    showToast(`☁️ Eski bulut kaydı yedeklenip yeni imzayla kurtarıldı! (Dalga ${game.wave})`);
+                    showToast(`☁️ Eski kayıt yedeklenip yerelde kurtarıldı; bulut eşitlemesi denendi. (Dalga ${game.wave})`);
                 } else {
                     showToast(`☁️ Bulut kaydı yüklendi! (Dalga ${game.wave})`);
                 }
