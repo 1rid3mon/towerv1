@@ -95,9 +95,17 @@ function renderBattleMoment(kind, data) {
     root.dataset.kind = kind;
     rewards.replaceChildren();
     if (kind === 'boss') {
+        const bossName = String(data.name || 'BİLİNMEYEN HEDEF');
         kicker.textContent = 'TEHDİT ALGILANDI  /  ÖNCELİKLİ HEDEF';
-        title.textContent = data.name || 'BİLİNMEYEN HEDEF';
-        subtitle.textContent = 'Ağır hedef yaklaşıyor. Kuleyi koru.';
+        title.textContent = bossName;
+        // Each existing boss archetype gets a distinct tactical briefing; this is presentation only.
+        if (bossName.includes('Titan')) subtitle.textContent = 'Ağır zırh tespit edildi. Yakın menzilli darbelerine dikkat et.';
+        else if (bossName.includes('Topçusu')) subtitle.textContent = 'Uzun menzilli topçu. Ateş baskısını kır ve kuleyi koru.';
+        else if (bossName.includes('Vektörü')) subtitle.textContent = 'Yüksek hız ve ani atak. Saldırı penceresini iyi yakala.';
+        else if (bossName.includes('Kryos')) subtitle.textContent = 'Kriyo saldırıları algılandı. Donma etkisi ateş ritmini kesebilir.';
+        else if (bossName.includes('Leviathan')) subtitle.textContent = 'Çok yönlü saldırı paterni. Kritik anlarda savunmayı koru.';
+        else subtitle.textContent = 'Ağır hedef yaklaşıyor. Kuleyi koru.';
+        addBattleReward('BOSS  /  DALGA ' + String(Math.max(1, Number(data.wave) || 1)).padStart(2, '0'));
         playBattleCue('boss');
     } else if (kind === 'bossKill') {
         kicker.textContent = 'TEHDİT ETKİSİZ HALE GETİRİLDİ';
@@ -108,16 +116,22 @@ function renderBattleMoment(kind, data) {
         playBattleCue('bossKill');
     } else if (kind === 'clear') {
         kicker.textContent = 'BÖLGE GÜVENDE  /  DALGA TAMAMLANDI';
-        title.textContent = 'DALGA TEMİZLENDİ';
-        subtitle.textContent = 'Dalga ' + String(data.wave || 1) + ' tamamlandı. Savunma hattı ayakta.';
+        title.textContent = 'DALGA ' + String(Math.max(1, Number(data.wave) || 1)).padStart(2, '0') + ' TEMİZLENDİ';
+        subtitle.textContent = 'Savunma hattı ayakta. Sonraki temas için sistemler hazırlanıyor.';
         if (Number(data.gold) > 0) addBattleReward('+' + formatBattleNumber(data.gold) + ' ALTIN');
         if (Number(data.crystals) > 0) addBattleReward('+' + formatBattleNumber(data.crystals) + ' KRİSTAL');
         playBattleCue('clear');
     } else {
         const wave = Math.max(1, Number(data.wave) || 1);
-        kicker.textContent = wave % 5 === 0 ? 'SAVUNMA PROTOKOLÜ  /  BOSS DALGASI' : (wave % 3 === 0 ? 'YÜKSEK YOĞUNLUK  /  SÜRÜ DALGASI' : 'SAVUNMA HATTI  /  TEMAS BEKLENİYOR');
+        const criticalWave = wave % 10 === 0;
+        const bossWave = wave % 5 === 0;
+        const swarmWave = wave % 3 === 0;
+        kicker.textContent = criticalWave ? 'KIRMIZI ALARM  /  KRİTİK DALGA' : (bossWave ? 'SAVUNMA PROTOKOLÜ  /  BOSS DALGASI' : (swarmWave ? 'YÜKSEK YOĞUNLUK  /  SÜRÜ DALGASI' : 'SAVUNMA HATTI  /  TEMAS BEKLENİYOR'));
         title.textContent = 'DALGA ' + String(wave).padStart(2, '0');
-        subtitle.textContent = wave % 5 === 0 ? 'Ağır hedef ihtimali yüksek. Pozisyonunu koru.' : 'Yeni düşman sinyalleri tespit edildi.';
+        subtitle.textContent = criticalWave ? 'Tehdit seviyesi kritik. Bütün savunma sistemleri hazır olsun.' : (bossWave ? 'Ağır hedef sinyali bekleniyor. Pozisyonunu koru.' : (swarmWave ? 'Birden fazla temas algılandı. Alan kontrolünü bırakma.' : 'Yeni düşman sinyalleri tespit edildi.'));
+        if (criticalWave) addBattleReward('TEHDİT: KRİTİK');
+        else if (bossWave) addBattleReward('BOSS SİNYALİ');
+        else if (swarmWave) addBattleReward('SÜRÜ HAREKETİ');
         playBattleCue('wave');
     }
     root.classList.remove('is-visible');
