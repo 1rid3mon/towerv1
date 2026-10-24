@@ -34,7 +34,9 @@ function playBattleCue(kind) {
     if (audio.state === 'suspended') audio.resume().catch(() => {});
     const patterns = {
         wave: [{ f: 392, t: 'sine', d: .12, at: 0, v: .045 }, { f: 587.33, t: 'triangle', d: .2, at: .09, v: .035 }],
+        critical: [{ f: 196, t: 'square', d: .16, at: 0, v: .022 }, { f: 293.66, t: 'triangle', d: .19, at: .13, v: .038 }, { f: 440, t: 'sine', d: .24, at: .31, v: .032 }],
         clear: [{ f: 523.25, t: 'triangle', d: .16, at: 0, v: .04 }, { f: 659.25, t: 'sine', d: .18, at: .1, v: .04 }, { f: 783.99, t: 'sine', d: .28, at: .2, v: .035 }],
+        reward: [{ f: 659.25, t: 'sine', d: .13, at: 0, v: .027 }, { f: 880, t: 'triangle', d: .16, at: .12, v: .032 }, { f: 1174.66, t: 'sine', d: .25, at: .25, v: .027 }],
         boss: [{ f: 92.5, t: 'sawtooth', d: .42, at: 0, v: .055 }, { f: 138.59, t: 'triangle', d: .36, at: .16, v: .045 }, { f: 207.65, t: 'sine', d: .26, at: .32, v: .03 }],
         bossKill: [{ f: 392, t: 'triangle', d: .14, at: 0, v: .04 }, { f: 523.25, t: 'sine', d: .18, at: .1, v: .045 }, { f: 783.99, t: 'triangle', d: .32, at: .2, v: .04 }, { f: 1046.5, t: 'sine', d: .25, at: .32, v: .025 }]
     };
@@ -111,8 +113,8 @@ function renderBattleMoment(kind, data) {
         kicker.textContent = 'TEHDİT ETKİSİZ HALE GETİRİLDİ';
         title.textContent = 'BOSS İMHA EDİLDİ';
         subtitle.textContent = (data.name || 'Ağır hedef') + ' etkisiz. Savunma hattı nefes alıyor.';
-        if (Number(data.gold) > 0) addBattleReward('+' + formatBattleNumber(data.gold) + ' ALTIN');
-        if (Number(data.crystals) > 0) addBattleReward('+' + formatBattleNumber(data.crystals) + ' KRİSTAL');
+        if (Number(data.gold) > 0) addBattleReward('ALTIN', Number(data.gold));
+        if (Number(data.crystals) > 0) addBattleReward('KRİSTAL', Number(data.crystals));
         playBattleCue('bossKill');
     } else if (kind === 'clear') {
         kicker.textContent = 'BÖLGE GÜVENDE  /  DALGA TAMAMLANDI';
@@ -120,7 +122,7 @@ function renderBattleMoment(kind, data) {
         subtitle.textContent = 'Savunma hattı ayakta. Sonraki temas için sistemler hazırlanıyor.';
         if (Number(data.gold) > 0) addBattleReward('+' + formatBattleNumber(data.gold) + ' ALTIN');
         if (Number(data.crystals) > 0) addBattleReward('+' + formatBattleNumber(data.crystals) + ' KRİSTAL');
-        playBattleCue('clear');
+        playBattleCue(Number(data.crystals) > 0 ? 'reward' : 'clear');
     } else {
         const wave = Math.max(1, Number(data.wave) || 1);
         const criticalWave = wave % 10 === 0;
@@ -132,7 +134,7 @@ function renderBattleMoment(kind, data) {
         if (criticalWave) addBattleReward('TEHDİT: KRİTİK');
         else if (bossWave) addBattleReward('BOSS SİNYALİ');
         else if (swarmWave) addBattleReward('SÜRÜ HAREKETİ');
-        playBattleCue('wave');
+        playBattleCue(criticalWave ? 'critical' : 'wave');
     }
     root.classList.remove('is-visible');
     // Restart the entrance transition even when two moments occur in the same frame.
@@ -142,13 +144,38 @@ function renderBattleMoment(kind, data) {
     battleMomentHideTimer = setTimeout(() => root.classList.remove('is-visible'), duration);
 }
 
-function addBattleReward(label) {
+function addBattleReward(label, amount = null) {
     const rewards = document.getElementById('battle-rewards');
     if (!rewards) return;
     const chip = document.createElement('span');
     chip.className = 'battle-reward';
-    chip.textContent = label;
     rewards.appendChild(chip);
+
+    const numericAmount = Number(amount);
+    if (amount === null || !Number.isFinite(numericAmount) || numericAmount <= 0) {
+        chip.textContent = label;
+        return;
+    }
+
+    const finalText = '+' + formatBattleNumber(numericAmount) + ' ' + label;
+    chip.setAttribute('aria-label', finalText);
+    const reducedMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion || typeof requestAnimationFrame !== 'function') {
+        chip.textContent = finalText;
+        return;
+    }
+
+    const startedAt = performance.now();
+    const duration = 520;
+    chip.textContent = '+0 ' + label;
+    const tick = (now) => {
+        const progress = Math.min(1, Math.max(0, (now - startedAt) / duration));
+        const eased = 1 - Math.pow(1 - progress, 3);
+        chip.textContent = '+' + formatBattleNumber(Math.round(numericAmount * eased)) + ' ' + label;
+        if (progress < 1) requestAnimationFrame(tick);
+        else chip.textContent = finalText;
+    };
+    requestAnimationFrame(tick);
 }
 function formatBattleNumber(value) {
     const number = Math.max(0, Math.round(Number(value) || 0));
