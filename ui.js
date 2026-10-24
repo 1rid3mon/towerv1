@@ -95,30 +95,44 @@ function renderBattleMoment(kind, data) {
     root.dataset.kind = kind;
     rewards.replaceChildren();
     if (kind === 'boss') {
+        const bossName = String(data.name || 'BİLİNMEYEN HEDEF');
         kicker.textContent = 'TEHDİT ALGILANDI  /  ÖNCELİKLİ HEDEF';
-        title.textContent = data.name || 'BİLİNMEYEN HEDEF';
-        subtitle.textContent = 'Ağır hedef yaklaşıyor. Kuleyi koru.';
+        title.textContent = bossName;
+        // Each existing boss archetype gets a distinct tactical briefing; this is presentation only.
+        if (bossName.includes('Titan')) subtitle.textContent = 'Ağır zırh tespit edildi. Yakın menzilli darbelerine dikkat et.';
+        else if (bossName.includes('Topçusu')) subtitle.textContent = 'Uzun menzilli topçu. Ateş baskısını kır ve kuleyi koru.';
+        else if (bossName.includes('Vektörü')) subtitle.textContent = 'Yüksek hız ve ani atak. Saldırı penceresini iyi yakala.';
+        else if (bossName.includes('Kryos')) subtitle.textContent = 'Kriyo saldırıları algılandı. Donma etkisi ateş ritmini kesebilir.';
+        else if (bossName.includes('Leviathan')) subtitle.textContent = 'Çok yönlü saldırı paterni. Kritik anlarda savunmayı koru.';
+        else subtitle.textContent = 'Ağır hedef yaklaşıyor. Kuleyi koru.';
+        addBattleReward('BOSS  /  DALGA ' + String(Math.max(1, Number(data.wave) || 1)).padStart(2, '0'));
         playBattleCue('boss');
     } else if (kind === 'bossKill') {
         kicker.textContent = 'TEHDİT ETKİSİZ HALE GETİRİLDİ';
         title.textContent = 'BOSS İMHA EDİLDİ';
         subtitle.textContent = (data.name || 'Ağır hedef') + ' etkisiz. Savunma hattı nefes alıyor.';
-        if (Number(data.gold) > 0) addBattleReward('+' + formatBattleNumber(data.gold) + ' ALTIN');
-        if (Number(data.crystals) > 0) addBattleReward('+' + formatBattleNumber(data.crystals) + ' KRİSTAL');
+        if (Number(data.gold) > 0) addBattleReward('ALTIN', Number(data.gold));
+        if (Number(data.crystals) > 0) addBattleReward('KRİSTAL', Number(data.crystals));
         playBattleCue('bossKill');
     } else if (kind === 'clear') {
         kicker.textContent = 'BÖLGE GÜVENDE  /  DALGA TAMAMLANDI';
-        title.textContent = 'DALGA TEMİZLENDİ';
-        subtitle.textContent = 'Dalga ' + String(data.wave || 1) + ' tamamlandı. Savunma hattı ayakta.';
+        title.textContent = 'DALGA ' + String(Math.max(1, Number(data.wave) || 1)).padStart(2, '0') + ' TEMİZLENDİ';
+        subtitle.textContent = 'Savunma hattı ayakta. Sonraki temas için sistemler hazırlanıyor.';
         if (Number(data.gold) > 0) addBattleReward('+' + formatBattleNumber(data.gold) + ' ALTIN');
         if (Number(data.crystals) > 0) addBattleReward('+' + formatBattleNumber(data.crystals) + ' KRİSTAL');
-        playBattleCue('clear');
+        playBattleCue(Number(data.crystals) > 0 ? 'reward' : 'clear');
     } else {
         const wave = Math.max(1, Number(data.wave) || 1);
-        kicker.textContent = wave % 5 === 0 ? 'SAVUNMA PROTOKOLÜ  /  BOSS DALGASI' : (wave % 3 === 0 ? 'YÜKSEK YOĞUNLUK  /  SÜRÜ DALGASI' : 'SAVUNMA HATTI  /  TEMAS BEKLENİYOR');
+        const criticalWave = wave % 10 === 0;
+        const bossWave = wave % 5 === 0;
+        const swarmWave = wave % 3 === 0;
+        kicker.textContent = criticalWave ? 'KIRMIZI ALARM  /  KRİTİK DALGA' : (bossWave ? 'SAVUNMA PROTOKOLÜ  /  BOSS DALGASI' : (swarmWave ? 'YÜKSEK YOĞUNLUK  /  SÜRÜ DALGASI' : 'SAVUNMA HATTI  /  TEMAS BEKLENİYOR'));
         title.textContent = 'DALGA ' + String(wave).padStart(2, '0');
-        subtitle.textContent = wave % 5 === 0 ? 'Ağır hedef ihtimali yüksek. Pozisyonunu koru.' : 'Yeni düşman sinyalleri tespit edildi.';
-        playBattleCue('wave');
+        subtitle.textContent = criticalWave ? 'Tehdit seviyesi kritik. Bütün savunma sistemleri hazır olsun.' : (bossWave ? 'Ağır hedef sinyali bekleniyor. Pozisyonunu koru.' : (swarmWave ? 'Birden fazla temas algılandı. Alan kontrolünü bırakma.' : 'Yeni düşman sinyalleri tespit edildi.'));
+        if (criticalWave) addBattleReward('TEHDİT: KRİTİK');
+        else if (bossWave) addBattleReward('BOSS SİNYALİ');
+        else if (swarmWave) addBattleReward('SÜRÜ HAREKETİ');
+        playBattleCue(criticalWave ? 'critical' : 'wave');
     }
     root.classList.remove('is-visible');
     // Restart the entrance transition even when two moments occur in the same frame.
@@ -128,13 +142,38 @@ function renderBattleMoment(kind, data) {
     battleMomentHideTimer = setTimeout(() => root.classList.remove('is-visible'), duration);
 }
 
-function addBattleReward(label) {
+function addBattleReward(label, amount = null) {
     const rewards = document.getElementById('battle-rewards');
     if (!rewards) return;
     const chip = document.createElement('span');
     chip.className = 'battle-reward';
-    chip.textContent = label;
     rewards.appendChild(chip);
+
+    const numericAmount = Number(amount);
+    if (amount === null || !Number.isFinite(numericAmount) || numericAmount <= 0) {
+        chip.textContent = label;
+        return;
+    }
+
+    const finalText = '+' + formatBattleNumber(numericAmount) + ' ' + label;
+    chip.setAttribute('aria-label', finalText);
+    const reducedMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion || typeof requestAnimationFrame !== 'function') {
+        chip.textContent = finalText;
+        return;
+    }
+
+    const startedAt = performance.now();
+    const duration = 520;
+    chip.textContent = '+0 ' + label;
+    const tick = (now) => {
+        const progress = Math.min(1, Math.max(0, (now - startedAt) / duration));
+        const eased = 1 - Math.pow(1 - progress, 3);
+        chip.textContent = '+' + formatBattleNumber(Math.round(numericAmount * eased)) + ' ' + label;
+        if (progress < 1) requestAnimationFrame(tick);
+        else chip.textContent = finalText;
+    };
+    requestAnimationFrame(tick);
 }
 function formatBattleNumber(value) {
     const number = Math.max(0, Math.round(Number(value) || 0));
@@ -155,6 +194,11 @@ function showBattleMoment(kind, data = {}) {
         // Let the just-earned wave reward breathe before the boss announcement takes over.
         const delay = root && root.classList.contains('is-visible') && root.dataset.kind === 'clear' ? 1500 : 0;
         battleMomentBossTimer = setTimeout(() => renderBattleMoment('boss', data), delay);
+        return;
+    }
+    if (kind === 'bossKill') {
+        clearTimeout(battleMomentBossTimer);
+        renderBattleMoment('bossKill', data);
         return;
     }
     if (kind === 'clear') renderBattleMoment('clear', data);
