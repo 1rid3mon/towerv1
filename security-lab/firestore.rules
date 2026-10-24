@@ -32,7 +32,6 @@ service cloud.firestore {
     && d.get('updatedAt',null)==request.time;
   }
   function minSecondsBetweenWrites(){return 20;}
-  function maxWaveJumpPerWrite(){return 15;}
   function rateLimitPath(userId){
    return /databases/$(database)/documents/leaderboardRateLimits/$(userId);
   }
@@ -54,11 +53,9 @@ service cloud.firestore {
     && validNum(nextLimit.data.highestWave,1,maxWave())
     && (!exists(p) || (
       request.time > get(p).data.updatedAt + duration.value(minSecondsBetweenWrites(),'s')
-      && request.resource.data.highestWave <= get(p).data.highestWave + maxWaveJumpPerWrite()
     ))
     && (resource == null || (
       request.time > resource.data.updatedAt + duration.value(minSecondsBetweenWrites(),'s')
-      && request.resource.data.highestWave <= resource.data.highestWave + maxWaveJumpPerWrite()
     ));
   }
   match /usernameRegistry/{usernameKey} {
@@ -101,15 +98,13 @@ service cloud.firestore {
     && request.resource.data.updatedAt == request.time
     && validNum(request.resource.data.highestWave,1,maxWave())
     && rateLimitMatchesBoard(userId)
-    && (!exists(boardPath(userId))
-      || request.resource.data.highestWave <= get(boardPath(userId)).data.highestWave + maxWaveJumpPerWrite());
+    ;
    allow update: if isOwner(userId)
     && request.resource.data.keys().hasOnly(['uid','updatedAt','highestWave'])
     && request.resource.data.uid == userId
     && request.resource.data.updatedAt == request.time
     && validNum(request.resource.data.highestWave,1,maxWave())
     && rateLimitMatchesBoard(userId)
-    && request.resource.data.highestWave <= resource.data.highestWave + maxWaveJumpPerWrite()
     && request.time > resource.data.updatedAt + duration.value(minSecondsBetweenWrites(),'s');
    // This record must survive leaderboard deletion or the timer could be reset.
    allow delete: if false;
