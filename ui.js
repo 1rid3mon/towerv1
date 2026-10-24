@@ -118,8 +118,8 @@ function renderBattleMoment(kind, data) {
         kicker.textContent = 'BÖLGE GÜVENDE  /  DALGA TAMAMLANDI';
         title.textContent = 'DALGA ' + String(Math.max(1, Number(data.wave) || 1)).padStart(2, '0') + ' TEMİZLENDİ';
         subtitle.textContent = 'Savunma hattı ayakta. Sonraki temas için sistemler hazırlanıyor.';
-        if (Number(data.gold) > 0) addBattleReward('+' + formatBattleNumber(data.gold) + ' ALTIN');
-        if (Number(data.crystals) > 0) addBattleReward('+' + formatBattleNumber(data.crystals) + ' KRİSTAL');
+        if (Number(data.gold) > 0) addBattleReward('ALTIN', Number(data.gold));
+        if (Number(data.crystals) > 0) addBattleReward('KRİSTAL', Number(data.crystals));
         playBattleCue(Number(data.crystals) > 0 ? 'reward' : 'clear');
     } else {
         const wave = Math.max(1, Number(data.wave) || 1);
