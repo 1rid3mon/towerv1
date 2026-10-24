@@ -35,7 +35,8 @@ function playBattleCue(kind) {
     const patterns = {
         wave: [{ f: 392, t: 'sine', d: .12, at: 0, v: .045 }, { f: 587.33, t: 'triangle', d: .2, at: .09, v: .035 }],
         clear: [{ f: 523.25, t: 'triangle', d: .16, at: 0, v: .04 }, { f: 659.25, t: 'sine', d: .18, at: .1, v: .04 }, { f: 783.99, t: 'sine', d: .28, at: .2, v: .035 }],
-        boss: [{ f: 92.5, t: 'sawtooth', d: .42, at: 0, v: .055 }, { f: 138.59, t: 'triangle', d: .36, at: .16, v: .045 }, { f: 207.65, t: 'sine', d: .26, at: .32, v: .03 }]
+        boss: [{ f: 92.5, t: 'sawtooth', d: .42, at: 0, v: .055 }, { f: 138.59, t: 'triangle', d: .36, at: .16, v: .045 }, { f: 207.65, t: 'sine', d: .26, at: .32, v: .03 }],
+        bossKill: [{ f: 392, t: 'triangle', d: .14, at: 0, v: .04 }, { f: 523.25, t: 'sine', d: .18, at: .1, v: .045 }, { f: 783.99, t: 'triangle', d: .32, at: .2, v: .04 }, { f: 1046.5, t: 'sine', d: .25, at: .32, v: .025 }]
     };
     const notes = patterns[kind];
     if (!notes) return;
@@ -98,6 +99,13 @@ function renderBattleMoment(kind, data) {
         title.textContent = data.name || 'BİLİNMEYEN HEDEF';
         subtitle.textContent = 'Ağır hedef yaklaşıyor. Kuleyi koru.';
         playBattleCue('boss');
+    } else if (kind === 'bossKill') {
+        kicker.textContent = 'TEHDİT ETKİSİZ HALE GETİRİLDİ';
+        title.textContent = 'BOSS İMHA EDİLDİ';
+        subtitle.textContent = (data.name || 'Ağır hedef') + ' etkisiz. Savunma hattı nefes alıyor.';
+        if (Number(data.gold) > 0) addBattleReward('+' + formatBattleNumber(data.gold) + ' ALTIN');
+        if (Number(data.crystals) > 0) addBattleReward('+' + formatBattleNumber(data.crystals) + ' KRİSTAL');
+        playBattleCue('bossKill');
     } else if (kind === 'clear') {
         kicker.textContent = 'BÖLGE GÜVENDE  /  DALGA TAMAMLANDI';
         title.textContent = 'DALGA TEMİZLENDİ';
@@ -116,7 +124,7 @@ function renderBattleMoment(kind, data) {
     // Restart the entrance transition even when two moments occur in the same frame.
     void root.offsetWidth;
     root.classList.add('is-visible');
-    const duration = kind === 'boss' ? 3300 : (kind === 'clear' ? 2250 : 1650);
+    const duration = kind === 'boss' ? 3300 : (kind === 'bossKill' ? 2850 : (kind === 'clear' ? 2250 : 1650));
     battleMomentHideTimer = setTimeout(() => root.classList.remove('is-visible'), duration);
 }
 
