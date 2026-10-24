@@ -1124,6 +1124,37 @@ function switchInventorySubTab(sub) {
     buildInventoryUI();
 }
 
+let inventoryRarityFilter = 'all';
+let inventoryTypeFilter = 'all';
+let inventorySearchQuery = '';
+
+function setInventoryFilter(kind, value) {
+    const normalized = String(value || 'all');
+    if (kind === 'rarity') inventoryRarityFilter = normalized;
+    else if (kind === 'type') inventoryTypeFilter = normalized;
+    else if (kind === 'search') inventorySearchQuery = normalized.trim().toLocaleLowerCase('tr-TR');
+    buildInventoryUI();
+}
+
+function showItemDetails(itemId) {
+    const item = typeof ITEM_DATABASE !== 'undefined' ? ITEM_DATABASE[itemId] : null;
+    if (!item) { showToast('Bu eşya artık mevcut değil.'); return; }
+    const rarityNames = { rare: 'Nadir', super_rare: 'Süper Nadir', epic: 'Epik', mythic: 'Mitik', legendary: 'Efsanevi' };
+    const typeNames = {
+        damage: 'Hasar', damage_mult: 'Çarpan Hasarı', hp: 'Can', crit: 'Kritik Şans',
+        critMult: 'Kritik Hasar', speed: 'Saldırı Hızı', lifesteal: 'Can Çalma',
+        gold: 'Altın', range: 'Menzil', armor: 'Zırh', regen: 'Can Yenileme',
+        crystal: 'Kristal', shield: 'Kalkan', multishot_buff: 'Çoklu Atış'
+    };
+    const rarity = rarityNames[item.rarity] || 'Eşya';
+    const type = typeNames[item.type] || item.type || 'Özel';
+    if (typeof window.showInspectPopup === 'function') {
+        window.showInspectPopup(item.name, rarity + ' • ' + type, item.desc || 'Açıklama yok.', game.equippedItems.includes(itemId) ? 'KUŞANILDI' : 'ENVANTERDE', '#38bdf8');
+    } else {
+        showToast(item.name + ': ' + (item.desc || rarity + ' • ' + type));
+    }
+}
+
 function toggleRaritySortOrder() {
     raritySortDescending = !raritySortDescending;
     setElText('sort-rarity-label', raritySortDescending ? 'Nadirlik: En Yüksek' : 'Nadirlik: En Düşük');
@@ -1216,14 +1247,24 @@ function buildInventoryUI() {
         } else {
             const rOrder = typeof RARITY_ORDER !== 'undefined' ? RARITY_ORDER : { rare: 1, super_rare: 2, epic: 3, mythic: 4, legendary: 5 };
             const sortDesc = typeof raritySortDescending !== 'undefined' ? raritySortDescending : true;
-            const sortedIds = [...game.inventory].filter(id => ITEM_DATABASE[id]).sort((a, b) => {
+            const sortedIds = [...game.inventory].filter(id => {
+                const item = ITEM_DATABASE[id];
+                if (!item) return false;
+                if (inventoryRarityFilter !== 'all' && item.rarity !== inventoryRarityFilter) return false;
+                if (inventoryTypeFilter !== 'all' && item.type !== inventoryTypeFilter) return false;
+                if (inventorySearchQuery && !(String(item.name || '').toLocaleLowerCase('tr-TR').includes(inventorySearchQuery) ||
+                    String(item.desc || '').toLocaleLowerCase('tr-TR').includes(inventorySearchQuery))) return false;
+                return true;
+            }).sort((a, b) => {
                 const itemA = ITEM_DATABASE[a], itemB = ITEM_DATABASE[b];
                 const rA = rOrder[itemA.rarity] || 0, rB = rOrder[itemB.rarity] || 0;
                 if (rA !== rB) return sortDesc ? (rB - rA) : (rA - rB);
                 return itemA.name.localeCompare(itemB.name, 'tr');
             });
 
-            invList.innerHTML = sortedIds.map(id => {
+            if (sortedIds.length === 0) {
+                invList.innerHTML = '<div class="col-span-2 text-center py-6 text-xs text-slate-500">Bu filtrelerle eşya bulunamadı.</div>';
+            } else invList.innerHTML = sortedIds.map(id => {
                 const item = ITEM_DATABASE[id];
                 const isEq = game.equippedItems.includes(id), rb = getRarityBadge(item.rarity);
                 return `
@@ -1234,11 +1275,12 @@ function buildInventoryUI() {
                         </div>
                         <div class="flex items-center gap-2">
                             ${renderItemIconHTML(item, 'w-11 h-11')}
-                            <div class="min-w-0">
-                                <div class="font-tech font-bold text-xs text-white leading-tight truncate">${item.name}</div>
-                                <div class="text-[10px] text-slate-400 leading-tight line-clamp-2 mt-0.5">${item.desc}</div>
+                            <div class="min-w-0 flex-1">
+                                <div class="font-tech font-bold text-xs text-white leading-tight">${item.name}</div>
+                                <div class="text-[10px] text-slate-400 leading-tight mt-0.5">${item.desc}</div>
                             </div>
                         </div>
+                        <button type="button" onclick="event.stopPropagation(); showItemDetails('${item.id}')" class="mt-1 w-full rounded-lg border border-white/10 bg-slate-800/80 py-1.5 text-[10px] font-bold text-cyan-200 hover:bg-slate-700" aria-label="${item.name} ayrıntıları"><i class="fa-solid fa-circle-info mr-1"></i>Detaylar</button>
                     </div>`;
             }).join('');
         }
@@ -2279,6 +2321,7 @@ function getAchievementDefinitions() {
         { id: 'wave100', icon: '👑', name: 'Dalga Efsanesi', desc: '100. dalgaya ulaş', value: highestWave, target: 100, done: highestWave >= 100 },
         { id: 'kills100', icon: '🎯', name: 'İlk Yüz', desc: '100 düşman imha et', value: kills, target: 100, done: kills >= 100 },
         { id: 'kills1000', icon: '💥', name: 'Temizleyici', desc: '1.000 düşman imha et', value: kills, target: 1000, done: kills >= 1000 },
+        { id: 'boss1', icon: '🐲', name: 'İlk Boss', desc: 'İlk bossunu yen', value: bosses, target: 1, done: bosses >= 1 },
         { id: 'boss10', icon: '🐉', name: 'Boss Avcısı', desc: '10 boss yen', value: bosses, target: 10, done: bosses >= 10 },
         { id: 'prestige1', icon: '🔥', name: 'Yeniden Doğuş', desc: 'İlk prestijini yap', value: prestiges, target: 1, done: prestiges >= 1 },
         { id: 'skins5', icon: '🎨', name: 'Koleksiyoncu', desc: '5 kule görünümü topla', value: skins, target: 5, done: skins >= 5 },
