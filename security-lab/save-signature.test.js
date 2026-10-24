@@ -110,3 +110,24 @@ test('v2 checksum detects adversarial edits across economy, progression, cosmeti
     assert.equal(hooks._verifySaveSignature(tampered), false, label + ' edit should invalidate the old V2 checksum');
   }
 });
+
+test('companion anti-cheat snapshot ignores legitimate runtime movement but detects star progression edits', () => {
+  const hooks = loadAntiCheatHooks();
+  const before = hooks._snapshotCompanionProgress({
+    laserDrone: { unlocked: true, level: 3, angle: 0.2, x: 120, y: 80, cooldown: 0.4 },
+    frostOrb: { unlocked: false, level: 0, angle: 1.4, x: 20, y: 30, cooldown: 0.1 }
+  });
+  const afterRuntimeTick = hooks._snapshotCompanionProgress({
+    laserDrone: { unlocked: true, level: 3, angle: 2.9, x: 410, y: 250, cooldown: 0.01 },
+    frostOrb: { unlocked: false, level: 0, angle: 0.1, x: 75, y: 55, cooldown: 0.8 }
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(afterRuntimeTick)), JSON.parse(JSON.stringify(before)),
+    'angle, position, and cooldown updates must not look like cheating');
+
+  const editedProgress = hooks._snapshotCompanionProgress({
+    laserDrone: { unlocked: true, level: 4, angle: 2.9, x: 410, y: 250, cooldown: 0.01 },
+    frostOrb: { unlocked: false, level: 0, angle: 0.1, x: 75, y: 55, cooldown: 0.8 }
+  });
+  assert.notDeepEqual(JSON.parse(JSON.stringify(editedProgress)), JSON.parse(JSON.stringify(before)),
+    'a real star-level edit must still be detected');
+});
