@@ -2411,6 +2411,7 @@ function renderAchievementsModal() {
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center justify-between gap-2"><div class="text-xs font-bold text-white">${a.name}</div><span class="text-[9px] font-bold ${a.done ? 'text-emerald-300' : 'text-slate-500'}">${a.done ? 'TAMAMLANDI ✓' : 'KİLİTLİ'}</span></div>
                     <p class="mt-0.5 text-[10px] text-slate-400">${a.desc}</p>
+                    ${a.done ? `<div class="mt-1.5 inline-flex items-center gap-1 rounded-md border border-amber-400/25 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold text-amber-200" title="Kazanılan kozmetik başarı rozeti">${a.icon} ROZET AÇILDI</div>` : ''}
                     <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800"><div class="h-full rounded-full ${a.done ? 'bg-emerald-400' : 'bg-cyan-500'}" style="width:${ratio}%"></div></div>
                     <div class="mt-1 text-right text-[9px] text-slate-500">${currentText} / ${targetText}</div>
                 </div>
