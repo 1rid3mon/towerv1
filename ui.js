@@ -171,6 +171,11 @@ function showBattleMoment(kind, data = {}) {
         battleMomentBossTimer = setTimeout(() => renderBattleMoment('boss', data), delay);
         return;
     }
+    if (kind === 'bossKill') {
+        clearTimeout(battleMomentBossTimer);
+        renderBattleMoment('bossKill', data);
+        return;
+    }
     if (kind === 'clear') renderBattleMoment('clear', data);
 }
 
