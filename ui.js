@@ -2686,9 +2686,8 @@ async function pushScoreToLeaderboard() {
         const uid = currentUser.uid;
         const lastAttempt = leaderboardCloudWriteAttempts.get(uid) || 0;
         if (Date.now() - lastAttempt >= 20000) {
-            leaderboardCloudWriteAttempts.set(uid, Date.now());
             // Score and persistent rate-limit timestamp must be committed atomically.
-            // The rate-limit document intentionally survives leaderboard-row deletion.
+            // Keep Firebase failures visible instead of silently pretending the score was saved.
             try {
                 const batch = fbDb.batch();
                 const serverTime = firebase.firestore.FieldValue.serverTimestamp();
@@ -2702,7 +2701,13 @@ async function pushScoreToLeaderboard() {
                     updatedAt: serverTime
                 }, { merge: true });
                 await batch.commit();
-            } catch (e) {}
+                leaderboardCloudWriteAttempts.set(uid, Date.now());
+                window._lastLeaderboardWriteError = null;
+            } catch (e) {
+                window._lastLeaderboardWriteError = e && e.code ? e.code : String(e);
+                console.error('[Leaderboard] Firebase write rejected:', window._lastLeaderboardWriteError, e);
+                leaderboardCloudWriteAttempts.set(uid, Date.now());
+            }
         }
     }
     playerEntry.updatedAt = Date.now();
