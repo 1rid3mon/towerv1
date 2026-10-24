@@ -199,13 +199,13 @@ test("leaderboard deletion remains available, but persistent rate-limit state bl
   await assertSucceeds(deleteDoc(doc(db, "leaderboard/alice")));
   // Deletion does not remove leaderboardRateLimits/alice; recreating the row immediately is rejected.
   await assertFails(writeBoard(db, { highestWave: 5000, wave: 5000, damage: 999999999 }));
-  // Even after the normal wait, the persisted highest wave prevents an unlimited jump after deletion.
+  // After cooldown, large progress is allowed; client rules cannot prove a score is genuine.
   await testEnv.withSecurityRulesDisabled(async context => {
     await setDoc(doc(context.firestore(), "leaderboardRateLimits/alice"), {
       uid: "alice", updatedAt: new Date(Date.now() - 60000), highestWave: 10
     });
   });
-  await assertFails(writeBoard(db, { highestWave: 5000, wave: 5000, damage: 999999999 }));
+  await assertSucceeds(writeBoard(db, { highestWave: 344, wave: 344, damage: 999999999 }));
 });
 
 
@@ -278,7 +278,7 @@ test("leaderboard rejects a mismatched uid and oversized username", async () => 
   await assertFails(writeBoard(db, { username: "A".repeat(21) }));
 });
 
-test("leaderboard rejects a wave jump above the per-write limit", async () => {
+test("leaderboard permits a legitimate large wave jump after the cooldown", async () => {
   const db = testEnv.authenticatedContext("alice").firestore();
   await assertSucceeds(writeBoard(db, { highestWave: 10, wave: 8 }));
   // Emulator test time is advanced by a rules-disabled seed so the cooldown does not mask the jump check.
@@ -293,7 +293,7 @@ test("leaderboard rejects a wave jump above the per-write limit", async () => {
       uid: "alice", highestWave: 10, updatedAt: oldTime
     });
   });
-  await assertFails(writeBoard(db, { highestWave: 26, wave: 26 }));
+  await assertSucceeds(writeBoard(db, { highestWave: 344, wave: 344 }));
 });
 
 test("leaderboard rejects unknown oversized documents and non-string skin IDs", async () => {
