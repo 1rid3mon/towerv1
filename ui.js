@@ -3424,12 +3424,13 @@ function getStoryUnlockWave() {
 }
 function updateStoryUnlockUI() {
     const wave = getStoryUnlockWave();
-    const unlocked = wave >= 25;
+    const cleared = Math.max(0, wave - 1);
+    const unlocked = cleared >= 25;
     const action = document.getElementById('mode-story-action');
     const button = document.getElementById('mode-story-button');
     if (action) action.innerHTML = unlocked
         ? (storyLanguage() === 'en' ? 'ENTER CHAPTER <span aria-hidden="true">→</span>' : 'BÖLÜME GİR <span aria-hidden="true">→</span>')
-        : (storyLanguage() === 'en' ? `UNLOCK AT WAVE 25 · ${wave}/25 <span aria-hidden="true">🔒</span>` : `25. DALGADA AÇILIR · ${wave}/25 <span aria-hidden="true">🔒</span>`);
+        : (storyLanguage() === 'en' ? `CLEAR 25 WAVES · ${Math.min(25, cleared)}/25 <span aria-hidden="true">🔒</span>` : `İLK 25 DALGAYI TAMAMLA · ${Math.min(25, cleared)}/25 <span aria-hidden="true">🔒</span>`);
     if (button) {
         button.setAttribute('aria-disabled', unlocked ? 'false' : 'true');
         button.classList.toggle('story-locked', !unlocked);
@@ -3440,9 +3441,9 @@ function openStoryMode() {
     if (!updateStoryUnlockUI()) {
         const subtitle = document.getElementById('mode-menu-subtitle');
         if (subtitle) subtitle.textContent = storyLanguage() === 'en'
-            ? `Reach wave 25 in Endless Mode to unlock Story Mode. Your record: ${getStoryUnlockWave()}/25.`
-            : `Hikâye Modu’nu açmak için Sonsuz Mod’da 25. dalgaya ulaş. Rekorun: ${getStoryUnlockWave()}/25.`;
-        if (typeof showToast === 'function') showToast(storyLanguage() === 'en' ? 'Story Mode unlocks at Endless Wave 25.' : 'Hikâye Modu, Sonsuz Mod’da 25. dalgada açılır.');
+            ? `Clear the first 25 waves in Endless Mode to unlock Story Mode. Progress: ${Math.min(25, Math.max(0, getStoryUnlockWave() - 1))}/25.`
+            : `Hikâye Modu’nu açmak için Sonsuz Mod’da ilk 25 dalgayı tamamla. İlerlemen: ${Math.min(25, Math.max(0, getStoryUnlockWave() - 1))}/25.`;
+        if (typeof showToast === 'function') showToast(storyLanguage() === 'en' ? 'Clear 25 waves in Endless Mode to unlock Story Mode.' : 'Hikâye Modu, Sonsuz Mod’da ilk 25 dalgayı tamamlayınca açılır.');
         return;
     }
     const screen = document.getElementById('story-mode-screen');
