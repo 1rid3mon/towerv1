@@ -4033,6 +4033,11 @@ function startStoryMission(missionNumber = 1) {
     if (openingLine) setStoryComms(...openingLine);
     // Piko is the same companion from the opening scene; make him speak as the mission begins.
     if (typeof window.pikoStoryEvent === 'function') window.pikoStoryEvent('missionStart', missionNumber);
+    if (missionNumber === 14 && progress.voiceChoice === 'human') {
+        setStoryComms('PİKO','PIKO','İnsan kaydına güvendiğin için bir şeyler hatırlıyorum. Bu sinyalin arkasında gerçekten biri var.','Because you trusted the human record, I am remembering something. Someone really is behind this signal.');
+    } else if (missionNumber === 14 && progress.voiceChoice === 'station') {
+        setStoryComms('PİKO','PIKO','İstasyon arşivini seçtin. O zaman önce sahte imzanın kaynağını bulalım.','You chose the station archive. Then let us find who forged its signature first.');
+    }
     if (missionNumber === 5 && progress.routeChoice === 'array') {
         setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Anten kaydı sinyalin istasyonun içinden döndüğünü gösterdi. Röleyi susturursak döngüyü kesebiliriz.','The antenna log showed the signal looping from inside the station. Silencing the relay may break the loop.');
     } else if (missionNumber === 5 && progress.routeChoice === 'blackbox') {
