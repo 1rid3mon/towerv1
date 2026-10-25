@@ -3310,6 +3310,7 @@ function openDailyMissionsFromMainMenu() {
 }
 
 function returnToMainMenu() {
+    if (typeof saveGame === 'function') saveGame(true);
     if (typeof isPaused !== 'undefined') isPaused = true;
     dailyMissionsOpenedFromMainMenu = false;
     const menu = document.getElementById('mode-main-menu');
