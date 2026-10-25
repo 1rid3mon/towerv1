@@ -3,11 +3,14 @@
 // ==========================================
 
 
-/* V2.3: small, original battle callouts and synthesized cues.
-   This layer is deliberately cosmetic: it never changes game state or reward amounts. */
+/* V2.7: original synthesized sci-fi SFX. Audio is cosmetic and never changes gameplay. */
 let battleSfxEnabled = true;
 let battleAudioUnlocked = false;
 let battleAudioContext = null;
+let battleMasterGain = null;
+let battleCompressor = null;
+let battleNoiseBuffer = null;
+let battleCueLastAt = Object.create(null);
 let battleMomentHideTimer = null;
 let battleMomentBossTimer = null;
 let battleMomentClearTimer = null;
@@ -16,57 +19,111 @@ let battleIntroWaveShown = null;
 function unlockBattleAudio() {
     battleAudioUnlocked = true;
     const AudioClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioClass || battleAudioContext) {
-        if (battleAudioContext && battleAudioContext.state === 'suspended') battleAudioContext.resume().catch(() => {});
+    if (!AudioClass) return;
+    if (battleAudioContext) {
+        if (battleAudioContext.state === 'suspended') battleAudioContext.resume().catch(() => {});
         return;
     }
     try {
         battleAudioContext = new AudioClass();
+        battleMasterGain = battleAudioContext.createGain();
+        battleMasterGain.gain.value = 0.62;
+        battleCompressor = battleAudioContext.createDynamicsCompressor();
+        battleCompressor.threshold.value = -18;
+        battleCompressor.knee.value = 16;
+        battleCompressor.ratio.value = 4;
+        battleCompressor.attack.value = 0.004;
+        battleCompressor.release.value = 0.18;
+        battleMasterGain.connect(battleCompressor);
+        battleCompressor.connect(battleAudioContext.destination);
+        battleNoiseBuffer = battleAudioContext.createBuffer(1, Math.floor(battleAudioContext.sampleRate * 0.45), battleAudioContext.sampleRate);
+        const samples = battleNoiseBuffer.getChannelData(0);
+        for (let i = 0; i < samples.length; i++) samples[i] = (Math.random() * 2 - 1) * (1 - i / samples.length * 0.35);
         if (battleAudioContext.state === 'suspended') battleAudioContext.resume().catch(() => {});
     } catch (error) {
         battleAudioContext = null;
+        battleMasterGain = null;
+        battleCompressor = null;
+        battleNoiseBuffer = null;
     }
 }
 document.addEventListener('pointerdown', unlockBattleAudio, { once: true, passive: true });
 
+function playBattleNoise(at, duration, peak, frequency) {
+    const audio = battleAudioContext;
+    if (!audio || !battleMasterGain || !battleNoiseBuffer) return;
+    const source = audio.createBufferSource();
+    const filter = audio.createBiquadFilter();
+    const gain = audio.createGain();
+    source.buffer = battleNoiseBuffer;
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(frequency, at);
+    filter.Q.value = 0.7;
+    gain.gain.setValueAtTime(0.0001, at);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), at + Math.min(0.012, duration * 0.22));
+    gain.gain.exponentialRampToValueAtTime(0.0001, at + duration);
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(battleMasterGain);
+    source.start(at);
+    source.stop(at + duration + 0.015);
+    source.onended = () => { try { source.disconnect(); filter.disconnect(); gain.disconnect(); } catch (error) {} };
+}
+
 function playBattleCue(kind) {
-    if (!battleSfxEnabled || !battleAudioUnlocked || !battleAudioContext) return;
+    if (!battleSfxEnabled || !battleAudioUnlocked || !battleAudioContext || !battleMasterGain) return;
     const audio = battleAudioContext;
     if (audio.state === 'suspended') audio.resume().catch(() => {});
+    const now = audio.currentTime;
+    const cooldowns = { shot: 0.075, impact: 0.055, ui: 0.035, towerHit: 0.18 };
+    const cooldown = cooldowns[kind] || 0;
+    if (cooldown && now - (battleCueLastAt[kind] || -Infinity) < cooldown) return;
+    battleCueLastAt[kind] = now;
     const patterns = {
-        wave: [{ f: 392, t: 'sine', d: .12, at: 0, v: .045 }, { f: 587.33, t: 'triangle', d: .2, at: .09, v: .035 }],
-        critical: [{ f: 196, t: 'square', d: .16, at: 0, v: .022 }, { f: 293.66, t: 'triangle', d: .19, at: .13, v: .038 }, { f: 440, t: 'sine', d: .24, at: .31, v: .032 }],
-        reward: [{ f: 659.25, t: 'sine', d: .13, at: 0, v: .027 }, { f: 880, t: 'triangle', d: .16, at: .12, v: .032 }, { f: 1174.66, t: 'sine', d: .25, at: .25, v: .027 }],
-        clear: [{ f: 523.25, t: 'triangle', d: .16, at: 0, v: .04 }, { f: 659.25, t: 'sine', d: .18, at: .1, v: .04 }, { f: 783.99, t: 'sine', d: .28, at: .2, v: .035 }],
-        boss: [{ f: 92.5, t: 'sawtooth', d: .42, at: 0, v: .055 }, { f: 138.59, t: 'triangle', d: .36, at: .16, v: .045 }, { f: 207.65, t: 'sine', d: .26, at: .32, v: .03 }],
-        bossKill: [{ f: 392, t: 'triangle', d: .14, at: 0, v: .04 }, { f: 523.25, t: 'sine', d: .18, at: .1, v: .045 }, { f: 783.99, t: 'triangle', d: .32, at: .2, v: .04 }, { f: 1046.5, t: 'sine', d: .25, at: .32, v: .025 }]
+        wave: [{ f: 392, t: 'sine', d: .14, at: 0, v: .035 }, { f: 587.33, t: 'triangle', d: .23, at: .085, v: .03 }, { f: 783.99, t: 'sine', d: .28, at: .17, v: .018 }],
+        critical: [{ f: 196, t: 'square', d: .16, at: 0, v: .018 }, { f: 293.66, t: 'triangle', d: .19, at: .13, v: .032 }, { f: 440, t: 'sine', d: .24, at: .31, v: .028 }],
+        reward: [{ f: 659.25, t: 'sine', d: .13, at: 0, v: .025 }, { f: 880, t: 'triangle', d: .16, at: .12, v: .029 }, { f: 1174.66, t: 'sine', d: .25, at: .25, v: .024 }],
+        clear: [{ f: 523.25, t: 'triangle', d: .16, at: 0, v: .032 }, { f: 659.25, t: 'sine', d: .18, at: .1, v: .032 }, { f: 783.99, t: 'sine', d: .28, at: .2, v: .027 }],
+        boss: [{ f: 92.5, t: 'sawtooth', d: .42, at: 0, v: .034 }, { f: 138.59, t: 'triangle', d: .36, at: .16, v: .03 }, { f: 207.65, t: 'sine', d: .26, at: .32, v: .023 }],
+        bossKill: [{ f: 392, t: 'triangle', d: .14, at: 0, v: .032 }, { f: 523.25, t: 'sine', d: .18, at: .1, v: .034 }, { f: 783.99, t: 'triangle', d: .32, at: .2, v: .03 }, { f: 1046.5, t: 'sine', d: .25, at: .32, v: .02 }],
+        shot: [{ f: 760, t: 'triangle', d: .045, at: 0, v: .012 }, { f: 310, t: 'sine', d: .065, at: .008, v: .009 }],
+        impact: [{ f: 175, t: 'triangle', d: .075, at: 0, v: .013 }, { f: 92, t: 'sine', d: .085, at: .012, v: .008 }],
+        towerHit: [{ f: 110, t: 'sawtooth', d: .19, at: 0, v: .025 }, { f: 73.4, t: 'sine', d: .22, at: .035, v: .027 }],
+        upgrade: [{ f: 440, t: 'sine', d: .12, at: 0, v: .026 }, { f: 659.25, t: 'triangle', d: .15, at: .075, v: .028 }, { f: 880, t: 'sine', d: .2, at: .15, v: .024 }],
+        ui: [{ f: 620, t: 'sine', d: .035, at: 0, v: .007 }],
+        lootbox: [{ f: 330, t: 'triangle', d: .12, at: 0, v: .022 }, { f: 494, t: 'sine', d: .13, at: .08, v: .024 }, { f: 740, t: 'triangle', d: .19, at: .17, v: .027 }, { f: 988, t: 'sine', d: .23, at: .26, v: .02 }]
     };
     const notes = patterns[kind];
     if (!notes) return;
     try {
-        const now = audio.currentTime;
         notes.forEach(note => {
             const osc = audio.createOscillator();
             const gain = audio.createGain();
             const start = now + note.at;
-            const end = start + note.d;
+            const finish = start + note.d;
             osc.type = note.t;
             osc.frequency.setValueAtTime(note.f, start);
-            if (kind === 'boss') osc.frequency.exponentialRampToValueAtTime(Math.max(35, note.f * .72), end);
-            gain.gain.setValueAtTime(.0001, start);
-            gain.gain.exponentialRampToValueAtTime(note.v, start + Math.min(.035, note.d * .25));
-            gain.gain.exponentialRampToValueAtTime(.0001, end);
+            if (kind === 'boss') osc.frequency.exponentialRampToValueAtTime(Math.max(35, note.f * .72), finish);
+            if (kind === 'shot') osc.frequency.exponentialRampToValueAtTime(Math.max(80, note.f * .58), finish);
+            gain.gain.setValueAtTime(0.0001, start);
+            gain.gain.exponentialRampToValueAtTime(note.v, start + Math.min(.018, note.d * .28));
+            gain.gain.exponentialRampToValueAtTime(0.0001, finish);
             osc.connect(gain);
-            gain.connect(audio.destination);
+            gain.connect(battleMasterGain);
             osc.start(start);
-            osc.stop(end + .02);
+            osc.stop(finish + .02);
             osc.onended = () => { try { osc.disconnect(); gain.disconnect(); } catch (error) {} };
         });
+        if (kind === 'shot') playBattleNoise(now, .055, .006, 2800);
+        else if (kind === 'impact') playBattleNoise(now, .085, .012, 1250);
+        else if (kind === 'towerHit') playBattleNoise(now, .19, .022, 520);
+        else if (kind === 'boss') playBattleNoise(now, .34, .018, 260);
+        else if (kind === 'bossKill') playBattleNoise(now, .18, .009, 1800);
+        else if (kind === 'lootbox') playBattleNoise(now + .12, .16, .006, 3200);
     } catch (error) {
-        // Sound is optional; a browser audio limitation must never interrupt gameplay.
+        // Sound is optional; browser audio limitations must never interrupt gameplay.
     }
 }
-
 function toggleBattleSfx() {
     battleSfxEnabled = !battleSfxEnabled;
     const button = document.getElementById('battle-sfx-toggle');
