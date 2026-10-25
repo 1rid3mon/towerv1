@@ -98,6 +98,10 @@ Chapter 02 follows the commander and the newly awakened companion below the stat
 | Optional logs / quiet moments | 10–20 min |
 | **Chapter 02 total** | **About 2–2.5 hours** |
 
+## Long-term arc
+
+Chapter 02 ends with the lower archive opening and a distant purple signal answering the cyan pulse. The companion does **not** evolve into purple here; that transformation is reserved for Chapter 03 after the cyan form has been used for a substantial stretch. Chapter 03 also contains the late-campaign tower transformation, where the companion retains consciousness but communicates differently. See [Chapter 03 — The Shape of Memory](STORY_CHAPTER_03.md).
+
 ## Production gates
 
 - Do not begin full production of every mission before the Chapter 01 prototype has passed a complete playthrough.
