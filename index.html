@@ -615,7 +615,7 @@
 .story-mission-status.is-locked{color:#94a3b8}
 .story-deploy{width:100%;margin-top:10px;min-height:42px}
 .story-deploy:disabled{opacity:.55;cursor:default}
-#story-battle-hud{position:fixed;z-index:35;top:78px;left:50%;transform:translateX(-50%);width:min(540px,calc(100% - 20px));pointer-events:none}
+#story-battle-hud{position:fixed;z-index:35;top:78px;left:50%;transform:translateX(-50%);width:min(540px,calc(100% - 20px));max-height:calc(100dvh - 90px);overflow:auto;overscroll-behavior:contain;pointer-events:none}
 #story-battle-hud[hidden]{display:none}
 .story-battle-panel{pointer-events:auto;border:1px solid rgba(103,232,249,.38);border-radius:15px;padding:12px 14px;background:linear-gradient(130deg,rgba(3,20,38,.96),rgba(30,27,75,.92));box-shadow:0 10px 35px rgba(0,0,0,.32);backdrop-filter:blur(12px)}
 .story-battle-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#a5f3fc;font-size:10px;font-weight:900;letter-spacing:.12em}
