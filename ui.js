@@ -3363,7 +3363,9 @@ const STORY_UI_COPY = {
  mission1tag:['GÖREV 01','MISSION 01'], mission1title:['Savunmayı etkinleştir','Activate the defense'],
  mission1desc:['Kule çekirdeğini çevrimiçi duruma getir ve istasyonun savunma protokolünü öğren.','Bring the tower core online and learn the station’s defense protocol.'],
  mission2tag:['GÖREV 02','MISSION 02'], mission2title:['İlk temas','First contact'],
- mission2desc:['Bilinmeyen düşmanların ilk saldırısına karşı koy.','Hold back the first attack from unknown enemies.'],
+ mission2desc:['Devriye saldırısını durdur, ardından üç sinyal izini tara.','Stop the patrol, then scan three signal traces.'],
+ mission3tag:['GÖREV 03','MISSION 03'], mission3title:['Sinyalin kaynağı','Source of the signal'],
+ mission3desc:['Savaş sonrasında çekirdeğin kaydettiği gizemli sinyali araştır.','Investigate the mysterious signal recorded by the core after the battle.'],
  mission3tag:['GÖREV 03','MISSION 03'], mission3title:['Sinyalin kaynağı','Source of the signal'],
  mission3desc:['Savaş sonrasında çekirdeğin kaydettiği gizemli sinyali araştır.','Investigate the mysterious signal recorded by the core after the battle.'],
  nextstep:['Sıradaki adım','Next step'], nextdesc:['Mavi görüntü, yoldaşın kayıp hafızasından sızan bozuk bir yankı. Gerçek yoldaş ise çekirdeğin yanında uyanan güçsüz bir bakım birimi. Hikâye ilerledikçe onun neye dönüşebileceğini keşfedeceksin.','The blue image is a corrupted echo leaking from the companion’s lost memory. The real companion is a powerless maintenance unit waking beside the core. As the story unfolds, you will discover what it can become.'],
@@ -3378,8 +3380,8 @@ let storyMissionViewOpen = false;
 function getStoryProgress() {
     try {
         const saved = JSON.parse(localStorage.getItem(STORY_PROGRESS_KEY) || '{}');
-        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Number(saved.chapter) || 1), mission1Complete: saved.mission1Complete === true };
-    } catch (_) { return { introSeen: false, chapter: 1, mission1Complete: false }; }
+        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Number(saved.chapter) || 1), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true };
+    } catch (_) { return { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false }; }
 }
 function saveStoryProgress(patch) {
     try { localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify({ ...getStoryProgress(), ...patch, updatedAt: Date.now() })); } catch (_) {}
@@ -3429,31 +3431,43 @@ function showStoryMissionBriefing() {
 window.__storyBattle = window.__storyBattle || { active: false };
 function updateStoryMissionBoard() {
     const progress = getStoryProgress();
-    const start = document.getElementById('story-start-mission1');
-    const status = document.getElementById('story-mission-1-status');
-    if (start) {
-        start.disabled = progress.mission1Complete;
-        start.textContent = progress.mission1Complete
-            ? (storyLanguage() === 'en' ? 'MISSION COMPLETE ✓' : 'GÖREV TAMAMLANDI ✓')
-            : (storyLanguage() === 'en' ? 'DEPLOY →' : 'GÖREVE BAŞLA →');
+    const en = storyLanguage() === 'en';
+    const m1 = document.getElementById('story-start-mission1');
+    const s1 = document.getElementById('story-mission-1-status');
+    if (m1) {
+        m1.disabled = progress.mission1Complete;
+        m1.textContent = progress.mission1Complete ? (en ? 'MISSION COMPLETE ✓' : 'GÖREV TAMAMLANDI ✓') : (en ? 'DEPLOY →' : 'GÖREVE BAŞLA →');
     }
-    if (status) status.textContent = progress.mission1Complete
-        ? (storyLanguage() === 'en' ? 'CORE STABLE' : 'ÇEKİRDEK GÜVENDE')
-        : (storyLanguage() === 'en' ? 'PLAYABLE MISSION' : 'OYNANABİLİR GÖREV');
+    if (s1) s1.textContent = progress.mission1Complete ? (en ? 'CORE STABLE' : 'ÇEKİRDEK GÜVENDE') : (en ? 'PLAYABLE MISSION' : 'OYNANABİLİR GÖREV');
+    const m2 = document.getElementById('story-start-mission2');
+    const s2 = document.getElementById('story-mission-2-status');
+    if (m2) {
+        m2.disabled = !progress.mission1Complete || progress.mission2Complete;
+        m2.textContent = progress.mission2Complete ? (en ? 'MISSION COMPLETE ✓' : 'GÖREV TAMAMLANDI ✓') : (en ? 'DEPLOY →' : 'GÖREVE BAŞLA →');
+    }
+    if (s2) {
+        s2.classList.toggle('is-locked', !progress.mission1Complete && !progress.mission2Complete);
+        s2.textContent = progress.mission2Complete ? (en ? 'SIGNAL TRACES RECOVERED' : 'SİNYAL İZLERİ KURTARILDI')
+            : (progress.mission1Complete ? (en ? 'PLAYABLE MISSION' : 'OYNANABİLİR GÖREV')
+            : (en ? 'LOCKED · COMPLETE MISSION 01' : 'KİLİTLİ · 1. GÖREVİ TAMAMLA'));
+    }
     document.querySelectorAll('.story-mission-status.is-locked').forEach(node => {
-        node.textContent = storyLanguage() === 'en' ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
+        if (node.id !== 'story-mission-2-status') node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
     });
 }
 function storyDeepCopy(value) { return JSON.parse(JSON.stringify(value)); }
 function startStoryMission(missionNumber = 1) {
-    if (missionNumber !== 1 || getStoryProgress().mission1Complete) return;
+    const progress = getStoryProgress();
+    if (missionNumber === 1 && progress.mission1Complete) return;
+    if (missionNumber === 2 && (!progress.mission1Complete || progress.mission2Complete)) return;
+    if (missionNumber !== 1 && missionNumber !== 2) return;
     if (!updateStoryUnlockUI()) {
         showToast(storyLanguage() === 'en' ? 'Clear 25 waves in Endless Mode first.' : 'Önce Sonsuz Mod’da 25 dalgayı tamamlamalısın.');
         return;
     }
     if (window.__storyBattle.active) return;
     const session = {
-        active: true, completed: false, mission: 1,
+        active: true, completed: false, mission: missionNumber, phase: 'combat', scans: 0,
         snapshot: {
             game: storyDeepCopy(game), tower: storyDeepCopy(tower),
             enemies: storyDeepCopy(enemies), projectiles: storyDeepCopy(projectiles),
@@ -3468,7 +3482,7 @@ function startStoryMission(missionNumber = 1) {
     window.__storyBattle = session;
     game = getDefaultState();
     game.wave = 1; game.highestWave = 1; game.gold = 180;
-    game.waveKills = 0; game.waveTargetKills = 8; game.holdWave = false;
+    game.waveKills = 0; game.waveTargetKills = missionNumber === 1 ? 8 : 5; game.holdWave = false;
     game.upgrades.damage = 3; game.upgrades.attackSpeed = 2; game.upgrades.range = 3;
     game.settings.activeTheme = 'space';
     tower = {
@@ -3488,47 +3502,97 @@ function startStoryMission(missionNumber = 1) {
     const hud = document.getElementById('story-battle-hud');
     if (hud) { hud.hidden = false; hud.classList.add('is-active'); }
     const status = document.getElementById('story-battle-status');
-    if (status) status.textContent = storyLanguage() === 'en'
-        ? 'OBJECTIVE: Defeat 8 hostiles and stabilize the core.'
-        : 'GÖREV: 8 düşmanı durdur ve çekirdeği güvene al.';
+    if (status) status.textContent = missionNumber === 1
+        ? (storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 8 hostiles and stabilize the core.' : 'GÖREV: 8 düşmanı durdur ve çekirdeği güvene al.')
+        : (storyLanguage() === 'en' ? 'OBJECTIVE: Stop 5 patrol units, then scan 3 signal traces.' : 'GÖREV: 5 devriye birimini durdur, ardından 3 sinyal izini tara.');
+    const action = document.getElementById('story-scan-action');
+    if (action) action.hidden = true;
     const companionChip = document.getElementById('story-companion-chip');
     const companionIcon = document.getElementById('story-companion-icon');
     const companionState = document.getElementById('story-companion-state');
     if (companionChip) companionChip.classList.remove('is-synced');
     if (companionIcon) companionIcon.textContent = '⚙';
-    if (companionState) companionState.textContent = storyLanguage() === 'en'
-        ? 'LOW POWER · LINKING TO CORE' : 'DÜŞÜK GÜÇ · ÇEKİRDEĞE BAĞLANIYOR';
+    if (companionState) companionState.textContent = missionNumber === 1
+        ? (storyLanguage() === 'en' ? 'LOW POWER · LINKING TO CORE' : 'DÜŞÜK GÜÇ · ÇEKİRDEĞE BAĞLANIYOR')
+        : (storyLanguage() === 'en' ? 'SCANNING SUPPORT · LOW POWER' : 'TARAMA DESTEĞİ · DÜŞÜK GÜÇ');
     const exit = document.getElementById('story-battle-exit');
     if (exit) exit.textContent = storyLanguage() === 'en' ? 'ABORT MISSION' : 'GÖREVDEN ÇIK';
     if (typeof resizeCanvas === 'function') resizeCanvas();
     if (typeof updateHUD === 'function') updateHUD();
     if (typeof refreshUpgradeButtonsState === 'function') refreshUpgradeButtonsState();
     if (typeof updateHoldWaveButton === 'function') updateHoldWaveButton();
-    showToast(storyLanguage() === 'en'
-        ? 'Lost Signal · Mission 01. Your core fires automatically; use the upgrade panel if you need more power.'
-        : 'Kayıp Sinyal · Görev 01. Çekirdeğin otomatik ateş ediyor; gerekirse yükseltme panelini kullan.');
+    showToast(missionNumber === 1
+        ? (storyLanguage() === 'en' ? 'Lost Signal · Mission 01. Your core fires automatically; use the upgrade panel if needed.' : 'Kayıp Sinyal · Görev 01. Çekirdeğin otomatik ateş ediyor; gerekirse yükseltme panelini kullan.')
+        : (storyLanguage() === 'en' ? 'Mission 02 · Clear the patrol. The companion will help scan the signal traces.' : 'Görev 02 · Devriyeyi durdur. Yoldaş sinyal izlerini taramana yardım edecek.'));
 }
 function finishStoryBattleEncounter() {
     const session = window.__storyBattle;
     if (!session || !session.active || session.completed) return;
+    if (session.mission === 2 && session.phase === 'combat') {
+        session.phase = 'scan';
+        isPaused = true;
+        enemies = []; projectiles = [];
+        const status = document.getElementById('story-battle-status');
+        if (status) status.textContent = storyLanguage() === 'en'
+            ? 'PATROL CLEARED · Scan the three signal traces. The companion has marked the first trace.'
+            : 'DEVRİYE TEMİZLENDİ · Üç sinyal izini tara. Yoldaş ilk izi işaretledi.';
+        const action = document.getElementById('story-scan-action');
+        if (action) { action.hidden = false; action.textContent = storyLanguage() === 'en' ? 'SCAN TRACE 1 / 3' : 'SİNYAL İZİNİ TARA 1 / 3'; }
+        showToast(storyLanguage() === 'en' ? 'Patrol cleared. Follow the companion’s scan markers.' : 'Devriye temizlendi. Yoldaşın tarama işaretlerini takip et.');
+        return;
+    }
     session.completed = true;
     isPaused = true;
     enemies = []; projectiles = [];
-    saveStoryProgress({ introSeen: true, chapter: 1, mission1Complete: true });
+    if (session.mission === 1) {
+        saveStoryProgress({ introSeen: true, chapter: 1, mission1Complete: true });
+    } else if (session.mission === 2) {
+        saveStoryProgress({ introSeen: true, chapter: 1, mission2Complete: true });
+    }
     const status = document.getElementById('story-battle-status');
-    if (status) status.textContent = storyLanguage() === 'en'
-        ? 'MISSION COMPLETE · The core is stable. The maintenance companion has synchronized with you; one signal fragment recovered.'
-        : 'GÖREV TAMAMLANDI · Çekirdek güvende. Bakım yoldaşı seninle eşitlendi; sinyalin bir parçası kurtarıldı.';
+    if (status) status.textContent = session.mission === 1
+        ? (storyLanguage() === 'en'
+            ? 'MISSION COMPLETE · The core is stable. The maintenance companion has synchronized with you; one signal fragment recovered.'
+            : 'GÖREV TAMAMLANDI · Çekirdek güvende. Bakım yoldaşı seninle eşitlendi; sinyalin bir parçası kurtarıldı.')
+        : (storyLanguage() === 'en'
+            ? 'MISSION COMPLETE · Three traces recovered. One timestamp predates the station shutdown.'
+            : 'GÖREV TAMAMLANDI · Üç iz kurtarıldı. Zaman damgalarından biri istasyonun kapanmasından daha eski.');
+    const action = document.getElementById('story-scan-action');
+    if (action) action.hidden = true;
     const companionChip = document.getElementById('story-companion-chip');
     const companionIcon = document.getElementById('story-companion-icon');
     const companionState = document.getElementById('story-companion-state');
-    if (companionChip) companionChip.classList.add('is-synced');
-    if (companionIcon) companionIcon.textContent = '✦';
-    if (companionState) companionState.textContent = storyLanguage() === 'en'
-        ? 'SYNC ESTABLISHED · MEMORY FRAGMENT FOUND' : 'BAĞLANTI KURULDU · HAFIZA PARÇASI BULUNDU';
+    if (session.mission === 1) {
+        if (companionChip) companionChip.classList.add('is-synced');
+        if (companionIcon) companionIcon.textContent = '✦';
+        if (companionState) companionState.textContent = storyLanguage() === 'en'
+            ? 'SYNC ESTABLISHED · MEMORY FRAGMENT FOUND' : 'BAĞLANTI KURULDU · HAFIZA PARÇASI BULUNDU';
+    } else if (companionState) {
+        companionState.textContent = storyLanguage() === 'en' ? '3 TRACES STORED · TIMESTAMP MISMATCH' : '3 İZ KAYDEDİLDİ · ZAMAN DAMGASI UYUŞMAZLIĞI';
+    }
     const exit = document.getElementById('story-battle-exit');
     if (exit) exit.textContent = storyLanguage() === 'en' ? 'CONTINUE' : 'DEVAM ET';
-    showToast(storyLanguage() === 'en' ? 'Mission 01 complete. Story progress saved separately.' : '1. görev tamamlandı. Hikâye ilerlemesi ayrı kaydedildi.');
+    showToast(session.mission === 1
+        ? (storyLanguage() === 'en' ? 'Mission 01 complete. Story progress saved separately.' : '1. görev tamamlandı. Hikâye ilerlemesi ayrı kaydedildi.')
+        : (storyLanguage() === 'en' ? 'Mission 02 complete. Signal traces saved separately.' : '2. görev tamamlandı. Sinyal izleri ayrı kaydedildi.'));
+}
+function scanStorySignal() {
+    const session = window.__storyBattle;
+    if (!session || !session.active || session.mission !== 2 || session.phase !== 'scan' || session.completed) return;
+    session.scans = Math.min(3, (session.scans || 0) + 1);
+    const en = storyLanguage() === 'en';
+    if (session.scans >= 3) {
+        finishStoryBattleEncounter();
+        return;
+    }
+    const action = document.getElementById('story-scan-action');
+    if (action) action.textContent = en ? 'SCAN TRACE ' + (session.scans + 1) + ' / 3' : 'SİNYAL İZİNİ TARA ' + (session.scans + 1) + ' / 3';
+    const status = document.getElementById('story-battle-status');
+    const clues = en
+        ? ['Trace 1: a weak pulse repeats every 4.2 seconds.', 'Trace 2: the signal timestamp is older than the shutdown log.']
+        : ['İz 1: zayıf bir sinyal her 4,2 saniyede bir tekrarlanıyor.', 'İz 2: sinyalin zaman damgası kapanış kaydından daha eski.'];
+    if (status) status.textContent = clues[session.scans - 1] + (en ? ' Continue scanning.' : ' Taramaya devam et.');
+    showToast(en ? 'Signal trace recovered (' + session.scans + '/3).' : 'Sinyal izi kurtarıldı (' + session.scans + '/3).');
 }
 function exitStoryBattle(toMainMenu = false) {
     const session = window.__storyBattle;
@@ -3538,7 +3602,7 @@ function exitStoryBattle(toMainMenu = false) {
     particles = s.particles; floatingTexts = s.floatingTexts; lightningBeams = s.lightningBeams;
     rings = s.rings; cargoDrones = s.cargoDrones;
     spawnTimer = s.spawnTimer; playTimeAccum = s.playTimeAccum; waveFrostSpawns = s.waveFrostSpawns;
-    cargoSpawnTimer = s.cargoSpawnTimer; gameSpeed = s.gameSpeed; isPaused = true;
+    cargoSpawnTimer = s.cargoSpawnTimer; gameSpeed = s.gameSpeed; isPaused = s.isPaused;
     isDefeated = s.isDefeated; defeatTimer = s.defeatTimer;
     document.body.dataset.gameMode = s.gameMode;
     window.__storyBattle = { active: false, completed: session.completed };
