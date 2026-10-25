@@ -982,6 +982,47 @@ function drawEnemyInkAccents(c, kind, r, faceAngle, isHit) {
     c.restore();
 }
 
+// V2.7: hand-drawn asymmetry and species-specific anatomy, using original Canvas paths.
+function drawCreaturePersonalityPass(c, e, kind, r, faceAngle, nowTime, isHit) {
+    if (r < 7) return;
+    const phase = Number.isFinite(e.animPhase) ? e.animPhase : 0;
+    const hit = isHit;
+    c.save(); c.rotate(faceAngle); c.lineJoin = 'round'; c.lineCap = 'round';
+    const stroke = hit ? '#fff' : (e.secColor || '#cbd5e1');
+    const fill = hit ? '#fff' : (e.color || '#475569');
+    c.strokeStyle = stroke; c.fillStyle = fill; c.lineWidth = Math.max(0.8, r * 0.045);
+    // Uneven fins, scars and protrusions break the clean, mirrored-icon look.
+    if (['green','default','default_cyber','normal'].includes(kind)) {
+        c.fillStyle = hit ? '#fff' : '#166534';
+        c.beginPath(); c.moveTo(-r*.42,-r*.40); c.quadraticCurveTo(-r*.83,-r*.78,-r*.92,-r*.34); c.lineTo(-r*.58,-r*.10); c.closePath(); c.fill(); c.stroke();
+        c.beginPath(); c.moveTo(-r*.40,r*.38); c.quadraticCurveTo(-r*.78,r*.76,-r*.94,r*.48); c.lineTo(-r*.58,r*.20); c.closePath(); c.fill(); c.stroke();
+        c.strokeStyle = hit ? '#fff' : 'rgba(20,83,45,.8)'; c.lineWidth = Math.max(1,r*.055);
+        c.beginPath(); c.moveTo(-r*.12,-r*.30); c.lineTo(r*.04,-r*.10); c.lineTo(-r*.02,r*.10); c.stroke();
+        c.fillStyle = hit ? '#fff' : '#bef264'; c.beginPath(); c.ellipse(-r*.20,-r*.47,r*.10,r*.055,-.5,0,Math.PI*2); c.fill();
+    } else if (kind.includes('tank')) {
+        c.fillStyle = hit ? '#fff' : '#475569';
+        c.beginPath(); c.moveTo(-r*.42,-r*.55); c.lineTo(-r*.12,-r*.74); c.lineTo(r*.03,-r*.48); c.lineTo(-r*.15,-r*.34); c.closePath(); c.fill(); c.stroke();
+        c.strokeStyle = hit ? '#fff' : 'rgba(15,23,42,.8)'; c.beginPath(); c.moveTo(-r*.28,-r*.25); c.lineTo(-r*.08,-r*.04); c.lineTo(-r*.22,r*.14); c.stroke();
+        c.fillStyle = hit ? '#fff' : '#0f172a'; c.beginPath(); c.moveTo(-r*.50,r*.26); c.lineTo(-r*.14,r*.22); c.lineTo(-r*.02,r*.48); c.lineTo(-r*.38,r*.56); c.closePath(); c.fill();
+    } else if (kind.includes('frost')) {
+        c.beginPath(); c.moveTo(-r*.42,-r*.42); c.lineTo(-r*.80,-r*.68); c.lineTo(-r*.64,-r*.22); c.closePath(); c.fill(); c.stroke();
+        c.strokeStyle = hit ? '#fff' : 'rgba(224,242,254,.9)'; c.beginPath(); c.moveTo(-r*.18,-r*.50); c.lineTo(-r*.02,-r*.20); c.lineTo(-r*.22,r*.02); c.lineTo(-r*.08,r*.28); c.stroke();
+    } else if (kind.includes('speed') || kind === 'runner') {
+        c.beginPath(); c.moveTo(-r*.36,-r*.32); c.lineTo(-r*(.96+Math.sin(phase)*.04),-r*.68); c.lineTo(-r*.64,-r*.14); c.closePath(); c.fill(); c.stroke();
+        c.beginPath(); c.moveTo(-r*.40,r*.25); c.lineTo(-r*.84,r*.66); c.lineTo(-r*.30,r*.49); c.closePath(); c.fill(); c.stroke();
+    } else if (kind.includes('ranged')) {
+        c.beginPath(); c.moveTo(-r*.32,-r*.35); c.quadraticCurveTo(-r*.72,-r*.84,-r*.86,-r*.48); c.stroke();
+        c.beginPath(); c.ellipse(-r*.85,-r*.48,r*.12,r*.085,-.4,0,Math.PI*2); c.fill();
+    } else if (kind === 'teleporter') {
+        c.globalAlpha = .78; c.beginPath(); c.moveTo(-r*.3,-r*.3); c.lineTo(-r*.76,-r*.62); c.lineTo(-r*.54,-r*.08); c.stroke();
+        c.beginPath(); c.moveTo(-r*.2,r*.25); c.lineTo(-r*.65,r*.58); c.lineTo(-r*.12,r*.46); c.stroke();
+    } else {
+        c.beginPath(); c.moveTo(-r*.42,-r*.42); c.lineTo(-r*(.72+Math.sin(phase)*.05),-r*.76); c.lineTo(-r*.18,-r*.30); c.closePath(); c.fill(); c.stroke();
+        c.strokeStyle = hit ? '#fff' : 'rgba(8,15,28,.65)'; c.beginPath(); c.moveTo(-r*.18,r*.08); c.lineTo(r*.02,r*.20); c.lineTo(-r*.04,r*.32); c.stroke();
+    }
+    c.restore();
+}
+
 function drawCustomEnemy(c, e, tx, ty, nowTime) {
     const r = e.radius;
     const isHit = e.hitFlash > 0;
@@ -1709,6 +1750,7 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
         }
     }
 
+    drawCreaturePersonalityPass(c, e, kind, r, faceAngle, nowTime, isHit);
     drawEnemyInkAccents(c, kind, r, faceAngle, isHit);
 
     // v1.1.0: elite enemies get their own silhouette and layered armor, not just a ring.
