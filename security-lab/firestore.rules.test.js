@@ -416,9 +416,12 @@ test("friend requests reject forged identities and unauthorized status changes",
     fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob",
     status: "accepted", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
   }));
+  // A valid recipient response preserves the original creation timestamp; only updatedAt changes.
+  const originalRequest = await getDoc(doc(alice, "friendRequests/alice_bob"));
+  const originalCreatedAt = originalRequest.data().createdAt;
   await assertSucceeds(setDoc(doc(bob, "friendRequests/alice_bob"), {
     fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob",
-    status: "accepted", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    status: "accepted", createdAt: originalCreatedAt, updatedAt: serverTimestamp()
   }));
 });
 
