@@ -3114,6 +3114,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let pointerStart = null;
     let moved = false;
     let hideBubbleTimer = null;
+    let dragFrame = 0;
+    let pendingPointer = null;
     const defaultLines = [
         'Savunma hattı bende, komutan!',
         'Bir sonraki hamleni merak ediyorum.',
@@ -3161,7 +3163,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function syncMascot() {
         const skin = getTowerSkin();
-        // Maskot kendi karakterini korur; replikleri kuşanılan kule skinine göre değişir.
         face.textContent = '🛸';
         mascot.setAttribute('aria-label', 'Taktik maskot — ' + skin.def.name + ' skinine tepki vermek için dokun');
         mascot.title = 'Taktik maskot · ' + skin.def.name;
@@ -3187,39 +3188,72 @@ document.addEventListener('DOMContentLoaded', () => {
         hideBubbleTimer = setTimeout(() => bubble.classList.remove('is-visible'), 2600);
     }
 
+    function applyDragPosition() {
+        dragFrame = 0;
+        if (!pointerStart || !pendingPointer) return;
+        const dx = pendingPointer.x - pointerStart.x;
+        const dy = pendingPointer.y - pointerStart.y;
+        const maxLeft = Math.max(0, window.innerWidth - mascot.offsetWidth);
+        const maxTop = Math.max(0, window.innerHeight - mascot.offsetHeight);
+        const left = Math.max(0, Math.min(maxLeft, pointerStart.left + dx));
+        const top = Math.max(0, Math.min(maxTop, pointerStart.top + dy));
+        mascot.style.transform = 'translate3d(' + (left - pointerStart.left) + 'px,' + (top - pointerStart.top) + 'px,0)';
+    }
+
     mascot.addEventListener('pointerdown', (event) => {
         if (event.button !== undefined && event.button !== 0) return;
         event.preventDefault();
         const rect = mascot.getBoundingClientRect();
         pointerStart = { x: event.clientX, y: event.clientY, left: rect.left, top: rect.top };
         moved = false;
+        pendingPointer = { x: event.clientX, y: event.clientY };
+        // Disable the idle animation before measuring movement so its transform
+        // cannot fight the user's finger or make the mascot appear to jitter.
+        mascot.style.animation = 'none';
+        mascot.style.left = rect.left + 'px';
+        mascot.style.top = rect.top + 'px';
+        mascot.style.right = 'auto';
+        mascot.style.bottom = 'auto';
+        mascot.style.transform = 'translate3d(0,0,0)';
+        mascot.classList.remove('mascot-react');
         mascot.setPointerCapture?.(event.pointerId);
     });
     mascot.addEventListener('pointermove', (event) => {
         if (!pointerStart) return;
+        pendingPointer = { x: event.clientX, y: event.clientY };
         const dx = event.clientX - pointerStart.x;
         const dy = event.clientY - pointerStart.y;
-        if (!moved && Math.hypot(dx, dy) > 7) {
+        if (!moved && Math.hypot(dx, dy) > 5) {
             moved = true;
             mascot.classList.add('is-dragging');
-            mascot.style.left = pointerStart.left + 'px';
-            mascot.style.top = pointerStart.top + 'px';
-            mascot.style.right = 'auto';
-            mascot.style.bottom = 'auto';
         }
-        if (moved) {
+        if (moved && !dragFrame) dragFrame = requestAnimationFrame(applyDragPosition);
+    });
+    function finishPointer(event) {
+        if (!pointerStart) return;
+        if (event && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
+            pendingPointer = { x: event.clientX, y: event.clientY };
+        }
+        if (dragFrame) {
+            cancelAnimationFrame(dragFrame);
+            dragFrame = 0;
+            if (moved) applyDragPosition();
+        }
+        const wasDragged = moved;
+        if (wasDragged) {
+            const dx = pendingPointer.x - pointerStart.x;
+            const dy = pendingPointer.y - pointerStart.y;
             const maxLeft = Math.max(0, window.innerWidth - mascot.offsetWidth);
             const maxTop = Math.max(0, window.innerHeight - mascot.offsetHeight);
             mascot.style.left = Math.max(0, Math.min(maxLeft, pointerStart.left + dx)) + 'px';
             mascot.style.top = Math.max(0, Math.min(maxTop, pointerStart.top + dy)) + 'px';
+            mascot.style.transform = 'translate3d(0,0,0)';
         }
-    });
-    function finishPointer() {
-        if (!pointerStart) return;
-        const wasDragged = moved;
         pointerStart = null;
+        pendingPointer = null;
         moved = false;
         mascot.classList.remove('is-dragging');
+        mascot.style.animation = '';
         if (!wasDragged) react();
     }
     mascot.addEventListener('pointerup', finishPointer);
