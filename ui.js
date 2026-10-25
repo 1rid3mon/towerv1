@@ -3713,6 +3713,12 @@ function finishStoryBattleEncounter() {
         setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Ben… bunu daha önce yaptım. Bu ışık benim değil. Bu ışık benim hatırladığım şey.','I… have done this before. This light is not mine. It is what I remember.');
         setAction('story-awaken-action', true);
         setAction('story-pulse-action', false);
+        const companionChip = document.getElementById('story-companion-chip');
+        const companionIcon = document.getElementById('story-companion-icon');
+        const companionState = document.getElementById('story-companion-state');
+        if (companionChip) companionChip.classList.add('is-synced');
+        if (companionIcon) companionIcon.textContent = '✦';
+        if (companionState) companionState.textContent = en ? 'CYAN FORM · SIGNAL STABLE' : 'CAMGÖBEĞİ FORM · SİNYAL KARARLI';
         return;
     }
     if (session.mission === 9 && session.phase === 'pulseTest') {
