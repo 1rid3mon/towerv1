@@ -1085,6 +1085,13 @@ function openLootbox(count) {
     if (refundCrystals > 0) game.crystals += refundCrystals;
     buildInventoryUI(); updateHUD(); saveGame(true);
     startLootboxModalAnimation('item', count, droppedEntries, refundCrystals);
+    if (typeof window.pikoReactEvent === 'function') {
+        const bestRarity = droppedEntries.reduce((best, entry) => {
+            const rank = { rare: 0, super_rare: 1, epic: 2, mythic: 3, legendary: 4 };
+            return (rank[entry.data?.rarity] || 0) > (rank[best] || 0) ? entry.data?.rarity : best;
+        }, 'rare');
+        window.pikoReactEvent('lootbox', { kind: 'item', count, rarity: bestRarity });
+    }
 }
 
 function openSkinBox(count) {
@@ -1128,6 +1135,13 @@ function openSkinBox(count) {
     if (refundCrystals > 0) game.crystals += refundCrystals;
     buildInventoryUI(); updateHUD(); saveGame(true);
     startLootboxModalAnimation('skin', count, droppedEntries, refundCrystals);
+    if (typeof window.pikoReactEvent === 'function') {
+        const bestRarity = droppedEntries.reduce((best, entry) => {
+            const rank = { rare: 0, super_rare: 1, epic: 2, mythic: 3, legendary: 4 };
+            return (rank[entry.data?.rarity] || 0) > (rank[best] || 0) ? entry.data?.rarity : best;
+        }, 'rare');
+        window.pikoReactEvent('lootbox', { kind: 'tower-skin', count, rarity: bestRarity });
+    }
 }
 
 function openCompanionSkinBox(count) {
@@ -1171,6 +1185,13 @@ function openCompanionSkinBox(count) {
     if (refundCrystals > 0) game.crystals += refundCrystals;
     buildInventoryUI(); buildCompanionsUI(); updateHUD(); saveGame(true);
     startLootboxModalAnimation('compskin', count, droppedEntries, refundCrystals);
+    if (typeof window.pikoReactEvent === 'function') {
+        const bestRarity = droppedEntries.reduce((best, entry) => {
+            const rank = { rare: 0, super_rare: 1, epic: 2, mythic: 3, legendary: 4 };
+            return (rank[entry.data?.rarity] || 0) > (rank[best] || 0) ? entry.data?.rarity : best;
+        }, 'rare');
+        window.pikoReactEvent('lootbox', { kind: 'companion-skin', count, rarity: bestRarity });
+    }
 }
 
 function startLootboxModalAnimation(boxType, count, entries, refundCrystals) {
@@ -3628,6 +3649,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const economyKeys = ['goldBonus', 'waveGold', 'crystalChance', 'interest'];
             lines = attackKeys.includes(key) ? lang.attack : defenseKeys.includes(key) ? lang.defense : economyKeys.includes(key) ? lang.economy : lang.upgrade;
             if (detail && detail.name) lines = [english ? 'Upgrade confirmed: ' + detail.name + '. Let us see the payoff.' : 'Yükseltme onaylandı: ' + detail.name + '. Şimdi etkisini görelim.', ...lines];
+        } else if (type === 'lootbox') {
+            const rarity = detail && detail.rarity;
+            const kind = detail && detail.kind;
+            const count = detail && Number.isInteger(detail.count) ? detail.count : 1;
+            const itemName = kind === 'tower-skin' ? (english ? 'tower skin' : 'kule skini')
+                : kind === 'companion-skin' ? (english ? 'companion skin' : 'yoldaş skini')
+                : (english ? 'equipment' : 'eşya');
+            if (rarity === 'legendary' || rarity === 'mythic') {
+                lines = english
+                    ? ['Whoa—' + rarity + ' signal detected! That ' + itemName + ' is not ordinary loot, commander.', 'My scanners just lit up. A ' + rarity + ' find! Please tell me you saw that too.']
+                    : ['Dur bir saniye—' + rarity + ' sinyali algıladım! Bu ' + itemName + ' sıradan bir ganimet değil komutan.', 'Tarayıcılarım parladı. ' + rarity + ' ganimet! Lütfen bunu sen de gördün.'];
+            } else if (rarity === 'epic' || rarity === 'super_rare') {
+                lines = english
+                    ? ['A promising signal in that ' + itemName + ' crate. Not bad, commander.', 'I logged the ' + rarity + ' result. The crate was worth opening.']
+                    : ['Bu ' + itemName + ' sandığında umut verici bir sinyal var. Fena değil komutan.', rarity + ' sonucu kaydettim. Sandığı açmaya değdi.'];
+            } else {
+                lines = english
+                    ? [count > 1 ? 'Multiple crates opened. I counted every result—someone has to stay organized.' : 'Crate opened. I am checking the contents now.', 'I logged the new drop. Let us see how it fits the build.']
+                    : [count > 1 ? 'Birden fazla sandık açıldı. Her sonucu saydım; düzeni korumak birinin işi.' : 'Sandık açıldı. İçindekileri tarıyorum.', 'Yeni ganimeti kaydettim. Bakalım dizilimimize nasıl uyacak.'];
+            }
         } else if (type === 'wave') lines = lang.newWave;
         else if (type === 'danger') lines = lang.lowGold;
         showLine(chooseLine(lines));
