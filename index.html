@@ -570,6 +570,8 @@
 
     
 /* Chapter One story experience — presentation layer only. */
+#mode-story-button.story-locked{opacity:.88}
+#mode-story-button.story-locked .mode-menu-icon{filter:grayscale(.35)}
 #story-mode-screen{position:fixed;inset:0;z-index:90;display:none;overflow-y:auto;overscroll-behavior:contain;background:radial-gradient(ellipse at 50% 0%,rgba(8,145,178,.18),transparent 52%),linear-gradient(150deg,#030712 0%,#071426 52%,#020617 100%);color:#e2e8f0;padding:max(16px,env(safe-area-inset-top)) 14px max(18px,env(safe-area-inset-bottom));}
 #story-mode-screen.is-open{display:flex;align-items:center;justify-content:center}
 .story-shell{width:min(100%,880px);margin:auto;position:relative}
@@ -617,11 +619,11 @@
         <h1 id="mode-menu-title" class="mode-menu-title mt-4">KULE SAVUNMA</h1>
         <p id="mode-menu-subtitle" class="mode-menu-subtitle">Nasıl bir mücadeleye hazırsın, komutan? Bir dünyayı kurtar ya da sınırlarını sonsuza kadar zorla.</p>
         <div class="mode-menu-grid">
-            <button type="button" class="mode-menu-card border-violet-400/30 bg-gradient-to-br from-violet-950/65 via-slate-900 to-slate-900" onclick="openStoryMode()">
+            <button type="button" id="mode-story-button" class="mode-menu-card border-violet-400/30 bg-gradient-to-br from-violet-950/65 via-slate-900 to-slate-900" onclick="openStoryMode()">
                 <span class="mode-menu-icon bg-violet-500/15 border border-violet-400/25 text-violet-200">✦</span>
                 <span class="mode-menu-card-title">Hikâye Modu</span>
                 <span class="mode-menu-card-desc">Bilinmeyen sinyali araştır, ekibini kur ve istasyonun sırrını ortaya çıkar.</span>
-                <span class="mode-menu-card-action text-violet-300">Bölüme gir <span aria-hidden="true">→</span></span>
+                <span id="mode-story-action" class="mode-menu-card-action text-violet-300">25. dalgada açılır <span aria-hidden="true">🔒</span></span>
             </button>
             <button type="button" class="mode-menu-card border-cyan-400/35 bg-gradient-to-br from-cyan-950/70 via-slate-900 to-slate-900" onclick="enterGameMode('endless')">
                 <span class="mode-menu-icon bg-cyan-500/15 border border-cyan-400/25 text-cyan-200">∞</span>
@@ -663,7 +665,7 @@
      <div class="story-dialogue" aria-live="polite" aria-atomic="true">
       <div class="story-speaker" id="story-speaker">İSTASYON YAPAY ZEKÂSI</div>
       <p class="story-dialogue-copy" id="story-dialogue-copy">Bağlantı kuruluyor…</p>
-      <div class="story-controls"><span class="story-progress" id="story-progress">01 / 05</span><button type="button" class="story-primary" id="story-next" onclick="advanceStoryDialogue()">DEVAM ET →</button><button type="button" class="story-exit" id="story-skip" onclick="skipStoryIntro()">ATLA</button></div>
+      <div class="story-controls"><span class="story-progress" id="story-progress">01 / 05</span><div style="display:flex;gap:8px;align-items:center"><button type="button" class="story-exit" id="story-skip" onclick="skipStoryIntro()">ATLA</button><button type="button" class="story-primary" id="story-next" onclick="advanceStoryDialogue()">DEVAM ET →</button></div></div>
      </div>
     </div>
    </div>
