@@ -705,6 +705,7 @@
 <article class="story-mission"><div class="story-mission-number" data-story-ui="mission7tag">GÖREV 07</div><h3 data-story-ui="mission7title">Sinyal bükülüyor</h3><p data-story-ui="mission7desc">Haberleşme dizisini savun ve sinyal yükselticisini sustur.</p><div class="story-mission-status is-locked" id="story-mission-7-status">KİLİTLİ · 6. GÖREVİ TAMAMLA</div><button type="button" class="story-primary story-deploy" id="story-start-mission7" onclick="startStoryMission(7)" disabled>DİZİYİ SAVUN →</button></article>
 <article class="story-mission"><div class="story-mission-number" data-story-ui="mission8tag">GÖREV 08</div><h3 data-story-ui="mission8title">Tanıdık oda</h3><p data-story-ui="mission8desc">Başlangıç bölmesine dön ve üç fiziksel izi incele.</p><div class="story-mission-status is-locked" id="story-mission-8-status">KİLİTLİ · 7. GÖREVİ TAMAMLA</div><button type="button" class="story-primary story-deploy" id="story-start-mission8" onclick="startStoryMission(8)" disabled>İNCELE →</button></article>
 <article class="story-mission"><div class="story-mission-number" data-story-ui="mission9tag">GÖREV 09</div><h3 data-story-ui="mission9title">Uyanmayı seçmek</h3><p data-story-ui="mission9desc">Çekirdeği koru, yoldaşla bağlantıyı kur ve onu uyandır.</p><div class="story-mission-status is-locked" id="story-mission-9-status">KİLİTLİ · 8. GÖREVİ TAMAMLA</div><button type="button" class="story-primary story-deploy" id="story-start-mission9" onclick="startStoryMission(9)" disabled>UYANIŞI BAŞLAT →</button></article>
+<article class="story-mission"><div class="story-mission-number" data-story-ui="mission10tag">GÖREV 10</div><h3 data-story-ui="mission10title">Aşağıdaki kapı</h3><p data-story-ui="mission10desc">İstasyon planlarında olmayan kapıyı araştır ve iki gizli düğümü açığa çıkar.</p><div class="story-mission-status is-locked" id="story-mission-10-status">KİLİTLİ · 9. GÖREVİ TAMAMLA</div><button type="button" class="story-primary story-deploy" id="story-start-mission10" onclick="startStoryMission(10)" disabled>KAPIYI AÇ →</button></article>
     </div>
     <div class="story-complete" id="story-prototype-note"><strong data-story-ui="nextstep">Sıradaki adım</strong><p class="story-lead" data-story-ui="nextdesc">Bu ilk sürüm hikâye girişini ve görev akışını kurar. Gerçek görev savaşları sonraki aşamada mevcut savaş motoruna güvenli biçimde bağlanacak.</p></div>
     <div class="story-controls" style="margin-top:20px"><span class="story-progress" id="story-mission-progress">HİKÂYE KAYDI AYRI TUTULUR</span><button type="button" class="story-primary" onclick="closeStoryMode()" data-story-ui="backmenu">ANA MENÜYE DÖN</button></div>
@@ -716,7 +717,7 @@
 
 <div id="story-battle-hud" hidden aria-live="polite">
  <div class="story-battle-panel">
-  <div class="story-battle-heading"><span>✦ <span data-story-ui="chapter">BÖLÜM 01 · KAYIP SİNYAL</span></span><span class="story-battle-live">● LIVE</span></div>
+  <div class="story-battle-heading"><span>✦ <span id="story-chapter-label" data-story-ui="chapter">BÖLÜM 01 · KAYIP SİNYAL</span></span><span class="story-battle-live">● LIVE</span></div>
   <p id="story-battle-status">GÖREV: 8 düşmanı durdur ve çekirdeği güvene al.</p>
   <div id="story-comms" style="margin:8px 0;padding:9px 10px;border:1px solid rgba(103,232,249,.18);border-left:2px solid rgba(103,232,249,.75);border-radius:8px;background:rgba(8,20,39,.76)">
    <div id="story-comms-speaker" style="font-size:10px;letter-spacing:.12em;font-weight:800;color:#67e8f9;margin-bottom:4px">İSTASYON YAPAY ZEKÂSI</div>
@@ -738,6 +739,7 @@
   <button type="button" id="story-reconnect-action" class="story-primary story-deploy" data-story-ui="reconnectAction" onclick="reconnectStoryCompanion()" hidden>BAĞLANTIYI YENİDEN KUR</button>
   <button type="button" id="story-awaken-action" class="story-primary story-deploy" data-story-ui="awakenAction" onclick="awakenStoryCompanion()" hidden>YOLDAŞI UYANDIR</button>
   <button type="button" id="story-pulse-action" class="story-primary story-deploy" data-story-ui="pulseAction" onclick="testStoryPulse()" hidden>SİNYAL DARBESİNİ DENE</button>
+  <button type="button" id="story-mission10-pulse-action" class="story-primary story-deploy" data-story-ui="pulseMission10Action" onclick="pulseStoryMission10()" hidden>SİNYAL DARBESİ</button>
   <div class="story-companion-chip" id="story-companion-chip">
    <span class="story-companion-core" id="story-companion-icon" aria-hidden="true">⚙</span>
    <span class="story-companion-copy"><strong id="story-companion-name">BAKIM YOLDAŞI · MK-I</strong><small id="story-companion-state">DÜŞÜK GÜÇ · ÇEKİRDEĞE BAĞLANIYOR</small></span>
