@@ -65,7 +65,7 @@ Aim for **9 core missions** plus a few optional memory/signals. The second form 
 
 ## Current implementation status
 
-This file describes the target design, not a claim that the full chapter is implemented. Mission 01 is the current prototype encounter; Missions 02–09, their varied objectives, checkpoints, and the second-form climax still need implementation and playtesting before the 3–4 hour arc can be considered delivered.
+Mission 01 is playable as an isolated combat prototype. Mission 02 now has a playable patrol encounter followed by a three-step signal-scan interaction, with its own story progress flag. Mission 03–09, deeper consequences for evidence choices, checkpoints, and the second-form climax still need implementation and playtesting. The 3–4 hour arc is a target, not delivered content yet.
 
 ## Playtest gates before release
 
