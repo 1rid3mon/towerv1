@@ -156,3 +156,45 @@ test('leaderboard clearly labels scores as client-reported until server verifica
   assert.match(indexSource, /puanları şu an oyun istemcisinden bildirilir/);
   assert.match(indexSource, /henüz sunucu tarafından oynanışla doğrulanmaz/);
 });
+
+
+test('Story Mode mission handler enforces the previous-mission prerequisite even when called directly', () => {
+  const body = extractFunction(
+    uiSource,
+    'function storyMissionPrerequisiteMet(missionNumber, progress)',
+    'function startStoryMission'
+  );
+  const sandbox = {};
+  vm.runInNewContext(
+    body + '\\nglobalThis.storyMissionPrerequisiteMet = storyMissionPrerequisiteMet;',
+    sandbox
+  );
+
+  const prerequisiteByMission = {
+    2: 'mission1Complete',
+    3: 'mission2Complete',
+    4: 'mission3Complete',
+    5: 'mission4Complete',
+    6: 'mission5Complete',
+    7: 'mission6Complete',
+    8: 'mission7Complete',
+    9: 'mission8Complete'
+  };
+
+  assert.equal(sandbox.storyMissionPrerequisiteMet(1, {}), true);
+  for (const [missionText, requiredFlag] of Object.entries(prerequisiteByMission)) {
+    const mission = Number(missionText);
+    assert.equal(sandbox.storyMissionPrerequisiteMet(mission, {}), false, `mission ${mission} must remain locked`);
+    assert.equal(
+      sandbox.storyMissionPrerequisiteMet(mission, { [requiredFlag]: true }),
+      true,
+      `mission ${mission} should unlock after ${requiredFlag}`
+    );
+    assert.equal(
+      sandbox.storyMissionPrerequisiteMet(mission, { [requiredFlag]: false }),
+      false,
+      `mission ${mission} must not unlock from a false completion flag`
+    );
+  }
+  assert.match(uiSource, /if \\(!storyMissionPrerequisiteMet\\(missionNumber, progress\\)\\)/);
+});
