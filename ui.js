@@ -3714,7 +3714,7 @@ const STORY_UI_COPY = {
  pulseMission10Action:['SİNYAL DARBESİ','SIGNAL PULSE'],
  reconnectAction:['BAĞLANTIYI YENİDEN KUR','RECONNECT TO COMPANION'], awakenAction:['YOLDAŞI UYANDIR','AWAKEN COMPANION'], pulseAction:['SİNYAL DARBESİNİ DENE','TEST SIGNAL PULSE'],
 
- nextstep:['Sıradaki adım','Next step'], nextdesc:['Mavi görüntü, yoldaşın kayıp hafızasından sızan bozuk bir yankı. Gerçek yoldaş ise çekirdeğin yanında uyanan güçsüz bir bakım birimi. Hikâye ilerledikçe onun neye dönüşebileceğini keşfedeceksin.','The blue image is a corrupted echo leaking from the companion’s lost memory. The real companion is a powerless maintenance unit waking beside the core. As the story unfolds, you will discover what it can become.'],
+ nextstep:['Sıradaki adım','Next step'], nextdesc:['Piko’nun geçmişiyle ilgili çelişkiler büyüyor. Sonraki görevlerde kararların, açılan kayıtların ve keşfedilen sırların izini sürmeye devam edeceksin.','Contradictions around Piko’s past are growing. Keep following your decisions, recovered records, and discoveries in the next missions.'],
  backmenu:['ANA MENÜYE DÖN','RETURN TO MAIN MENU'],
  'save-note':['Hikâye ilerlemesi ayrı kaydedilir. Sonsuz Mod kaydına ve savaş dengesine dokunulmaz.','Story progress is saved separately. Endless Mode saves and game balance remain untouched.'],
  continue:['DEVAM ET →','CONTINUE →'], start:['GÖREV PANOSU →','MISSION BRIEFING →'],
@@ -3982,7 +3982,9 @@ function startStoryMission(missionNumber = 1) {
         9: ['PİKO','PIKO','Bağlantı kopuyor… Komutan, çekirdeği koru. Bu kez kaçmayacağım. Ne olduğumu hatırlamaya hazırım.','The link is breaking… Commander, protect the core. I will not retreat this time. I am ready to remember what I am.'],
         10: ['İSTASYON YAPAY ZEKÂSI','STATION AI','Alt kat planlarda görünmüyor. Burada yalnızca taşıyıcı kiriş olması gerekiyordu.','There is no lower level on the schematics. This should be a load-bearing strut.'],
         11: ['PİKO','PIKO','Aşağıdaki ağ istasyondan eski. Lütfen bunun normal olduğunu söyle; ben söyleyemiyorum.','The network below predates the station. Please tell me that is normal; I cannot.'],
-        12: ['PİKO','PIKO','Arşivde benim için bir kayıt var. Garip olan, kaydın tarihinin benim çekirdeğimden daha eski olması değil… içindeki sesin benim sesim olmaması.','There is a record for me in the archive. The strange part is not that it predates my core… it is that the voice inside is not mine.']
+        12: ['PİKO','PIKO','Arşivde benim için bir kayıt var. Garip olan, kaydın tarihinin benim çekirdeğimden daha eski olması değil… içindeki sesin benim sesim olmaması.','There is a record for me in the archive. The strange part is not that it predates my core… it is that the voice inside is not mine.'],
+        13: ['PİKO','PIKO','İnsan kaydındaki ses benim ses izimle eşleşiyor. Ama anılarımda o insan yok. Hangimize inanmalıyım?','The human recording matches my voiceprint. But that person is not in my memories. Which account should I believe?'],
+        14: ['PİKO','PIKO','Sinyal çekirdeğin içinden geliyor. Ne olursa olsun bu kez gerçeği birlikte bulacağız.','The signal is coming from inside the core. Whatever happens, we will find the truth together this time.']
     };
     const openingLine = commsByMission[missionNumber];
     if (openingLine) setStoryComms(...openingLine);
