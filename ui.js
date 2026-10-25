@@ -3511,7 +3511,7 @@ function startStoryMission(missionNumber = 1) {
     }
     if (window.__storyBattle.active) return;
     const session = {
-        active: true, completed: false, mission: missionNumber, phase: missionNumber === 3 ? 'investigate' : (missionNumber === 4 ? 'powerChoice' : (missionNumber === 6 ? 'repair' : 'combat')), scans: 0, repairs: 0, routeChoice: null,
+        active: true, completed: false, companionSynced: false, mission: missionNumber, phase: missionNumber === 3 ? 'investigate' : (missionNumber === 4 ? 'powerChoice' : (missionNumber === 6 ? 'repair' : 'combat')), scans: 0, repairs: 0, routeChoice: null,
         snapshot: {
             game: storyDeepCopy(game), tower: storyDeepCopy(tower),
             enemies: storyDeepCopy(enemies), projectiles: storyDeepCopy(projectiles),
@@ -3625,7 +3625,7 @@ function finishStoryBattleEncounter() {
             : 'GÖREV TAMAMLANDI · Sinyal istasyonun içinden döngüye giriyor. Anten onu almıyordu; tekrar yayıyordu.';
         const amplifier = document.getElementById('story-amplifier-action'); if (amplifier) amplifier.hidden = true;
         const exit = document.getElementById('story-battle-exit'); if (exit) exit.textContent = en ? 'CONTINUE' : 'DEVAM ET';
-        showToast(en ? 'Mission 07 complete. Signal origin narrowed down.' : '7. görev tamamlandı. Sinyalin kaynağı daraltıldı.');
+        showToast(storyLanguage() === 'en' ? 'Mission 07 complete. Signal origin narrowed down.' : '7. görev tamamlandı. Sinyalin kaynağı daraltıldı.');
         return;
     }
     if (session.mission === 5 && session.phase === 'relay') {
@@ -3692,6 +3692,7 @@ function finishStoryBattleEncounter() {
     isPaused = true;
     enemies = []; projectiles = [];
     if (session.mission === 1) {
+        session.companionSynced = true;
         saveStoryProgress({ introSeen: true, chapter: 1, mission1Complete: true });
     } else if (session.mission === 2) {
         saveStoryProgress({ introSeen: true, chapter: 1, mission2Complete: true });
