@@ -3583,6 +3583,11 @@ function startStoryMission(missionNumber = 1) {
     };
     const openingLine = commsByMission[missionNumber];
     if (openingLine) setStoryComms(...openingLine);
+    if (missionNumber === 5 && progress.routeChoice === 'array') {
+        setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Anten kaydı sinyalin istasyonun içinden döndüğünü gösterdi. Röleyi susturursak döngüyü kesebiliriz.','The antenna log showed the signal looping from inside the station. Silencing the relay may break the loop.');
+    } else if (missionNumber === 5 && progress.routeChoice === 'blackbox') {
+        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Karakutudaki ses benim ses izimle eşleşiyor. Bu mümkün olmamalı…','The voice in the black box matches my voiceprint. That should not be possible…');
+    }
     const status = document.getElementById('story-battle-status');
     if (status) {
         if (missionNumber === 1) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 8 hostiles and stabilize the core.' : 'GÖREV: 8 düşmanı durdur ve çekirdeği güvene al.';
