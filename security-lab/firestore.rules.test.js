@@ -123,6 +123,46 @@ test("owner can write a bounded user document", async () => {
   }));
 });
 
+function validStoryProgress(overrides = {}) {
+  return {
+    introSeen: false, chapter: 1,
+    mission1Complete: false, mission2Complete: false, mission3Complete: false,
+    mission4Complete: false, mission5Complete: false, mission6Complete: false,
+    mission7Complete: false, mission8Complete: false, mission9Complete: false,
+    mission10Complete: false, mission11Complete: false, mission12Complete: false,
+    mission13Complete: false, mission14Complete: false,
+    voiceChoice: null, pulseTutorialComplete: false, companionForm: "basic",
+    repairChoiceCount: 0, routeChoice: null, powerChoice: null, updatedAt: Date.now(),
+    ...overrides
+  };
+}
+
+test("story progress owner can create a valid cloud save", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  await assertSucceeds(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({ mission1Complete: true })));
+});
+
+test("story progress cannot be read or changed by another account", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  await assertSucceeds(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress()));
+  await assertFails(getDoc(doc(bob, "storyProgress/alice")));
+  await assertFails(setDoc(doc(bob, "storyProgress/alice"), validStoryProgress({ mission14Complete: true })));
+});
+
+test("story progress rejects malformed choices, extra fields, and invalid mission flags", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  await assertFails(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({ voiceChoice: "admin" })));
+  await assertFails(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({ mission14Complete: "true" })));
+  await assertFails(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({ injected: "unexpected" })));
+});
+
+test("unauthenticated users cannot read or write story progress", async () => {
+  const db = testEnv.unauthenticatedContext().firestore();
+  await assertFails(getDoc(doc(db, "storyProgress/alice")));
+  await assertFails(setDoc(doc(db, "storyProgress/alice"), validStoryProgress()));
+});
+
 test("one user cannot write another user's save", async () => {
   const db = testEnv.authenticatedContext("alice").firestore();
   await assertFails(setDoc(doc(db, "users/bob"), {
