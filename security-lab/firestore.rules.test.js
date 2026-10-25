@@ -293,7 +293,8 @@ test("leaderboard rejects a wave jump above the per-write limit", async () => {
       uid: "alice", highestWave: 10, updatedAt: oldTime
     });
   });
-  await assertFails(writeBoard(db, { highestWave: 26, wave: 26 }));
+  // The configured per-write ceiling is 100, so 111 is 101 above the seeded high-water mark of 10.
+  await assertFails(writeBoard(db, { highestWave: 111, wave: 111 }));
 });
 
 test("leaderboard rejects unknown oversized documents and non-string skin IDs", async () => {
