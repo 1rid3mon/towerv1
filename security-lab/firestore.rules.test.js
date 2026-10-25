@@ -361,8 +361,9 @@ test("friend requests can be sent and accepted only by the recipient", async () 
   await assertSucceeds(setDoc(doc(alice, "friendRequests/alice_bob"), request));
   await assertSucceeds(getDoc(doc(bob, "friendRequests/alice_bob")));
   await assertFails(getDoc(doc(testEnv.authenticatedContext("mallory").firestore(), "friendRequests/alice_bob")));
-  await assertFails(setDoc(doc(alice, "friendRequests/bob_alice"), {
-    ...request, fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob"
+  await assertFails(setDoc(doc(bob, "friendRequests/bob_alice"), {
+    fromUid: "bob", toUid: "alice", fromUsername: "bob", toUsername: "alice",
+    status: "pending", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
   }));
   const { updateDoc } = require("firebase/firestore");
   await assertFails(updateDoc(doc(alice, "friendRequests/alice_bob"), {
