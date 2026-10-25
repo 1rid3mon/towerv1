@@ -799,7 +799,7 @@ function fireTowerProjectile(startX, startY, target, barrelIdx = 0, totalBarrels
         radius: isCrit ? 5 : 4.0, color: projColor, damage: dmg, isCrit,
         bouncesLeft: game.upgrades.bounce, hitList: [], life: 2.0, fromEnemy: false
     });
-    if (typeof playBattleCue === 'function') playBattleCue(isCrit ? 'critical' : 'shot');
+    if (typeof playBattleCue === 'function') playBattleCue('shot');
 }
 
 function updateCompanions(simDt) {
