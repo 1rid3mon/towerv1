@@ -3636,227 +3636,169 @@ function startStoryMission(missionNumber = 1) {
 function finishStoryBattleEncounter() {
     const session = window.__storyBattle;
     if (!session || !session.active || session.completed) return;
+    const en = storyLanguage() === 'en';
+    const setStatus = text => { const el = document.getElementById('story-battle-status'); if (el) el.textContent = text; };
+    const setAction = (id, hidden, label) => { const el = document.getElementById(id); if (el) { el.hidden = hidden; if (label) el.textContent = label; } };
+    const setExit = label => { const el = document.getElementById('story-battle-exit'); if (el) el.textContent = label; };
+
     if (session.mission === 4 && session.phase === 'powerChoice') return;
-    if (session.mission === 8 && session.phase === 'memory') {
-        session.memories = Math.min(3, (session.memories || 0) + 1);
-        const en = storyLanguage() === 'en';
-        const clues = en
-            ? ['Clue 1: the shutdown marks this room as empty, but the dust pattern shows recent movement.', 'Clue 2: the blue echo speaks before the station records the first incoming signal.', 'Clue 3: a violet silhouette stands beside the commander; the face and identity are missing.']
-            : ['İpucu 1: kapanış kaydı odayı boş gösteriyor, ancak toz izi yakın zamanda hareket olduğunu söylüyor.', 'İpucu 2: mavi yankı, istasyonun ilk gelen sinyali kaydetmesinden önce konuşuyor.', 'İpucu 3: komutanın yanında mor bir siluet var; yüzü ve kimliği kayıp.'];
-        const status = document.getElementById('story-battle-status');
-        if (session.memories < 3) {
-            if (status) status.textContent = clues[session.memories - 1] + (en ? ' Inspect the next trace.' : ' Sonraki izi incele.');
-            const memory = document.getElementById('story-memory-action');
-            if (memory) memory.textContent = en ? 'INSPECT MEMORY TRACE ' + (session.memories + 1) + '/3' : 'HAFIZA İZİNİ İNCELE ' + (session.memories + 1) + '/3';
-            showToast(en ? 'Memory clue recovered (' + session.memories + '/3).' : 'Hafıza ipucu bulundu (' + session.memories + '/3).');
-            return;
+
+    if (session.mission === 3 && session.phase === 'investigate') {
+        session.completed = true; isPaused = true;
+        saveStoryProgress({ introSeen: true, chapter: 1, mission3Complete: true, routeChoice: session.routeChoice });
+        if (session.routeChoice === 'array') {
+            setStatus(en ? 'EVIDENCE RECOVERED · The antenna log shows the signal bouncing from inside the station.' : 'KANIT KURTARILDI · Anten kaydı, sinyalin istasyonun içinden yansıdığını gösteriyor.');
+            setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Anten sinyali dışarıdan almamış. İstasyonun içindeki bir kaydı yeniden yayıyor.','The antenna did not receive the signal from outside. It is repeating a recording from inside the station.');
+        } else {
+            setStatus(en ? 'EVIDENCE RECOVERED · The black-box log contains a voice fragment recorded before shutdown.' : 'KANIT KURTARILDI · Karakutu kaydında kapanıştan önce kaydedilmiş bir ses parçası var.');
+            setStoryComms('KOMUTAN','COMMANDER','Bu ses istasyon kapanmadan önce kaydedilmiş. Peki neden mavi görüntüyle aynı?','This voice was recorded before the station shut down. Then why does it match the blue image?');
         }
-        session.completed = true;
-        saveStoryProgress({ introSeen: true, chapter: 1, mission8Complete: true });
-        if (status) status.textContent = en
-            ? 'MISSION COMPLETE · The echo and the station log disagree. The violet silhouette remains unidentified.'
-            : 'GÖREV TAMAMLANDI · Yankı ile istasyon kaydı çelişiyor. Mor siluetin kimliği hâlâ belirsiz.';
-        const memory = document.getElementById('story-memory-action'); if (memory) memory.hidden = true;
-        const exit = document.getElementById('story-battle-exit'); if (exit) exit.textContent = en ? 'CONTINUE' : 'DEVAM ET';
-        showToast(en ? 'Mission 08 complete. The contradiction is recorded.' : '8. görev tamamlandı. Çelişki kaydedildi.');
+        setAction('story-investigation-actions', true);
+        setExit(en ? 'CONTINUE' : 'DEVAM ET');
+        showToast(en ? 'Mission 03 complete. Evidence saved separately.' : '3. görev tamamlandı. Kanıt ayrı kaydedildi.');
         return;
     }
-    setStoryComms('KOMUTAN','COMMANDER','Seni kaybetmeyeceğim. Bağlantıyı yeniden kuruyoruz—şimdi!','I will not lose you. We are restoring the link—now!');
-    if (session.mission === 9 && session.phase === 'reconnect') {
-        session.phase = 'awaken'; isPaused = true;
-        const status = document.getElementById('story-battle-status');
-        if (status) status.textContent = storyLanguage() === 'en'
-            ? 'CONNECTION RESTORED · The companion chooses to stay and protect the core. A dormant signal is responding.'
-            : 'BAĞLANTI KURULDU · Yoldaş çekirdeği korumak için kalmayı seçiyor. Uyuyan bir sinyal cevap veriyor.';
-        const reconnect = document.getElementById('story-reconnect-action'); if (reconnect) reconnect.hidden = true;
-        const awaken = document.getElementById('story-awaken-action'); if (awaken) awaken.hidden = false;
-        return;
-    }
-    setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Ben… bunu daha önce yaptım. Bu ışık benim değil. Bu ışık benim hatırladığım şey.','I… have done this before. This light is not mine. It is what I remember.');
-    if (session.mission === 9 && session.phase === 'awaken') {
-        session.phase = 'pulseTest'; session.companionSynced = true; isPaused = true;
-        const status = document.getElementById('story-battle-status');
-        if (status) status.textContent = storyLanguage() === 'en'
-            ? 'CYAN FORM AWAKENED · The companion is no longer just a maintenance unit. Test its new signal pulse.'
-            : 'CAMGÖBEĞİ FORM UYANDI · Yoldaş artık yalnızca bir bakım birimi değil. Yeni sinyal darbesini dene.';
-        const awaken = document.getElementById('story-awaken-action'); if (awaken) awaken.hidden = true;
-        const pulse = document.getElementById('story-pulse-action'); if (pulse) pulse.hidden = false;
-        return;
-    }
-    setStoryComms('MAVİ YANKI','BLUE ECHO','Uyanma. Henüz değil. Eğer beni duyabiliyorsan… istasyonun altında ne olduğunu unutma.','Do not wake. Not yet. If you can hear me… do not forget what lies beneath the station.');
-    if (session.mission === 9 && session.phase === 'pulseTest') {
-        session.completed = true; session.companionSynced = true; isPaused = true;
-        saveStoryProgress({ introSeen: true, chapter: 1, mission9Complete: true, companionForm: 'cyan' });
-        const status = document.getElementById('story-battle-status');
-        if (status) status.textContent = storyLanguage() === 'en'
-            ? 'CHAPTER COMPLETE · The pulse answers. For one frame, the blue echo and the companion share the same silhouette—then the recording breaks again.'
-            : 'BÖLÜM TAMAMLANDI · Darbe cevap veriyor. Bir anlığına mavi yankı ile yoldaş aynı silueti paylaşıyor; ardından kayıt yeniden bozuluyor.';
-        const pulse = document.getElementById('story-pulse-action'); if (pulse) pulse.hidden = true;
-        const exit = document.getElementById('story-battle-exit'); if (exit) exit.textContent = storyLanguage() === 'en' ? 'RETURN TO CHAPTER BOARD' : 'GÖREV PANOSUNA DÖN';
-        showToast(storyLanguage() === 'en' ? 'Chapter 01 complete. Companion form saved.' : '1. bölüm tamamlandı. Yoldaşın formu kaydedildi.');
-        return;
-    }
-    setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bir bağlantı daha tamamlandı. Bu ses… tanıdık geliyor. Nedenini bilmiyorum.','One more connection restored. This sound… feels familiar. I do not know why.');
+
     if (session.mission === 6 && session.phase === 'repair') {
         session.repairs = Math.min(3, (session.repairs || 0) + 1);
-        const status = document.getElementById('story-battle-status');
-        const en = storyLanguage() === 'en';
         if (session.repairs < 3) {
-            if (status) status.textContent = en
-                ? 'CONNECTION ' + session.repairs + '/3 RESTORED · The companion found another damaged panel.'
-                : 'BAĞLANTI ' + session.repairs + '/3 ONARILDI · Yoldaş başka bir hasarlı panel buldu.';
-            const repair = document.getElementById('story-repair-action');
-            if (repair) repair.textContent = en ? 'REPAIR CONNECTION ' + (session.repairs + 1) + '/3' : 'BAĞLANTIYI ONAR ' + (session.repairs + 1) + '/3';
+            setStatus(en ? 'CONNECTION ' + session.repairs + '/3 RESTORED · The companion found another damaged panel.' : 'BAĞLANTI ' + session.repairs + '/3 ONARILDI · Yoldaş başka bir hasarlı panel buldu.');
+            setAction('story-repair-action', false, en ? 'REPAIR CONNECTION ' + (session.repairs + 1) + '/3' : 'BAĞLANTIYI ONAR ' + (session.repairs + 1) + '/3');
+            setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bir bağlantı daha tamamlandı. Bu ses… tanıdık geliyor. Nedenini bilmiyorum.','One more connection restored. This sound… feels familiar. I do not know why.');
             showToast(en ? 'Connection restored (' + session.repairs + '/3).' : 'Bağlantı onarıldı (' + session.repairs + '/3).');
             return;
         }
         session.completed = true;
         saveStoryProgress({ introSeen: true, chapter: 1, mission6Complete: true });
-        if (status) status.textContent = en
-            ? 'MISSION COMPLETE · The companion emits a brief cyan flicker while repairing the last panel, then returns to its dim maintenance state.'
-            : 'GÖREV TAMAMLANDI · Yoldaş son paneli onarırken kısa bir camgöbeği ışık yayıyor, ardından yeniden sönük bakım hâline dönüyor.';
-        const repair = document.getElementById('story-repair-action'); if (repair) repair.hidden = true;
-        const exit = document.getElementById('story-battle-exit'); if (exit) exit.textContent = en ? 'CONTINUE' : 'DEVAM ET';
+        setStatus(en ? 'MISSION COMPLETE · The companion emits a brief cyan flicker while repairing the last panel, then returns to its dim maintenance state.' : 'GÖREV TAMAMLANDI · Yoldaş son paneli onarırken kısa bir camgöbeği ışık yayıyor, ardından yeniden sönük bakım hâline dönüyor.');
+        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Ben bunu yapmayı nereden biliyorum? Bu hareket… benden önce de varmış gibi.','How do I know how to do this? This movement feels like it existed before me.');
+        setAction('story-repair-action', true);
+        setExit(en ? 'CONTINUE' : 'DEVAM ET');
         showToast(en ? 'Mission 06 complete. The flicker is logged, not an evolution.' : '6. görev tamamlandı. Işık kaydedildi; bu henüz evrim değil.');
         return;
     }
-    setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Sinyal dışarıdan gelmiyor. Döngü, istasyonun içinden besleniyor.','The signal is not coming from outside. The loop is being fed from inside the station.');
+
+    if (session.mission === 8 && session.phase === 'memory') {
+        session.memories = Math.min(3, (session.memories || 0) + 1);
+        const clues = en
+            ? ['Clue 1: the shutdown marks this room as empty, but the dust pattern shows recent movement.', 'Clue 2: the blue echo speaks before the station records the first incoming signal.', 'Clue 3: a violet silhouette stands beside the commander; the face and identity are missing.']
+            : ['İpucu 1: kapanış kaydı odayı boş gösteriyor, ancak toz izi yakın zamanda hareket olduğunu söylüyor.', 'İpucu 2: mavi yankı, istasyonun ilk gelen sinyali kaydetmesinden önce konuşuyor.', 'İpucu 3: komutanın yanında mor bir siluet var; yüzü ve kimliği kayıp.'];
+        if (session.memories < 3) {
+            setStatus(clues[session.memories - 1] + (en ? ' Inspect the next trace.' : ' Sonraki izi incele.'));
+            setAction('story-memory-action', false, en ? 'INSPECT MEMORY TRACE ' + (session.memories + 1) + '/3' : 'HAFIZA İZİNİ İNCELE ' + (session.memories + 1) + '/3');
+            showToast(en ? 'Memory clue recovered (' + session.memories + '/3).' : 'Hafıza ipucu bulundu (' + session.memories + '/3).');
+            return;
+        }
+        session.completed = true;
+        saveStoryProgress({ introSeen: true, chapter: 1, mission8Complete: true });
+        setStatus(en ? 'MISSION COMPLETE · The echo and the station log disagree. The violet silhouette remains unidentified.' : 'GÖREV TAMAMLANDI · Yankı ile istasyon kaydı çelişiyor. Mor siluetin kimliği hâlâ belirsiz.');
+        setStoryComms('KOMUTAN','COMMANDER','O görüntü beni tanıyor olabilir. Ama onu tanıdığımı kanıtlayan hiçbir şey yok.','That image may know me. But nothing proves that I know it.');
+        setAction('story-memory-action', true);
+        setExit(en ? 'CONTINUE' : 'DEVAM ET');
+        showToast(en ? 'Mission 08 complete. The contradiction is recorded.' : '8. görev tamamlandı. Çelişki kaydedildi.');
+        return;
+    }
+
+    if (session.mission === 9 && session.phase === 'reconnect') {
+        session.phase = 'awaken'; isPaused = true;
+        setStatus(en ? 'CONNECTION RESTORED · The companion chooses to stay and protect the core. A dormant signal is responding.' : 'BAĞLANTI KURULDU · Yoldaş çekirdeği korumak için kalmayı seçiyor. Uyuyan bir sinyal cevap veriyor.');
+        setStoryComms('KOMUTAN','COMMANDER','Seni kaybetmeyeceğim. Bağlantıyı yeniden kuruyoruz—şimdi!','I will not lose you. We are restoring the link—now!');
+        setAction('story-reconnect-action', true);
+        setAction('story-awaken-action', false);
+        return;
+    }
+    if (session.mission === 9 && session.phase === 'awaken') {
+        session.phase = 'pulseTest'; session.companionSynced = true; isPaused = true;
+        setStatus(en ? 'CYAN FORM AWAKENED · The companion is no longer just a maintenance unit. Test its new signal pulse.' : 'CAMGÖBEĞİ FORM UYANDI · Yoldaş artık yalnızca bir bakım birimi değil. Yeni sinyal darbesini dene.');
+        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Ben… bunu daha önce yaptım. Bu ışık benim değil. Bu ışık benim hatırladığım şey.','I… have done this before. This light is not mine. It is what I remember.');
+        setAction('story-awaken-action', true);
+        setAction('story-pulse-action', false);
+        return;
+    }
+    if (session.mission === 9 && session.phase === 'pulseTest') {
+        session.completed = true; session.companionSynced = true; isPaused = true;
+        saveStoryProgress({ introSeen: true, chapter: 1, mission9Complete: true, companionForm: 'cyan' });
+        setStatus(en ? 'CHAPTER COMPLETE · The pulse answers. For one frame, the blue echo and the companion share the same silhouette—then the recording breaks again.' : 'BÖLÜM TAMAMLANDI · Darbe cevap veriyor. Bir anlığına mavi yankı ile yoldaş aynı silueti paylaşıyor; ardından kayıt yeniden bozuluyor.');
+        setStoryComms('MAVİ YANKI','BLUE ECHO','Uyanma. Henüz değil. Eğer beni duyabiliyorsan… istasyonun altında ne olduğunu unutma.','Do not wake. Not yet. If you can hear me… do not forget what lies beneath the station.');
+        setAction('story-pulse-action', true);
+        setExit(en ? 'RETURN TO CHAPTER BOARD' : 'GÖREV PANOSUNA DÖN');
+        showToast(en ? 'Chapter 01 complete. Companion form saved.' : '1. bölüm tamamlandı. Yoldaşın formu kaydedildi.');
+        return;
+    }
+
+    if (session.mission === 5 && session.phase === 'relay') {
+        session.completed = true; isPaused = true;
+        saveStoryProgress({ introSeen: true, chapter: 1, mission5Complete: true });
+        setStatus(en ? 'MISSION COMPLETE · The relay is silent. The recovered packet carries the same broken voice as the blue echo.' : 'GÖREV TAMAMLANDI · Röle sustu. Kurtarılan pakette mavi yankıyla aynı bozuk ses var.');
+        setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Röle açığa çıktı. Paket, mavi yankıdaki ses örüntüsüyle eşleşiyor.','The relay is exposed. Its packet matches the voice pattern in the blue echo.');
+        setAction('story-relay-action', true);
+        setExit(en ? 'CONTINUE' : 'DEVAM ET');
+        showToast(en ? 'Mission 05 complete. Story progress saved.' : '5. görev tamamlandı. Hikâye ilerlemesi kaydedildi.');
+        return;
+    }
     if (session.mission === 7 && session.phase === 'amplifier') {
         session.completed = true; isPaused = true;
         saveStoryProgress({ introSeen: true, chapter: 1, mission7Complete: true });
-        const status = document.getElementById('story-battle-status');
-        if (status) status.textContent = storyLanguage() === 'en'
-            ? 'MISSION COMPLETE · The signal loops from inside the station. The antenna was not receiving it—it was repeating it.'
-            : 'GÖREV TAMAMLANDI · Sinyal istasyonun içinden döngüye giriyor. Anten onu almıyordu; tekrar yayıyordu.';
-        const amplifier = document.getElementById('story-amplifier-action'); if (amplifier) amplifier.hidden = true;
-        const exit = document.getElementById('story-battle-exit'); if (exit) exit.textContent = en ? 'CONTINUE' : 'DEVAM ET';
-        showToast(storyLanguage() === 'en' ? 'Mission 07 complete. Signal origin narrowed down.' : '7. görev tamamlandı. Sinyalin kaynağı daraltıldı.');
+        setStatus(en ? 'MISSION COMPLETE · The signal loops from inside the station. The antenna was not receiving it—it was repeating it.' : 'GÖREV TAMAMLANDI · Sinyal istasyonun içinden döngüye giriyor. Anten onu almıyordu; tekrar yayıyordu.');
+        setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Sinyal dışarıdan gelmiyor. Döngü, istasyonun içinden besleniyor.','The signal is not coming from outside. The loop is being fed from inside the station.');
+        setAction('story-amplifier-action', true);
+        setExit(en ? 'CONTINUE' : 'DEVAM ET');
+        showToast(en ? 'Mission 07 complete. Signal origin narrowed down.' : '7. görev tamamlandı. Sinyalin kaynağı daraltıldı.');
         return;
     }
-    setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Röle açığa çıktı. Paket, mavi yankıdaki ses örüntüsüyle eşleşiyor.','The relay is exposed. Its packet matches the voice pattern in the blue echo.');
-        if (session.mission === 5 && session.phase === 'relay') {
-        session.completed = true; isPaused = true;
-        saveStoryProgress({ introSeen: true, chapter: 1, mission5Complete: true });
-        const status = document.getElementById('story-battle-status');
-        if (status) status.textContent = storyLanguage() === 'en'
-            ? 'MISSION COMPLETE · The relay is silent. The recovered packet carries the same broken voice as the blue echo.'
-            : 'GÖREV TAMAMLANDI · Röle sustu. Kurtarılan pakette mavi yankıyla aynı bozuk ses var.';
-        const relay = document.getElementById('story-relay-action'); if (relay) relay.hidden = true;
-        const exit = document.getElementById('story-battle-exit'); if (exit) exit.textContent = storyLanguage() === 'en' ? 'CONTINUE' : 'DEVAM ET';
-        showToast(storyLanguage() === 'en' ? 'Mission 05 complete. Story progress saved.' : '5. görev tamamlandı. Hikâye ilerlemesi kaydedildi.');
-        return;
-    }
-    if (session.mission === 3 && session.phase === 'investigate') {
-        session.completed = true;
-        isPaused = true;
-        saveStoryProgress({ introSeen: true, chapter: 1, mission3Complete: true, routeChoice: session.routeChoice });
-        const status = document.getElementById('story-battle-status');
-        if (status) status.textContent = session.routeChoice === 'array'
-            ? (storyLanguage() === 'en' ? 'EVIDENCE RECOVERED · The antenna log shows the signal bouncing from inside the station.' : 'KANIT KURTARILDI · Anten kaydı, sinyalin istasyonun içinden yansıdığını gösteriyor.')
-            : (storyLanguage() === 'en' ? 'EVIDENCE RECOVERED · The black-box log contains a voice fragment recorded before shutdown.' : 'KANIT KURTARILDI · Karakutu kaydında kapanıştan önce kaydedilmiş bir ses parçası var.');
-        const investigation = document.getElementById('story-investigation-actions');
-        if (investigation) investigation.hidden = true;
-        const exit = document.getElementById('story-battle-exit');
-        if (exit) exit.textContent = storyLanguage() === 'en' ? 'CONTINUE' : 'DEVAM ET';
-        showToast(storyLanguage() === 'en' ? 'Mission 03 complete. Evidence saved separately.' : '3. görev tamamlandı. Kanıt ayrı kaydedildi.');
-        return;
-    }
+
     if (session.mission === 9 && session.phase === 'combat') {
         session.phase = 'reconnect'; isPaused = true; enemies = []; projectiles = [];
-        const status = document.getElementById('story-battle-status');
-        if (status) status.textContent = storyLanguage() === 'en'
-            ? 'CORE UNDER PRESSURE · The hostile signal is trying to sever the companion’s link. Reconnect before the core fails.'
-            : 'ÇEKİRDEK BASKI ALTINDA · Düşman sinyali yoldaşın bağlantısını kesmeye çalışıyor. Çekirdek düşmeden bağlantıyı kur.';
-        const reconnect = document.getElementById('story-reconnect-action'); if (reconnect) reconnect.hidden = false;
-        showToast(storyLanguage() === 'en' ? 'Final defense survived. Reconnect with the companion.' : 'Son savunmadan sağ çıktın. Yoldaşla bağlantıyı kur.');
+        setStatus(en ? 'CORE UNDER PRESSURE · The hostile signal is trying to sever the companion’s link. Reconnect before the core fails.' : 'ÇEKİRDEK BASKI ALTINDA · Düşman sinyali yoldaşın bağlantısını kesmeye çalışıyor. Çekirdek düşmeden bağlantıyı kur.');
+        setStoryComms('KOMUTAN','COMMANDER','Seni kaybetmeyeceğim. Bağlantıyı yeniden kuruyoruz—şimdi!','I will not lose you. We are restoring the link—now!');
+        setAction('story-reconnect-action', false);
+        showToast(en ? 'Final defense survived. Reconnect with the companion.' : 'Son savunmadan sağ çıktın. Yoldaşla bağlantıyı kur.');
         return;
     }
     if (session.mission === 7 && session.phase === 'combat') {
         session.phase = 'amplifier'; isPaused = true; enemies = []; projectiles = [];
-        const status = document.getElementById('story-battle-status');
-        if (status) status.textContent = storyLanguage() === 'en'
-            ? 'ARRAY STABLE · The amplifier is exposed. Shut it down to trace the signal’s direction.'
-            : 'DİZİ GÜVENDE · Yükseltici açığa çıktı. Sinyalin yönünü izlemek için onu kapat.';
-        const amplifier = document.getElementById('story-amplifier-action'); if (amplifier) amplifier.hidden = false;
-        showToast(storyLanguage() === 'en' ? 'Amplifier exposed. Disable it to finish.' : 'Yükseltici açığa çıktı. Bitirmek için kapat.');
+        setStatus(en ? 'ARRAY STABLE · The amplifier is exposed. Shut it down to trace the signal’s direction.' : 'DİZİ GÜVENDE · Yükseltici açığa çıktı. Sinyalin yönünü izlemek için onu kapat.');
+        setAction('story-amplifier-action', false);
+        showToast(en ? 'Amplifier exposed. Disable it to finish.' : 'Yükseltici açığa çıktı. Bitirmek için kapat.');
         return;
     }
     if (session.mission === 5 && session.phase === 'combat') {
         session.phase = 'relay'; isPaused = true; enemies = []; projectiles = [];
-        const status = document.getElementById('story-battle-status');
-        if (status) status.textContent = storyLanguage() === 'en'
-            ? 'CORRIDOR SECURE · The relay is exposed. Shut it down before the signal loops again.'
-            : 'KORİDOR GÜVENDE · Röle açığa çıktı. Sinyal yeniden döngüye girmeden kapat.';
-        const relay = document.getElementById('story-relay-action'); if (relay) relay.hidden = false;
-        showToast(storyLanguage() === 'en' ? 'Relay exposed. Disable it to finish the mission.' : 'Röle açığa çıktı. Görevi bitirmek için kapat.');
+        setStatus(en ? 'CORRIDOR SECURE · The relay is exposed. Shut it down before the signal loops again.' : 'KORİDOR GÜVENDE · Röle açığa çıktı. Sinyal yeniden döngüye girmeden kapat.');
+        setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Röle açığa çıktı. Paket, mavi yankıdaki ses örüntüsüyle eşleşiyor.','The relay is exposed. Its packet matches the voice pattern in the blue echo.');
+        setAction('story-relay-action', false);
+        showToast(en ? 'Relay exposed. Disable it to finish the mission.' : 'Röle açığa çıktı. Görevi bitirmek için kapat.');
         return;
     }
     if (session.mission === 2 && session.phase === 'combat') {
-        session.phase = 'scan';
-        isPaused = true;
-        enemies = []; projectiles = [];
-        const status = document.getElementById('story-battle-status');
-        if (status) status.textContent = storyLanguage() === 'en'
-            ? 'PATROL CLEARED · Scan the three signal traces. The companion has marked the first trace.'
-            : 'DEVRİYE TEMİZLENDİ · Üç sinyal izini tara. Yoldaş ilk izi işaretledi.';
-        const action = document.getElementById('story-scan-action');
-        if (action) { action.hidden = false; action.textContent = storyLanguage() === 'en' ? 'SCAN TRACE 1 / 3' : 'SİNYAL İZİNİ TARA 1 / 3'; }
-        showToast(storyLanguage() === 'en' ? 'Patrol cleared. Follow the companion’s scan markers.' : 'Devriye temizlendi. Yoldaşın tarama işaretlerini takip et.');
+        session.phase = 'scan'; isPaused = true; enemies = []; projectiles = [];
+        setStatus(en ? 'PATROL CLEARED · Scan the three signal traces. The companion has marked the first trace.' : 'DEVRİYE TEMİZLENDİ · Üç sinyal izini tara. Yoldaş ilk izi işaretledi.');
+        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','İlk iz burada. Zaman damgası istasyonun kapanışından daha eski görünüyor.','The first trace is here. Its timestamp appears older than the station shutdown.');
+        setAction('story-scan-action', false, en ? 'SCAN TRACE 1 / 3' : 'SİNYAL İZİNİ TARA 1 / 3');
+        showToast(en ? 'Patrol cleared. Follow the companion’s scan markers.' : 'Devriye temizlendi. Yoldaşın tarama işaretlerini takip et.');
         return;
     }
-    session.completed = true;
-    isPaused = true;
-    enemies = []; projectiles = [];
+
+    session.completed = true; isPaused = true; enemies = []; projectiles = [];
     if (session.mission === 1) {
         session.companionSynced = true;
         saveStoryProgress({ introSeen: true, chapter: 1, mission1Complete: true });
-    } else if (session.mission === 2) {
+        setStatus(en ? 'MISSION COMPLETE · The core is stable. The maintenance companion has synchronized with you; one signal fragment recovered.' : 'GÖREV TAMAMLANDI · Çekirdek güvende. Bakım yoldaşı seninle eşitlendi; sinyalin bir parçası kurtarıldı.');
+        setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Çekirdek kararlı. Yoldaş bağlantı kurdu; fakat mavi yankının kimliği hâlâ bilinmiyor.','Core stable. The companion has linked, but the blue echo’s identity remains unknown.');
+    } else {
         saveStoryProgress({ introSeen: true, chapter: 1, mission2Complete: true });
+        setStatus(en ? 'MISSION COMPLETE · Three traces recovered. One timestamp predates the station shutdown.' : 'GÖREV TAMAMLANDI · Üç iz kurtarıldı. Zaman damgalarından biri istasyonun kapanmasından daha eski.');
+        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bu kayıt kapanıştan önceye ait. Sinyal neden buradaydı?','This record predates the shutdown. Why was the signal already here?');
     }
-    const status = document.getElementById('story-battle-status');
-    if (status) status.textContent = session.mission === 1
-        ? (storyLanguage() === 'en'
-            ? 'MISSION COMPLETE · The core is stable. The maintenance companion has synchronized with you; one signal fragment recovered.'
-            : 'GÖREV TAMAMLANDI · Çekirdek güvende. Bakım yoldaşı seninle eşitlendi; sinyalin bir parçası kurtarıldı.')
-        : (storyLanguage() === 'en'
-            ? 'MISSION COMPLETE · Three traces recovered. One timestamp predates the station shutdown.'
-            : 'GÖREV TAMAMLANDI · Üç iz kurtarıldı. Zaman damgalarından biri istasyonun kapanmasından daha eski.');
-    const action = document.getElementById('story-scan-action');
-    if (action) action.hidden = true;
+    setAction('story-scan-action', true);
+    setExit(en ? 'CONTINUE' : 'DEVAM ET');
     const companionChip = document.getElementById('story-companion-chip');
-    const companionIcon = document.getElementById('story-companion-icon');
     const companionState = document.getElementById('story-companion-state');
-    if (session.mission === 1) {
-        if (companionChip) companionChip.classList.add('is-synced');
-        if (companionIcon) companionIcon.textContent = '✦';
-        if (companionState) companionState.textContent = storyLanguage() === 'en'
-            ? 'SYNC ESTABLISHED · MEMORY FRAGMENT FOUND' : 'BAĞLANTI KURULDU · HAFIZA PARÇASI BULUNDU';
-    } else if (companionState) {
-        companionState.textContent = storyLanguage() === 'en' ? '3 TRACES STORED · TIMESTAMP MISMATCH' : '3 İZ KAYDEDİLDİ · ZAMAN DAMGASI UYUŞMAZLIĞI';
-    }
-    const exit = document.getElementById('story-battle-exit');
-    if (exit) exit.textContent = storyLanguage() === 'en' ? 'CONTINUE' : 'DEVAM ET';
-    showToast(session.mission === 1
-        ? (storyLanguage() === 'en' ? 'Mission 01 complete. Story progress saved separately.' : '1. görev tamamlandı. Hikâye ilerlemesi ayrı kaydedildi.')
-        : (storyLanguage() === 'en' ? 'Mission 02 complete. Signal traces saved separately.' : '2. görev tamamlandı. Sinyal izleri ayrı kaydedildi.'));
-}
-function scanStorySignal() {
-    const session = window.__storyBattle;
-    if (!session || !session.active || session.mission !== 2 || session.phase !== 'scan' || session.completed) return;
-    session.scans = Math.min(3, (session.scans || 0) + 1);
-    const en = storyLanguage() === 'en';
-    if (session.scans >= 3) {
-        finishStoryBattleEncounter();
-        return;
-    }
-    const action = document.getElementById('story-scan-action');
-    if (action) action.textContent = en ? 'SCAN TRACE ' + (session.scans + 1) + ' / 3' : 'SİNYAL İZİNİ TARA ' + (session.scans + 1) + ' / 3';
-    const status = document.getElementById('story-battle-status');
-    const clues = en
-        ? ['Trace 1: a weak pulse repeats every 4.2 seconds.', 'Trace 2: the signal timestamp is older than the shutdown log.']
-        : ['İz 1: zayıf bir sinyal her 4,2 saniyede bir tekrarlanıyor.', 'İz 2: sinyalin zaman damgası kapanış kaydından daha eski.'];
-    if (status) status.textContent = clues[session.scans - 1] + (en ? ' Continue scanning.' : ' Taramaya devam et.');
-    showToast(en ? 'Signal trace recovered (' + session.scans + '/3).' : 'Sinyal izi kurtarıldı (' + session.scans + '/3).');
+    const companionIcon = document.getElementById('story-companion-icon');
+    if (companionChip) companionChip.classList.toggle('is-synced', session.mission === 1);
+    if (companionState && session.mission === 1) companionState.textContent = en ? 'LINK ESTABLISHED · CORE STABLE' : 'BAĞLANTI KURULDU · ÇEKİRDEK GÜVENDE';
+    if (companionIcon && session.mission === 1) companionIcon.textContent = '✦';
+    showToast(en ? 'Mission complete. Story progress saved separately.' : 'Görev tamamlandı. Hikâye ilerlemesi ayrı kaydedildi.');
 }
 function inspectStoryMemory() {
     const session = window.__storyBattle;
