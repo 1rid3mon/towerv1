@@ -2580,10 +2580,38 @@ function getAchievementDefinitions() {
         { id: 'skins5', icon: '🎨', name: 'Koleksiyoncu', desc: '5 kule görünümü topla', value: skins, target: 5, done: skins >= 5 },
         { id: 'companions3', icon: '🛰️', name: 'Filo Komutanı', desc: '3 yoldaşın kilidini aç', value: unlockedCompanions, target: 3, done: unlockedCompanions >= 3 },
         { id: 'play10h', icon: '⏱️', name: 'Kıdemli Savunmacı', desc: '10 saat oyna', value: seconds, target: 36000, done: seconds >= 36000, format: v => `${(v / 3600).toFixed(1)} sa` },
-        { id: 'items10', icon: '💎', name: 'Emanetçi', desc: '10 farklı eşya biriktir', value: items, target: 10, done: items >= 10 }
+        { id: 'items10', icon: '💎', name: 'Emanetçi', desc: '10 farklı eşya biriktir', value: items, target: 10, done: items >= 10 },
+        { id: 'wave150', icon: '🌌', name: 'Boşluğun Sınırında', desc: '150. dalgaya ulaş', value: highestWave, target: 150, done: highestWave >= 150 },
+        { id: 'wave250', icon: '🪐', name: 'Yıldızlararası Efsane', desc: '250. dalgaya ulaş', value: highestWave, target: 250, done: highestWave >= 250 },
+        { id: 'kills10000', icon: '☄️', name: 'Sonsuz Temizlik', desc: '10.000 düşman imha et', value: kills, target: 10000, done: kills >= 10000 },
+        { id: 'boss50', icon: '👁️', name: 'Bossların Kâbusu', desc: '50 boss yen', value: bosses, target: 50, done: bosses >= 50 },
+        { id: 'prestige10', icon: '♾️', name: 'Döngü Ustası', desc: '10 prestij yap', value: prestiges, target: 10, done: prestiges >= 10 },
+        { id: 'play24h', icon: '🕰️', name: 'Nöbeti Bırakmayan', desc: 'Toplam 24 saat oyna', value: seconds, target: 86400, done: seconds >= 86400, format: v => (v / 3600).toFixed(1) + ' sa' },
+        { id: 'skins20', icon: '🌈', name: 'Hangar Küratörü', desc: '20 kule görünümü topla', value: skins, target: 20, done: skins >= 20 },
+        { id: 'companions5', icon: '🚀', name: 'Yoldaş Filosu', desc: '5 yoldaşın kilidini aç', value: unlockedCompanions, target: 5, done: unlockedCompanions >= 5 },
+        { id: 'items25', icon: '🏺', name: 'Kayıp Emanetler', desc: '25 farklı eşya biriktir', value: items, target: 25, done: items >= 25 }
     ];
 }
 
+const COMMANDER_TITLES = [
+    { id: 'rookie', name: 'Yeni Komutan', en: 'Rookie Commander', icon: '⚔️', unlock: () => true },
+    { id: 'wavebreaker', name: 'Dalga Kıran', en: 'Wavebreaker', icon: '🌊', unlock: () => Math.max(Number(game?.highestWave) || 1, Number(game?.wave) || 1) >= 50 },
+    { id: 'bossbane', name: 'Bossların Kâbusu', en: 'Bane of Bosses', icon: '🐉', unlock: () => (Number(game?.stats?.bossKills) || 0) >= 50 },
+    { id: 'voidveteran', name: 'Boşluk Gazisi', en: 'Void Veteran', icon: '🌌', unlock: () => Math.max(Number(game?.highestWave) || 1, Number(game?.wave) || 1) >= 150 },
+    { id: 'loopmaster', name: 'Döngü Ustası', en: 'Loop Master', icon: '♾️', unlock: () => (Number(game?.stats?.prestiges) || 0) >= 10 },
+    { id: 'starlegend', name: 'Yıldızlararası Efsane', en: 'Interstellar Legend', icon: '🪐', unlock: () => Math.max(Number(game?.highestWave) || 1, Number(game?.wave) || 1) >= 250 },
+    { id: 'collector', name: 'Hangar Küratörü', en: 'Hangar Curator', icon: '🌈', unlock: () => (Array.isArray(game?.ownedSkins) ? new Set(game.ownedSkins).size : 1) >= 20 },
+    { id: 'nightwatch', name: 'Son Nöbetçi', en: 'The Last Watch', icon: '🕰️', unlock: () => (Number(game?.stats?.playTimeSeconds) || 0) >= 86400 }
+];
+function setCommanderTitle(titleId) {
+    const title = COMMANDER_TITLES.find(t => t.id === titleId && t.unlock());
+    if (!title) { showToast(getGameLanguage() === 'en' ? 'This title is still locked.' : 'Bu unvan henüz kilitli.'); renderAchievementsModal(); return; }
+    if (!game.settings) game.settings = {};
+    game.settings.commanderTitle = title.id;
+    if (typeof saveGame === 'function') saveGame(true);
+    renderAchievementsModal();
+    showToast(getGameLanguage() === 'en' ? 'Title equipped: ' + title.en : 'Unvan kuşanıldı: ' + title.name);
+}
 function openAchievementsModal() {
     renderAchievementsModal();
     const modal = document.getElementById('achievements-modal');
@@ -2612,6 +2640,19 @@ function renderAchievementsModal() {
         badgeEl.className = `inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold ${badge.className}`;
         badgeEl.innerHTML = `<span class="text-xl">${badge.icon}</span><span>${badge.name}</span>`;
     }
+    const titleSelect = document.getElementById('commander-title-select');
+    const titleHint = document.getElementById('commander-title-hint');
+    const unlockedTitles = COMMANDER_TITLES.filter(t => t.unlock());
+    const currentTitle = unlockedTitles.find(t => t.id === game?.settings?.commanderTitle) || COMMANDER_TITLES[0];
+    if (titleSelect) {
+        titleSelect.innerHTML = COMMANDER_TITLES.map(t => {
+            const available = t.unlock();
+            const label = getGameLanguage() === 'en' ? t.en : t.name;
+            return '<option value="' + t.id + '" ' + (available ? '' : 'disabled ') + (t.id === currentTitle.id ? 'selected' : '') + '>' + t.icon + ' ' + label + (available ? '' : (getGameLanguage() === 'en' ? ' · LOCKED' : ' · KİLİTLİ')) + '</option>';
+        }).join('');
+        titleSelect.value = currentTitle.id;
+    }
+    if (titleHint) titleHint.textContent = getGameLanguage() === 'en' ? unlockedTitles.length + ' / ' + COMMANDER_TITLES.length + ' titles unlocked.' : unlockedTitles.length + ' / ' + COMMANDER_TITLES.length + ' unvan açık.';
     const values = {
         'profile-stat-wave': formatNumber(highWave),
         'profile-stat-kills': formatNumber(stats.totalKills || 0),
