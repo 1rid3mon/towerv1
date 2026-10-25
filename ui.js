@@ -3986,6 +3986,15 @@ const GAME_CONTENT_TRANSLATIONS = {
     "Çoklu hedefe zincirleme yıldırım ve düşman MaksHP yüzdesi hasarı verir.": "Chains lightning across multiple targets and deals damage based on a percentage of enemy max HP.",
     "Cyber Core": "Cyber Core",
     "Siber Çekirdek": "Cyber Core"
+,
+
+    "Sunkas Kulesi": "Sunkas Tower",
+    "Teyzir Kulesi": "Teyzir Tower",
+    "Su Şişesi": "Water Bottle",
+    "Füze Bataryası": "Missile Battery",
+    "Onarım Mekaniği": "Repair Mechanic",
+    "EŞYA": "ITEM",
+    "KOZMETİK": "COSMETIC"
 
 };
 
