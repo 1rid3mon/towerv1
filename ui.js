@@ -3704,13 +3704,33 @@ function finishStoryBattleEncounter() {
         return;
     }
     if (session.mission === 10 && session.phase === 'pulseNode2') {
-        session.phase = 'complete'; session.completed = true; session.pulseCount = 2; isPaused = true;
-        saveStoryProgress({ introSeen: true, chapter: 2, mission10Complete: true, pulseTutorialComplete: true });
-        setStatus(en ? 'LIFT OPEN · ACCESS DENIED. No identity record found. Correction: administrator access verified.' : 'ASANSÖR AÇILDI · ERİŞİM REDDEDİLDİ. Kimlik kaydı bulunamadı. Düzeltme: yönetici erişimi doğrulandı.');
-        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bilmiyorum. Ama kapı açılınca… içimde bir şey hatırladı.','I don’t know. But when the door opened… something inside me remembered.');
+        // Let the discovery breathe: denial, impossible admin override, then the companion's memory.
+        // Each delayed beat checks that this exact mission session is still active, so exiting
+        // during the scene cannot mutate the restored Endless Mode or a later mission.
+        session.phase = 'accessReveal'; session.pulseCount = 2; isPaused = true;
+        setStatus(en ? 'LIFT OPEN · ACCESS DENIED. No identity record found.' : 'ASANSÖR AÇILDI · ERİŞİM REDDEDİLDİ. Kimlik kaydı bulunamadı.');
+        setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Erişim reddedildi. Kimlik kaydı bulunamadı.','Access denied. No identity record found.');
         setAction('story-mission10-pulse-action', true);
-        setExit(en ? 'RETURN TO CHAPTER BOARD' : 'GÖREV PANOSUNA DÖN');
-        showToast(en ? 'Mission 10 complete. Pulse tutorial progress saved.' : '10. görev tamamlandı. Darbe öğreticisi ilerlemesi kaydedildi.');
+        setExit(en ? 'ABORT MISSION' : 'GÖREVDEN ÇIK');
+        window.setTimeout(() => {
+            if (window.__storyBattle !== session || !session.active || session.phase !== 'accessReveal') return;
+            session.phase = 'adminVerified';
+            setStatus(en ? 'CORRECTION · ADMINISTRATOR ACCESS VERIFIED.' : 'DÜZELTME · YÖNETİCİ ERİŞİMİ DOĞRULANDI.');
+            setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Düzeltme: yönetici erişimi doğrulandı.','Correction: administrator access verified.');
+            window.setTimeout(() => {
+                if (window.__storyBattle !== session || !session.active || session.phase !== 'adminVerified') return;
+                session.phase = 'complete'; session.completed = true;
+                setStatus(en ? 'LIFT STABLE · DESCENT ACCESS GRANTED.' : 'ASANSÖR SABİT · ALT KAT ERİŞİMİ AÇILDI.');
+                setStoryComms('KOMUTAN','COMMANDER','Sistemde kaydın yok. Nasıl yönetici olabilirsin?','You have no identity record in this system. How can you be an administrator?');
+                window.setTimeout(() => {
+                    if (window.__storyBattle !== session || !session.active || session.phase !== 'complete') return;
+                    setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bilmiyorum. Ama kapı açılınca… içimde bir şey hatırladı.','I don’t know. But when the door opened… something inside me remembered.');
+                    saveStoryProgress({ introSeen: true, chapter: 2, mission10Complete: true, pulseTutorialComplete: true });
+                    setExit(en ? 'RETURN TO CHAPTER BOARD' : 'GÖREV PANOSUNA DÖN');
+                    showToast(en ? 'Mission 10 complete. Pulse tutorial progress saved.' : '10. görev tamamlandı. Darbe öğreticisi ilerlemesi kaydedildi.');
+                }, 1500);
+            }, 1300);
+        }, 1000);
         return;
     }
 
