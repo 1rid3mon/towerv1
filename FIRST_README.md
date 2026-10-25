@@ -205,3 +205,13 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] Emulator testleri çalıştırılıp sonuç kaydedilsin.
 - [ ] İki hesapla arkadaşlık akışı doğrulansın.
 - [ ] CI/PR/main/deploy durumu ayrıca kontrol edilsin.
+
+
+### 2026-10-25 — Takip kontrolü: CI/deploy ve yerel test engeli
+- [x] GitHub Actions workflow `.github/workflows/security-lab.yml` okundu. Workflow; JS syntax check ve `security-lab` içinden `npm test` ile Firestore Emulator testlerini çalıştıracak şekilde tanımlı.
+- [x] Main'in güncel commit'i `94be85a` olarak kontrol edildi; son commit hikâye görevleri 13–14, başarımlar ve komutan unvanları değişikliklerini içeriyor.
+- [x] GitHub commit status kontrol edildi: Vercel sonucu `failure`, açıklama **“Deployment rate limited — retry in 24 hours.”** Bu bir deploy limiti; uygulamanın testlerden geçtiğini göstermez.
+- [ ] **TEST EDİLMEDİ:** Bu ortamda `npm test` çalıştırılamadı. GitHub klonlama denemesi DNS/network erişimi olmadığı için `github.com` adresini çözemedi; emulator sonucu yok.
+- [ ] **DEVAM EDİYOR:** Arkadaş sistemi değişiklikleri yalnızca `feature/story-chapter2-mission11` branch'inde. Main'e aktarılmadı.
+- [ ] **DEVAM EDİYOR:** İki hesapla canlı uçtan uca test ve mobil/masaüstü görsel testi yapılmadı.
+- Sonraki adım: ağ erişimi olan GitHub Actions üzerinde workflow çalıştırılmalı; güvenlik testleri geçmeden main'e taşıma veya canlı deploy iddiasında bulunulmamalı.
