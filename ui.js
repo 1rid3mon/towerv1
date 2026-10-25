@@ -3955,7 +3955,8 @@ function startStoryMission(missionNumber = 1) {
     else if (missionNumber === 8) showToast(storyLanguage() === 'en' ? 'Mission 08 · Look for contradictions between memory and the room.' : 'Görev 08 · Hafıza ile oda arasındaki çelişkileri ara.');
     else if (missionNumber === 9) showToast(storyLanguage() === 'en' ? 'Mission 09 · This is the final defense of Chapter 01.' : 'Görev 09 · Bu, 1. bölümün son savunması.');
     else if (missionNumber === 10) showToast(storyLanguage() === 'en' ? 'Mission 10 · The door is reacting to the companion. Calibrate the pulse, then reveal the hidden nodes.' : 'Görev 10 · Kapı yoldaşa tepki veriyor. Darbeyi ayarla, sonra gizli düğümleri açığa çıkar.');
-    else showToast(storyLanguage() === 'en' ? 'Mission 11 · The lower network is awake. Clear the way, then map its three relays.' : 'Görev 11 · Alt ağ uyandı. Önce yolu temizle, sonra üç röleyi haritala.');
+    else if (missionNumber === 11) showToast(storyLanguage() === 'en' ? 'Mission 11 · The lower network is awake. Clear the way, then map its three relays.' : 'Görev 11 · Alt ağ uyandı. Önce yolu temizle, sonra üç röleyi haritala.');
+    else if (missionNumber === 12) showToast(storyLanguage() === 'en' ? 'Mission 12 · Clear the archive guards, then inspect all three records.' : 'Görev 12 · Arşiv muhafızlarını durdur, ardından üç kaydı incele.');
 }
 function finishStoryBattleEncounter() {
     const session = window.__storyBattle;
