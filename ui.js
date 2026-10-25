@@ -3772,6 +3772,8 @@ function startStoryMission(missionNumber = 1) {
         }
     };
     window.__storyBattle = session;
+    // Set the mode before deriving HP, shield, and damage so Endless bonuses cannot leak into this mission.
+    document.body.dataset.gameMode = 'story';
     game = getDefaultState();
     game.wave = 1; game.highestWave = 1; game.gold = 180;
     game.waveKills = 0; game.waveTargetKills = missionNumber === 1 ? 8 : (missionNumber === 5 ? 8 : (missionNumber === 7 ? 8 : (missionNumber === 9 ? 10 : (missionNumber === 10 ? 6 : (missionNumber === 11 ? 8 : 5))))); game.holdWave = false;
