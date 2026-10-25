@@ -3960,16 +3960,16 @@ function startStoryMission(missionNumber = 1) {
         : (storyLanguage() === 'en' ? 'CHAPTER 01 · LOST SIGNAL' : 'BÖLÜM 01 · KAYIP SİNYAL');
     const commsByMission = {
         1: ['İSTASYON YAPAY ZEKÂSI','STATION AI','Savunma protokolü çöktü. Çekirdek yeniden güç kazanıyor; komutan, ilk teması karşıla.','Defense protocol has collapsed. The core is regaining power; Commander, prepare for first contact.'],
-        2: ['BAKIM YOLDAŞI','MAINTENANCE COMPANION','Sinyal gövdede üç noktada yankılanıyor. Tehlike geçince izleri birlikte tarayalım.','The signal echoes at three points in the hull. Once the threat passes, let us scan the traces.'],
+        2: ['PİKO','PIKO','Sinyal gövdede üç noktada yankılanıyor. Tehlike geçince izleri birlikte tarayalım.','The signal echoes at three points in the hull. Once the threat passes, let us scan the traces.'],
         3: ['KOMUTAN','COMMANDER','Anten sinyali mi tekrarlıyor, yoksa karakutu bunu daha önce mi duymuş? Bir kaydı seçmeliyiz.','Is the antenna repeating the signal, or did the black box hear it first? We need to inspect one record.'],
         4: ['İSTASYON YAPAY ZEKÂSI','STATION AI','Güç rezervi tek bir sistemi tam onarabilir. Kalkan daha güvenli, silah kalibrasyonu daha hızlı sonuç verir.','The reserve can fully restore only one system. Shields are safer; weapon calibration is faster.'],
         5: ['KOMUTAN','COMMANDER','Seçim yapıldı. Koridoru açıp röleyi susturacağız. Bu sinyalin başka bir yere yayılmasına izin veremeyiz.','The choice is made. We will clear the corridor and silence the relay. This signal cannot be allowed to spread.'],
-        6: ['BAKIM YOLDAŞI','MAINTENANCE COMPANION','Burada üç bağlantı kopmuş. Ben panelleri işaretleyeceğim. Sen onarımı tamamla.','Three connections are severed here. I will mark the panels. You complete the repairs.'],
+        6: ['PİKO','PIKO','Burada üç bağlantı kopmuş. Ben panelleri işaretleyeceğim. Sen onarımı tamamla.','Three connections are severed here. I will mark the panels. You complete the repairs.'],
         7: ['İSTASYON YAPAY ZEKÂSI','STATION AI','Haberleşme dizisi sinyali güçlendiriyor. Savunmayı sürdür; yükselticiyi kapatırsak kaynağın yönünü bulabiliriz.','The communications array is amplifying the signal. Hold the defense; shutting down the amplifier may reveal its origin.'],
         8: ['KOMUTAN','COMMANDER','Bu oda aynı oda. Ama kayıtlar birbirini tutmuyor. Mavi görüntü bir şeyi hatırlıyor—istasyon ise bunun yaşanmadığını söylüyor.','This is the same room. But the records contradict each other. The blue image remembers something—the station insists it never happened.'],
-        9: ['BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bağlantı kopuyor… Komutan, çekirdeği koru. Bu kez kaçmayacağım. Ne olduğumu hatırlamaya hazırım.','The link is breaking… Commander, protect the core. I will not retreat this time. I am ready to remember what I am.'],
+        9: ['PİKO','PIKO','Bağlantı kopuyor… Komutan, çekirdeği koru. Bu kez kaçmayacağım. Ne olduğumu hatırlamaya hazırım.','The link is breaking… Commander, protect the core. I will not retreat this time. I am ready to remember what I am.'],
         10: ['İSTASYON YAPAY ZEKÂSI','STATION AI','Alt kat planlarda görünmüyor. Burada yalnızca taşıyıcı kiriş olması gerekiyordu.','There is no lower level on the schematics. This should be a load-bearing strut.'],
-        11: ['BAKIM YOLDAŞI','MAINTENANCE COMPANION','Aşağıdaki ağ istasyondan eski. Lütfen bunun normal olduğunu söyle; ben söyleyemiyorum.','The network below predates the station. Please tell me that is normal; I cannot.'],
+        11: ['PİKO','PIKO','Aşağıdaki ağ istasyondan eski. Lütfen bunun normal olduğunu söyle; ben söyleyemiyorum.','The network below predates the station. Please tell me that is normal; I cannot.'],
         12: ['PİKO','PIKO','Arşivde benim için bir kayıt var. Garip olan, kaydın tarihinin benim çekirdeğimden daha eski olması değil… içindeki sesin benim sesim olmaması.','There is a record for me in the archive. The strange part is not that it predates my core… it is that the voice inside is not mine.']
     };
     const openingLine = commsByMission[missionNumber];
@@ -3979,7 +3979,7 @@ function startStoryMission(missionNumber = 1) {
     if (missionNumber === 5 && progress.routeChoice === 'array') {
         setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Anten kaydı sinyalin istasyonun içinden döndüğünü gösterdi. Röleyi susturursak döngüyü kesebiliriz.','The antenna log showed the signal looping from inside the station. Silencing the relay may break the loop.');
     } else if (missionNumber === 5 && progress.routeChoice === 'blackbox') {
-        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Karakutudaki ses benim ses izimle eşleşiyor. Bu mümkün olmamalı…','The voice in the black box matches my voiceprint. That should not be possible…');
+        setStoryComms('PİKO','PIKO','Karakutudaki ses benim ses izimle eşleşiyor. Bu mümkün olmamalı…','The voice in the black box matches my voiceprint. That should not be possible…');
     }
     const status = document.getElementById('story-battle-status');
     if (status) {
@@ -4090,7 +4090,7 @@ function finishStoryBattleEncounter() {
     if (session.mission === 11 && session.phase === 'combat') {
         session.phase = 'relayNode1'; isPaused = true; enemies = []; projectiles = [];
         setStatus(en ? 'LOWER NETWORK EXPOSED · Send a pulse to the first ancient relay.' : 'ALT AĞ AÇIĞA ÇIKTI · İlk kadim röleye sinyal darbesi gönder.');
-        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Üç röle var. Bunlar kablo değil… sanki istasyonun altına gömülmüş yıldız haritası. Birine dokun, bakalım ne hatırlıyorlar.','Three relays. These are not cables… they look like a star map buried beneath the station. Touch one and see what it remembers.');
+        setStoryComms('PİKO','PIKO','Üç röle var. Bunlar kablo değil… sanki istasyonun altına gömülmüş yıldız haritası. Birine dokun, bakalım ne hatırlıyorlar.','Three relays. These are not cables… they look like a star map buried beneath the station. Touch one and see what it remembers.');
         setAction('story-mission11-pulse-action', false, en ? 'PULSE · TRACE RELAY 1 / 3' : 'DARBE · 1 / 3 RÖLEYİ İZLE');
         setExit(en ? 'ABORT MISSION' : 'GÖREVDEN ÇIK');
         return;
@@ -4105,7 +4105,7 @@ function finishStoryBattleEncounter() {
     if (session.mission === 11 && session.phase === 'relayNode2') {
         session.phase = 'relayNode3'; session.pulseCount = 2;
         setStatus(en ? 'RELAY 2 MAPPED · A dormant signature matches the companion’s core.' : '2. RÖLE HARİTALANDI · Uyuyan bir imza, yoldaşın çekirdeğiyle eşleşiyor.');
-        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Benim çekirdeğim bu istasyonun inşasından önce varmış. Bunu kimseye söylemediğim için değil… şimdiye kadar bilmiyordum.','My core existed before this station was built. Not because I kept it secret… I did not know until now.');
+        setStoryComms('PİKO','PIKO','Benim çekirdeğim bu istasyonun inşasından önce varmış. Bunu kimseye söylemediğim için değil… şimdiye kadar bilmiyordum.','My core existed before this station was built. Not because I kept it secret… I did not know until now.');
         setAction('story-mission11-pulse-action', false, en ? 'PULSE · TRACE RELAY 3 / 3' : 'DARBE · 3 / 3 RÖLEYİ İZLE');
         return;
     }
@@ -4132,7 +4132,7 @@ function finishStoryBattleEncounter() {
     if (session.mission === 10 && session.phase === 'pulseNode1') {
         session.phase = 'pulseNode2'; session.pulseCount = 1; isPaused = true;
         setStatus(en ? 'NODE 1 REVEALED · The pulse did not strike an enemy. It exposed a hidden connection. The lift interface is still sealed.' : '1. DÜĞÜM AÇIĞA ÇIKTI · Darbe düşmanı vurmadı; gizlenmiş bağlantıyı görünür kıldı. Asansör arayüzü hâlâ kapalı.');
-        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Darbe düşmanı vurmadı. Gizlenmiş bağlantıyı görünür kıldı. İkinci düğüm asansörün kilidini tutuyor.','The pulse did not strike an enemy. It revealed a hidden connection. The second node is holding the lift lock.');
+        setStoryComms('PİKO','PIKO','Darbe düşmanı vurmadı. Gizlenmiş bağlantıyı görünür kıldı. İkinci düğüm asansörün kilidini tutuyor.','The pulse did not strike an enemy. It revealed a hidden connection. The second node is holding the lift lock.');
         setAction('story-mission10-pulse-action', false, en ? 'SIGNAL PULSE · STABILIZE LIFT' : 'SİNYAL DARBESİ · ASANSÖRÜ SABİTLE');
         showToast(en ? 'Node 1 activated. Node 2 is now traceable.' : '1. düğüm etkinleştirildi. 2. düğüm artık izlenebilir.');
         return;
@@ -4158,7 +4158,7 @@ function finishStoryBattleEncounter() {
                 setStoryComms('KOMUTAN','COMMANDER','Sistemde kaydın yok. Nasıl yönetici olabilirsin?','You have no identity record in this system. How can you be an administrator?');
                 window.setTimeout(() => {
                     if (window.__storyBattle !== session || !session.active || session.phase !== 'complete') return;
-                    setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bilmiyorum. Ama kapı açılınca… içimde bir şey hatırladı.','I don’t know. But when the door opened… something inside me remembered.');
+                    setStoryComms('PİKO','PIKO','Bilmiyorum. Ama kapı açılınca… içimde bir şey hatırladı.','I don’t know. But when the door opened… something inside me remembered.');
                     saveStoryProgress({ introSeen: true, chapter: 2, mission10Complete: true, pulseTutorialComplete: true });
                     setExit(en ? 'RETURN TO CHAPTER BOARD' : 'GÖREV PANOSUNA DÖN');
                     showToast(en ? 'Mission 10 complete. Pulse tutorial progress saved.' : '10. görev tamamlandı. Darbe öğreticisi ilerlemesi kaydedildi.');
@@ -4189,14 +4189,14 @@ function finishStoryBattleEncounter() {
         if (session.repairs < 3) {
             setStatus(en ? 'CONNECTION ' + session.repairs + '/3 RESTORED · The companion found another damaged panel.' : 'BAĞLANTI ' + session.repairs + '/3 ONARILDI · Yoldaş başka bir hasarlı panel buldu.');
             setAction('story-repair-action', false, en ? 'REPAIR CONNECTION ' + (session.repairs + 1) + '/3' : 'BAĞLANTIYI ONAR ' + (session.repairs + 1) + '/3');
-            setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bir bağlantı daha tamamlandı. Bu ses… tanıdık geliyor. Nedenini bilmiyorum.','One more connection restored. This sound… feels familiar. I do not know why.');
+            setStoryComms('PİKO','PIKO','Bir bağlantı daha tamamlandı. Bu ses… tanıdık geliyor. Nedenini bilmiyorum.','One more connection restored. This sound… feels familiar. I do not know why.');
             showToast(en ? 'Connection restored (' + session.repairs + '/3).' : 'Bağlantı onarıldı (' + session.repairs + '/3).');
             return;
         }
         session.completed = true;
         saveStoryProgress({ introSeen: true, chapter: 1, mission6Complete: true });
         setStatus(en ? 'MISSION COMPLETE · The companion emits a brief cyan flicker while repairing the last panel, then returns to its dim maintenance state.' : 'GÖREV TAMAMLANDI · Yoldaş son paneli onarırken kısa bir camgöbeği ışık yayıyor, ardından yeniden sönük bakım hâline dönüyor.');
-        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Ben bunu yapmayı nereden biliyorum? Bu hareket… benden önce de varmış gibi.','How do I know how to do this? This movement feels like it existed before me.');
+        setStoryComms('PİKO','PIKO','Ben bunu yapmayı nereden biliyorum? Bu hareket… benden önce de varmış gibi.','How do I know how to do this? This movement feels like it existed before me.');
         setAction('story-repair-action', true);
         setExit(en ? 'CONTINUE' : 'DEVAM ET');
         showToast(en ? 'Mission 06 complete. The flicker is logged, not an evolution.' : '6. görev tamamlandı. Işık kaydedildi; bu henüz evrim değil.');
@@ -4235,7 +4235,7 @@ function finishStoryBattleEncounter() {
     if (session.mission === 9 && session.phase === 'awaken') {
         session.phase = 'pulseTest'; session.companionSynced = true; isPaused = true;
         setStatus(en ? 'CYAN FORM AWAKENED · The companion is no longer just a maintenance unit. Test its new signal pulse.' : 'CAMGÖBEĞİ FORM UYANDI · Yoldaş artık yalnızca bir bakım birimi değil. Yeni sinyal darbesini dene.');
-        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Ben… bunu daha önce yaptım. Bu ışık benim değil. Bu ışık benim hatırladığım şey.','I… have done this before. This light is not mine. It is what I remember.');
+        setStoryComms('PİKO','PIKO','Ben… bunu daha önce yaptım. Bu ışık benim değil. Bu ışık benim hatırladığım şey.','I… have done this before. This light is not mine. It is what I remember.');
         setAction('story-awaken-action', true);
         setAction('story-pulse-action', false);
         const companionChip = document.getElementById('story-companion-chip');
@@ -4288,7 +4288,7 @@ function finishStoryBattleEncounter() {
     if (session.mission === 9 && session.phase === 'combat2') {
         session.phase = 'combat3'; game.wave = 3; game.highestWave = 3; game.waveKills = 0; game.waveTargetKills = 14; spawnTimer = 0; isPaused = false; enemies = []; projectiles = [];
         setStatus(en ? 'CORE BREACH · The hostile signal is forcing its way into the core. Hold the final line.' : 'ÇEKİRDEK İHLALİ · Düşman sinyali çekirdeğe girmeye çalışıyor. Son savunma hattını koru.');
-        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Çekirdeğin önüne geçiyorum. Bu kez seni korumayı ben seçeceğim.','I am moving in front of the core. This time, I choose to protect you.');
+        setStoryComms('PİKO','PIKO','Çekirdeğin önüne geçiyorum. Bu kez seni korumayı ben seçeceğim.','I am moving in front of the core. This time, I choose to protect you.');
         showToast(en ? 'Final phase 3/3 · Protect the core.' : 'Final aşaması 3/3 · Çekirdeği koru.');
         return;
     }
@@ -4332,7 +4332,7 @@ function finishStoryBattleEncounter() {
     if (session.mission === 2 && session.phase === 'combat') {
         session.phase = 'scan'; isPaused = true; enemies = []; projectiles = [];
         setStatus(en ? 'PATROL CLEARED · Scan the three signal traces. The companion has marked the first trace.' : 'DEVRİYE TEMİZLENDİ · Üç sinyal izini tara. Yoldaş ilk izi işaretledi.');
-        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','İlk iz burada. Zaman damgası istasyonun kapanışından daha eski görünüyor.','The first trace is here. Its timestamp appears older than the station shutdown.');
+        setStoryComms('PİKO','PIKO','İlk iz burada. Zaman damgası istasyonun kapanışından daha eski görünüyor.','The first trace is here. Its timestamp appears older than the station shutdown.');
         setAction('story-scan-action', false, en ? 'SCAN TRACE 1 / 3' : 'SİNYAL İZİNİ TARA 1 / 3');
         showToast(en ? 'Patrol cleared. Follow the companion’s scan markers.' : 'Devriye temizlendi. Yoldaşın tarama işaretlerini takip et.');
         return;
@@ -4347,7 +4347,7 @@ function finishStoryBattleEncounter() {
     } else {
         saveStoryProgress({ introSeen: true, chapter: 1, mission2Complete: true });
         setStatus(en ? 'MISSION COMPLETE · Three traces recovered. One timestamp predates the station shutdown.' : 'GÖREV TAMAMLANDI · Üç iz kurtarıldı. Zaman damgalarından biri istasyonun kapanmasından daha eski.');
-        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bu kayıt kapanıştan önceye ait. Sinyal neden buradaydı?','This record predates the shutdown. Why was the signal already here?');
+        setStoryComms('PİKO','PIKO','Bu kayıt kapanıştan önceye ait. Sinyal neden buradaydı?','This record predates the shutdown. Why was the signal already here?');
     }
     setAction('story-scan-action', true);
     setExit(en ? 'CONTINUE' : 'DEVAM ET');
@@ -4370,14 +4370,14 @@ function scanStorySignal() {
     const status = document.getElementById('story-battle-status');
     if (session.scans >= 3) {
         if (status) status.textContent = clues[2] + (en ? ' All three traces are stored.' : ' Üç iz de kaydedildi.');
-        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bu ses… sanki benim içimden geliyor. Ama ben bu kaydı hiç yaşamadım.','This voice… it feels like it comes from inside me. But I have never lived this recording.');
+        setStoryComms('PİKO','PIKO','Bu ses… sanki benim içimden geliyor. Ama ben bu kaydı hiç yaşamadım.','This voice… it feels like it comes from inside me. But I have never lived this recording.');
         finishStoryBattleEncounter();
         return;
     }
     if (status) status.textContent = clues[session.scans - 1] + (en ? ' Continue scanning.' : ' Taramaya devam et.');
     const action = document.getElementById('story-scan-action');
     if (action) action.textContent = en ? 'SCAN TRACE ' + (session.scans + 1) + ' / 3' : 'SİNYAL İZİNİ TARA ' + (session.scans + 1) + ' / 3';
-    setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bir iz daha. Bu sinyal kapanıştan önce varmış.','One more trace. This signal existed before the shutdown.');
+    setStoryComms('PİKO','PIKO','Bir iz daha. Bu sinyal kapanıştan önce varmış.','One more trace. This signal existed before the shutdown.');
     showToast(en ? 'Signal trace recovered (' + session.scans + '/3).' : 'Sinyal izi kurtarıldı (' + session.scans + '/3).');
 }
 function inspectStoryMemory() {
