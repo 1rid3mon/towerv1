@@ -3654,6 +3654,11 @@ function startStoryMission(missionNumber = 1) {
     if (companionState) companionState.textContent = missionNumber === 1
         ? (storyLanguage() === 'en' ? 'LOW POWER · LINKING TO CORE' : 'DÜŞÜK GÜÇ · ÇEKİRDEĞE BAĞLANIYOR')
         : (storyLanguage() === 'en' ? 'SCANNING SUPPORT · LOW POWER' : 'TARAMA DESTEĞİ · DÜŞÜK GÜÇ');
+    if (missionNumber === 10) {
+        if (companionChip) companionChip.classList.add('is-synced');
+        if (companionIcon) companionIcon.textContent = '✦';
+        if (companionState) companionState.textContent = storyLanguage() === 'en' ? 'CYAN FORM · SIGNAL STABLE' : 'CAMGÖBEĞİ FORM · SİNYAL KARARLI';
+    }
     const exit = document.getElementById('story-battle-exit');
     if (exit) exit.textContent = storyLanguage() === 'en' ? 'ABORT MISSION' : 'GÖREVDEN ÇIK';
     if (typeof resizeCanvas === 'function') resizeCanvas();
