@@ -1714,7 +1714,7 @@ let toastTimeout = null;
 function showToast(msg) {
     const el = document.getElementById('toast-msg'), txt = document.getElementById('toast-text');
     if (!el || !txt) return;
-    txt.textContent = msg; el.classList.remove('opacity-0'); clearTimeout(toastTimeout); toastTimeout = setTimeout(() => el.classList.add('opacity-0'), 2600);
+    txt.textContent = typeof localizeGameMessage === 'function' ? localizeGameMessage(msg) : msg; el.classList.remove('opacity-0'); clearTimeout(toastTimeout); toastTimeout = setTimeout(() => el.classList.add('opacity-0'), 2600);
 }
 
 // =======================================================
@@ -2687,6 +2687,10 @@ function openDailyMissionsModal() {
     renderDailyMissions();
     const modal = document.getElementById('daily-missions-modal');
     if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+    const action = document.getElementById('daily-missions-close-action');
+    if (action) action.textContent = dailyMissionsOpenedFromMainMenu
+        ? (getGameLanguage() === 'en' ? 'RETURN TO MAIN MENU' : 'ANA MENÜYE DÖN')
+        : (getGameLanguage() === 'en' ? 'RETURN TO BATTLEFIELD' : 'SAVAŞ ALANINA DÖN');
 }
 
 function closeDailyMissionsModal() {
@@ -3661,7 +3665,13 @@ const GAME_TRANSLATIONS = {
     "İşlem tamamlanamadı:": "Operation failed:",
     "Yakalanmamış Promise hatası": "Unhandled promise error",
     "Ana Menü": "Main Menu",
-    "Görevleri görüntüle, tamamladığın görevlerin altın ve kristal ödüllerini topla.": "View your quests and claim gold and crystal rewards."
+    "Görevleri görüntüle, tamamladığın görevlerin altın ve kristal ödüllerini topla.": "View your quests and claim gold and crystal rewards.",
+    "Günlük görevleri kapat": "Close daily quests",
+    "Oyun başka bir sekmede açık": "The game is open in another tab",
+    "Oynamak için diğer oyun sekmesini kapatıp bu sayfayı yenile.": "Close the other game tab and refresh this page to play.",
+    "Görevleri görüntüle, tamamladığın görevlerin altın ve kristal ödüllerini topla.": "View your quests and claim gold and crystal rewards.",
+    "Günlük görev ödülü alındı!": "Daily quest reward claimed!",
+    "Günlük görevler bu cihazda saklanır ve istemci tarafında hesaplanır. Ödüller rekabetçi veya gerçek para değeri taşıyan ödüller değildir.": "Daily quests are stored on this device and calculated client-side. Rewards have no competitive or real-money value."
 };
 
 const gameTextOriginals = new WeakMap();
@@ -3717,6 +3727,11 @@ function applyGameLanguage(language) {
         }
     });
     gameLanguageObserver.observe(document.body, { childList: true, subtree: true });
+}
+
+function localizeGameMessage(message) {
+    if (getGameLanguage() !== 'en' || typeof message !== 'string') return message;
+    return GAME_TRANSLATIONS[message] || message;
 }
 
 function setGameLanguage(language) {
