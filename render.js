@@ -2494,10 +2494,12 @@ function renderGame() {
             ctx.save();
             const auraGradient = ctx.createRadialGradient(0, 0, Math.max(2, e.radius * 0.35), 0, 0, bossRadius + 13);
             auraGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-            auraGradient.addColorStop(0.62, bossColor + '18');
+            auraGradient.addColorStop(0.62, bossColor);
             auraGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
             ctx.fillStyle = auraGradient;
+            ctx.globalAlpha = 0.16;
             ctx.beginPath(); ctx.arc(0, 0, bossRadius + 13, 0, Math.PI * 2); ctx.fill();
+            ctx.globalAlpha = 1;
 
             ctx.rotate(-nowCompTime * 0.00045);
             ctx.strokeStyle = bossColor;
