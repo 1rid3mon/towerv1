@@ -3117,37 +3117,62 @@ document.addEventListener('DOMContentLoaded', () => {
     const defaultLines = [
         'Savunma hattı bende, komutan!',
         'Bir sonraki hamleni merak ediyorum.',
-        'Biraz dinlenmek yok, kule bizi bekliyor!',
-        'Bu manzaraya alışabilirim. ✨'
+        'Bu kuleyle iyi bir ikili olduk!',
+        'Hazırım. Sen ne zaman hazırsan. ✨'
     ];
-    const companionLines = {
-        default_tech: ['Tarama tamamlandı. Şimdilik güvendeyiz.', 'Düşman hareketlerini izliyorum. 🛸'],
-        origami_crane: ['Sakin kal, komutan. Her şey adım adım.', 'Biraz huzur, biraz strateji. 🕊️'],
-        cyber_prism: ['Enerji spektrumu şahane görünüyor!', 'Kuantum seviyesinde havalıyız. 💠'],
-        ghost_wisp: ['Böö! ...Şaka yaptım. 👻', 'Ben korkmam. Galiba.'],
-        shadow_kunai: ['Sessiz ve hazır. 🥷', 'Gölge gibi buradayım.'],
-        crimson_sand: ['Zaman akıyor; hamleni seç.', 'Her saniye önemli. ⏳'],
-        drama_mask: ['Bu sahne için alkış istiyorum! 🎭', 'Trajedi mi, zafer mi? Perde açık.'],
-        valkyrie_halo: ['Yanındayım, savunmacı. 🪽', 'Işığımız sönmeyecek.'],
-        eclipse_crescent: ['Karanlıkta bile yolumuzu buluruz. 🌙', 'Tutulma başladı... şaka şaka!'],
-        kurt_spirit: ['Auuuu! Sürü hazır! 🐺', 'Bozkurt ruhu yanında, komutan!']
+    // Tepkiler, yoldaş kostümüne değil oyuncunun kuşandığı KULE SKİNİNE göre seçilir.
+    const towerSkinLines = {
+        default_cyber: ['Siber çekirdekler kararlı. Sistem hazır! ⚡', 'Bu plazma parıltısına bayılıyorum.'],
+        kurt_kaan: ['Kurt Kaan ile sürü gibi güçlüyüz! 🐺', 'Bir uluma duysam da düşmanlar kaçsa.'],
+        dgdvrn: ['Altın kaplama mı? Komutan, zevkin pahalı! 👑', 'Bu kadar parıltıyla düşman bizi görmeden yenilecek.'],
+        black_hole: ['O kara deliğe fazla yaklaşmayalım... 🕳️', 'Uzay-zaman bükülüyor. Ben gayet sakinim.'],
+        nane_tower: ['Nane ferahlığı, tam savaş öncesi lazım olan şey! 🌿', 'Buz gibi strateji, komutan.'],
+        sunkas_tower: ['Güneş kadar parlak, savunma kadar sağlam! ☀️', 'Bu ışıkta güneş gözlüğü takmalıydım.'],
+        ates_tower: ['Sıcaklık yükseliyor! Ben biraz geride durayım. 🔥', 'Alevler şahane ama kaşlarımı seviyorum.'],
+        teyzir_tower: ['Yüksek voltaj, yüksek moral! ⚡', 'Elektrikleniyorum... mecazen!'],
+        bubblegum: ['Balonlar tatlı, patlamaları daha da tatlı! 🫧', 'Sakız gibi yapışkan bir savunma.'],
+        cyber_samurai: ['Keskin ve disiplinli. Saygı duydum. 🥷', 'Bu kuleyle sessizce kazanacağız.'],
+        snowman: ['Bana da bir atkı ayırın! ⛄', 'Düşmanlar erimeden önce donsun!'],
+        star_cruiser: ['Rotamız zafer, kaptan! 🚀', 'Yıldızlara doğru... ama önce şu dalga.'],
+        dragon: ['Ejderha bizim tarafta, içim rahat. 🐉', 'Umarım ateş püskürtürken alarm çalmaz.'],
+        fighter_jet: ['Kalkış izni verildi! ✈️', 'Hız, irtifa, savunma! Hepsi tamam.'],
+        lion: ['Ormanın kralı yanımızda. Kükre komutan! 🦁', 'Bu savunma aslan gibi.'],
+        tiger: ['Sessiz, çevik ve tehlikeli. 🐯', 'Pençeler hazırsa ben de hazırım.'],
+        sofa: ['Kraliyet koltuğu mu? Savunma VIP oldu! 🛋️', 'Komutan, savaş sonrası oturacak yerimiz hazır.'],
+        robot: ['Meka protokolü çevrimiçi. 🤖', 'Bu çelik dostla sistem hata vermez umarım.'],
+        fire_demon: ['Ateş iblisi bile benden daha sakin görünüyor. 👹', 'Bu kuleyle düşmanlara sıcak bir karşılama!'],
+        car: ['Vınnn! Bu savunma tam gaz! 🚗', 'Virajı al, dalgayı geç!'],
+        monkey: ['Muz molası mı? Önce düşmanları halledelim. 🐵', 'Bu maymunun planını anlamadım ama işe yarıyor!'],
+        tree: ['Kökler sağlam, savunma sağlam. 🌳', 'Biraz doğa, biraz strateji.'],
+        sleep_emoji: ['Uyan komutan, kule uyumuyor! 😴', 'Şşşt... düşmanları uyandırmadan yenelim.'],
+        alien: ['Dünya savunması için geldim. 👽', 'Bunlar kesin dünya dışı düşmanlar değil mi?'],
+        bird: ['Kanatlar hazır, gökyüzü bizim! 🐦', 'Yukarıdan her şeyi görüyorum.'],
+        water_bottle: ['Bir yudum su, bir dalga daha. 🧴', 'Susuz kalma komutan, savunma uzun sürecek.'],
+        chair: ['RGB ışıkları aç, mücadele başlıyor! 🪑', 'Oyuncu koltuğu taktik avantaj sayılır mı?'],
+        table: ['Harita önümde, strateji hazır. 🪵', 'Taktik masa kuruldu. Planımız sağlam.'],
+        pizza: ['Zaferden sonra pizza benden! 🍕', 'Peynir uzuyor, düşmanlar kaçıyor.'],
+        toilet: ['Bu skin hakkında sorularım var... 🚽', 'Komutan, mizah anlayışına saygı duyuyorum.']
     };
 
-    function getCompanion() {
-        const id = (typeof game !== 'undefined' && game && game.activeCompanionSkin) || 'default_tech';
-        const db = typeof COMPANION_SKIN_DATABASE !== 'undefined' ? COMPANION_SKIN_DATABASE : {};
-        return { id, def: db[id] || db.default_tech || { name: 'Taktik Yoldaş', emoji: '🛸' } };
+    function getTowerSkin() {
+        const id = (typeof game !== 'undefined' && game && game.activeSkin) || 'default_cyber';
+        const db = typeof SKIN_DATABASE !== 'undefined' ? SKIN_DATABASE : {};
+        return { id, def: db[id] || db.default_cyber || { name: 'Plazma Kulesi', emoji: '⚡' } };
     }
     function syncMascot() {
-        const companion = getCompanion();
-        face.textContent = companion.def.emoji || '🛸';
-        mascot.setAttribute('aria-label', (companion.def.name || 'Maskot') + ' — dokun ve tepki ver');
-        mascot.title = companion.def.name || 'Maskot';
-        return companion;
+        const skin = getTowerSkin();
+        // Maskot kendi karakterini korur; replikleri kuşanılan kule skinine göre değişir.
+        face.textContent = '🛸';
+        mascot.setAttribute('aria-label', 'Taktik maskot — ' + skin.def.name + ' skinine tepki vermek için dokun');
+        mascot.title = 'Taktik maskot · ' + skin.def.name;
+        return skin;
     }
     function react() {
-        const companion = syncMascot();
-        const lines = companionLines[companion.id] || defaultLines;
+        const skin = syncMascot();
+        const lines = towerSkinLines[skin.id] || [
+            skin.def.name + ' bayağı havalı görünüyor, komutan!',
+            skin.def.name + ' ile bu savunma akılda kalacak. ' + (skin.def.emoji || '✨')
+        ];
         bubble.textContent = lines[Math.floor(Math.random() * lines.length)];
         const rect = mascot.getBoundingClientRect();
         bubble.style.left = Math.max(8, Math.min(window.innerWidth - Math.min(230, window.innerWidth - 32) - 8, rect.left + rect.width / 2 - 115)) + 'px';
