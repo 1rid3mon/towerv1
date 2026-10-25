@@ -178,7 +178,12 @@ test('Story Mode mission handler enforces the previous-mission prerequisite even
     6: 'mission5Complete',
     7: 'mission6Complete',
     8: 'mission7Complete',
-    9: 'mission8Complete'
+    9: 'mission8Complete',
+    10: 'mission9Complete',
+    11: 'mission10Complete',
+    12: 'mission11Complete',
+    13: 'mission12Complete',
+    14: 'mission13Complete'
   };
 
   assert.equal(sandbox.storyMissionPrerequisiteMet(1, {}), true);
@@ -197,4 +202,12 @@ test('Story Mode mission handler enforces the previous-mission prerequisite even
     );
   }
   assert.match(uiSource, /if \(!storyMissionPrerequisiteMet\(missionNumber, progress\)\)/);
+});
+
+
+test('routine HUD refresh is throttled while explicit event updates remain available', () => {
+  assert.match(engineSource, /let hudUpdateAccum = 0;/);
+  assert.match(engineSource, /hudUpdateAccum \+= dt;/);
+  assert.match(engineSource, /if \(hudUpdateAccum >= 0\.1\)[\s\S]{0,100}updateHUD\(\);/);
+  assert.match(uiSource, /function updateHUD\(\)/);
 });
