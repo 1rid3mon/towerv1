@@ -617,11 +617,11 @@
         <h1 id="mode-menu-title" class="mode-menu-title mt-4">KULE SAVUNMA</h1>
         <p id="mode-menu-subtitle" class="mode-menu-subtitle">Nasıl bir mücadeleye hazırsın, komutan? Bir dünyayı kurtar ya da sınırlarını sonsuza kadar zorla.</p>
         <div class="mode-menu-grid">
-            <button type="button" class="mode-menu-card border-violet-400/30 bg-gradient-to-br from-violet-950/65 via-slate-900 to-slate-900" onclick="showStoryModeComingSoon()">
+            <button type="button" class="mode-menu-card border-violet-400/30 bg-gradient-to-br from-violet-950/65 via-slate-900 to-slate-900" onclick="openStoryMode()">
                 <span class="mode-menu-icon bg-violet-500/15 border border-violet-400/25 text-violet-200">✦</span>
                 <span class="mode-menu-card-title">Hikâye Modu</span>
-                <span class="mode-menu-card-desc">Dünyaları keşfet, yeni tehditlerle yüzleş ve final boss'una ulaş. Hikâye yolculuğu hazırlanıyor.</span>
-                <span class="mode-menu-card-action text-violet-300">Yakında gelecek <span aria-hidden="true">↗</span></span>
+                <span class="mode-menu-card-desc">Bilinmeyen sinyali araştır, ekibini kur ve istasyonun sırrını ortaya çıkar.</span>
+                <span class="mode-menu-card-action text-violet-300">Bölüme gir <span aria-hidden="true">→</span></span>
             </button>
             <button type="button" class="mode-menu-card border-cyan-400/35 bg-gradient-to-br from-cyan-950/70 via-slate-900 to-slate-900" onclick="enterGameMode('endless')">
                 <span class="mode-menu-icon bg-cyan-500/15 border border-cyan-400/25 text-cyan-200">∞</span>
@@ -663,7 +663,7 @@
      <div class="story-dialogue" aria-live="polite" aria-atomic="true">
       <div class="story-speaker" id="story-speaker">İSTASYON YAPAY ZEKÂSI</div>
       <p class="story-dialogue-copy" id="story-dialogue-copy">Bağlantı kuruluyor…</p>
-      <div class="story-controls"><span class="story-progress" id="story-progress">01 / 05</span><button type="button" class="story-primary" id="story-next" onclick="advanceStoryDialogue()">DEVAM ET →</button></div>
+      <div class="story-controls"><span class="story-progress" id="story-progress">01 / 05</span><button type="button" class="story-primary" id="story-next" onclick="advanceStoryDialogue()">DEVAM ET →</button><button type="button" class="story-exit" id="story-skip" onclick="skipStoryIntro()">ATLA</button></div>
      </div>
     </div>
    </div>
