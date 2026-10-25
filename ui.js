@@ -75,7 +75,7 @@ function playBattleCue(kind) {
     const audio = battleAudioContext;
     if (audio.state === 'suspended') audio.resume().catch(() => {});
     const now = audio.currentTime;
-    const cooldowns = { shot: 0.075, impact: 0.055, ui: 0.035, towerHit: 0.18 };
+    const cooldowns = { shot: 0.075, impact: 0.055, critical: 0.085, ui: 0.035, towerHit: 0.18 };
     const cooldown = cooldowns[kind] || 0;
     if (cooldown && now - (battleCueLastAt[kind] || -Infinity) < cooldown) return;
     battleCueLastAt[kind] = now;
