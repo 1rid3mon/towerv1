@@ -2031,6 +2031,7 @@ function initAuthAndCloudSystem() {
                     currentUser = { uid: user.uid, username: cleanName, email: user.email || '', isCloud: true };
                     updateAccountHeaderUI();
                     await forceCloudPull(true);
+                    await pullStoryProgressFromCloud(true);
                     await pushScoreToLeaderboard();
                     await renderFriends();
                 } else {
@@ -4044,13 +4045,69 @@ let storyDialogueIndex = 0;
 let storyMissionViewOpen = false;
 
 function getStoryProgress() {
+    const defaults = { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false, mission3Complete: false, mission4Complete: false, mission5Complete: false, mission6Complete: false, mission7Complete: false, mission8Complete: false, mission9Complete: false, mission10Complete: false, mission11Complete: false, mission12Complete: false, mission13Complete: false, mission14Complete: false, voiceChoice: null, pulseTutorialComplete: false, companionForm: 'basic', repairChoiceCount: 0, routeChoice: null, powerChoice: null, updatedAt: 0 };
     try {
         const saved = JSON.parse(localStorage.getItem(STORY_PROGRESS_KEY) || '{}');
-        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Number(saved.chapter) || 1), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true, mission3Complete: saved.mission3Complete === true, mission4Complete: saved.mission4Complete === true, mission5Complete: saved.mission5Complete === true, mission6Complete: saved.mission6Complete === true, mission7Complete: saved.mission7Complete === true, mission8Complete: saved.mission8Complete === true, mission9Complete: saved.mission9Complete === true, mission10Complete: saved.mission10Complete === true, mission11Complete: saved.mission11Complete === true, mission12Complete: saved.mission12Complete === true, mission13Complete: saved.mission13Complete === true, mission14Complete: saved.mission14Complete === true, voiceChoice: ['human','station'].includes(saved.voiceChoice) ? saved.voiceChoice : null, pulseTutorialComplete: saved.pulseTutorialComplete === true, companionForm: saved.companionForm === 'cyan' ? 'cyan' : 'basic', repairChoiceCount: Math.max(0, Math.min(3, Number(saved.repairChoiceCount) || 0)), routeChoice: ['array','blackbox'].includes(saved.routeChoice) ? saved.routeChoice : null, powerChoice: ['shield','weapon'].includes(saved.powerChoice) ? saved.powerChoice : null };
-    } catch (_) { return { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false, mission3Complete: false, mission4Complete: false, mission5Complete: false, mission6Complete: false, mission7Complete: false, mission8Complete: false, mission9Complete: false, mission10Complete: false, mission11Complete: false, mission12Complete: false, mission13Complete: false, mission14Complete: false, voiceChoice: null, pulseTutorialComplete: false, companionForm: 'basic', repairChoiceCount: 0, routeChoice: null, powerChoice: null }; }
+        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Math.min(2, Number(saved.chapter) || 1)), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true, mission3Complete: saved.mission3Complete === true, mission4Complete: saved.mission4Complete === true, mission5Complete: saved.mission5Complete === true, mission6Complete: saved.mission6Complete === true, mission7Complete: saved.mission7Complete === true, mission8Complete: saved.mission8Complete === true, mission9Complete: saved.mission9Complete === true, mission10Complete: saved.mission10Complete === true, mission11Complete: saved.mission11Complete === true, mission12Complete: saved.mission12Complete === true, mission13Complete: saved.mission13Complete === true, mission14Complete: saved.mission14Complete === true, voiceChoice: ['human','station'].includes(saved.voiceChoice) ? saved.voiceChoice : null, pulseTutorialComplete: saved.pulseTutorialComplete === true, companionForm: saved.companionForm === 'cyan' ? 'cyan' : 'basic', repairChoiceCount: Math.max(0, Math.min(3, Number(saved.repairChoiceCount) || 0)), routeChoice: ['array','blackbox'].includes(saved.routeChoice) ? saved.routeChoice : null, powerChoice: ['shield','weapon'].includes(saved.powerChoice) ? saved.powerChoice : null, updatedAt: Math.max(0, Number(saved.updatedAt) || 0) };
+    } catch (_) { return defaults; }
 }
+let storyCloudSaveTimer = null;
 function saveStoryProgress(patch) {
-    try { localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify({ ...getStoryProgress(), ...patch, updatedAt: Date.now() })); } catch (_) {}
+    try {
+        const next = { ...getStoryProgress(), ...patch, updatedAt: Date.now() };
+        localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(next));
+        if (currentUser && currentUser.isCloud && isFirebaseReady && fbDb) {
+            clearTimeout(storyCloudSaveTimer);
+            storyCloudSaveTimer = setTimeout(() => pushStoryProgressToCloud(true), 1200);
+        }
+    } catch (_) {}
+}
+function getValidatedStoryProgress(source) {
+    try {
+        localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(source || {}));
+        return getStoryProgress();
+    } catch (_) {
+        return getStoryProgress();
+    }
+}
+async function pushStoryProgressToCloud(silent = true) {
+    if (!currentUser || !currentUser.isCloud || !isFirebaseReady || !fbDb) return false;
+    try {
+        const progress = getStoryProgress();
+        const payload = { ...progress, updatedAt: Math.max(Date.now(), progress.updatedAt || 0) };
+        await fbDb.collection('storyProgress').doc(currentUser.uid).set(payload);
+        localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(payload));
+        if (!silent) showToast('☁️ Hikâye ilerlemen buluta kaydedildi.');
+        return true;
+    } catch (err) {
+        console.error('[Story Cloud Save] failed:', err && err.code ? err.code : 'unknown', err);
+        if (!silent) showToast('❌ Hikâye buluta kaydedilemedi; bu cihazdaki yerel kayıt korundu.');
+        return false;
+    }
+}
+async function pullStoryProgressFromCloud(silent = true) {
+    if (!currentUser || !currentUser.isCloud || !isFirebaseReady || !fbDb) return false;
+    try {
+        const ref = fbDb.collection('storyProgress').doc(currentUser.uid);
+        const snapshot = await ref.get();
+        const local = getStoryProgress();
+        if (!snapshot.exists) {
+            if (local.updatedAt > 0) await pushStoryProgressToCloud(true);
+            return false;
+        }
+        const remote = getValidatedStoryProgress(snapshot.data());
+        if (local.updatedAt > remote.updatedAt && local.updatedAt > 0) {
+            await pushStoryProgressToCloud(true);
+        } else {
+            localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(remote));
+            updateStoryMissionBoard();
+        }
+        return true;
+    } catch (err) {
+        console.error('[Story Cloud Pull] failed:', err && err.code ? err.code : 'unknown', err);
+        if (!silent) showToast('❌ Hikâye bulut kaydı alınamadı; yerel ilerlemen korunuyor.');
+        return false;
+    }
 }
 function storyLanguage() { return getGameLanguage() === 'en' ? 'en' : 'tr'; }
 function storyCopy(pair) { return pair[storyLanguage() === 'en' ? 1 : 0]; }
