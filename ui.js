@@ -2916,6 +2916,157 @@ function setLeaderboardSort(sortType) {
 // Reduce needless rejected Firestore writes; server-side rules remain the actual enforcement.
 const leaderboardCloudWriteAttempts = new Map();
 
+
+const FRIEND_REQUESTS_COLLECTION = 'friendRequests';
+let friendSystemBusy = false;
+
+function friendEsc(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function friendSystemReady() {
+    return !!(isFirebaseReady && fbDb && currentUser && currentUser.isCloud && currentUser.uid);
+}
+function renderFriendNotice(message, isError = false) {
+    const el = document.getElementById('friends-notice');
+    if (!el) return;
+    el.textContent = message || '';
+    el.className = 'text-xs rounded-lg px-2.5 py-2 ' + (isError ? 'bg-rose-950/50 text-rose-200 border border-rose-500/30' : 'bg-sky-950/40 text-sky-200 border border-sky-500/20');
+    if (!message) el.classList.add('hidden'); else el.classList.remove('hidden');
+}
+async function sendFriendRequest() {
+    if (friendSystemBusy) return;
+    if (!friendSystemReady()) { renderFriendNotice('Arkadaş eklemek için Firebase hesabınla giriş yapmalısın.', true); return; }
+    const input = document.getElementById('friends-add-username');
+    const wanted = normalizeUsernameKey(input ? input.value : '');
+    const mine = normalizeUsernameKey(currentUser.username);
+    if (wanted.length < 3 || wanted.length > 18) { renderFriendNotice('Kullanıcı adı 3–18 karakter olmalı.', true); return; }
+    if (wanted === mine) { renderFriendNotice('Kendini arkadaş ekleyemezsin 😄', true); return; }
+    friendSystemBusy = true;
+    const btn = document.getElementById('friends-add-button');
+    if (btn) { btn.disabled = true; btn.textContent = 'Gönderiliyor…'; }
+    try {
+        const targetRef = fbDb.collection('usernameRegistry').doc(wanted);
+        const requestId = currentUser.uid + '_' + wanted;
+        const requestRef = fbDb.collection(FRIEND_REQUESTS_COLLECTION).doc(requestId);
+        const reverseRef = fbDb.collection(FRIEND_REQUESTS_COLLECTION).doc('username_' + wanted + '_to_' + mine);
+        const targetSnap = await targetRef.get();
+        if (!targetSnap.exists) throw new Error('Bu kullanıcı adı bulunamadı. Arkadaşının hesabıyla en az bir kez giriş yapmış olması gerekiyor.');
+        const target = targetSnap.data();
+        if (!target.uid || target.uid === currentUser.uid) throw new Error('Bu kullanıcıyı ekleyemezsin.');
+        const fromKey = normalizeUsernameKey(currentUser.username);
+        const senderRegistry = await fbDb.collection('usernameRegistry').doc(fromKey).get();
+        if (!senderRegistry.exists || senderRegistry.data().uid !== currentUser.uid) throw new Error('Kullanıcı adı doğrulanamadı. Yeniden giriş yapmayı dene.');
+        const outgoingId = currentUser.uid + '_' + target.uid;
+        const incomingId = target.uid + '_' + currentUser.uid;
+        const outgoingRef = fbDb.collection(FRIEND_REQUESTS_COLLECTION).doc(outgoingId);
+        const incomingRef = fbDb.collection(FRIEND_REQUESTS_COLLECTION).doc(incomingId);
+        await fbDb.runTransaction(async tx => {
+            const [existing, reverse] = await Promise.all([tx.get(outgoingRef), tx.get(incomingRef)]);
+            if (existing.exists) {
+                const status = existing.data().status;
+                if (status === 'accepted') throw new Error('Zaten arkadaşsınız.');
+                if (status === 'pending') throw new Error('Bu kişiye zaten istek gönderdin.');
+                tx.delete(outgoingRef);
+            }
+            if (reverse.exists && reverse.data().status === 'accepted') throw new Error('Zaten arkadaşsınız.');
+            if (reverse.exists && reverse.data().status === 'pending') throw new Error('Bu kişi sana zaten istek göndermiş. Gelen isteklerden kabul edebilirsin.');
+            tx.set(outgoingRef, {
+                fromUid: currentUser.uid, toUid: target.uid,
+                fromUsername: currentUser.username, toUsername: target.username,
+                status: 'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        });
+        if (input) input.value = '';
+        renderFriendNotice('İstek gönderildi! ' + target.username + ' kabul edince arkadaş listenizde görünecek.');
+        await renderFriends();
+    } catch (err) {
+        renderFriendNotice(err && err.message ? err.message : 'İstek gönderilemedi. Bağlantını ve Firestore kurallarını kontrol et.', true);
+    } finally {
+        friendSystemBusy = false;
+        if (btn) { btn.disabled = false; btn.textContent = 'İstek Gönder'; }
+    }
+}
+async function respondToFriendRequest(requestId, accept) {
+    if (!friendSystemReady()) { renderFriendNotice('Arkadaş sistemi için bulut hesabıyla giriş yap.', true); return; }
+    try {
+        const ref = fbDb.collection(FRIEND_REQUESTS_COLLECTION).doc(requestId);
+        await fbDb.runTransaction(async tx => {
+            const snap = await tx.get(ref);
+            if (!snap.exists) throw new Error('İstek artık mevcut değil.');
+            const data = snap.data();
+            if (data.toUid !== currentUser.uid || data.status !== 'pending') throw new Error('Bu isteğe yanıt verme yetkin yok.');
+            tx.update(ref, { status: accept ? 'accepted' : 'rejected', updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        });
+        renderFriendNotice(accept ? 'Arkadaşlık kuruldu! 🎉' : 'İstek reddedildi.');
+        await renderFriends();
+    } catch (err) {
+        renderFriendNotice(err && err.message ? err.message : 'İstek güncellenemedi.', true);
+    }
+}
+async function removeFriend(requestId) {
+    if (!friendSystemReady()) return;
+    try {
+        const ref = fbDb.collection(FRIEND_REQUESTS_COLLECTION).doc(requestId);
+        const snap = await ref.get();
+        if (!snap.exists) return renderFriends();
+        const d = snap.data();
+        if (d.fromUid !== currentUser.uid && d.toUid !== currentUser.uid) throw new Error('Bu arkadaşlığı yönetme yetkin yok.');
+        if (d.status !== 'accepted') throw new Error('Bu kayıt artık arkadaşlık değil.');
+        await ref.delete();
+        renderFriendNotice('Arkadaş listenden kaldırıldı.');
+        await renderFriends();
+    } catch (err) {
+        renderFriendNotice(err && err.message ? err.message : 'Arkadaş kaldırılamadı.', true);
+    }
+}
+async function renderFriends() {
+    const list = document.getElementById('friends-list');
+    const incomingEl = document.getElementById('friends-incoming');
+    const outgoingEl = document.getElementById('friends-outgoing');
+    const countEl = document.getElementById('friends-count');
+    if (!list || !incomingEl || !outgoingEl) return;
+    if (!friendSystemReady()) {
+        list.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">Arkadaşlarını görmek ve istek göndermek için bulut hesabınla giriş yap.</div>';
+        incomingEl.innerHTML = '<div class="text-xs text-slate-500">Giriş yapınca isteklerin burada görünür.</div>';
+        outgoingEl.innerHTML = '<div class="text-xs text-slate-500">Gönderdiğin istekler burada görünür.</div>';
+        if (countEl) countEl.textContent = 'Hesap gerekli';
+        return;
+    }
+    list.innerHTML = '<div class="text-xs text-slate-400 py-3 text-center">Arkadaşlar yükleniyor…</div>';
+    try {
+        const col = fbDb.collection(FRIEND_REQUESTS_COLLECTION);
+        const [incomingSnap, outgoingSnap] = await Promise.all([
+            col.where('toUid', '==', currentUser.uid).get(),
+            col.where('fromUid', '==', currentUser.uid).get()
+        ]);
+        const incoming = [], outgoing = [], friends = [];
+        incomingSnap.forEach(doc => { const d = doc.data(); d._id = doc.id; if (d.status === 'pending') incoming.push(d); else if (d.status === 'accepted') friends.push(d); });
+        outgoingSnap.forEach(doc => { const d = doc.data(); d._id = doc.id; if (d.status === 'pending') outgoing.push(d); else if (d.status === 'accepted') friends.push(d); });
+        const byUid = new Map();
+        friends.forEach(d => { const otherUid = d.fromUid === currentUser.uid ? d.toUid : d.fromUid; const otherName = d.fromUid === currentUser.uid ? d.toUsername : d.fromUsername; byUid.set(otherUid, {uid:otherUid, username:otherName, requestId:d._id}); });
+        if (countEl) countEl.textContent = byUid.size + ' arkadaş';
+        list.innerHTML = byUid.size ? Array.from(byUid.values()).sort((a,b)=>a.username.localeCompare(b.username)).map(f =>
+            '<div class="flex items-center gap-2 rounded-xl bg-slate-950/70 border border-sky-500/20 p-2.5">' +
+            '<div class="w-9 h-9 shrink-0 rounded-lg bg-sky-500/15 border border-sky-400/30 flex items-center justify-center text-sky-300"><i class="fa-solid fa-user-astronaut"></i></div>' +
+            '<div class="min-w-0 flex-1"><div class="text-sm font-bold text-white truncate">'+friendEsc(f.username)+'</div><div class="text-[10px] text-slate-400">Arkadaşın · Komutan</div></div>' +
+            '<button onclick="removeFriend(\''+friendEsc(f.requestId)+'\')" class="shrink-0 rounded-lg border border-rose-500/20 px-2 py-1.5 text-[10px] text-rose-300 hover:bg-rose-950/40">Kaldır</button></div>'
+        ).join('') : '<div class="text-xs text-slate-400 text-center py-4">Henüz arkadaşın yok. Yukarıdan kullanıcı adıyla istek gönder!</div>';
+        incomingEl.innerHTML = incoming.length ? incoming.map(d =>
+            '<div class="flex items-center gap-2 rounded-lg bg-slate-950/70 p-2"><div class="min-w-0 flex-1"><div class="text-xs font-bold text-white">'+friendEsc(d.fromUsername)+'</div><div class="text-[10px] text-slate-500">Sana arkadaşlık isteği gönderdi</div></div><button onclick="respondToFriendRequest(\''+friendEsc(d._id)+'\',true)" class="rounded-lg bg-emerald-600 px-2 py-1.5 text-[10px] font-bold text-white">Kabul</button><button onclick="respondToFriendRequest(\''+friendEsc(d._id)+'\',false)" class="rounded-lg bg-slate-800 px-2 py-1.5 text-[10px] text-slate-300">Reddet</button></div>'
+        ).join('') : '<div class="text-xs text-slate-500">Bekleyen gelen istek yok.</div>';
+        outgoingEl.innerHTML = outgoing.length ? outgoing.map(d =>
+            '<div class="flex items-center gap-2 rounded-lg bg-slate-950/70 p-2"><div class="min-w-0 flex-1"><div class="text-xs font-bold text-white">'+friendEsc(d.toUsername)+'</div><div class="text-[10px] text-amber-300">Yanıt bekleniyor…</div></div><button onclick="removeFriend(\''+friendEsc(d._id)+'\')" class="rounded-lg bg-slate-800 px-2 py-1.5 text-[10px] text-slate-300">İptal</button></div>'
+        ).join('') : '<div class="text-xs text-slate-500">Bekleyen gönderilmiş istek yok.</div>';
+    } catch (err) {
+        list.innerHTML = '<div class="text-xs text-rose-300 text-center py-3">Arkadaş listesi yüklenemedi. Firestore kuralları güncel mi?</div>';
+        incomingEl.innerHTML = '';
+        outgoingEl.innerHTML = '';
+        if (countEl) countEl.textContent = 'Bağlantı hatası';
+        console.error('[Friends] load failed:', err);
+    }
+}
+
 async function pushScoreToLeaderboard() {
     if (typeof game === 'undefined') return;
     if (typeof window._isSessionClean === 'function' && !window._isSessionClean()) return;
