@@ -237,3 +237,19 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] **TEST EDİLMEDİ:** Tarayıcıda boss spawn/kill akışı, Türkçe-İngilizce diyalog, mobil/masaüstü görünümü henüz elle oynanarak doğrulanmadı.
 - [ ] **DEPLOY:** Değişiklikler yalnızca `feature/story-chapter2-mission11` branch'inde; main'e merge ve canlı siteye geçiş doğrulanmadı.
 - **Sıradaki adım:** Commit CI durumunu kontrol et; sonra boss olaylarının her birinde yalnızca bir Piko balonu gösterildiğini ve mevcut savaş bildirimleriyle çakışmadığını test et. Ardından Firebase hikâye ilerlemesi kaydına dön.
+
+
+---
+
+## İş günlüğü — 2026-10-26: Hikâye akışı, arkadaş UI'si ve HUD performans denetimi
+
+- [x] `ui.js`: `finishStoryBattleEncounter()` içindeki genel tamamlanma yoluna koruma eklendi. Yalnızca görev 1 ve 2 bu genel yolu kullanabilir; beklenmeyen görev/faz artık yanlışlıkla `mission2Complete` yazamaz.
+- [x] `ui.js`: Görev 13 ve 14 için yinelenen, erişilemeyen başlangıç hedefi dalları kaldırıldı.
+- [x] `index.html`: Arkadaş merkezinin eski/yinelenen HTML bloğu kaldırıldı. Aynı yedi ID iki kez kullanılıyordu; `getElementById()` ilk, eski düğüm listesini güncelliyor ve yeni arayüzün güncel görünmesini engelleyebiliyordu. Tek arkadaş merkezi kaldı.
+- [x] `engine.js`: Oyun döngüsündeki rutin HUD güncellemesi kare başına çalışmak yerine 100 ms'de bir (yaklaşık 10 Hz) çalışacak şekilde sınırlandı. Olay işleyicilerinin doğrudan çağırdığı `updateHUD()` güncellemeleri anında kalır. Amaç, oyun simülasyonunu değil gereksiz DOM yazımını azaltmaktır.
+- [x] `security-lab/progression-guard-regression.test.js`: Hikâye kilidi testleri 2–14 görevlerini kapsayacak şekilde genişletildi; hatalı fazın görev 2'yi tamamlamaması, yinelenen ID olmaması ve HUD sınırı için regresyon testleri eklendi.
+- [x] Statik HTML taraması öncesinde 7 yinelenen arkadaş sistemi ID'si bulundu; eski blok kaldırıldıktan sonra aşağıdaki doğrulamada tekrar kontrol edilecek.
+- [ ] **ÖNEMLİ AÇIK İŞ:** Hikâye ilerlemesi `towerDefenseStoryProgressV1` anahtarında yalnızca bu tarayıcıya yazılıyor. `forceCloudPush/Pull` yalnızca ana oyun `saveData` kaydını eşitliyor; hikâye ilerlemesi bulutla senkronize edilmiyor. Bu yüzden cihazlar arası hikâye devamı henüz garanti değil. Kullanıcıyla birlikte ayrı `storyProgress` alanı ve Firestore kuralları/merge politikası doğrulanmadan bu özellik tamamlanmış sayılmamalı.
+- [ ] **TEST EDİLMEDİ:** Bu oturumda gerçek tarayıcı oynanışı ve Firebase Emulator testleri çalıştırılamadı. Yerel ağdan GitHub kaynaklarını indirme denemesi DNS çözümlemesinde başarısız oldu; branch için görülen son başarılı CI çalışması daha eski `81a7388` commit'indeydi ve bu değişiklikleri kapsamıyor.
+- [ ] **DEPLOY:** Vercel kontrolü build-rate-limit nedeniyle başarısız. Bu değişikliklerin canlı siteye ulaştığı doğrulanmadı; branch main'e merge edilmedi.
+- **Sıradaki adım:** Son kaynak doğrulamalarını çalıştır; sonra hikâye bulut senkronizasyonunu ayrı ve testli bir değişiklik olarak tasarla. Ardından render döngüsü ve Canvas çizim maliyetleri gerçek cihaz ölçümleriyle profillensin; tahmine dayalı büyük yeniden yazım yapılmasın.
