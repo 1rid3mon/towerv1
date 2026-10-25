@@ -714,8 +714,8 @@
   <p id="story-battle-status">GÖREV: 8 düşmanı durdur ve çekirdeği güvene al.</p>
   <button type="button" id="story-scan-action" class="story-primary story-deploy" onclick="scanStorySignal()" hidden>SİNYAL İZİNİ TARA 1 / 3</button>
   <div id="story-investigation-actions" hidden style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0 10px">
-   <button type="button" class="story-primary" onclick="chooseStorySignalSource('array')">ANTEN VERİSİ</button>
-   <button type="button" class="story-primary" onclick="chooseStorySignalSource('blackbox')">KARAKUTU KAYDI</button>
+   <button type="button" class="story-primary" data-story-ui="arrayChoice" onclick="chooseStorySignalSource('array')">ANTEN VERİSİ</button>
+   <button type="button" class="story-primary" data-story-ui="blackboxChoice" onclick="chooseStorySignalSource('blackbox')">KARAKUTU KAYDI</button>
   </div>
   <div class="story-companion-chip" id="story-companion-chip">
    <span class="story-companion-core" id="story-companion-icon" aria-hidden="true">⚙</span>
