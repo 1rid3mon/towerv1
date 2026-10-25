@@ -4031,7 +4031,7 @@ function translateGameNode(node, language) {
                 if (!originals) { originals = {}; gameAttributeOriginals.set(node, originals); }
                 if (!(attr in originals)) originals[attr] = node.getAttribute(attr);
                 const original = originals[attr];
-                if (language === 'en' && GAME_TRANSLATIONS[original]) node.setAttribute(attr, GAME_TRANSLATIONS[original]);
+                if (language === 'en') node.setAttribute(attr, localizeGameMessage(original));
                 else if (language === 'tr') node.setAttribute(attr, original);
             }
         }
