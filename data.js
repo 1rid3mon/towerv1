@@ -475,6 +475,10 @@ window.formatNumber = window.formatNumber || function formatNumber(num) {
         const popup = document.getElementById('cyber-inspect-popup');
         if (!popup) return;
         popup.style.borderColor = accentColor;
+        if (typeof window.localizeGameContent === 'function') {
+            title = window.localizeGameContent(title); subtitle = window.localizeGameContent(subtitle);
+            desc = window.localizeGameContent(desc); extraBadge = window.localizeGameContent(extraBadge);
+        }
         popup.innerHTML = `
             <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px;">
                 <div style="font-weight:800; font-size:15px; color:${accentColor};">${title}</div>
