@@ -186,3 +186,22 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - Main'e merge: DOĞRULANMADI.
 - Canlı deploy: DOĞRULANMADI.
 - Sonraki adım: arkadaş sistemi implementasyonuna başla ve her anlamlı işin sonunda buraya yeni bir kayıt ekle.
+
+
+### 2026-10-25 — Arkadaş merkezi görünür UI ve güvenlik test kapsamı
+- Değişen dosyalar: `index.html`, `security-lab/firestore.rules.test.js`, `FIRST_README.md`.
+- [x] Devir dosyası yeniden okundu; branch `feature/story-chapter2-mission11` üzerinden güncel dosyalar çekildi.
+- [x] `index.html` içine gerçek arkadaş sistemi için görünür Arkadaş Merkezi eklendi: kullanıcı adı girişi, istek gönderme, arkadaş listesi, gelen istekler, gönderilen istekler ve bildirim alanları. Mevcut `ui.js` fonksiyonlarının kullandığı DOM ID'leriyle eşleştirildi.
+- [x] Emulator test dosyasına kendine istek, yinelenen istek, ters yönde bekleyen istek ve kabul edilmiş arkadaşlığın taraflarca silinmesi/üçüncü tarafça silinememesi testleri eklendi.
+- [x] Önceden var olan `ui.js` arkadaş fonksiyonları ve `security-lab/firestore.rules` incelendi; temel koleksiyon şeması `friendRequests/{fromUid}_{toUid}` ve `usernameRegistry/{normalizedUsername}`.
+- [ ] **TEST EDİLMEDİ:** Firebase Emulator test komutu bu oturumda çalıştırılamadı; testlerin geçmesi varsayılmıyor.
+- [ ] **TEST EDİLMEDİ:** Gerçek iki Firebase hesabıyla istek → kabul → iki tarafta liste → kaldırma uçtan uca doğrulanmadı.
+- [ ] **TEST EDİLMEDİ:** Mobil portre, mobil yatay ve masaüstü görsel kontrolleri yapılmadı.
+- [ ] **DOĞRULANMADI:** GitHub Actions/CI, main'e merge ve canlı deploy durumu.
+- Bilinen risk: Arkadaşlık işlevleri UI ve kurallarda zaten kısmen bulunuyordu; bu değişiklik görünür paneli ve ek kural testlerini ekler, canlı Firebase kurallarını dağıtmaz.
+- Main'e merge edildi mi?: HAYIR (bu işlem yalnızca `feature/story-chapter2-mission11` branch'inde commitlendi).
+- Canlıya deploy edildi mi?: DOĞRULANMADI.
+- Sıradaki adım: branch'te Emulator testlerini çalıştır, çıkan uyumsuzlukları düzelt, ardından gerçek iki hesapla uçtan uca ve mobil/masaüstü testlerini yap.
+- [ ] Emulator testleri çalıştırılıp sonuç kaydedilsin.
+- [ ] İki hesapla arkadaşlık akışı doğrulansın.
+- [ ] CI/PR/main/deploy durumu ayrıca kontrol edilsin.
