@@ -3957,8 +3957,18 @@ function inspectStoryMemory() {
 }
 function pulseStoryMission10() {
     const session = window.__storyBattle;
-    if (!session || !session.active || session.mission !== 10 || !['pulseNode1','pulseNode2'].includes(session.phase) || session.completed || isPaused !== true) return;
+    if (!session || !session.active || session.mission !== 10 || !['pulseNode1','pulseNode2'].includes(session.phase) || session.completed || isPaused !== true || session.pulseBusy) return;
+
+    // A fast double-tap must never skip both tutorial nodes in one gesture.
+    session.pulseBusy = true;
+    session.pulseVisualAt = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    const previousPhase = session.phase;
     finishStoryBattleEncounter();
+    window.setTimeout(() => {
+        if (window.__storyBattle !== session || !session.active) return;
+        // Release only after the phase transition has settled.
+        if (session.phase !== previousPhase) session.pulseBusy = false;
+    }, 700);
 }
 function reconnectStoryCompanion() {
     const session = window.__storyBattle;
