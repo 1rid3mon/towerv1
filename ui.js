@@ -2981,7 +2981,7 @@ async function sendFriendRequest() {
             if (reverse.exists && reverse.data().status === 'pending') throw new Error('Bu kişi sana zaten istek göndermiş. Gelen isteklerden kabul edebilirsin.');
             tx.set(outgoingRef, {
                 fromUid: currentUser.uid, toUid: target.uid,
-                fromUsername: currentUser.username, toUsername: target.username,
+                fromUsername: fromKey, toUsername: wanted,
                 status: 'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
