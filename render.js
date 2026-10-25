@@ -982,47 +982,196 @@ function drawEnemyInkAccents(c, kind, r, faceAngle, isHit) {
     c.restore();
 }
 
-// V2.7: hand-drawn asymmetry and species-specific anatomy, using original Canvas paths.
+// V2.8: species-first creature anatomy. Each family gets a different body plan,
+// uneven weight, embedded material marks and a readable face; all paths are original Canvas art.
 function drawCreaturePersonalityPass(c, e, kind, r, faceAngle, nowTime, isHit) {
-    if (r < 7) return;
+    if (r < 5) return;
     const phase = Number.isFinite(e.animPhase) ? e.animPhase : 0;
-    const hit = isHit;
-    c.save(); c.rotate(faceAngle); c.lineJoin = 'round'; c.lineCap = 'round';
-    const stroke = hit ? '#fff' : (e.secColor || '#cbd5e1');
-    const fill = hit ? '#fff' : (e.color || '#475569');
-    c.strokeStyle = stroke; c.fillStyle = fill; c.lineWidth = Math.max(0.8, r * 0.045);
-    // Uneven fins, scars and protrusions break the clean, mirrored-icon look.
-    if (['green','default','default_cyber','normal'].includes(kind)) {
-        c.fillStyle = hit ? '#fff' : '#166534';
-        c.beginPath(); c.moveTo(-r*.42,-r*.40); c.quadraticCurveTo(-r*.83,-r*.78,-r*.92,-r*.34); c.lineTo(-r*.58,-r*.10); c.closePath(); c.fill(); c.stroke();
-        c.beginPath(); c.moveTo(-r*.40,r*.38); c.quadraticCurveTo(-r*.78,r*.76,-r*.94,r*.48); c.lineTo(-r*.58,r*.20); c.closePath(); c.fill(); c.stroke();
-        c.strokeStyle = hit ? '#fff' : 'rgba(20,83,45,.8)'; c.lineWidth = Math.max(1,r*.055);
-        c.beginPath(); c.moveTo(-r*.12,-r*.30); c.lineTo(r*.04,-r*.10); c.lineTo(-r*.02,r*.10); c.stroke();
-        c.fillStyle = hit ? '#fff' : '#bef264'; c.beginPath(); c.ellipse(-r*.20,-r*.47,r*.10,r*.055,-.5,0,Math.PI*2); c.fill();
+    const wobble = Math.sin(nowTime * 0.004 + phase);
+    const hurt = !!isHit;
+    const ink = hurt ? '#ffffff' : '#101827';
+    const body = hurt ? '#ffffff' : (e.color || '#64748b');
+    const trim = hurt ? '#ffffff' : (e.secColor || '#cbd5e1');
+    const line = Math.max(0.7, r * 0.045);
+    c.save();
+    c.translate(0, 0);
+    c.rotate(faceAngle);
+    c.lineJoin = 'round';
+    c.lineCap = 'round';
+    c.lineWidth = line;
+
+    // Species are intentionally NOT made from the same radial badge.
+    if (kind === 'green' || kind === 'default' || kind === 'default_cyber' || kind === 'normal') {
+        // Lopsided crawler: one oversized shoulder, one dragging feeler and crooked feet.
+        c.fillStyle = hurt ? '#fff' : '#14532d';
+        c.strokeStyle = hurt ? '#fff' : '#052e16';
+        c.beginPath();
+        c.moveTo(-r*.45,-r*.34); c.quadraticCurveTo(-r*.90,-r*.83,-r*1.02,-r*.42);
+        c.quadraticCurveTo(-r*.98,-r*.18,-r*.62,-r*.12); c.closePath(); c.fill(); c.stroke();
+        c.beginPath();
+        c.moveTo(-r*.40,r*.34); c.quadraticCurveTo(-r*.82,r*.73,-r*.92,r*.48);
+        c.lineTo(-r*.58,r*.17); c.closePath(); c.fill(); c.stroke();
+        c.strokeStyle = hurt ? '#fff' : '#15803d'; c.lineWidth = Math.max(1,r*.065);
+        c.beginPath();
+        c.moveTo(-r*.34,-r*.43); c.quadraticCurveTo(-r*.57,-r*.78,-r*.73,-r*.71);
+        c.moveTo(-r*.18,r*.47); c.quadraticCurveTo(-r*.35,r*.83,-r*.60,r*.76);
+        c.moveTo(-r*.62,-r*.03); c.quadraticCurveTo(-r*.85,r*.10,-r*.73,r*.25);
+        c.stroke();
+        // Bumpy skin patches and a split, off-centre grin.
+        c.fillStyle = hurt ? '#fff' : '#4d7c0f';
+        c.beginPath();
+        c.ellipse(-r*.25,-r*.38,r*.17,r*.10,-.42,0,Math.PI*2);
+        c.ellipse(-r*.38,r*.22,r*.11,r*.16,.28,0,Math.PI*2);
+        c.ellipse(r*.02,r*.43,r*.22,r*.09,-.2,0,Math.PI*2); c.fill();
+        c.strokeStyle = hurt ? '#fff' : '#052e16'; c.lineWidth = Math.max(1,r*.055);
+        c.beginPath(); c.moveTo(r*.42,-r*.02); c.quadraticCurveTo(r*.72,r*.02,r*.58,r*.20);
+        c.lineTo(r*.43,r*.16); c.stroke();
+        c.fillStyle = hurt ? '#fff' : '#fef08a';
+        c.beginPath(); c.ellipse(r*.37,-r*.23,r*.13,r*.17,-.28,0,Math.PI*2); c.fill();
+        c.fillStyle = '#172554'; c.beginPath(); c.arc(r*.41,-r*.24,Math.max(.8,r*.055),0,Math.PI*2); c.fill();
+        c.fillStyle = hurt ? '#fff' : '#bbf7d0';
+        c.beginPath(); c.moveTo(r*.45,r*.08); c.lineTo(r*.54,r*.15); c.lineTo(r*.47,r*.21); c.closePath(); c.fill();
     } else if (kind.includes('tank')) {
-        c.fillStyle = hit ? '#fff' : '#475569';
-        c.beginPath(); c.moveTo(-r*.42,-r*.55); c.lineTo(-r*.12,-r*.74); c.lineTo(r*.03,-r*.48); c.lineTo(-r*.15,-r*.34); c.closePath(); c.fill(); c.stroke();
-        c.strokeStyle = hit ? '#fff' : 'rgba(15,23,42,.8)'; c.beginPath(); c.moveTo(-r*.28,-r*.25); c.lineTo(-r*.08,-r*.04); c.lineTo(-r*.22,r*.14); c.stroke();
-        c.fillStyle = hit ? '#fff' : '#0f172a'; c.beginPath(); c.moveTo(-r*.50,r*.26); c.lineTo(-r*.14,r*.22); c.lineTo(-r*.02,r*.48); c.lineTo(-r*.38,r*.56); c.closePath(); c.fill();
+        // Low, forward-heavy bruiser: layered shoulder, broken tread and a scarred faceplate.
+        c.fillStyle = hurt ? '#fff' : '#0f172a'; c.strokeStyle = hurt ? '#fff' : '#64748b';
+        c.beginPath();
+        c.moveTo(-r*.58,-r*.58); c.lineTo(-r*.05,-r*.70); c.lineTo(r*.34,-r*.52);
+        c.lineTo(r*.55,-r*.20); c.lineTo(r*.50,r*.36); c.lineTo(r*.12,r*.63);
+        c.lineTo(-r*.48,r*.51); c.lineTo(-r*.72,r*.14); c.closePath(); c.fill(); c.stroke();
+        c.fillStyle = hurt ? '#fff' : '#475569'; c.strokeStyle = hurt ? '#fff' : '#cbd5e1';
+        c.beginPath();
+        c.moveTo(-r*.44,-r*.56); c.lineTo(-r*.04,-r*.82); c.lineTo(r*.31,-r*.60);
+        c.lineTo(r*.20,-r*.29); c.lineTo(-r*.30,-r*.22); c.closePath(); c.fill(); c.stroke();
+        c.beginPath();
+        c.moveTo(-r*.36,r*.10); c.lineTo(-r*.08,r*.02); c.lineTo(r*.06,r*.42);
+        c.lineTo(-r*.30,r*.48); c.closePath(); c.fill(); c.stroke();
+        // Exposed bolts and uneven tread teeth.
+        c.fillStyle = hurt ? '#fff' : '#94a3b8';
+        for (let i=0;i<3;i++) {
+            const bx=-r*.40+i*r*.22;
+            c.beginPath(); c.arc(bx,-r*.61,Math.max(.8,r*.045),0,Math.PI*2); c.fill();
+        }
+        c.fillStyle = hurt ? '#fff' : '#1e293b';
+        c.beginPath();
+        c.moveTo(-r*.54,-r*.76); c.lineTo(-r*.40,-r*.96); c.lineTo(-r*.25,-r*.72);
+        c.moveTo(-r*.55,r*.58); c.lineTo(-r*.39,r*.82); c.lineTo(-r*.21,r*.58);
+        c.closePath(); c.fill();
+        c.strokeStyle = hurt ? '#fff' : '#f97316'; c.lineWidth = Math.max(1,r*.07);
+        c.beginPath(); c.moveTo(r*.05,-r*.16); c.lineTo(-r*.12,-r*.02); c.lineTo(r*.00,r*.16);
+        c.moveTo(r*.27,-r*.32); c.lineTo(r*.18,-r*.17); c.stroke();
+        c.fillStyle = hurt ? '#fff' : '#fb923c';
+        c.beginPath(); c.ellipse(r*.34,r*.04,r*.09,r*.17,.15,0,Math.PI*2); c.fill();
     } else if (kind.includes('frost')) {
-        c.beginPath(); c.moveTo(-r*.42,-r*.42); c.lineTo(-r*.80,-r*.68); c.lineTo(-r*.64,-r*.22); c.closePath(); c.fill(); c.stroke();
-        c.strokeStyle = hit ? '#fff' : 'rgba(224,242,254,.9)'; c.beginPath(); c.moveTo(-r*.18,-r*.50); c.lineTo(-r*.02,-r*.20); c.lineTo(-r*.22,r*.02); c.lineTo(-r*.08,r*.28); c.stroke();
+        // Uneven glacier organism: thick ice mantle, one long horn, one snapped crystal.
+        c.fillStyle = hurt ? '#fff' : '#075985'; c.strokeStyle = hurt ? '#fff' : '#cffafe';
+        c.beginPath();
+        c.moveTo(-r*.58,-r*.28); c.lineTo(-r*.45,-r*.58); c.lineTo(-r*.08,-r*.65);
+        c.lineTo(r*.20,-r*.45); c.lineTo(r*.48,-r*.18); c.lineTo(r*.38,r*.27);
+        c.lineTo(r*.08,r*.58); c.lineTo(-r*.35,r*.47); c.lineTo(-r*.65,r*.16); c.closePath(); c.fill(); c.stroke();
+        c.fillStyle = hurt ? '#fff' : '#67e8f9';
+        c.beginPath();
+        c.moveTo(-r*.36,-r*.48); c.lineTo(-r*.73,-r*1.12); c.lineTo(-r*.17,-r*.68); c.closePath(); c.fill(); c.stroke();
+        c.beginPath();
+        c.moveTo(r*.16,-r*.43); c.lineTo(r*.50,-r*.91); c.lineTo(r*.39,-r*.35); c.closePath(); c.fill(); c.stroke();
+        c.beginPath();
+        c.moveTo(-r*.22,r*.48); c.lineTo(-r*.54,r*.91); c.lineTo(r*.02,r*.60); c.closePath(); c.fill(); c.stroke();
+        // Fractures branch instead of forming a decorative symmetric star.
+        c.strokeStyle = hurt ? '#fff' : '#164e63'; c.lineWidth = Math.max(1,r*.055);
+        c.beginPath();
+        c.moveTo(-r*.52,-r*.05); c.lineTo(-r*.19,r*.02); c.lineTo(-r*.05,r*.25);
+        c.lineTo(r*.17,r*.31); c.moveTo(-r*.19,r*.02); c.lineTo(-r*.24,r*.22);
+        c.moveTo(r*.18,-r*.37); c.lineTo(r*.08,-r*.17); c.stroke();
+        c.fillStyle = hurt ? '#fff' : '#ecfeff';
+        c.beginPath(); c.ellipse(r*.29,-r*.04,r*.12,r*.20,-.22,0,Math.PI*2); c.fill();
+        c.fillStyle = '#164e63'; c.beginPath(); c.arc(r*.32,-r*.06,Math.max(.8,r*.05),0,Math.PI*2); c.fill();
     } else if (kind.includes('speed') || kind === 'runner') {
-        c.beginPath(); c.moveTo(-r*.36,-r*.32); c.lineTo(-r*(.96+Math.sin(phase)*.04),-r*.68); c.lineTo(-r*.64,-r*.14); c.closePath(); c.fill(); c.stroke();
-        c.beginPath(); c.moveTo(-r*.40,r*.25); c.lineTo(-r*.84,r*.66); c.lineTo(-r*.30,r*.49); c.closePath(); c.fill(); c.stroke();
+        // Predator dart: needle snout, swept-back fins and a visibly split tail.
+        c.fillStyle = hurt ? '#fff' : '#881337'; c.strokeStyle = hurt ? '#fff' : '#fecdd3';
+        c.beginPath();
+        c.moveTo(r*.92,0); c.lineTo(r*.28,-r*.20); c.lineTo(-r*.16,-r*.54);
+        c.lineTo(-r*.70,-r*.88); c.lineTo(-r*.52,-r*.34); c.lineTo(-r*.78,-r*.12);
+        c.lineTo(-r*.50,r*.02); c.lineTo(-r*.72,r*.48); c.lineTo(-r*.30,r*.40);
+        c.lineTo(r*.22,r*.18); c.closePath(); c.fill(); c.stroke();
+        c.fillStyle = hurt ? '#fff' : '#be123c';
+        c.beginPath();
+        c.moveTo(-r*.18,-r*.28); c.lineTo(-r*1.12,-r*.76); c.lineTo(-r*.76,-r*.18); c.closePath(); c.fill(); c.stroke();
+        c.beginPath();
+        c.moveTo(-r*.25,r*.18); c.lineTo(-r*.94,r*.72); c.lineTo(-r*.63,r*.12); c.closePath(); c.fill(); c.stroke();
+        c.fillStyle = hurt ? '#fff' : '#fb923c';
+        c.beginPath(); c.moveTo(-r*.54,-r*.12); c.lineTo(-r*(.95+Math.abs(wobble)*.18),0); c.lineTo(-r*.52,r*.10); c.closePath(); c.fill();
+        c.strokeStyle = hurt ? '#fff' : '#4c0519'; c.lineWidth = Math.max(1,r*.055);
+        c.beginPath(); c.moveTo(-r*.38,-r*.26); c.lineTo(-r*.12,-r*.12); c.lineTo(-r*.31,r*.04);
+        c.moveTo(r*.12,-r*.12); c.lineTo(r*.40,-r*.05); c.stroke();
+        c.fillStyle = hurt ? '#fff' : '#fef08a';
+        c.beginPath(); c.ellipse(r*.39,-r*.10,r*.12,r*.07,-.1,0,Math.PI*2); c.fill();
     } else if (kind.includes('ranged')) {
-        c.beginPath(); c.moveTo(-r*.32,-r*.35); c.quadraticCurveTo(-r*.72,-r*.84,-r*.86,-r*.48); c.stroke();
-        c.beginPath(); c.ellipse(-r*.85,-r*.48,r*.12,r*.085,-.4,0,Math.PI*2); c.fill();
+        // Hunched stalker: hooded head, long crooked barrel-limb and an asymmetric sensor.
+        c.fillStyle = hurt ? '#fff' : '#0c4a6e'; c.strokeStyle = hurt ? '#fff' : '#7dd3fc';
+        c.beginPath();
+        c.moveTo(r*.55,-r*.15); c.lineTo(r*.28,-r*.46); c.lineTo(-r*.12,-r*.60);
+        c.lineTo(-r*.50,-r*.35); c.lineTo(-r*.62,r*.10); c.lineTo(-r*.24,r*.48);
+        c.lineTo(r*.18,r*.44); c.lineTo(r*.38,r*.20); c.closePath(); c.fill(); c.stroke();
+        c.fillStyle = hurt ? '#fff' : '#082f49';
+        c.beginPath();
+        c.moveTo(r*.12,-r*.24); c.lineTo(r*1.30,-r*.34); c.lineTo(r*1.46,-r*.20);
+        c.lineTo(r*1.38,r*.02); c.lineTo(r*.25,r*.12); c.closePath(); c.fill(); c.stroke();
+        c.strokeStyle = hurt ? '#fff' : '#38bdf8'; c.lineWidth = Math.max(1,r*.055);
+        c.beginPath(); c.moveTo(r*.88,-r*.25); c.lineTo(r*1.25,-r*.24);
+        c.moveTo(-r*.28,r*.22); c.lineTo(-r*.08,r*.04); c.lineTo(r*.02,r*.20); c.stroke();
+        c.fillStyle = hurt ? '#fff' : '#f43f5e';
+        c.beginPath(); c.ellipse(r*.25,-r*.10,r*.12,r*.17,.22,0,Math.PI*2); c.fill();
+        c.fillStyle = hurt ? '#fff' : '#e0f2fe';
+        c.beginPath(); c.arc(r*.28,-r*.12,Math.max(.8,r*.045),0,Math.PI*2); c.fill();
+        c.strokeStyle = hurt ? '#fff' : '#155e75'; c.lineWidth = Math.max(1,r*.06);
+        c.beginPath(); c.moveTo(-r*.48,-r*.28); c.quadraticCurveTo(-r*.84,-r*.66,-r*.92,-r*.39);
+        c.moveTo(-r*.38,r*.38); c.lineTo(-r*.58,r*.65); c.stroke();
     } else if (kind === 'teleporter') {
-        c.globalAlpha = .78; c.beginPath(); c.moveTo(-r*.3,-r*.3); c.lineTo(-r*.76,-r*.62); c.lineTo(-r*.54,-r*.08); c.stroke();
-        c.beginPath(); c.moveTo(-r*.2,r*.25); c.lineTo(-r*.65,r*.58); c.lineTo(-r*.12,r*.46); c.stroke();
+        // Unstable phase-creature: broken orbit, detached-looking shards and a skewed inner pupil.
+        c.save(); c.rotate(-phase*.15 + wobble*.06);
+        c.strokeStyle = hurt ? '#fff' : 'rgba(253,224,71,.9)'; c.lineWidth = Math.max(1,r*.06);
+        c.beginPath(); c.arc(0,0,r*.92,-2.45,-.55); c.stroke();
+        c.beginPath(); c.arc(0,0,r*.92,.38,2.25); c.stroke();
+        c.restore();
+        c.fillStyle = hurt ? '#fff' : '#92400e'; c.strokeStyle = hurt ? '#fff' : '#fef08a';
+        c.beginPath();
+        c.moveTo(-r*.42,-r*.30); c.lineTo(-r*.76,-r*.72); c.lineTo(-r*.25,-r*.55);
+        c.lineTo(r*.10,-r*.76); c.lineTo(r*.24,-r*.37); c.lineTo(r*.56,-r*.25);
+        c.lineTo(r*.43,r*.17); c.lineTo(r*.10,r*.48); c.lineTo(-r*.30,r*.42);
+        c.lineTo(-r*.63,r*.14); c.closePath(); c.fill(); c.stroke();
+        c.fillStyle = hurt ? '#fff' : '#fef3c7';
+        c.beginPath(); c.ellipse(r*.12,-r*.04,r*.31,r*.24,-.3,0,Math.PI*2); c.fill();
+        c.fillStyle = hurt ? '#fff' : '#7c2d12';
+        c.beginPath(); c.ellipse(r*.20,-r*.02,r*.13,r*.19,.35,0,Math.PI*2); c.fill();
+        c.strokeStyle = hurt ? '#fff' : '#78350f'; c.lineWidth = Math.max(1,r*.055);
+        c.beginPath(); c.moveTo(-r*.48,-r*.04); c.lineTo(-r*.18,r*.12); c.lineTo(-r*.32,r*.30);
+        c.moveTo(r*.24,r*.25); c.lineTo(r*.43,r*.35); c.stroke();
     } else {
-        c.beginPath(); c.moveTo(-r*.42,-r*.42); c.lineTo(-r*(.72+Math.sin(phase)*.05),-r*.76); c.lineTo(-r*.18,-r*.30); c.closePath(); c.fill(); c.stroke();
-        c.strokeStyle = hit ? '#fff' : 'rgba(8,15,28,.65)'; c.beginPath(); c.moveTo(-r*.18,r*.08); c.lineTo(r*.02,r*.20); c.lineTo(-r*.04,r*.32); c.stroke();
+        // Boss/unknown family: a broken crown ridge and deeply set, off-axis eye.
+        c.fillStyle = hurt ? '#fff' : '#3b0764'; c.strokeStyle = hurt ? '#fff' : '#d8b4fe';
+        c.beginPath();
+        c.moveTo(-r*.55,-r*.22); c.lineTo(-r*.62,-r*.62); c.lineTo(-r*.22,-r*.43);
+        c.lineTo(r*.02,-r*.72); c.lineTo(r*.22,-r*.36); c.lineTo(r*.58,-r*.40);
+        c.lineTo(r*.44,-r*.03); c.lineTo(r*.58,r*.30); c.lineTo(r*.08,r*.55);
+        c.lineTo(-r*.35,r*.43); c.lineTo(-r*.64,r*.12); c.closePath(); c.fill(); c.stroke();
+        c.strokeStyle = hurt ? '#fff' : '#a78bfa'; c.lineWidth = Math.max(1,r*.055);
+        c.beginPath(); c.moveTo(-r*.43,-r*.10); c.lineTo(-r*.17,r*.02); c.lineTo(-r*.26,r*.22);
+        c.moveTo(r*.04,-r*.42); c.lineTo(r*.16,-r*.18); c.stroke();
+        c.fillStyle = hurt ? '#fff' : '#facc15';
+        c.beginPath(); c.ellipse(r*.28,-r*.08,r*.13,r*.18,-.25,0,Math.PI*2); c.fill();
+        c.fillStyle = '#1f2937'; c.beginPath(); c.arc(r*.31,-r*.10,Math.max(.8,r*.05),0,Math.PI*2); c.fill();
+    }
+
+    // A small, species-coloured underside and one off-centre highlight give depth without a glow layer.
+    if (!hurt) {
+        c.strokeStyle = 'rgba(2, 6, 23, 0.62)';
+        c.lineWidth = Math.max(.8,r*.035);
+        c.beginPath(); c.moveTo(-r*.20,r*.36); c.quadraticCurveTo(r*.02,r*.48,r*.20,r*.34); c.stroke();
+        c.strokeStyle = 'rgba(255,255,255,.42)';
+        c.lineWidth = Math.max(.6,r*.025);
+        c.beginPath(); c.moveTo(-r*.30,-r*.39); c.lineTo(-r*.14,-r*.44); c.stroke();
     }
     c.restore();
 }
-
 function drawCustomEnemy(c, e, tx, ty, nowTime) {
     const r = e.radius;
     const isHit = e.hitFlash > 0;
