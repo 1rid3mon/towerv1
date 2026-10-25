@@ -1337,7 +1337,7 @@ function selectTowerSkin(skinId) {
         !game.ownedSkins.includes(skinId)) return;
     game.activeSkin = skinId;
     const skin = SKIN_DATABASE[skinId];
-    showToast(`Kule Skini Kuşanıldı: ${skin.emoji} ${skin.name}`);
+    showToast(localizeGameMessage(`Kule Skini Kuşanıldı: ${skin.emoji} ${skin.name}`));
     buildInventoryUI(); saveGame(true);
 }
 
@@ -1349,7 +1349,7 @@ function selectCompanionSkin(skinId) {
         !game.ownedCompanionSkins.includes(skinId)) return;
     game.activeCompanionSkin = skinId;
     const cSkin = COMPANION_SKIN_DATABASE[skinId];
-    showToast(`Yoldaş Skini Kuşanıldı: ${cSkin.emoji} ${cSkin.name}`);
+    showToast(localizeGameMessage(`Yoldaş Skini Kuşanıldı: ${cSkin.emoji} ${cSkin.name}`));
     buildInventoryUI(); buildCompanionsUI(); saveGame(true);
 }
 
