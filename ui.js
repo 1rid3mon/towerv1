@@ -3452,15 +3452,15 @@ function updateStoryMissionBoard() {
     const m1 = document.getElementById('story-start-mission1');
     const s1 = document.getElementById('story-mission-1-status');
     if (m1) {
-        m1.disabled = progress.mission1Complete;
-        m1.textContent = progress.mission1Complete ? (en ? 'MISSION COMPLETE ✓' : 'GÖREV TAMAMLANDI ✓') : (en ? 'DEPLOY →' : 'GÖREVE BAŞLA →');
+        m1.disabled = false;
+        m1.textContent = progress.mission1Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'DEPLOY →' : 'GÖREVE BAŞLA →');
     }
     if (s1) s1.textContent = progress.mission1Complete ? (en ? 'CORE STABLE' : 'ÇEKİRDEK GÜVENDE') : (en ? 'PLAYABLE MISSION' : 'OYNANABİLİR GÖREV');
     const m2 = document.getElementById('story-start-mission2');
     const s2 = document.getElementById('story-mission-2-status');
     if (m2) {
-        m2.disabled = !progress.mission1Complete || progress.mission2Complete;
-        m2.textContent = progress.mission2Complete ? (en ? 'MISSION COMPLETE ✓' : 'GÖREV TAMAMLANDI ✓') : (en ? 'DEPLOY →' : 'GÖREVE BAŞLA →');
+        m2.disabled = !progress.mission1Complete;
+        m2.textContent = progress.mission2Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'DEPLOY →' : 'GÖREVE BAŞLA →');
     }
     if (s2) {
         s2.classList.toggle('is-locked', !progress.mission1Complete && !progress.mission2Complete);
@@ -3471,8 +3471,8 @@ function updateStoryMissionBoard() {
     const m3 = document.getElementById('story-start-mission3');
     const s3 = document.getElementById('story-mission-3-status');
     if (m3) {
-        m3.disabled = !progress.mission2Complete || progress.mission3Complete;
-        m3.textContent = progress.mission3Complete ? (en ? 'MISSION COMPLETE ✓' : 'GÖREV TAMAMLANDI ✓') : (en ? 'INVESTIGATE →' : 'İNCELE →');
+        m3.disabled = !progress.mission2Complete;
+        m3.textContent = progress.mission3Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'INVESTIGATE →' : 'İNCELE →');
     }
     if (s3) {
         s3.classList.toggle('is-locked', !progress.mission2Complete && !progress.mission3Complete);
@@ -3482,27 +3482,27 @@ function updateStoryMissionBoard() {
     }
     const m4 = document.getElementById('story-start-mission4');
     const s4 = document.getElementById('story-mission-4-status');
-    if (m4) { m4.disabled = !progress.mission3Complete || progress.mission4Complete; m4.textContent = progress.mission4Complete ? (en ? 'DECISION LOGGED ✓' : 'KARAR KAYDEDİLDİ ✓') : (en ? 'RESTORE SYSTEMS →' : 'SİSTEMLERİ ONAR →'); }
+    if (m4) { m4.disabled = !progress.mission3Complete; m4.textContent = progress.mission4Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'RESTORE SYSTEMS →' : 'SİSTEMLERİ ONAR →'); }
     if (s4) { s4.classList.toggle('is-locked', !progress.mission3Complete && !progress.mission4Complete); s4.textContent = progress.mission4Complete ? (en ? 'POWER ROUTED' : 'GÜÇ YÖNLENDİRİLDİ') : (progress.mission3Complete ? (en ? 'PLAYABLE MISSION' : 'OYNANABİLİR GÖREV') : (en ? 'LOCKED · COMPLETE MISSION 03' : 'KİLİTLİ · 3. GÖREVİ TAMAMLA')); }
     const m5 = document.getElementById('story-start-mission5');
     const s5 = document.getElementById('story-mission-5-status');
-    if (m5) { m5.disabled = !progress.mission4Complete || progress.mission5Complete; m5.textContent = progress.mission5Complete ? (en ? 'MISSION COMPLETE ✓' : 'GÖREV TAMAMLANDI ✓') : (en ? 'DEPLOY →' : 'GÖREVE BAŞLA →'); }
+    if (m5) { m5.disabled = !progress.mission4Complete; m5.textContent = progress.mission5Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'DEPLOY →' : 'GÖREVE BAŞLA →'); }
     if (s5) { s5.classList.toggle('is-locked', !progress.mission4Complete && !progress.mission5Complete); s5.textContent = progress.mission5Complete ? (en ? 'RELAY DISABLED' : 'RÖLE KAPATILDI') : (progress.mission4Complete ? (en ? 'PLAYABLE MISSION' : 'OYNANABİLİR GÖREV') : (en ? 'LOCKED · COMPLETE MISSION 04' : 'KİLİTLİ · 4. GÖREVİ TAMAMLA')); }
     const m6 = document.getElementById('story-start-mission6');
     const s6 = document.getElementById('story-mission-6-status');
-    if (m6) { m6.disabled = !progress.mission5Complete || progress.mission6Complete; m6.textContent = progress.mission6Complete ? (en ? 'REPAIRS COMPLETE ✓' : 'ONARIM TAMAMLANDI ✓') : (en ? 'BEGIN REPAIRS →' : 'ONARIMA BAŞLA →'); }
+    if (m6) { m6.disabled = !progress.mission5Complete; m6.textContent = progress.mission6Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'BEGIN REPAIRS →' : 'ONARIMA BAŞLA →'); }
     if (s6) { s6.classList.toggle('is-locked', !progress.mission5Complete && !progress.mission6Complete); s6.textContent = progress.mission6Complete ? (en ? 'COMPANION STABLE' : 'YOLDAŞ STABİL') : (progress.mission5Complete ? (en ? 'PLAYABLE MISSION' : 'OYNANABİLİR GÖREV') : (en ? 'LOCKED · COMPLETE MISSION 05' : 'KİLİTLİ · 5. GÖREVİ TAMAMLA')); }
     const m7 = document.getElementById('story-start-mission7');
     const s7 = document.getElementById('story-mission-7-status');
-    if (m7) { m7.disabled = !progress.mission6Complete || progress.mission7Complete; m7.textContent = progress.mission7Complete ? (en ? 'ARRAY STABLE ✓' : 'DİZİ GÜVENDE ✓') : (en ? 'DEFEND ARRAY →' : 'DİZİYİ SAVUN →'); }
+    if (m7) { m7.disabled = !progress.mission6Complete; m7.textContent = progress.mission7Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'DEFEND ARRAY →' : 'DİZİYİ SAVUN →'); }
     if (s7) { s7.classList.toggle('is-locked', !progress.mission6Complete && !progress.mission7Complete); s7.textContent = progress.mission7Complete ? (en ? 'AMPLIFIER DISABLED' : 'YÜKSELTİCİ KAPATILDI') : (progress.mission6Complete ? (en ? 'PLAYABLE MISSION' : 'OYNANABİLİR GÖREV') : (en ? 'LOCKED · COMPLETE MISSION 06' : 'KİLİTLİ · 6. GÖREVİ TAMAMLA')); }
     const m8 = document.getElementById('story-start-mission8');
     const s8 = document.getElementById('story-mission-8-status');
-    if (m8) { m8.disabled = !progress.mission7Complete || progress.mission8Complete; m8.textContent = progress.mission8Complete ? (en ? 'MEMORY LOGGED ✓' : 'HAFIZA KAYDEDİLDİ ✓') : (en ? 'INSPECT →' : 'İNCELE →'); }
+    if (m8) { m8.disabled = !progress.mission7Complete; m8.textContent = progress.mission8Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'INSPECT →' : 'İNCELE →'); }
     if (s8) { s8.classList.toggle('is-locked', !progress.mission7Complete && !progress.mission8Complete); s8.textContent = progress.mission8Complete ? (en ? 'ECHO CONTRADICTION FOUND' : 'YANKI ÇELİŞKİSİ BULUNDU') : (progress.mission7Complete ? (en ? 'PLAYABLE MISSION' : 'OYNANABİLİR GÖREV') : (en ? 'LOCKED · COMPLETE MISSION 07' : 'KİLİTLİ · 7. GÖREVİ TAMAMLA')); }
     const m9 = document.getElementById('story-start-mission9');
     const s9 = document.getElementById('story-mission-9-status');
-    if (m9) { m9.disabled = !progress.mission8Complete || progress.mission9Complete; m9.textContent = progress.mission9Complete ? (en ? 'CYAN FORM AWAKENED ✓' : 'CAMGÖBEĞİ FORM UYANDI ✓') : (en ? 'BEGIN AWAKENING →' : 'UYANIŞI BAŞLAT →'); }
+    if (m9) { m9.disabled = !progress.mission8Complete; m9.textContent = progress.mission9Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'BEGIN AWAKENING →' : 'UYANIŞI BAŞLAT →'); }
     if (s9) { s9.classList.toggle('is-locked', !progress.mission8Complete && !progress.mission9Complete); s9.textContent = progress.mission9Complete ? (en ? 'CHAPTER 01 COMPLETE' : '1. BÖLÜM TAMAMLANDI') : (progress.mission8Complete ? (en ? 'PLAYABLE CLIMAX' : 'OYNANABİLİR FİNAL') : (en ? 'LOCKED · COMPLETE MISSION 08' : 'KİLİTLİ · 8. GÖREVİ TAMAMLA')); }
     document.querySelectorAll('.story-mission-status.is-locked').forEach(node => {
         if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status','story-mission-6-status','story-mission-7-status','story-mission-8-status','story-mission-9-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
@@ -3518,15 +3518,6 @@ function setStoryComms(speakerTr, speakerEn, textTr, textEn) {
 function storyDeepCopy(value) { return JSON.parse(JSON.stringify(value)); }
 function startStoryMission(missionNumber = 1) {
     const progress = getStoryProgress();
-    if (missionNumber === 1 && progress.mission1Complete) return;
-    if (missionNumber === 2 && (!progress.mission1Complete || progress.mission2Complete)) return;
-    if (missionNumber === 3 && (!progress.mission2Complete || progress.mission3Complete)) return;
-    if (missionNumber === 4 && (!progress.mission3Complete || progress.mission4Complete)) return;
-    if (missionNumber === 5 && (!progress.mission4Complete || progress.mission5Complete)) return;
-    if (missionNumber === 6 && (!progress.mission5Complete || progress.mission6Complete)) return;
-    if (missionNumber === 7 && (!progress.mission6Complete || progress.mission7Complete)) return;
-    if (missionNumber === 8 && (!progress.mission7Complete || progress.mission8Complete)) return;
-    if (missionNumber === 9 && (!progress.mission8Complete || progress.mission9Complete)) return;
     if (![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(missionNumber)) return;
     if (!updateStoryUnlockUI()) {
         showToast(storyLanguage() === 'en' ? 'Clear 25 waves in Endless Mode first.' : 'Önce Sonsuz Mod’da 25 dalgayı tamamlamalısın.');
