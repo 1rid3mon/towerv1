@@ -2968,7 +2968,14 @@ async function sendFriendRequest() {
                 const status = existing.data().status;
                 if (status === 'accepted') throw new Error('Zaten arkadaşsınız.');
                 if (status === 'pending') throw new Error('Bu kişiye zaten istek gönderdin.');
-                tx.delete(outgoingRef);
+                if (status === 'rejected') {
+                    tx.update(outgoingRef, {
+                        status: 'pending',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    return;
+                }
             }
             if (reverse.exists && reverse.data().status === 'accepted') throw new Error('Zaten arkadaşsınız.');
             if (reverse.exists && reverse.data().status === 'pending') throw new Error('Bu kişi sana zaten istek göndermiş. Gelen isteklerden kabul edebilirsin.');
