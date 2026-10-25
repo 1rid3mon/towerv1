@@ -4063,10 +4063,19 @@ function saveStoryProgress(patch) {
     } catch (_) {}
 }
 function getValidatedStoryProgress(source) {
+    let previous = null;
     try {
+        previous = localStorage.getItem(STORY_PROGRESS_KEY);
         localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(source || {}));
-        return getStoryProgress();
+        const normalized = getStoryProgress();
+        if (previous === null) localStorage.removeItem(STORY_PROGRESS_KEY);
+        else localStorage.setItem(STORY_PROGRESS_KEY, previous);
+        return normalized;
     } catch (_) {
+        try {
+            if (previous === null) localStorage.removeItem(STORY_PROGRESS_KEY);
+            else localStorage.setItem(STORY_PROGRESS_KEY, previous);
+        } catch (_) {}
         return getStoryProgress();
     }
 }
