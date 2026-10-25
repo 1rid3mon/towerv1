@@ -3700,6 +3700,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const lang = english ? pikoThoughts.en : pikoThoughts.tr;
         let lines = lang.idle;
         if (type === 'upgrade') {
+            if (typeof playBattleCue === 'function') playBattleCue('upgrade');
             const key = detail && detail.key;
             const attackKeys = ['damage', 'attackSpeed', 'critChance', 'critMult', 'multishot', 'bounce', 'knockback', 'range'];
             const defenseKeys = ['maxHp', 'hpRegen', 'armor', 'thorns', 'shield', 'lifesteal'];
@@ -3707,6 +3708,7 @@ document.addEventListener('DOMContentLoaded', () => {
             lines = attackKeys.includes(key) ? lang.attack : defenseKeys.includes(key) ? lang.defense : economyKeys.includes(key) ? lang.economy : lang.upgrade;
             if (detail && detail.name) lines = [english ? 'Upgrade confirmed: ' + detail.name + '. Let us see the payoff.' : 'Yükseltme onaylandı: ' + detail.name + '. Şimdi etkisini görelim.', ...lines];
         } else if (type === 'lootbox') {
+            if (typeof playBattleCue === 'function') playBattleCue('lootbox');
             const rarity = detail && detail.rarity;
             const kind = detail && detail.kind;
             const count = detail && Number.isInteger(detail.count) ? detail.count : 1;
