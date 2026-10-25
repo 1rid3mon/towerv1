@@ -609,6 +609,22 @@
 @media(max-width:560px){.story-topline{margin-bottom:12px}.story-stage{grid-template-columns:1fr;gap:6px}.story-hologram-wrap{min-height:105px}.story-hologram{width:92px}.story-dialogue{min-height:unset}.story-mission-grid{grid-template-columns:1fr}.story-mission{padding:13px}.story-hero{border-radius:18px}}
 @media(prefers-reduced-motion:reduce){.story-hologram{animation:none}}
 
+
+/* First playable story encounter: HUD stays compact over the existing combat canvas. */
+.story-mission-status{margin-top:12px;color:#67e8f9;font-size:10px;font-weight:800;letter-spacing:.1em}
+.story-mission-status.is-locked{color:#94a3b8}
+.story-deploy{width:100%;margin-top:10px;min-height:42px}
+.story-deploy:disabled{opacity:.55;cursor:default}
+#story-battle-hud{position:fixed;z-index:35;top:78px;left:50%;transform:translateX(-50%);width:min(540px,calc(100% - 20px));pointer-events:none}
+#story-battle-hud[hidden]{display:none}
+.story-battle-panel{pointer-events:auto;border:1px solid rgba(103,232,249,.38);border-radius:15px;padding:12px 14px;background:linear-gradient(130deg,rgba(3,20,38,.96),rgba(30,27,75,.92));box-shadow:0 10px 35px rgba(0,0,0,.32);backdrop-filter:blur(12px)}
+.story-battle-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#a5f3fc;font-size:10px;font-weight:900;letter-spacing:.12em}
+.story-battle-live{color:#86efac;font-size:9px}
+#story-battle-status{font-size:13px;line-height:1.5;color:#f1f5f9;margin:8px 0 10px}
+#story-battle-exit{border:1px solid rgba(148,163,184,.3);border-radius:9px;padding:8px 11px;color:#cbd5e1;background:rgba(15,23,42,.8);font-size:10px;font-weight:800;letter-spacing:.08em}
+@media(max-width:560px){#story-battle-hud{top:68px}.story-battle-panel{padding:10px 11px}#story-battle-status{font-size:12px;margin:6px 0 8px}}
+@media(prefers-reduced-motion:reduce){.story-battle-panel{backdrop-filter:none}}
+
 </style>
 </head>
 <body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-pc color-pastel" id="main-body">
@@ -671,9 +687,9 @@
    </div>
    <div id="story-mission-view" hidden>
     <div class="story-mission-grid">
-     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission1tag">GÖREV 01</div><h3 data-story-ui="mission1title">Savunmayı etkinleştir</h3><p data-story-ui="mission1desc">Kule çekirdeğini çevrimiçi duruma getir ve istasyonun savunma protokolünü öğren.</p></article>
-     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission2tag">GÖREV 02</div><h3 data-story-ui="mission2title">İlk temas</h3><p data-story-ui="mission2desc">Bilinmeyen düşmanların ilk saldırısına karşı koy.</p></article>
-     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission3tag">GÖREV 03</div><h3 data-story-ui="mission3title">Sinyalin kaynağı</h3><p data-story-ui="mission3desc">Savaş sonrasında çekirdeğin kaydettiği gizemli sinyali araştır.</p></article>
+     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission1tag">GÖREV 01</div><h3 data-story-ui="mission1title">Savunmayı etkinleştir</h3><p data-story-ui="mission1desc">Kule çekirdeğini çevrimiçi duruma getir ve istasyonun savunma protokolünü öğren.</p><div class="story-mission-status" id="story-mission-1-status">OYNANABİLİR GÖREV</div><button type="button" class="story-primary story-deploy" id="story-start-mission1" onclick="startStoryMission(1)">GÖREVE BAŞLA →</button></article>
+     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission2tag">GÖREV 02</div><h3 data-story-ui="mission2title">İlk temas</h3><p data-story-ui="mission2desc">Bilinmeyen düşmanların ilk saldırısına karşı koy.</p><div class="story-mission-status is-locked">KİLİTLİ · SONRAKİ AŞAMA</div></article>
+     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission3tag">GÖREV 03</div><h3 data-story-ui="mission3title">Sinyalin kaynağı</h3><p data-story-ui="mission3desc">Savaş sonrasında çekirdeğin kaydettiği gizemli sinyali araştır.</p><div class="story-mission-status is-locked">KİLİTLİ · SONRAKİ AŞAMA</div></article>
     </div>
     <div class="story-complete" id="story-prototype-note"><strong data-story-ui="nextstep">Sıradaki adım</strong><p class="story-lead" data-story-ui="nextdesc">Bu ilk sürüm hikâye girişini ve görev akışını kurar. Gerçek görev savaşları sonraki aşamada mevcut savaş motoruna güvenli biçimde bağlanacak.</p></div>
     <div class="story-controls" style="margin-top:20px"><span class="story-progress" id="story-mission-progress">HİKÂYE KAYDI AYRI TUTULUR</span><button type="button" class="story-primary" onclick="closeStoryMode()" data-story-ui="backmenu">ANA MENÜYE DÖN</button></div>
@@ -683,6 +699,13 @@
  </div>
 </section>
 
+<div id="story-battle-hud" hidden aria-live="polite">
+ <div class="story-battle-panel">
+  <div class="story-battle-heading"><span>✦ <span data-story-ui="chapter">BÖLÜM 01 · KAYIP SİNYAL</span></span><span class="story-battle-live">● LIVE</span></div>
+  <p id="story-battle-status">GÖREV: 8 düşmanı durdur ve çekirdeği güvene al.</p>
+  <button type="button" id="story-battle-exit" onclick="exitStoryBattle(false)">GÖREVDEN ÇIK</button>
+ </div>
+</div>
 
     <header class="bg-slate-900/95 backdrop-blur-xl border-b border-slate-800 p-2 sm:p-3 flex items-center justify-between z-20 shadow-lg shrink-0">
         <div class="flex items-center gap-2 sm:gap-4">
