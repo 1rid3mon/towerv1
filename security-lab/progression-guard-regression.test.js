@@ -233,3 +233,16 @@ test('mission 13 and 14 each have exactly one initial objective label branch', (
   assert.equal((body.match(/else if \(missionNumber === 13\) status\.textContent/g) || []).length, 1);
   assert.equal((body.match(/else if \(missionNumber === 14\) status\.textContent/g) || []).length, 1);
 });
+
+
+test('HTML element IDs are unique so friend-system handlers update the intended UI', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const ids = [...html.matchAll(/\\bid=["']([^"']+)["']/g)].map(match => match[1]);
+  const seen = new Set();
+  const duplicates = [];
+  for (const id of ids) {
+    if (seen.has(id)) duplicates.push(id);
+    seen.add(id);
+  }
+  assert.deepEqual(duplicates, [], 'duplicate IDs can route getElementById updates to stale UI');
+});
