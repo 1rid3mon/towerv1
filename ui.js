@@ -3383,6 +3383,9 @@ const STORY_UI_COPY = {
  memoryAction:['HAFIZA İZİNİ İNCELE','INSPECT MEMORY TRACE'],
  mission9tag:['GÖREV 09','MISSION 09'], mission9title:['Uyanmayı seçmek','The Choice to Wake'],
  mission9desc:['Çekirdeği koru, yoldaşla bağlantıyı yeniden kur ve gerçek biçimini uyandır.','Protect the core, reconnect with the companion, and awaken its true form.'],
+ mission10tag:['GÖREV 10','MISSION 10'], mission10title:['Aşağıdaki kapı','The Door Below'],
+ mission10desc:['İstasyonun planlarında olmayan kapıyı araştır; camgöbeği darbeyle iki gizli düğümü açığa çıkar.','Investigate a door missing from the station schematics; use the cyan pulse to reveal two hidden nodes.'],
+ pulseMission10Action:['SİNYAL DARBESİ','SIGNAL PULSE'],
  reconnectAction:['BAĞLANTIYI YENİDEN KUR','RECONNECT TO COMPANION'], awakenAction:['YOLDAŞI UYANDIR','AWAKEN COMPANION'], pulseAction:['SİNYAL DARBESİNİ DENE','TEST SIGNAL PULSE'],
 
  nextstep:['Sıradaki adım','Next step'], nextdesc:['Mavi görüntü, yoldaşın kayıp hafızasından sızan bozuk bir yankı. Gerçek yoldaş ise çekirdeğin yanında uyanan güçsüz bir bakım birimi. Hikâye ilerledikçe onun neye dönüşebileceğini keşfedeceksin.','The blue image is a corrupted echo leaking from the companion’s lost memory. The real companion is a powerless maintenance unit waking beside the core. As the story unfolds, you will discover what it can become.'],
@@ -3397,8 +3400,8 @@ let storyMissionViewOpen = false;
 function getStoryProgress() {
     try {
         const saved = JSON.parse(localStorage.getItem(STORY_PROGRESS_KEY) || '{}');
-        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Number(saved.chapter) || 1), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true, mission3Complete: saved.mission3Complete === true, mission4Complete: saved.mission4Complete === true, mission5Complete: saved.mission5Complete === true, mission6Complete: saved.mission6Complete === true, mission7Complete: saved.mission7Complete === true, mission8Complete: saved.mission8Complete === true, mission9Complete: saved.mission9Complete === true, companionForm: saved.companionForm === 'cyan' ? 'cyan' : 'basic', repairChoiceCount: Math.max(0, Math.min(3, Number(saved.repairChoiceCount) || 0)), routeChoice: ['array','blackbox'].includes(saved.routeChoice) ? saved.routeChoice : null, powerChoice: ['shield','weapon'].includes(saved.powerChoice) ? saved.powerChoice : null };
-    } catch (_) { return { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false, mission3Complete: false, mission4Complete: false, mission5Complete: false, mission6Complete: false, mission7Complete: false, mission8Complete: false, mission9Complete: false, companionForm: 'basic', repairChoiceCount: 0, routeChoice: null, powerChoice: null }; }
+        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Number(saved.chapter) || 1), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true, mission3Complete: saved.mission3Complete === true, mission4Complete: saved.mission4Complete === true, mission5Complete: saved.mission5Complete === true, mission6Complete: saved.mission6Complete === true, mission7Complete: saved.mission7Complete === true, mission8Complete: saved.mission8Complete === true, mission9Complete: saved.mission9Complete === true, mission10Complete: saved.mission10Complete === true, pulseTutorialComplete: saved.pulseTutorialComplete === true, companionForm: saved.companionForm === 'cyan' ? 'cyan' : 'basic', repairChoiceCount: Math.max(0, Math.min(3, Number(saved.repairChoiceCount) || 0)), routeChoice: ['array','blackbox'].includes(saved.routeChoice) ? saved.routeChoice : null, powerChoice: ['shield','weapon'].includes(saved.powerChoice) ? saved.powerChoice : null };
+    } catch (_) { return { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false, mission3Complete: false, mission4Complete: false, mission5Complete: false, mission6Complete: false, mission7Complete: false, mission8Complete: false, mission9Complete: false, mission10Complete: false, pulseTutorialComplete: false, companionForm: 'basic', repairChoiceCount: 0, routeChoice: null, powerChoice: null }; }
 }
 function saveStoryProgress(patch) {
     try { localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify({ ...getStoryProgress(), ...patch, updatedAt: Date.now() })); } catch (_) {}
@@ -3504,8 +3507,12 @@ function updateStoryMissionBoard() {
     const s9 = document.getElementById('story-mission-9-status');
     if (m9) { m9.disabled = !progress.mission8Complete; m9.textContent = progress.mission9Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'BEGIN AWAKENING →' : 'UYANIŞI BAŞLAT →'); }
     if (s9) { s9.classList.toggle('is-locked', !progress.mission8Complete && !progress.mission9Complete); s9.textContent = progress.mission9Complete ? (en ? 'CHAPTER 01 COMPLETE' : '1. BÖLÜM TAMAMLANDI') : (progress.mission8Complete ? (en ? 'PLAYABLE CLIMAX' : 'OYNANABİLİR FİNAL') : (en ? 'LOCKED · COMPLETE MISSION 08' : 'KİLİTLİ · 8. GÖREVİ TAMAMLA')); }
+    const m10 = document.getElementById('story-start-mission10');
+    const s10 = document.getElementById('story-mission-10-status');
+    if (m10) { m10.disabled = !progress.mission9Complete; m10.textContent = progress.mission10Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'OPEN THE DOOR →' : 'KAPIYI AÇ →'); }
+    if (s10) { s10.classList.toggle('is-locked', !progress.mission9Complete && !progress.mission10Complete); s10.textContent = progress.mission10Complete ? (en ? 'LIFT ACCESS VERIFIED' : 'ASANSÖR ERİŞİMİ DOĞRULANDI') : (progress.mission9Complete ? (en ? 'CHAPTER 02 · PLAYABLE' : '2. BÖLÜM · OYNANABİLİR') : (en ? 'LOCKED · COMPLETE MISSION 09' : 'KİLİTLİ · 9. GÖREVİ TAMAMLA')); }
     document.querySelectorAll('.story-mission-status.is-locked').forEach(node => {
-        if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status','story-mission-6-status','story-mission-7-status','story-mission-8-status','story-mission-9-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
+        if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status','story-mission-6-status','story-mission-7-status','story-mission-8-status','story-mission-9-status','story-mission-10-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
     });
 }
 function setStoryComms(speakerTr, speakerEn, textTr, textEn) {
@@ -3525,14 +3532,15 @@ function storyMissionPrerequisiteMet(missionNumber, progress) {
         6: 'mission5Complete',
         7: 'mission6Complete',
         8: 'mission7Complete',
-        9: 'mission8Complete'
+        9: 'mission8Complete',
+        10: 'mission9Complete'
     };
     const requiredProgressFlag = prerequisiteByMission[missionNumber];
     return !requiredProgressFlag || progress[requiredProgressFlag] === true;
 }
 function startStoryMission(missionNumber = 1) {
     const progress = getStoryProgress();
-    if (![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(missionNumber)) return;
+    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].includes(missionNumber)) return;
     // Enforce mission order in the handler as well as the disabled UI buttons.
     // This prevents direct calls from bypassing the chapter's narrative gates.
     if (!storyMissionPrerequisiteMet(missionNumber, progress)) {
@@ -3562,7 +3570,7 @@ function startStoryMission(missionNumber = 1) {
     window.__storyBattle = session;
     game = getDefaultState();
     game.wave = 1; game.highestWave = 1; game.gold = 180;
-    game.waveKills = 0; game.waveTargetKills = missionNumber === 1 ? 8 : (missionNumber === 5 ? 8 : (missionNumber === 7 ? 8 : (missionNumber === 9 ? 10 : 5))); game.holdWave = false;
+    game.waveKills = 0; game.waveTargetKills = missionNumber === 1 ? 8 : (missionNumber === 5 ? 8 : (missionNumber === 7 ? 8 : (missionNumber === 9 ? 10 : (missionNumber === 10 ? 6 : 5)))); game.holdWave = false;
     game.upgrades.damage = 3; game.upgrades.attackSpeed = 2; game.upgrades.range = 3;
     if (missionNumber === 5 && progress.powerChoice === 'weapon') game.upgrades.damage = 5;
     game.settings.activeTheme = 'space';
@@ -3592,7 +3600,8 @@ function startStoryMission(missionNumber = 1) {
         6: ['BAKIM YOLDAŞI','MAINTENANCE COMPANION','Burada üç bağlantı kopmuş. Ben panelleri işaretleyeceğim. Sen onarımı tamamla.','Three connections are severed here. I will mark the panels. You complete the repairs.'],
         7: ['İSTASYON YAPAY ZEKÂSI','STATION AI','Haberleşme dizisi sinyali güçlendiriyor. Savunmayı sürdür; yükselticiyi kapatırsak kaynağın yönünü bulabiliriz.','The communications array is amplifying the signal. Hold the defense; shutting down the amplifier may reveal its origin.'],
         8: ['KOMUTAN','COMMANDER','Bu oda aynı oda. Ama kayıtlar birbirini tutmuyor. Mavi görüntü bir şeyi hatırlıyor—istasyon ise bunun yaşanmadığını söylüyor.','This is the same room. But the records contradict each other. The blue image remembers something—the station insists it never happened.'],
-        9: ['BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bağlantı kopuyor… Komutan, çekirdeği koru. Bu kez kaçmayacağım. Ne olduğumu hatırlamaya hazırım.','The link is breaking… Commander, protect the core. I will not retreat this time. I am ready to remember what I am.']
+        9: ['BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bağlantı kopuyor… Komutan, çekirdeği koru. Bu kez kaçmayacağım. Ne olduğumu hatırlamaya hazırım.','The link is breaking… Commander, protect the core. I will not retreat this time. I am ready to remember what I am.'],
+        10: ['İSTASYON YAPAY ZEKÂSI','STATION AI','Alt kat planlarda görünmüyor. Burada yalnızca taşıyıcı kiriş olması gerekiyordu.','There is no lower level on the schematics. This should be a load-bearing strut.']
     };
     const openingLine = commsByMission[missionNumber];
     if (openingLine) setStoryComms(...openingLine);
@@ -3611,7 +3620,8 @@ function startStoryMission(missionNumber = 1) {
         else if (missionNumber === 6) status.textContent = storyLanguage() === 'en' ? 'REPAIR: Restore three connections while the companion guides you.' : 'ONARIM: Yoldaş sana rehberlik ederken üç bağlantıyı onar.';
         else if (missionNumber === 7) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 8 hostiles, hold off 10 reinforcements, then disable the signal amplifier.' : 'GÖREV: 8 düşmanı durdur, 10 takviyeyi püskürt, ardından sinyal yükselticisini kapat.';
         else if (missionNumber === 8) status.textContent = storyLanguage() === 'en' ? 'MEMORY REVIEW: Inspect three clues in the familiar room.' : 'HAFIZA İNCELEMESİ: Tanıdık odadaki üç ipucunu incele.';
-        else status.textContent = storyLanguage() === 'en' ? 'CLIMAX: Defeat 10 hostiles, reconnect with the companion, then awaken it.' : 'FİNAL: 10 düşmanı durdur, yoldaşla bağlantıyı kur ve onu uyandır.';
+        else if (missionNumber === 9) status.textContent = storyLanguage() === 'en' ? 'CLIMAX: Defeat 10 hostiles, reconnect with the companion, then awaken it.' : 'FİNAL: 10 düşmanı durdur, yoldaşla bağlantıyı kur ve onu uyandır.';
+        else status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 6 hostiles, then use the cyan pulse to reveal and activate two hidden nodes.' : 'GÖREV: 6 düşmanı durdur, ardından camgöbeği darbeyle iki gizli düğümü açığa çıkarıp etkinleştir.';
     }
     const action = document.getElementById('story-scan-action');
     if (action) action.hidden = true;
@@ -3627,6 +3637,7 @@ function startStoryMission(missionNumber = 1) {
     const reconnect = document.getElementById('story-reconnect-action'); if (reconnect) reconnect.hidden = true;
     const awaken = document.getElementById('story-awaken-action'); if (awaken) awaken.hidden = true;
     const pulse = document.getElementById('story-pulse-action'); if (pulse) pulse.hidden = true;
+    const mission10Pulse = document.getElementById('story-mission10-pulse-action'); if (mission10Pulse) mission10Pulse.hidden = true;
     const companionChip = document.getElementById('story-companion-chip');
     const companionIcon = document.getElementById('story-companion-icon');
     const companionState = document.getElementById('story-companion-state');
@@ -3649,7 +3660,8 @@ function startStoryMission(missionNumber = 1) {
     else if (missionNumber === 6) showToast(storyLanguage() === 'en' ? 'Mission 06 · Follow the companion’s repair markers.' : 'Görev 06 · Yoldaşın onarım işaretlerini takip et.');
     else if (missionNumber === 7) showToast(storyLanguage() === 'en' ? 'Mission 07 · Hold the communications array.' : 'Görev 07 · Haberleşme dizisini koru.');
     else if (missionNumber === 8) showToast(storyLanguage() === 'en' ? 'Mission 08 · Look for contradictions between memory and the room.' : 'Görev 08 · Hafıza ile oda arasındaki çelişkileri ara.');
-    else showToast(storyLanguage() === 'en' ? 'Mission 09 · This is the final defense of Chapter 01.' : 'Görev 09 · Bu, 1. bölümün son savunması.');
+    else if (missionNumber === 9) showToast(storyLanguage() === 'en' ? 'Mission 09 · This is the final defense of Chapter 01.' : 'Görev 09 · Bu, 1. bölümün son savunması.');
+    else showToast(storyLanguage() === 'en' ? 'Mission 10 · The door is reacting to the companion. Calibrate the pulse, then reveal the hidden nodes.' : 'Görev 10 · Kapı yoldaşa tepki veriyor. Darbeyi ayarla, sonra gizli düğümleri açığa çıkar.');
 }
 function finishStoryBattleEncounter() {
     const session = window.__storyBattle;
@@ -3660,6 +3672,34 @@ function finishStoryBattleEncounter() {
     const setExit = label => { const el = document.getElementById('story-battle-exit'); if (el) el.textContent = label; };
 
     if (session.mission === 4 && session.phase === 'powerChoice') return;
+
+    if (session.mission === 10 && session.phase === 'combat') {
+        session.phase = 'pulseNode1'; isPaused = true; enemies = []; projectiles = [];
+        setStatus(en ? 'CALIBRATION WINDOW OPEN · Direct the pulse at the marked node.' : 'KALİBRASYON PENCERESİ AÇILDI · Darbeyi işaretli düğüme yönelt.');
+        setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Düğüm görünür değil. Yoldaşın yeni darbesi onu açığa çıkarabilir.','The node is not visible. The companion’s new pulse may reveal it.');
+        setAction('story-mission10-pulse-action', false, en ? 'SIGNAL PULSE · REVEAL NODE 1' : 'SİNYAL DARBESİ · 1. DÜĞÜMÜ AÇ');
+        setExit(en ? 'ABORT MISSION' : 'GÖREVDEN ÇIK');
+        showToast(en ? 'Calibration ready. Use the pulse once to reveal the first node.' : 'Kalibrasyon hazır. İlk düğümü açığa çıkarmak için darbeyi bir kez kullan.');
+        return;
+    }
+    if (session.mission === 10 && session.phase === 'pulseNode1') {
+        session.phase = 'pulseNode2'; session.pulseCount = 1; isPaused = true;
+        setStatus(en ? 'NODE 1 REVEALED · The pulse did not strike an enemy. It exposed a hidden connection. The lift interface is still sealed.' : '1. DÜĞÜM AÇIĞA ÇIKTI · Darbe düşmanı vurmadı; gizlenmiş bağlantıyı görünür kıldı. Asansör arayüzü hâlâ kapalı.');
+        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Darbe düşmanı vurmadı. Gizlenmiş bağlantıyı görünür kıldı. İkinci düğüm asansörün kilidini tutuyor.','The pulse did not strike an enemy. It revealed a hidden connection. The second node is holding the lift lock.');
+        setAction('story-mission10-pulse-action', false, en ? 'SIGNAL PULSE · STABILIZE LIFT' : 'SİNYAL DARBESİ · ASANSÖRÜ SABİTLE');
+        showToast(en ? 'Node 1 activated. Node 2 is now traceable.' : '1. düğüm etkinleştirildi. 2. düğüm artık izlenebilir.');
+        return;
+    }
+    if (session.mission === 10 && session.phase === 'pulseNode2') {
+        session.phase = 'complete'; session.completed = true; session.pulseCount = 2; isPaused = true;
+        saveStoryProgress({ introSeen: true, chapter: 2, mission10Complete: true, pulseTutorialComplete: true });
+        setStatus(en ? 'LIFT OPEN · ACCESS DENIED. No identity record found. Correction: administrator access verified.' : 'ASANSÖR AÇILDI · ERİŞİM REDDEDİLDİ. Kimlik kaydı bulunamadı. Düzeltme: yönetici erişimi doğrulandı.');
+        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bilmiyorum. Ama kapı açılınca… içimde bir şey hatırladı.','I don’t know. But when the door opened… something inside me remembered.');
+        setAction('story-mission10-pulse-action', true);
+        setExit(en ? 'RETURN TO CHAPTER BOARD' : 'GÖREV PANOSUNA DÖN');
+        showToast(en ? 'Mission 10 complete. Pulse tutorial progress saved.' : '10. görev tamamlandı. Darbe öğreticisi ilerlemesi kaydedildi.');
+        return;
+    }
 
     if (session.mission === 3 && session.phase === 'investigate') {
         session.completed = true; isPaused = true;
@@ -3876,6 +3916,11 @@ function scanStorySignal() {
 function inspectStoryMemory() {
     const session = window.__storyBattle;
     if (!session || !session.active || session.mission !== 8 || session.phase !== 'memory' || session.completed) return;
+    finishStoryBattleEncounter();
+}
+function pulseStoryMission10() {
+    const session = window.__storyBattle;
+    if (!session || !session.active || session.mission !== 10 || !['pulseNode1','pulseNode2'].includes(session.phase) || session.completed || isPaused !== true) return;
     finishStoryBattleEncounter();
 }
 function reconnectStoryCompanion() {
