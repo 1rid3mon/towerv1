@@ -2634,7 +2634,7 @@ function renderAchievementsModal() {
     const achievements = getAchievementDefinitions();
     const unlocked = achievements.filter(a => a.done).length;
     const progressEl = document.getElementById('achievement-progress');
-    if (progressEl) progressEl.textContent = `${unlocked} / ${achievements.length} tamamlandı`;
+    if (progressEl) progressEl.textContent = getGameLanguage() === 'en' ? `${unlocked} / ${achievements.length} completed` : `${unlocked} / ${achievements.length} tamamlandı`;
     const badgeEl = document.getElementById('profile-badge');
     if (badgeEl) {
         badgeEl.className = `inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold ${badge.className}`;
