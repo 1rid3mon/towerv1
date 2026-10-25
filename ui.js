@@ -3491,6 +3491,13 @@ function startStoryMission(missionNumber = 1) {
     if (status) status.textContent = storyLanguage() === 'en'
         ? 'OBJECTIVE: Defeat 8 hostiles and stabilize the core.'
         : 'GÖREV: 8 düşmanı durdur ve çekirdeği güvene al.';
+    const companionChip = document.getElementById('story-companion-chip');
+    const companionIcon = document.getElementById('story-companion-icon');
+    const companionState = document.getElementById('story-companion-state');
+    if (companionChip) companionChip.classList.remove('is-synced');
+    if (companionIcon) companionIcon.textContent = '⚙';
+    if (companionState) companionState.textContent = storyLanguage() === 'en'
+        ? 'LOW POWER · LINKING TO CORE' : 'DÜŞÜK GÜÇ · ÇEKİRDEĞE BAĞLANIYOR';
     const exit = document.getElementById('story-battle-exit');
     if (exit) exit.textContent = storyLanguage() === 'en' ? 'ABORT MISSION' : 'GÖREVDEN ÇIK';
     if (typeof resizeCanvas === 'function') resizeCanvas();
@@ -3512,6 +3519,13 @@ function finishStoryBattleEncounter() {
     if (status) status.textContent = storyLanguage() === 'en'
         ? 'MISSION COMPLETE · The core is stable. The maintenance companion has synchronized with you; one signal fragment recovered.'
         : 'GÖREV TAMAMLANDI · Çekirdek güvende. Bakım yoldaşı seninle eşitlendi; sinyalin bir parçası kurtarıldı.';
+    const companionChip = document.getElementById('story-companion-chip');
+    const companionIcon = document.getElementById('story-companion-icon');
+    const companionState = document.getElementById('story-companion-state');
+    if (companionChip) companionChip.classList.add('is-synced');
+    if (companionIcon) companionIcon.textContent = '✦';
+    if (companionState) companionState.textContent = storyLanguage() === 'en'
+        ? 'SYNC ESTABLISHED · MEMORY FRAGMENT FOUND' : 'BAĞLANTI KURULDU · HAFIZA PARÇASI BULUNDU';
     const exit = document.getElementById('story-battle-exit');
     if (exit) exit.textContent = storyLanguage() === 'en' ? 'CONTINUE' : 'DEVAM ET';
     showToast(storyLanguage() === 'en' ? 'Mission 01 complete. Story progress saved separately.' : '1. görev tamamlandı. Hikâye ilerlemesi ayrı kaydedildi.');
