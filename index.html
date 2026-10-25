@@ -521,7 +521,7 @@
 
     
         /* Main mode selection overlay */
-        #mode-main-menu { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; overflow-y: auto; padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom)); background: radial-gradient(ellipse at 50% 18%, rgba(30,64,175,.24), transparent 52%), radial-gradient(ellipse at 85% 85%, rgba(126,34,206,.15), transparent 44%), rgba(2,6,23,.97); }
+        #mode-main-menu { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; overflow-y: auto; padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom)); background: radial-gradient(ellipse at 50% 18%, rgba(30,64,175,.24), transparent 52%), radial-gradient(ellipse at 85% 85%, rgba(126,34,206,.15), transparent 44%), rgba(2,6,23,.97); }
         #mode-main-menu.menu-hidden { display: none; }
         .mode-menu-inner { width: min(960px, 100%); margin: auto; }
         .mode-menu-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; margin-top: 30px; }
@@ -599,9 +599,6 @@
             <button type="button" class="mode-menu-tool" onclick="openAchievementsModal()">
                 <i class="fa-solid fa-medal text-amber-300"></i><span class="mode-menu-tool-label">Başarımlar</span>
             </button>
-            <button type="button" class="mode-menu-tool" onclick="openThemeModal()">
-                <i id="ui-theme-icon" class="fa-solid fa-palette text-indigo-300"></i><span id="ui-theme-name" class="mode-menu-tool-label">Siber</span>
-            </button>
             <button type="button" class="mode-menu-tool" onclick="openSettingsModal()">
                 <i class="fa-solid fa-gear text-slate-300"></i><span class="mode-menu-tool-label">Ayarlar</span>
             </button>
@@ -645,6 +642,10 @@
         <div class="flex items-center space-x-1 sm:space-x-2">
             <button type="button" onclick="returnToMainMenu()" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600/70 text-slate-200 font-tech font-bold text-xs transition flex items-center gap-1" title="Ana Menü" aria-label="Ana Menü">
                 <i class="fa-solid fa-house text-xs"></i><span class="hidden sm:inline">Ana Menü</span>
+            </button>
+            <button onclick="openThemeModal()" class="px-2 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-tech font-bold text-xs transition flex items-center gap-1" title="Tema seç">
+                <i id="ui-theme-icon" class="fa-solid fa-palette text-xs"></i>
+                <span id="ui-theme-name" class="hidden lg:inline">Siber</span>
             </button>
             <button id="btn-speed" onclick="toggleGameSpeed()" class="px-2 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-tech font-bold text-xs transition flex items-center gap-1">
                 <i class="fa-solid fa-forward-fast text-xs"></i>
