@@ -2475,6 +2475,7 @@ async function deleteMyAccount() {
     try {
         if (isFirebaseReady && fbDb) {
             await fbDb.collection('leaderboard').doc(uid).delete();
+            await fbDb.collection('storyProgress').doc(uid).delete();
             await fbDb.collection('users').doc(uid).delete();
         }
     } catch (e) {
@@ -2497,6 +2498,8 @@ async function deleteMyAccount() {
 
     currentUser = null;
     localStorage.removeItem(LOCAL_CURRENT_USER_KEY);
+    localStorage.removeItem(STORY_PROGRESS_KEY);
+    localStorage.removeItem(STORY_PROGRESS_OWNER_KEY);
     updateAccountHeaderUI();
     refreshLeaderboard(false);
     showToast('🗑️ Hesap ve oyun verileri silindi. Bazı güvenlik kayıtları ayrı tutulabilir.');
