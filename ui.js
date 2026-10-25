@@ -390,10 +390,10 @@ function buildUpgradesUI() {
                         </div>
                         <div class="min-w-0">
                             <div class="flex items-center gap-1.5">
-                                <span class="font-tech font-bold text-xs sm:text-sm text-white truncate">${def.name}</span>
+                                <span class="font-tech font-bold text-xs sm:text-sm text-white truncate">${localizeGameContent(def.name)}</span>
                                 <span id="upg-lvl-${key}" class="text-[10px] font-tech px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">Sv.${lvl}</span>
                             </div>
-                            <div class="text-[10px] text-slate-400 leading-tight">${def.desc}</div>
+                            <div class="text-[10px] text-slate-400 leading-tight">${localizeGameContent(def.desc)}</div>
                             <div id="upg-val-${key}" class="text-[11px] font-tech font-bold text-blue-300">${def.getValueText(lvl)}</div>
                         </div>
                     </div>
@@ -476,7 +476,7 @@ function buildCompanionsUI() {
     if (typeof COMPANION_SKIN_DATABASE !== 'undefined') {
         const compSkinDef = COMPANION_SKIN_DATABASE[game.activeCompanionSkin || 'default_tech'] || COMPANION_SKIN_DATABASE.default_tech;
         const compSkinLabel = document.getElementById('comp-tab-active-skin');
-        if (compSkinLabel && compSkinDef) compSkinLabel.textContent = `${compSkinDef.emoji} ${compSkinDef.name}`;
+        if (compSkinLabel && compSkinDef) compSkinLabel.textContent = `${compSkinDef.emoji} ${localizeGameContent(compSkinDef.name)}`;
     }
 
     for (const [key, def] of Object.entries(COMPANION_DEFS)) {
@@ -494,13 +494,13 @@ function buildCompanionsUI() {
                     </div>
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="font-tech font-bold text-xs sm:text-sm text-white">${def.name}</span>
+                            <span class="font-tech font-bold text-xs sm:text-sm text-white">${localizeGameContent(def.name)}</span>
                             <div class="flex items-center gap-0.5 bg-slate-950/80 px-1.5 py-0.5 rounded border border-white/5">
                                 ${renderCompanionStars(star)}
                             </div>
                         </div>
-                        <div class="text-[10px] text-slate-400 leading-tight">${def.desc}</div>
-                        <div class="text-[10px] font-tech font-bold ${star > 0 ? 'text-cyan-300' : 'text-amber-300'}">${def.getStarSummary(star)}</div>
+                        <div class="text-[10px] text-slate-400 leading-tight">${localizeGameContent(def.desc)}</div>
+                        <div class="text-[10px] font-tech font-bold ${star > 0 ? 'text-cyan-300' : 'text-amber-300'}">${localizeGameContent(def.getStarSummary(star))}</div>
                     </div>
                 </div>
                 <button onclick="buyCompanion('${key}')" ${(isMaxed || game.crystals < cost) ? 'disabled' : ''} class="upgrade-btn px-3 py-2 rounded-xl ${isMaxed ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300' : 'bg-cyan-600 hover:bg-cyan-500 text-white'} font-tech font-bold text-xs shrink-0 min-w-[92px] text-center">
@@ -552,8 +552,8 @@ function buildPrestigeUI() {
         list.innerHTML += `
             <div class="premium-card p-2.5 flex items-center justify-between gap-2">
                 <div>
-                    <div class="font-tech font-bold text-xs text-white"><i class="${def.icon} text-purple-400 mr-1"></i>${def.name} <span class="text-[10px] text-purple-300">Sv.${lvl}</span></div>
-                    <div class="text-[10px] text-slate-400">${def.desc}</div>
+                    <div class="font-tech font-bold text-xs text-white"><i class="${def.icon} text-purple-400 mr-1"></i>${localizeGameContent(def.name)} <span class="text-[10px] text-purple-300">Lv.${lvl}</span></div>
+                    <div class="text-[10px] text-slate-400">${localizeGameContent(def.desc)}</div>
                     <div class="text-[10px] font-tech text-purple-300">${def.getEffectText(lvl)}</div>
                 </div>
                 <button onclick="buyPrestigeUpgrade('${key}')" ${maxed || game.souls < cost ? 'disabled' : ''} class="upgrade-btn px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-tech font-bold text-xs shrink-0">${maxed ? 'MAKS' : `${cost} 🔥`}</button>
@@ -1337,7 +1337,7 @@ function selectTowerSkin(skinId) {
         !game.ownedSkins.includes(skinId)) return;
     game.activeSkin = skinId;
     const skin = SKIN_DATABASE[skinId];
-    showToast(`Kule Skini Kuşanıldı: ${skin.emoji} ${skin.name}`);
+    showToast(localizeGameMessage(`Kule Skini Kuşanıldı: ${skin.emoji} ${skin.name}`));
     buildInventoryUI(); saveGame(true);
 }
 
@@ -1349,7 +1349,7 @@ function selectCompanionSkin(skinId) {
         !game.ownedCompanionSkins.includes(skinId)) return;
     game.activeCompanionSkin = skinId;
     const cSkin = COMPANION_SKIN_DATABASE[skinId];
-    showToast(`Yoldaş Skini Kuşanıldı: ${cSkin.emoji} ${cSkin.name}`);
+    showToast(localizeGameMessage(`Yoldaş Skini Kuşanıldı: ${cSkin.emoji} ${cSkin.name}`));
     buildInventoryUI(); buildCompanionsUI(); saveGame(true);
 }
 
@@ -1391,7 +1391,7 @@ function showItemDetails(itemId) {
     const rarity = rarityNames[item.rarity] || 'Eşya';
     const type = typeNames[item.type] || item.type || 'Özel';
     if (typeof window.showInspectPopup === 'function') {
-        window.showInspectPopup(item.name, rarity + ' • ' + type, item.desc || 'Açıklama yok.', game.equippedItems.includes(itemId) ? 'KUŞANILDI' : 'ENVANTERDE', '#38bdf8');
+        window.showInspectPopup(localizeGameContent(item.name), localizeGameContent(rarity) + ' • ' + localizeGameContent(type), localizeGameContent(item.desc || 'Açıklama yok.'), game.equippedItems.includes(itemId) ? localizeGameContent('KUŞANILDI') : localizeGameContent('ENVANTERDE'), '#38bdf8');
     } else {
         showToast(item.name + ': ' + (item.desc || rarity + ' • ' + type));
     }
@@ -1473,7 +1473,7 @@ function buildInventoryUI() {
                 eqList.innerHTML += `
                     <div onclick="toggleEquipItem('${item.id}')" class="cursor-pointer p-2 rounded-lg border ${rb.cls} flex flex-col items-center justify-center text-center relative hover:opacity-80 transition gap-1">
                         ${renderItemIconHTML(item, 'w-9 h-9')}
-                        <div class="font-tech font-bold text-[10px] leading-tight line-clamp-1">${item.name}</div>
+                        <div class="font-tech font-bold text-[10px] leading-tight line-clamp-1">${localizeGameContent(item.name)}</div>
                         <span class="text-[8px] opacity-75">Çıkar</span>
                     </div>`;
             } else {
@@ -1519,7 +1519,7 @@ function buildInventoryUI() {
                             ${renderItemIconHTML(item, 'w-11 h-11')}
                             <div class="min-w-0 flex-1">
                                 <div class="font-tech font-bold text-xs text-white leading-tight">${item.name}</div>
-                                <div class="text-[10px] text-slate-400 leading-tight mt-0.5">${item.desc}</div>
+                                <div class="text-[10px] text-slate-400 leading-tight mt-0.5">${localizeGameContent(item.desc)}</div>
                             </div>
                         </div>
                         <button type="button" onclick="event.stopPropagation(); showItemDetails('${item.id}')" class="mt-1 w-full rounded-lg border border-white/10 bg-slate-800/80 py-1.5 text-[10px] font-bold text-cyan-200 hover:bg-slate-700" aria-label="${item.name} ayrıntıları"><i class="fa-solid fa-circle-info mr-1"></i>Detaylar</button>
@@ -1538,7 +1538,7 @@ function buildInventoryUI() {
         if (skinsListEl) {
             skinsListEl.innerHTML = allSkins.map(skin => {
                 const owned = game.ownedSkins.includes(skin.id), isActive = game.activeSkin === skin.id, rb = getRarityBadge(skin.rarity);
-                return `<div onclick="${owned ? `selectTowerSkin('${skin.id}')` : ''}" class="${owned ? 'cursor-pointer hover:border-amber-500/50' : 'opacity-45 cursor-not-allowed'} p-2.5 rounded-xl border ${isActive ? 'border-amber-400 bg-amber-500/10' : 'border-slate-800 bg-slate-900/50'} transition flex flex-col justify-between"><div class="flex items-center justify-between mb-1"><span class="px-1.5 py-0.5 rounded text-[8px] font-tech font-bold border ${rb.cls}">${rb.text}</span><span class="text-[9px] font-tech font-bold ${isActive ? 'text-amber-300' : (owned ? 'text-emerald-400' : 'text-slate-500')}">${isActive ? 'AKTİF' : (owned ? 'SAHİP' : 'KİLİTLİ')}</span></div><div class="flex items-center gap-2 my-1"><canvas id="skin-preview-${skin.id}" width="52" height="52" class="w-[46px] h-[46px] rounded-lg bg-slate-950/80 border border-white/10 shrink-0"></canvas><div class="min-w-0"><div class="font-tech font-bold text-xs text-white truncate">${skin.name}</div><div class="text-[10px] text-slate-400 leading-tight line-clamp-2">${skin.desc}</div></div></div></div>`;
+                return `<div onclick="${owned ? `selectTowerSkin('${skin.id}')` : ''}" class="${owned ? 'cursor-pointer hover:border-amber-500/50' : 'opacity-45 cursor-not-allowed'} p-2.5 rounded-xl border ${isActive ? 'border-amber-400 bg-amber-500/10' : 'border-slate-800 bg-slate-900/50'} transition flex flex-col justify-between"><div class="flex items-center justify-between mb-1"><span class="px-1.5 py-0.5 rounded text-[8px] font-tech font-bold border ${rb.cls}">${rb.text}</span><span class="text-[9px] font-tech font-bold ${isActive ? 'text-amber-300' : (owned ? 'text-emerald-400' : 'text-slate-500')}">${isActive ? 'AKTİF' : (owned ? 'SAHİP' : 'KİLİTLİ')}</span></div><div class="flex items-center gap-2 my-1"><canvas id="skin-preview-${skin.id}" width="52" height="52" class="w-[46px] h-[46px] rounded-lg bg-slate-950/80 border border-white/10 shrink-0"></canvas><div class="min-w-0"><div class="font-tech font-bold text-xs text-white truncate">${localizeGameContent(skin.name)}</div><div class="text-[10px] text-slate-400 leading-tight line-clamp-2">${localizeGameContent(skin.desc)}</div></div></div></div>`;
             }).join('');
 
             allSkins.forEach(skin => {
@@ -1566,7 +1566,7 @@ function buildInventoryUI() {
         if (compSkinsListEl) {
             compSkinsListEl.innerHTML = allCompSkins.map(cSkin => {
                 const owned = game.ownedCompanionSkins.includes(cSkin.id), isActive = game.activeCompanionSkin === cSkin.id, rb = getRarityBadge(cSkin.rarity);
-                return `<div onclick="${owned ? `selectCompanionSkin('${cSkin.id}')` : ''}" class="${owned ? 'cursor-pointer hover:border-cyan-500/50' : 'opacity-45 cursor-not-allowed'} p-2.5 rounded-xl border ${isActive ? 'border-cyan-400 bg-cyan-500/10' : 'border-slate-800 bg-slate-900/50'} transition flex flex-col justify-between"><div class="flex items-center justify-between mb-1"><span class="px-1.5 py-0.5 rounded text-[8px] font-tech font-bold border ${rb.cls}">${rb.text}</span><span class="text-[9px] font-tech font-bold ${isActive ? 'text-cyan-300' : (owned ? 'text-emerald-400' : 'text-slate-500')}">${isActive ? 'AKTİF' : (owned ? 'SAHİP' : 'KİLİTLİ')}</span></div><div class="flex items-center gap-2 my-1"><canvas id="compskin-preview-${cSkin.id}" width="52" height="52" class="w-[46px] h-[46px] rounded-lg bg-slate-950/80 border border-white/10 shrink-0"></canvas><div class="min-w-0"><div class="font-tech font-bold text-xs text-white truncate">${cSkin.name}</div><div class="text-[10px] text-slate-400 leading-tight line-clamp-2">${cSkin.desc}</div></div></div></div>`;
+                return `<div onclick="${owned ? `selectCompanionSkin('${cSkin.id}')` : ''}" class="${owned ? 'cursor-pointer hover:border-cyan-500/50' : 'opacity-45 cursor-not-allowed'} p-2.5 rounded-xl border ${isActive ? 'border-cyan-400 bg-cyan-500/10' : 'border-slate-800 bg-slate-900/50'} transition flex flex-col justify-between"><div class="flex items-center justify-between mb-1"><span class="px-1.5 py-0.5 rounded text-[8px] font-tech font-bold border ${rb.cls}">${rb.text}</span><span class="text-[9px] font-tech font-bold ${isActive ? 'text-cyan-300' : (owned ? 'text-emerald-400' : 'text-slate-500')}">${isActive ? 'AKTİF' : (owned ? 'SAHİP' : 'KİLİTLİ')}</span></div><div class="flex items-center gap-2 my-1"><canvas id="compskin-preview-${cSkin.id}" width="52" height="52" class="w-[46px] h-[46px] rounded-lg bg-slate-950/80 border border-white/10 shrink-0"></canvas><div class="min-w-0"><div class="font-tech font-bold text-xs text-white truncate">${localizeGameContent(cSkin.name)}</div><div class="text-[10px] text-slate-400 leading-tight line-clamp-2">${localizeGameContent(cSkin.desc)}</div></div></div></div>`;
             }).join('');
 
             allCompSkins.forEach(cSkin => {
@@ -1676,7 +1676,7 @@ function openThemeModal() {
     if (listEl && typeof THEME_DEFS !== 'undefined') {
         listEl.innerHTML = Object.values(THEME_DEFS).map(t => {
             const unlocked = game.highestWave >= t.reqWave, active = game.settings.activeTheme === t.id;
-            return `<div onclick="${unlocked ? `selectTheme('${t.id}')` : ''}" class="${unlocked ? 'cursor-pointer hover:border-indigo-400' : 'opacity-50 cursor-not-allowed'} premium-card p-3 flex items-center justify-between"><div class="flex items-center gap-3"><i class="${t.icon} text-lg ${t.color}"></i><div><div class="font-tech font-bold text-sm text-white">${t.name}</div><div class="text-[11px] text-slate-400">${t.desc}</div></div></div><span class="text-xs font-tech font-bold ${active ? 'text-indigo-300' : 'text-slate-400'}">${active ? 'AKTİF' : (unlocked ? 'SEÇ' : `Dalga ${t.reqWave}`)}</span></div>`;
+            return `<div onclick="${unlocked ? `selectTheme('${t.id}')` : ''}" class="${unlocked ? 'cursor-pointer hover:border-indigo-400' : 'opacity-50 cursor-not-allowed'} premium-card p-3 flex items-center justify-between"><div class="flex items-center gap-3"><i class="${t.icon} text-lg ${t.color}"></i><div><div class="font-tech font-bold text-sm text-white">${localizeGameContent(t.name)}</div><div class="text-[11px] text-slate-400">${localizeGameContent(t.desc)}</div></div></div><span class="text-xs font-tech font-bold ${active ? 'text-indigo-300' : 'text-slate-400'}">${active ? 'AKTİF' : (unlocked ? 'SEÇ' : `Dalga ${t.reqWave}`)}</span></div>`;
         }).join('');
     }
     const m = document.getElementById('theme-modal');
@@ -3689,6 +3689,322 @@ const GAME_TRANSLATIONS = {
     "Günlük görevler bu cihazda saklanır ve istemci tarafında hesaplanır. Ödüller rekabetçi veya gerçek para değeri taşıyan ödüller değildir.": "Daily quests are stored on this device and calculated client-side. Rewards have no competitive or real-money value."
 };
 
+// English translations for database-driven content (skins, items, upgrades and inspectors).
+const GAME_CONTENT_TRANSLATIONS = {
+
+    "Plazma Kulesi": "Plasma Tower",
+    "DGDVRN (Altın Kaplama)": "DGDVRN (Gold-Plated)",
+    "Kozmik Kara Delik": "Cosmic Black Hole",
+    "Nane Kulesi": "Mint Tower",
+    "Ateş Kulesi": "Fire Tower",
+    "Balonlu Sakız": "Bubble Gum",
+    "Siber Samuray": "Cyber Samurai",
+    "Kardan Adam Kulesi": "Snowman Tower",
+    "Yıldız Kruvazörü": "Star Cruiser",
+    "Kızıl Ejderha": "Crimson Dragon",
+    "Süpersonik Uçak": "Supersonic Jet",
+    "Ormanlar Kralı Aslan": "King of the Jungle Lion",
+    "Bengal Kaplanı": "Bengal Tiger",
+    "Kraliyet Koltuğu": "Royal Throne",
+    "Siber Meka": "Cyber Mech",
+    "Ateş İblisi": "Fire Demon",
+    "Yarış Arabası": "Racing Car",
+    "Çılgın Maymun": "Crazy Monkey",
+    "Kadim Ağaç": "Ancient Tree",
+    "Uyku Emojisi": "Sleepy Emoji",
+    "Bölge 51 Uzaylısı": "Area 51 Alien",
+    "Gökdoğan Kuşu": "Peregrine Falcon",
+    "Oyuncu Sandalyesi": "Gaming Chair",
+    "Taktik Masası": "Tactical Table",
+    "Sıcak Pizza": "Hot Pizza",
+    "Altın Porselen": "Golden Porcelain",
+    "Siber Taktik Dronu": "Cyber Tactical Drone",
+    "Origami Turna": "Origami Crane",
+    "Kuantum Prizma": "Quantum Prism",
+    "Hayalet Ruh Küresi": "Ghost Orb",
+    "Gölge Shuriken": "Shadow Shuriken",
+    "Kızıl Kum Sarkacı": "Crimson Sand Pendulum",
+    "Tiyatro Maskeleri": "Theater Masks",
+    "Valkür Kanatları": "Valkyrie Wings",
+    "Tutulma Hilali": "Eclipse Crescent",
+    "Bozkurt Ruhu (Alfa)": "Grey Wolf Spirit (Alpha)",
+    "Trajedi & Komedi Maskesi": "Tragedy & Comedy Mask",
+    "Sisifos'un Ebedi Kayası": "Sisyphus' Eternal Boulder",
+    "Kader Daktilosu": "Fate Typewriter",
+    "Kanlı Kum Saati": "Crimson Hourglass",
+    "Kızıl Yaylı Gölge Okçu": "Crimson Shadow Archer",
+    "Hiçlik Çukuru İpi": "Void Pit Rope",
+    "Yırtık Gelecek Mektubu": "Torn Letter from the Future",
+    "İz Sürücü Adımları": "Tracker's Footsteps",
+    "Kırık Yay Parçası": "Broken Bow Fragment",
+    "Bakır Ganimet": "Copper Loot",
+    "Demir Çivi": "Iron Nail",
+    "Hafif Tüy": "Light Feather",
+    "Minik Safir": "Tiny Sapphire",
+    "Sağlam Meşe": "Sturdy Oak",
+    "Paslı Dişli": "Rusty Gear",
+    "Ucu Sivri Ok": "Sharp Arrow",
+    "Kristal Parçası": "Crystal Shard",
+    "Deri Kabza": "Leather Grip",
+    "Bozkurt Dişi": "Grey Wolf Fang",
+    "Optik Radar Merceği": "Optical Radar Lens",
+    "Gümüş Sadak": "Silver Quiver",
+    "Tüccar Yüzüğü": "Merchant's Ring",
+    "Titanyum Levha": "Titanium Plate",
+    "Rüzgar Tılsımı": "Wind Charm",
+    "Yakut Göz": "Ruby Eye",
+    "Enerji Hücresi": "Energy Cell",
+    "Sıfır Noktası Modülü": "Zero-Point Module",
+    "Termal Lazer Dürbünü": "Thermal Laser Scope",
+    "Gölge Avcısı Yayı": "Shadow Hunter Bow",
+    "Ejderha Pul Zırhı": "Dragon Scale Armor",
+    "Zaman Kumları": "Sands of Time",
+    "Vampir Dişi": "Vampire Fang",
+    "Kararsız Plazma Çekirdeği": "Unstable Plasma Core",
+    "Muramasa Plazma Kılıcı": "Muramasa Plasma Blade",
+    "Aegis Yansıtıcı Kalkan": "Aegis Reflective Shield",
+    "Kuantum Mıknatısı": "Quantum Magnet",
+    "Valkür Kanadı": "Valkyrie Wing",
+    "Ebedi Yaşam Kalbi": "Heart of Eternal Life",
+    "Tanrısal Hükümdar Tacı": "Divine Sovereign Crown",
+    "Ölümsüzlük Kadehi": "Chalice of Immortality",
+    "Hiper-Türbin Motoru": "Hyper-Turbine Engine",
+    "Kozmik Tekillik Çekirdeği": "Cosmic Singularity Core",
+    "Sonsuzluk Efsanevi Yayı": "Legendary Bow of Infinity",
+    "Kurt Kaan'ın Ebedi Totemi": "Kurt Kaan's Eternal Totem",
+    "Plazma Hasarı": "Plasma Damage",
+    "Atış Hızı": "Fire Rate",
+    "Radar Menzili": "Radar Range",
+    "Kritik Şansı": "Critical Chance",
+    "Kritik Çarpanı": "Critical Multiplier",
+    "Çoklu Atış": "Multishot",
+    "Sekme (Zincir)": "Chain Bounce",
+    "Şok Dalgası": "Shockwave",
+    "Titanyum Gövde": "Titanium Hull",
+    "Nano Onarım": "Nano Repair",
+    "Reaktif Zırh": "Reactive Armor",
+    "Plazma Kalkanı": "Plasma Shield",
+    "Can Çalma": "Lifesteal",
+    "Dikenli Zırh": "Thorn Armor",
+    "Ganimet Çarpanı": "Loot Multiplier",
+    "Dalga İkramiyesi": "Wave Bonus",
+    "Kristal Sondajı": "Crystal Drilling",
+    "Kuantum Bankası": "Quantum Bank",
+    "Antik Çekirdek": "Ancient Core",
+    "Altın Simyası": "Gold Alchemy",
+    "Senkronize Yörünge": "Synchronized Orbit",
+    "Mühendislik Verimi": "Engineering Efficiency",
+    "Zaman Sıçraması": "Time Leap",
+    "Standart siber savunma kulesi.": "Standard cyber-defense tower.",
+    "Özel üretim saf altın kaplamalı efsanevi kule!": "A legendary tower finished in custom pure gold plating!",
+    "Uzay-zamanı büken, etrafında olay ufku dönen efsanevi kara delik kulesi!": "A legendary black-hole tower that bends spacetime, with an event horizon orbiting it!",
+    "Buzlu nane yaprakları ve ferahlatıcı zümrüt kristaliyle düşmanları kesen efsanevi kule!": "A legendary tower that slices enemies with icy mint leaves and a refreshing emerald crystal!",
+    "Volkanik magma çekirdeği ve dönen alev halkalarıyla her şeyi kül eden efsanevi kule!": "A legendary tower that turns everything to ash with a volcanic magma core and spinning rings of fire!",
+    "Şişip patlayan tatlı pembe balonlu sakız otomatı kulesi.": "A sweet pink bubble-gum machine tower that inflates and pops.",
+    "Çift katana namlulu, kızıl kabuto miğferli ölümsüz Shogun kulesi.": "An immortal Shogun tower with twin katana barrels and a crimson kabuto helmet.",
+    "Havuç burunlu efsanevi Kardan Adam kulesi.": "A legendary snowman tower with a carrot nose.",
+    "Galaktik uzay kruvazörü kule görünümü.": "A galactic space-cruiser tower skin.",
+    "Kanatlı ve boynuzlu ateş püskürten ejderha.": "A winged, horned dragon that breathes fire.",
+    "Ses duvarını aşan çift türbinli F-22 avcı uçağı kulesi.": "An F-22 fighter-jet tower with twin turbines that breaks the sound barrier.",
+    "Kükreyen altın yeleli aslan kulesi.": "A lion tower with a roaring golden mane.",
+    "Siyah çizgili keskin pençeli kaplan kulesi.": "A tiger tower with black stripes and razor-sharp claws.",
+    "Mor kadife ve altın varaklı kraliyet koltuğu.": "A royal throne upholstered in purple velvet and gold leaf.",
+    "Kırmızı lazer vizörlü ağır çelik meka.": "A heavy steel mech with a red laser visor.",
+    "Lav çekirdekli ve boynuzlu ateş iblisi.": "A horned fire demon with a lava core.",
+    "Çift şeritli kırmızı spor yarış arabası.": "A red sports racing car with twin stripes.",
+    "Muz namlulu plazma fırlatan maymun.": "A monkey that fires plasma from a banana-shaped barrel.",
+    "Kök salmış yapraklı doğa koruyucusu.": "A leafy nature guardian with deep roots.",
+    "Zzz efektli uyurken bile tek atan kule.": "A tower that one-shots enemies even while sleeping, with a Zzz effect.",
+    "UFO tabanlı yeşil uzaylı kulesi.": "A green alien tower built on a UFO base.",
+    "Açık kanatlı çevik gökdoğan kulesi.": "An agile peregrine-falcon tower with outstretched wings.",
+    "RGB aydınlatmalı kırmızı-siyah oyuncu koltuğu.": "A red-and-black gaming chair with RGB lighting.",
+    "Üzerinde radar haritası olan meşe masa.": "An oak table with a radar map on top.",
+    "Sucuklu ve erimiş peynirli İtalyan pizzası.": "An Italian pizza topped with sausage and melted cheese.",
+    "Girdaplı porselen mizahi kule skini.": "A humorous tower skin made of swirling porcelain.",
+    "Göz yormayan, zarif kanatlı standart taktik yoldaş dronu.": "A standard tactical companion drone with elegant wings and a gentle look.",
+    "Minimalist katlanmış kağıt turna kuşu yoldaş görünümü.": "A minimalist companion skin inspired by a folded paper crane.",
+    "Yumuşak neon hatlı, sakin dönen geometrik enerji kristali.": "A geometric energy crystal with soft neon edges that rotates calmly.",
+    "Dingin mavi-mor ruh halkasıyla süzülen mistik küre.": "A mystical orb drifting with a serene blue-violet spirit ring.",
+    "Yörüngede sessizce süzülen mat çelik ninja yıldızı.": "A matte-steel ninja star silently gliding in orbit.",
+    "Zamanı büken mini kızıl kum saati uyduları.": "Miniature crimson hourglass satellites that bend time.",
+    "Trajedi ve Komedi sanatını yansıtan zarif ikili maske.": "An elegant pair of masks representing Tragedy and Comedy.",
+    "Altın halesi ve zarif tüylü kanatlarıyla koruyucu melek uydusu.": "A guardian-angel satellite with a golden halo and graceful feathered wings.",
+    "Karanlık güneş tutulması ve altın hilal yörünge uydusu.": "An orbital satellite themed around a dark solar eclipse and golden crescent.",
+    "Gök mavisi ve altın hilal izi bırakan efsanevi Bozkurt totemi.": "A legendary Grey Wolf totem leaving sky-blue and golden crescent trails.",
+    "Taban hasarı artırır. Her 10 ve 25 Sv. ekstra çarpan verir.": "Increases base damage. Grants extra multipliers every 10 and 25 levels.",
+    "Her Sv. +0.055/sn atış hızı (Maks 50 Sv: 3.60/sn).": "Adds +0.055 shots/sec per level (max level 50: 3.60 shots/sec).",
+    "Her Sv. +4 px nişancı menzili (Maks 40 Sv: 286 px).": "Adds +4 px attack range per level (max level 40: 286 px).",
+    "Her seviye +%1.5 kritik şansı (Maks 48 Sv: %75).": "Adds +1.5% critical chance per level (max level 48: 75%).",
+    "Her Sv. +0.08x ve 15 Sv.de +0.15x kritik hasar (Maks 100 Sv).": "Adds +0.08x critical damage per level and +0.15x at level 15 (max level 100).",
+    "Aynı anda vurulan hedef sayısı (Maks 5 Sv: +5 Hedef).": "Number of targets hit at once (max level 5: +5 targets).",
+    "Merminin yakındaki düşmana sekmesi (%60 hasar, Maks 5 Sv).": "Projectiles bounce to nearby enemies (60% damage, max level 5).",
+    "Vurulan düşmanları geri iter (Maks 3 Sv).": "Knocks hit enemies backward (max level 3).",
+    "Maksimum canı artırır. Her 10 ve 25 Sv. ekstra çarpan.": "Increases maximum health. Grants extra multipliers every 10 and 25 levels.",
+    "Saniyede otomatik can yenileme (10 ve 25 Sv. çarpanlı).": "Automatically regenerates health every second (multipliers at levels 10 and 25).",
+    "Düşman hasarını doğrudan emer (Maks %75 soğurma).": "Directly absorbs enemy damage (up to 75% absorption).",
+    "Saniyede %5 otomatik yenilenen enerji kalkanı.": "An energy shield that automatically regenerates by 5% per second.",
+    "Her Sv. +%0.35 can çalma (Maks 20 Sv: %7.0).": "Adds +0.35% lifesteal per level (max level 20: 7.0%).",
+    "Saldırana hasarı geri yansıtır (Her Sv. +%3, Maks %75).": "Reflects damage back at attackers (+3% per level, max 75%).",
+    "Her Sv. +%6 altın kazancı (Her 10 Sv. ekstra çarpan).": "Adds +6% gold earnings per level (extra multiplier every 10 levels).",
+    "Dalga geçildiğinde ekstra altın ödülü verir.": "Grants bonus gold when a wave is cleared.",
+    "Her Sv. +%0.45 şans ve +%8 kristal çarpanı (Maks 30 Sv).": "Adds +0.45% drop chance and +8% crystal multiplier per level (max level 30).",
+    "Dalga sonu kasa faizi: Her Sv. +%0.4 (Maks 15 Sv: %6.0).": "End-of-wave bank interest: +0.4% per level (max level 15: 6.0%).",
+    "İki yüzlü sahne tılsımı: Tüm kule hasarını +%100 (x2.0) katlar!": "A two-faced stage charm: doubles all tower damage (+100%, x2.0)!",
+    "Durmaksızın zirveye taşınan kaya: Maksimum canı +%75 artırır.": "A boulder endlessly pushed uphill: increases maximum health by 75%.",
+    "Geleceği yazan yeşil daktilo: Kritik hasar çarpanını +0.70x artırır.": "A green typewriter that writes the future: increases the critical damage multiplier by +0.70x.",
+    "Kızıl kumları çatlaklardan sızan saat: Atış hızını +0.25/sn artırır.": "An hourglass leaking crimson sand through its cracks: increases fire rate by +0.25/sec.",
+    "Uzun kızıl yaylı avcı ruhu: Tüm kule hasarını +%38 artırır.": "A hunter spirit with a long crimson bow: increases all tower damage by 38%.",
+    "Karanlık delikten çıkış halatı: Can çalma oranını +%1.8 artırır.": "A rope out of a dark pit: increases lifesteal by 1.8%.",
+    "Gizemli ayak izleri: Kule radar menzilini +25 piksel artırır.": "Mysterious footprints: increases tower radar range by 25 pixels.",
+    "Tüm kule hasarını +%7 artırır.": "Increases all tower damage by 7%.",
+    "Altın kazancını +%8 artırır.": "Increases gold earnings by 8%.",
+    "Zırh değerini +%8 artırır.": "Increases armor by 8%.",
+    "Atış hızını +0.05/sn artırır.": "Increases fire rate by +0.05/sec.",
+    "Kritik şansını +%2.5 artırır.": "Increases critical chance by 2.5%.",
+    "Maksimum canı +%8 artırır.": "Increases maximum health by 8%.",
+    "Can yenilemesini +%8 artırır.": "Increases health regeneration by 8%.",
+    "Kritik çarpanını +0.12x artırır.": "Increases the critical multiplier by +0.12x.",
+    "Kristal düşme şansını +%1.0 artırır.": "Increases crystal drop chance by 1.0%.",
+    "Menzili +10 piksel artırır.": "Increases range by 10 pixels.",
+    "Kritik şansını +%3 artırır.": "Increases critical chance by 3%.",
+    "Menzili +14 piksel artırır.": "Increases range by 14 pixels.",
+    "Tüm kule hasarını +%16 artırır.": "Increases all tower damage by 16%.",
+    "Altın kazancını +%18 artırır.": "Increases gold earnings by 18%.",
+    "Zırh değerini +%16 artırır.": "Increases armor by 16%.",
+    "Atış hızını +0.12/sn artırır.": "Increases fire rate by +0.12/sec.",
+    "Kritik şansını +%5 artırır.": "Increases critical chance by 5%.",
+    "Plazma kalkanını +%18 artırır.": "Increases plasma shield by 18%.",
+    "Can yenilemesini +%18 artırır.": "Increases health regeneration by 18%.",
+    "Kritik çarpanını +0.28x artırır.": "Increases the critical multiplier by +0.28x.",
+    "Tüm kule hasarını +%32 artırır.": "Increases all tower damage by 32%.",
+    "Maksimum canı +%35 artırır.": "Increases maximum health by 35%.",
+    "Atış hızını +0.22/sn artırır.": "Increases fire rate by +0.22/sec.",
+    "Can çalma oranını +%1.2 artırır.": "Increases lifesteal by 1.2%.",
+    "Kritik çarpanını +0.50x artırır.": "Increases the critical multiplier by +0.50x.",
+    "Tüm kule hasarını +%36 artırır.": "Increases all tower damage by 36%.",
+    "Plazma kalkanını +%35 artırır.": "Increases plasma shield by 35%.",
+    "Kristal düşme şansını +%2.0 artırır.": "Increases crystal drop chance by 2.0%.",
+    "Tüm kule hasarını +%65 artırır.": "Increases all tower damage by 65%.",
+    "Maksimum kule canını +%65 artırır.": "Increases maximum tower health by 65%.",
+    "Altın kazancını +%55 artırır.": "Increases gold earnings by 55%.",
+    "Can çalma oranını +%2.5 artırır.": "Increases lifesteal by 2.5%.",
+    "Atış hızını +0.38/sn artırır.": "Increases fire rate by +0.38/sec.",
+    "Tüm kule hasarını +%90 (x1.9) çarpanla katlar!": "Multiplies all tower damage by x1.9 (+90%)!",
+    "Ekstra +1 Çoklu Atış hedefi sağlar!": "Grants +1 additional Multishot target!",
+    "Tüm kule hasarını +%115 (x2.15) çarpanla katlar!": "Multiplies all tower damage by x2.15 (+115%)!",
+    "AKTİF": "ACTIVE",
+    "SAHİP": "OWNED",
+    "KİLİTLİ": "LOCKED",
+    "TAKILI": "EQUIPPED",
+    "Çıkar": "Unequip",
+    "Boş Slot": "Empty Slot",
+    "Detaylar": "Details",
+    "Nadirlik: En Yüksek": "Rarity: Highest First",
+    "Nadirlik: En Düşük": "Rarity: Lowest First",
+    "KUŞANILDI": "EQUIPPED",
+    "ENVANTERDE": "IN INVENTORY",
+    "EFSANEVİ": "LEGENDARY",
+    "MİTİK": "MYTHIC",
+    "EPİK": "EPIC",
+    "SÜPER NADİR": "SUPER RARE",
+    "NADİR": "RARE",
+    "Eşya": "Item",
+    "Açıklama yok.": "No description."
+,
+
+    "Plazma Kulesi": "Plasma Tower",
+    "Siber Çekirdek": "Cyber Core",
+    "Kuzey Işıkları Sezonu": "Northern Lights Season",
+    "Cengiz Hakanlığı": "Cengiz Khanate",
+    "Buzul Gezegeni (Kar)": "Glacial Planet (Snow)",
+    "Kızıl Çöl & Kaktüs": "Crimson Desert & Cactus",
+    "Derin Uzay Nebulası": "Deep Space Nebula",
+    "Buubglegum Rüyası": "Bubblegum Dream",
+    "Dalgalanan kutup ışıkları, yıldız tozu ve özgün sentetik ambient müzik.": "Flowing auroras, stardust, and original synthetic ambient music.",
+    "15. Dalgada açılır. Destansı kılıçlar, kızıl korlar ve hakanlık mührü.": "Unlocks at wave 15. Epic swords, crimson embers, and a khanate seal.",
+    "30. Dalgada açılır. Çam ağaçları, kuzey ışıkları ve kristal kar fırtınası.": "Unlocks at wave 30. Pine trees, auroras, and a crystalline snowstorm.",
+    "45. Dalgada açılır. Dev kaktüsler, kum tepeleri ve çöl güneşi.": "Unlocks at wave 45. Giant cacti, sand dunes, and the desert sun.",
+    "60. Dalgada açılır. Renkli nebulalar, halkalı gezegenler ve kayan yıldızlar.": "Unlocks at wave 60. Colorful nebulae, ringed planets, and shooting stars.",
+    "100. Dalgada açılır. Mavi-pembe kelebekler ve uçuşan sakız balonları!": "Unlocks at wave 100. Blue-pink butterflies and floating bubble-gum balloons!",
+    "Asil bozkurt ruhu taşıyan, uluyarak plazma pençesi fırlatan Efsanevi Kurt Kaan kulesi!": "The legendary Kurt Kaan tower channels a noble grey-wolf spirit and fires plasma claws with a howl!",
+    "Altın güneş halesi ve siber imparatorluk çekirdeğiyle parlayan efsanevi Sunkas kulesi!": "The legendary Sunkas tower shines with a golden solar halo and a cyber-imperial core!",
+    "Yüksek voltajlı Tesla bobinleri ve şok yıldırımları saçan efsanevi elektro-şok kulesi!": "A legendary electro-shock tower with high-voltage Tesla coils and crackling lightning!",
+    "Durmaksızın zirveye taşınan kaya: Maksimum canı +%75 artırır.": "A boulder endlessly pushed uphill: increases maximum health by 75%.",
+    "Geleceği yazan yeşil daktilo: Kritik hasar çarpanını +0.70x artırır.": "A green typewriter that writes the future: increases the critical damage multiplier by +0.70x.",
+    "Kızıl kumları çatlaklardan sızan saat: Atış hızını +0.25/sn artırır.": "An hourglass leaking crimson sand through its cracks: increases fire rate by +0.25/sec.",
+    "Uzun kızıl yaylı avcı ruhu: Tüm kule hasarını +%38 artırır.": "A hunter spirit with a long crimson bow: increases all tower damage by 38%.",
+    "Karanlık delikten çıkış halatı: Can çalma oranını +%1.8 artırır.": "A rope out of a dark pit: increases lifesteal by 1.8%.",
+    "Üzerinde \"Gelecek\" yazan kadim parşömen: Altın kazancını +%30 artırır.": "An ancient scroll marked “Future”: increases gold earnings by 30%.",
+    "Lazer Dronu": "Laser Drone",
+    "Buzul Küresi": "Glacier Orb",
+    "Füze Botu": "Missile Bot",
+    "Tamir Dronu": "Repair Drone",
+    "Plazma Uydusu": "Plasma Satellite",
+    "Seri plazma lazeri ateşler (5★ olduğunda kritik vurabilir).": "Fires rapid plasma lasers (can deal critical hits at 5★).",
+    "Buz etkisiyle düşmanları yavaşlatır.": "Slows enemies with a freezing effect.",
+    "Düşmanlara füze fırlatır.": "Launches missiles at enemies.",
+    "Kuleyi onararak hayatta kalmasına yardım eder.": "Repairs the tower to help it survive.",
+    "Yörüngeden plazma desteği sağlar.": "Provides plasma support from orbit.",
+    "Tüm kule ve yoldaş hasarını kalıcı olarak katlar (+%20/Sv).": "Permanently increases all tower and companion damage (+20% per level).",
+    "Tüm altın kazancını kalıcı olarak artırır (+%20/Sv).": "Permanently increases all gold earnings (+20% per level).",
+    "Yıldızlı yoldaşların tüm hasarını katlar (+%25/Sv).": "Increases all damage dealt by star-ranked companions (+25% per level).",
+    "Yükseltme altın maliyetini kalıcı düşürür (-%2/Sv, Maks -%50).": "Permanently reduces upgrade gold costs (-2% per level, max -50%).",
+    "Prestij sonrası ileri dalgadan ve başlangıç altınıyla başlatır.": "After prestige, start at a later wave with starting gold.",
+    "Hasar": "Damage",
+    "Çarpan Hasarı": "Damage Multiplier",
+    "Can": "Health",
+    "Kritik Şans": "Critical Chance",
+    "Kritik Hasar": "Critical Damage",
+    "Saldırı Hızı": "Fire Rate",
+    "Altın": "Gold",
+    "Menzil": "Range",
+    "Zırh": "Armor",
+    "Can Yenileme": "Health Regeneration",
+    "Kristal": "Crystal",
+    "Kalkan": "Shield",
+    "Özel": "Special",
+    "Nadir": "Rare",
+    "Süper Nadir": "Super Rare",
+    "Epik": "Epic",
+    "Mitik": "Mythic",
+    "Efsanevi": "Legendary",
+    "Seviye:": "Level:",
+    "Mevcut:": "Current:",
+    "Sınır:": "Limit:",
+    "Maliyet:": "Cost:",
+    "1★ Aç": "Unlock 1★",
+    "Yükselt": "Upgrade",
+    "Aç": "Unlock",
+    "SEÇ": "SELECT"
+,
+
+    "Klasik siber savunma atmosferi.": "A classic cyber-defense atmosphere.",
+    "Buz gibi su dalgalı şişe kulesi.": "A tower skin shaped like a bottle of ice-cold water with rippling waves.",
+    "Alan yavaşlatma ve dondurucu şok dalgası yayar.": "Emits an area slow effect and a freezing shockwave.",
+    "Yüksek patlayıcılı alan (AoE) füzesi fırlatır.": "Launches high-explosive area-of-effect (AoE) missiles.",
+    "Kule Canını ve Plazma Kalkanını yüzdelik olarak onarır.": "Restores a percentage of the tower's health and plasma shield.",
+    "Çoklu hedefe zincirleme yıldırım ve düşman MaksHP yüzdesi hasarı verir.": "Chains lightning across multiple targets and deals damage based on a percentage of enemy max HP.",
+    "Cyber Core": "Cyber Core",
+    "Siber Çekirdek": "Cyber Core"
+,
+
+    "Sunkas Kulesi": "Sunkas Tower",
+    "Teyzir Kulesi": "Teyzir Tower",
+    "Su Şişesi": "Water Bottle",
+    "Füze Bataryası": "Missile Battery",
+    "Onarım Mekaniği": "Repair Mechanic",
+    "EŞYA": "ITEM",
+    "KOZMETİK": "COSMETIC"
+
+};
+
+function localizeGameContent(value) {
+    if (typeof value !== 'string' || getGameLanguage() !== 'en') return value;
+    if (Object.prototype.hasOwnProperty.call(GAME_CONTENT_TRANSLATIONS, value)) return GAME_CONTENT_TRANSLATIONS[value];
+    return value.replace(/\\bSv\\./g, 'Lv.').replace(/\\bMaks\\b/g, 'Max');
+}
+
+
 const gameTextOriginals = new WeakMap();
 const gameAttributeOriginals = new WeakMap();
 let gameLanguageObserver = null;
@@ -3753,6 +4069,11 @@ function setGameLanguage(language) {
     const selected = language === 'en' ? 'en' : 'tr';
     try { localStorage.setItem('towerDefenseLanguage', selected); } catch (_) {}
     applyGameLanguage(selected);
+    if (typeof buildInventoryUI === 'function') buildInventoryUI();
+    if (typeof buildUpgradesUI === 'function') buildUpgradesUI();
+    if (typeof buildCompanionsUI === 'function') buildCompanionsUI();
+    if (typeof buildPrestigeUI === 'function') buildPrestigeUI();
+    if (typeof openThemeModal === 'function' && !document.getElementById('theme-modal')?.classList.contains('hidden')) openThemeModal();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
