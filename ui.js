@@ -3385,6 +3385,10 @@ const STORY_UI_COPY = {
  mission9desc:['Çekirdeği koru, yoldaşla bağlantıyı yeniden kur ve gerçek biçimini uyandır.','Protect the core, reconnect with the companion, and awaken its true form.'],
  mission10tag:['GÖREV 10','MISSION 10'], mission10title:['Aşağıdaki kapı','The Door Below'],
  mission10desc:['İstasyonun planlarında olmayan kapıyı araştır; camgöbeği darbeyle iki gizli düğümü açığa çıkar.','Investigate a door missing from the station schematics; use the cyan pulse to reveal two hidden nodes.'],
+ chapter2label:['BÖLÜM 02','CHAPTER 02'], chapter2title:['Sinyalin Altında','Beneath the Signal'], chapter2desc:['İstasyonun kayıtlarından eski bir şey uyanıyor.','Something older than the station records is waking.'],
+ mission11tag:['GÖREV 11 · YAKINDA','MISSION 11 · COMING SOON'], mission11title:['Aşağıdaki istasyona iniş','Descent to the Lower Station'],
+ mission11desc:['Camgöbeği darbeyle istasyonun altındaki eski ağı keşfet.','Use the cyan pulse to explore the ancient network beneath the station.'],
+ mission11locked:['SONRAKİ GÖREV HAZIRLANIYOR','NEXT MISSION IN DEVELOPMENT'],
  pulseMission10Action:['SİNYAL DARBESİ','SIGNAL PULSE'],
  reconnectAction:['BAĞLANTIYI YENİDEN KUR','RECONNECT TO COMPANION'], awakenAction:['YOLDAŞI UYANDIR','AWAKEN COMPANION'], pulseAction:['SİNYAL DARBESİNİ DENE','TEST SIGNAL PULSE'],
 
