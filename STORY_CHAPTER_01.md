@@ -32,30 +32,30 @@ The companion is a real physical unit; the hologram is not its current form. The
 
 ### Mission 04 — A Quiet Circuit
 **Target:** 3–4 minutes  
-**Player goal:** restore power to two linked subsystems and choose which one receives power first.  
-**Primary interaction:** a small, reversible route/power choice with a visible short-term consequence.  
+**Player goal:** choose which subsystem receives the station's limited reserve: core shields or weapon calibration.  
+**Primary interaction:** a two-option decision made in a quiet, non-combat scene.  
 **Tone:** lower pressure. No mandatory combat wave.  
-**Payoff:** the choice changes the next encounter's starting advantage, not the overall story branch; avoid creating a huge branching narrative to support a small choice.
+**Payoff:** the choice changes the next encounter's starting stats, not the overall story branch; the narrative remains shared.
 
 ### Mission 05 — The Broken Line
 **Target:** 7–9 minutes  
-**Player goal:** defend the subsystem the player prioritized, then disable a signal relay.  
-**Known tools:** combat, relay scanning, and the consequence of Mission 04.  
-**Change:** the arena contains one hazard that can be used against enemies after a short readable tell.  
-**Payoff:** the relay sends a packet that includes a memory fragment matching the hologram's voice.
+**Player goal:** defend the corridor, then disable a signal relay.  
+**Known tools:** combat and the consequence of Mission 04.  
+**Structure:** two escalating defense stages, followed by an interaction to disable the exposed relay.  
+**Payoff:** the relay packet includes a voice pattern matching the blue hologram; Mission 03's evidence choice changes the opening dialogue.
 
 ### Mission 06 — Beyond the Bulkhead
 **Target:** 4–5 minutes  
-**Player goal:** cross a newly powered sector and escort the maintenance companion through a short exposed route.  
-**Primary interaction:** position/route awareness; no new complex escort controls.  
-**Payoff:** the companion briefly emits cyan light while repairing a damaged panel, then returns to its weak state. This is a clue, not an evolution or a permanent power-up.
+**Player goal:** restore three damaged connections with the maintenance companion guiding the commander.  
+**Primary interaction:** a short three-step repair sequence, without adding a new complex control system.  
+**Payoff:** the companion briefly emits cyan light while repairing the last panel, then returns to its weak state. This is a clue, not an evolution or a permanent power-up.
 
 ### Mission 07 — The Signal Bends
 **Target:** 7–9 minutes  
-**Player goal:** protect an exposed communications array while the player chooses between clearing an incoming group early or interrupting a signal amplifier.  
-**Known tools:** learned combat tells, hazards, and relay interaction.  
-**Change:** combine known mechanics under pressure rather than introducing another whole system.  
-**Payoff:** interrupting the amplifier reveals the signal is looping from inside the station, not arriving from deep space.
+**Player goal:** defend the communications array through two escalating enemy stages, then disable the exposed signal amplifier.  
+**Known tools:** the player uses the same defense loop with a changed tactical purpose; no unrelated new system is introduced.  
+**Pacing:** the second stage raises pressure before the player gets a quiet interaction to shut down the amplifier.  
+**Payoff:** the amplifier confirms the signal is looping from inside the station, not arriving from deep space.
 
 ### Mission 08 — A Familiar Room
 **Target:** 4–5 minutes, plus optional memory discovery  
