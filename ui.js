@@ -3669,6 +3669,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     ? [count > 1 ? 'Multiple crates opened. I counted every result—someone has to stay organized.' : 'Crate opened. I am checking the contents now.', 'I logged the new drop. Let us see how it fits the build.']
                     : [count > 1 ? 'Birden fazla sandık açıldı. Her sonucu saydım; düzeni korumak birinin işi.' : 'Sandık açıldı. İçindekileri tarıyorum.', 'Yeni ganimeti kaydettim. Bakalım dizilimimize nasıl uyacak.'];
             }
+        } else if (type === 'boss') {
+            const bossName = detail && detail.name;
+            const wave = detail && Number.isFinite(Number(detail.wave)) ? Number(detail.wave) : null;
+            lines = english
+                ? ['Boss signature detected. Stay sharp, commander—I will track its movements.', 'That is no ordinary enemy. I am boosting threat scans; keep your defenses ready.']
+                : ['Boss sinyali algılandı. Dikkatli ol komutan, hareketlerini takip edeceğim.', 'Bu sıradan bir düşman değil. Tehdit taramasını artırıyorum; savunmayı hazır tut.'];
+            if (bossName) lines.unshift(english ? bossName + ' has entered the field. This could get interesting.' : bossName + ' sahaya çıktı. Bu iş ilginçleşecek.');
+            if (wave !== null && wave % 5 === 0) lines.unshift(english ? 'Milestone wave ' + wave + '—and a boss to match. Let us make it count.' : wave + '. dönüm dalgası ve karşımızda bir boss. Bu fırsatı değerlendirelim.');
+        } else if (type === 'bossKill') {
+            const bossName = detail && detail.name;
+            const crystals = detail && Number.isFinite(Number(detail.crystals)) ? Math.max(0, Math.round(Number(detail.crystals))) : 0;
+            lines = english
+                ? ['Boss neutralized. That is one less nightmare between us and the next wave.', 'Excellent work, commander. Threat removed; I am already scanning for the next one.']
+                : ['Boss etkisiz hâle getirildi. Bir sonraki dalgaya kadar bir kabus eksildi.', 'Harika iş komutan. Tehdit temizlendi; şimdiden sıradakini tarıyorum.'];
+            if (bossName) lines.unshift(english ? bossName + ' is down. I am saving that result to my highlight reel.' : bossName + ' düştü. Bu sonucu en iyi anlar kaydıma ekliyorum.');
+            if (crystals > 0) lines.unshift(english ? 'Threat cleared. I counted ' + crystals + ' crystals in the reward.' : 'Tehdit temizlendi. Ödülde ' + crystals + ' kristal saydım.');
         } else if (type === 'wave') lines = lang.newWave;
         else if (type === 'danger') lines = lang.lowGold;
         showLine(chooseLine(lines));
