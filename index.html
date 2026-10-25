@@ -1223,6 +1223,24 @@
                         </div>
                     </div>
 
+                    <!-- ARKADAŞ SİSTEMİ -->
+                    <section class="premium-card border border-sky-500/25 bg-gradient-to-br from-sky-950/35 via-slate-900 to-indigo-950/40 rounded-xl p-3.5 space-y-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <div><h3 class="font-tech font-bold text-sm text-sky-300 flex items-center gap-2"><i class="fa-solid fa-user-group"></i> ARKADAŞ MERKEZİ</h3><p class="text-[10px] text-slate-400 mt-0.5">Kullanıcı adıyla ekle, isteği kabul et ve birlikte yüksel.</p></div>
+                            <span id="friends-count" class="rounded-full bg-sky-500/10 border border-sky-400/20 px-2 py-1 text-[10px] text-sky-200">Hesap gerekli</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <input id="friends-add-username" maxlength="18" autocomplete="off" autocapitalize="none" placeholder="Arkadaşının kullanıcı adı" class="min-w-0 flex-1 rounded-lg bg-slate-950 border border-slate-700 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-sky-400 outline-none">
+                            <button id="friends-add-button" onclick="sendFriendRequest()" class="shrink-0 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:opacity-50 px-3 py-2 text-xs font-bold text-white">İstek Gönder</button>
+                        </div>
+                        <div id="friends-notice" class="hidden text-xs rounded-lg px-2.5 py-2" role="status" aria-live="polite"></div>
+                        <div class="space-y-1.5"><h4 class="text-[10px] uppercase tracking-wider font-bold text-slate-400">Arkadaşların</h4><div id="friends-list" class="space-y-1.5"></div></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="space-y-1.5"><h4 class="text-[10px] uppercase tracking-wider font-bold text-emerald-300">Gelen İstekler</h4><div id="friends-incoming" class="space-y-1.5"></div></div>
+                            <div class="space-y-1.5"><h4 class="text-[10px] uppercase tracking-wider font-bold text-amber-300">Gönderilen İstekler</h4><div id="friends-outgoing" class="space-y-1.5"></div></div>
+                        </div>
+                    </section>
+
                     <!-- Sıralama Filtresi -->
                     <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
                         <button onclick="setLeaderboardSort('wave')" id="lb-sort-wave" class="py-1.5 rounded-lg font-tech font-bold text-xs bg-amber-600 text-white transition"><i class="fa-solid fa-water mr-1"></i>En Yüksek Dalga</button>
