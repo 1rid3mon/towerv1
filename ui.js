@@ -3249,3 +3249,288 @@ function showStoryModeComingSoon() {
     const subtitle = document.getElementById('mode-menu-subtitle');
     if (subtitle) subtitle.textContent = 'Hikâye modu için dünya haritası, bölüm ilerlemesi ve boss finalleri hazırlanıyor. Şimdilik Sonsuz Mod oynanabilir; mevcut ilerlemen güvende.';
 }
+
+
+// ==========================================
+// DİL DESTEĞİ — Türkçe / English
+// UI metinleri çevrilir; oyun kayıtları ve mekanikler değişmez.
+// ==========================================
+const GAME_TRANSLATIONS = {
+    "SAVUNMA PROTOKOLÜ · 01": "DEFENSE PROTOCOL · 01",
+    "KULE SAVUNMA": "TOWER DEFENSE",
+    "Nasıl bir mücadeleye hazırsın, komutan? Bir dünyayı kurtar ya da sınırlarını sonsuza kadar zorla.": "What challenge are you ready for, Commander? Save a world or push your limits forever.",
+    "Hikâye Modu": "Story Mode",
+    "Dünyaları keşfet, yeni tehditlerle yüzleş ve final boss'una ulaş. Hikâye yolculuğu hazırlanıyor.": "Explore worlds, face new threats, and reach the final boss. The story campaign is in development.",
+    "Yakında gelecek": "Coming soon",
+    "Sonsuz Mod": "Endless Mode",
+    "Mevcut savunmana devam et. Dalga sınırı yok; rekorunu geliştir, giderek güçlenen düşmanlara dayan.": "Continue your current defense. No wave limit—beat your record and survive increasingly powerful enemies.",
+    "Savunmaya başla": "Start defending",
+    "İLERLEMEN KORUNUR · SAVAŞ DENGESİ DEĞİŞMEZ": "YOUR PROGRESS IS PRESERVED · GAME BALANCE IS UNCHANGED",
+    "Giriş Yap": "Log In",
+    "Can": "Health",
+    "Kalkan": "Shield",
+    "Yenileme:": "Regeneration:",
+    "Zırh:": "Armor:",
+    "DALGA 1": "WAVE 1",
+    "BOSS": "BOSS",
+    "Düşman:": "Enemies:",
+    "Oto İlerle": "Auto Advance",
+    "HASAR": "DAMAGE",
+    "ATIŞ HIZI": "FIRE RATE",
+    "KRİTİK": "CRIT",
+    "ÇOKLU": "MULTI",
+    "Menzil": "Range",
+    "Hasar": "Damage",
+    "ÇEKİRDEK AŞIRI YÜKLENDİ!": "CORE OVERLOADED!",
+    "Kule onarılıyor ve güvenli dalgaya çekiliyor...": "Tower repairing and retreating to a safe wave...",
+    "Sistem Paneli": "System Panel",
+    "CAN": "HP",
+    "ZIRH": "ARMOR",
+    "HIZ": "SPEED",
+    "Saldırı": "Attack",
+    "Savunma": "Defense",
+    "Ekonomi": "Economy",
+    "Yoldaş": "Companions",
+    "Envanter": "Inventory",
+    "Kutular": "Crates",
+    "Prestij": "Prestige",
+    "Kumar": "Casino",
+    "Sıralama": "Leaderboard",
+    "Aktif Yoldaş Görünümü:": "Active Companion Skin:",
+    "Skin Değiştir": "Change Skin",
+    "Kuşanılan Eşyalar (Maks 3)": "Equipped Items (Max 3)",
+    "Envanterdeki Eşyalar (": "Inventory Items (",
+    "Nadirlik: En Yüksek": "Rarity: Highest",
+    "Tüm nadirlikler": "All rarities",
+    "Nadir": "Rare",
+    "Süper nadir": "Super Rare",
+    "Epik": "Epic",
+    "Mitik": "Mythic",
+    "Efsanevi": "Legendary",
+    "Tüm türler": "All types",
+    "Hasar çarpanı": "Damage multiplier",
+    "Kritik şans": "Critical chance",
+    "Kritik hasar": "Critical damage",
+    "Saldırı hızı": "Attack speed",
+    "Can çalma": "Lifesteal",
+    "Altın": "Gold",
+    "Kalkan": "Shield",
+    "Çoklu atış": "Multishot",
+    "Aktif Kule Görünümü": "Active Tower Skin",
+    "Klasik Plazma Kulesi": "Classic Plasma Tower",
+    "AKTİF": "EQUIPPED",
+    "Aktif Yoldaş Görünümü": "Active Companion Skin",
+    "Koleksiyon: 0/0": "Collection: 0/0",
+    "Eşya & Kuantum Sandığı": "Item & Quantum Crate",
+    "ve özel eşyalar düşür!": "and special items!",
+    "Açılan Eşya: 0 / 0": "Items opened: 0 / 0",
+    "Kule Skin Kutusu": "Tower Skin Crate",
+    "ve özel Kule Skinleri içerir!": "contains special Tower Skins!",
+    "Açılan Kule Skini: 1 / 26": "Tower Skins unlocked: 1 / 26",
+    "Yoldaş Skin Kutusu": "Companion Skin Crate",
+    "Yörüngedeki yoldaşların için": "For your orbiting companions",
+    "görünümleri!": "skins!",
+    "Açılan Yoldaş Skini: 1 / 10": "Companion Skins unlocked: 1 / 10",
+    "Kutu Düşme Oranları:": "Crate Drop Rates:",
+    "EVRİM GEÇİR": "EVOLVE",
+    "Sıfırlama:": "Reset:",
+    "Dalganı sıfırlayarak Ruh Taşı kazan. (En az Başlangıç + 10. Dalgaya ulaşmalısın)": "Reset your wave to earn Soul Stones. (Reach at least Starting Wave + 10.)",
+    "Kazanılacak:": "To earn:",
+    "Gereken: Dalga 10": "Required: Wave 10",
+    "SIFIRLA": "RESET",
+    "Kristal Kumarhanesi": "Crystal Casino",
+    "Para Birimi: Kristal": "Currency: Crystals",
+    "Bahis Miktarı (Kristal):": "Bet Amount (Crystals):",
+    "RULET": "ROULETTE",
+    "BLACKJACK": "BLACKJACK",
+    "KUANTUM": "QUANTUM",
+    "ÇARK HAZIR": "WHEEL READY",
+    "Renk seç, çarkı ve topu döndür!": "Pick a color, then spin the wheel and ball!",
+    "KIRMIZI (x2)": "RED (x2)",
+    "YEŞİL (x14)": "GREEN (x14)",
+    "SİYAH (x2)": "BLACK (x2)",
+    "Kasa (Bot):": "Dealer (Bot):",
+    "Bekleniyor...": "Waiting...",
+    "Sen (Oyuncu):": "You (Player):",
+    "Kristal bahsini gir ve Dağıt'a bas.": "Enter your crystal bet and press Deal.",
+    "KARTLARI DAĞIT": "DEAL CARDS",
+    "KART ÇEK (HIT)": "HIT",
+    "KAL (STAND)": "STAND",
+    "FREKANSI BAŞLAT": "START FREQUENCY",
+    "KÜRESEL LİDERLİK TABLOSU": "GLOBAL LEADERBOARD",
+    "En yüksek dalgaya ulaşan kule komutanları ve aktif skinleri": "Tower commanders with the highest waves and their equipped skins",
+    "Yenile": "Refresh",
+    "Misafir Komutan": "Guest Commander",
+    "Sıralamaya girmek için hesap aç!": "Create an account to appear on the leaderboard!",
+    "Hesap Bağla": "Link Account",
+    "En Yüksek Dalga": "Highest Wave",
+    "Kule Hasarı": "Tower Damage",
+    "Hesap & Bulut Sistemi": "Account & Cloud System",
+    "Sunucu Durumu:": "Server Status:",
+    "Hazır": "Ready",
+    "arkadaşlarınla yarış!": "compete with your friends!",
+    "Kayıt Ol": "Sign Up",
+    "Kullanıcı Adı (Sıralamada Görünecek Adın):": "Username (shown on leaderboard):",
+    "Şifre:": "Password:",
+    "HESABA GİRİŞ YAP": "LOG IN",
+    "VEYA TEK TIKLA": "OR WITH ONE CLICK",
+    "Google ile Hızlı Bağlan": "Continue with Google",
+    "Aktif Komutan Hesabı": "Active Commander Account",
+    "Oyuncu": "Player",
+    "Son Bulut Kaydı: Az önce": "Last Cloud Save: Just now",
+    "Buluta Kaydet": "Save to Cloud",
+    "Buluttan Çek": "Load from Cloud",
+    "Hesaptan Çıkış Yap": "Log Out",
+    "Hesabımı Kalıcı Olarak Sil": "Permanently Delete My Account",
+    "Gizlilik Politikası": "Privacy Policy",
+    "Tema Seçimi": "Theme Selection",
+    "Ayarlar & Cihaz Modu": "Settings & Device Mode",
+    "Dil / Language": "Language / Dil",
+    "Dil tercihin bu cihazda hatırlanır.": "Your language preference is saved on this device.",
+    "Cihaz Ekran Optimizasyonu:": "Device Display Optimization:",
+    "Telefon": "Phone",
+    "Tablet": "Tablet",
+    "PC": "PC",
+    "Genel İstatistikler": "General Statistics",
+    "Toplam Düşman:": "Total Enemies:",
+    "Boss Kesen:": "Bosses Defeated:",
+    "En Yüksek Dalga:": "Highest Wave:",
+    "Oyunu sıfırla:": "Reset game:",
+    "Sıfırla": "Reset",
+    "Onaylıyor musun?": "Are you sure?",
+    "İptal": "Cancel",
+    "Onayla": "Confirm",
+    "KUANTUM MÜHRÜ KIRILIYOR...": "BREAKING THE QUANTUM SEAL...",
+    "Hızlı Aç": "Quick Open",
+    "KUTU AÇILDI!": "CRATE OPENED!",
+    "KAZANILAN ÖDÜLLER": "REWARDS EARNED",
+    "Kopya ödüllerden +10 Kristal iade edildi!": "+10 Crystals refunded for duplicate rewards!",
+    "Tekrar Aç": "Open Again",
+    "Harika! (Kapat)": "Great! (Close)",
+    "Günlük Görevler": "Daily Quests",
+    "Günlük hedefler": "Daily objectives",
+    "Hedefleri tamamla, altın ve kristal kazan. Görevler yerel gün değiştiğinde yenilenir.": "Complete objectives to earn gold and crystals. Quests reset when the local day changes.",
+    "SAVAŞ ALANINA DÖN": "RETURN TO BATTLEFIELD",
+    "KOMUTAN DOSYASI": "COMMANDER DOSSIER",
+    "Başarımlar & İstatistikler": "Achievements & Statistics",
+    "İlerlemen mevcut kayıt verilerinden hesaplanır; eski kayıtların sıfırlanmaz.": "Progress is calculated from your current save data; existing saves are not reset.",
+    "Komutan rozeti": "Commander Badge",
+    "⚔️ Yeni Komutan": "⚔️ New Commander",
+    "Başarım ilerlemesi": "Achievement Progress",
+    "tamamlandı": "completed",
+    "Müzik": "Music",
+    "En yüksek dalga": "Highest Wave",
+    "İmha edilen": "Defeated",
+    "Yenilen boss": "Bosses defeated",
+    "Oyun süresi": "Play time",
+    "Kule görünümleri": "Tower skins",
+    "Eşya koleksiyonu": "Item collection",
+    "Eldeki altın": "Gold held",
+    "Başarım koleksiyonu": "Achievement collection",
+    "Ödüller otomatik hesaplanır": "Rewards are calculated automatically",
+    "OYUNA DÖN": "RETURN TO GAME",
+    "BÜYÜK SEZON GÜNCELLEMESİ": "MAJOR SEASON UPDATE",
+    "Kule Savunma": "Tower Defense",
+    "Savaş anları • Boss girişi • Özgün ses efektleri": "Battle moments • Boss entrances • Original sound effects",
+    "V2.3 • Savaşın ritmi": "V2.3 • The rhythm of battle",
+    "V2.1 • Envanter 2.0": "V2.1 • Inventory 2.0",
+    "Komutan başarımları": "Commander achievements",
+    "Yeni Kuzey Işıkları savaş alanı": "New Northern Lights battlefield",
+    "Özgün sentetik ambient": "Original synthetic ambient",
+    "Önceki güncellemeler korunuyor": "Previous updates preserved",
+    "Geliştirme durumu": "Development status",
+    "Bildirim": "Notification",
+    "SAVUNMA HATTI": "DEFENSE LINE",
+    "DALGA 01": "WAVE 01",
+    "Temas bekleniyor.": "Awaiting contact.",
+    "SFX AÇIK": "SFX ON",
+    "Geri": "Back",
+    "Devam Et": "Continue",
+    "Satın Al": "Buy",
+    "Yükselt": "Upgrade",
+    "Maksimum": "Maximum",
+    "Yetersiz Altın": "Not enough gold",
+    "Yetersiz Kristal": "Not enough crystals",
+    "Kapalı": "Closed",
+    "Açık": "On",
+    "Başarılı": "Success",
+    "Hata": "Error",
+    "Yükleniyor...": "Loading...",
+    "Kaydediliyor...": "Saving...",
+    "Kaydedildi": "Saved",
+    "Durduruldu": "Paused",
+    "Devam": "Resume",
+    "Dalgayı Bitir": "End Wave",
+    "Dalga": "Wave",
+    "Altın": "Gold",
+    "Kristal": "Crystals",
+    "Ruh": "Soul",
+    "Kristaller": "Crystals"
+};
+
+const gameTextOriginals = new WeakMap();
+const gameAttributeOriginals = new WeakMap();
+let gameLanguageObserver = null;
+
+function translateGameNode(node, language) {
+    if (!node) return;
+    if (node.nodeType === Node.TEXT_NODE) {
+        if (!gameTextOriginals.has(node)) gameTextOriginals.set(node, node.nodeValue);
+        const original = gameTextOriginals.get(node);
+        const trimmed = original.trim();
+        if (!trimmed) return;
+        const translated = language === 'en' ? GAME_TRANSLATIONS[trimmed] : original;
+        if (translated !== undefined) {
+            const leading = original.match(/^\s*/)?.[0] || '';
+            const trailing = original.match(/\s*$/)?.[0] || '';
+            const next = language === 'en' ? leading + translated + trailing : original;
+            if (node.nodeValue !== next) node.nodeValue = next;
+        }
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+        if (['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(node.tagName)) return;
+        for (const attr of ['placeholder', 'title', 'aria-label']) {
+            if (node.hasAttribute(attr)) {
+                let originals = gameAttributeOriginals.get(node);
+                if (!originals) { originals = {}; gameAttributeOriginals.set(node, originals); }
+                if (!(attr in originals)) originals[attr] = node.getAttribute(attr);
+                const original = originals[attr];
+                if (language === 'en' && GAME_TRANSLATIONS[original]) node.setAttribute(attr, GAME_TRANSLATIONS[original]);
+                else if (language === 'tr') node.setAttribute(attr, original);
+            }
+        }
+        for (const child of node.childNodes) translateGameNode(child, language);
+    }
+}
+
+function applyGameLanguage(language) {
+    const selected = language === 'en' ? 'en' : 'tr';
+    document.documentElement.lang = selected;
+    document.title = selected === 'en' ? 'Tower Defense: Endless Loop' : 'Kule Savunma: Sonsuz Döngü | v2.0.0';
+    translateGameNode(document.body, selected);
+    const selector = document.getElementById('language-select');
+    if (selector) selector.value = selected;
+    if (gameLanguageObserver) gameLanguageObserver.disconnect();
+    gameLanguageObserver = new MutationObserver(mutations => {
+        const current = localStorage.getItem('towerDefenseLanguage') || 'tr';
+        for (const mutation of mutations) {
+            if (mutation.type === 'childList') {
+                for (const node of mutation.addedNodes) translateGameNode(node, current);
+            } else if (mutation.type === 'characterData') {
+                translateGameNode(mutation.target, current);
+            }
+        }
+    });
+    gameLanguageObserver.observe(document.body, { childList: true, subtree: true });
+}
+
+function setGameLanguage(language) {
+    const selected = language === 'en' ? 'en' : 'tr';
+    try { localStorage.setItem('towerDefenseLanguage', selected); } catch (_) {}
+    applyGameLanguage(selected);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    let savedLanguage = 'tr';
+    try { savedLanguage = localStorage.getItem('towerDefenseLanguage') || 'tr'; } catch (_) {}
+    applyGameLanguage(savedLanguage);
+});
