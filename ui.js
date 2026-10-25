@@ -3911,7 +3911,7 @@ function updateStoryMissionBoard() {
     if (m14) { m14.disabled = !progress.mission13Complete; m14.textContent = progress.mission14Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'BREACH THE CORE →' : 'ÇEKİRDEĞE İLERLE →'); }
     if (s14) { s14.classList.toggle('is-locked', !progress.mission13Complete && !progress.mission14Complete); s14.textContent = progress.mission14Complete ? (en ? 'CORE SIGNAL TRACED' : 'ÇEKİRDEK SİNYALİ İZLENDİ') : (progress.mission13Complete ? (en ? 'CHAPTER 02 · PLAYABLE' : '2. BÖLÜM · OYNANABİLİR') : (en ? 'LOCKED · COMPLETE MISSION 13' : 'KİLİTLİ · 13. GÖREVİ TAMAMLA')); }
     document.querySelectorAll('.story-mission-status.is-locked').forEach(node => {
-        if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status','story-mission-6-status','story-mission-7-status','story-mission-8-status','story-mission-9-status','story-mission-10-status','story-mission-11-status','story-mission-12-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
+        if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status','story-mission-6-status','story-mission-7-status','story-mission-8-status','story-mission-9-status','story-mission-10-status','story-mission-11-status','story-mission-12-status','story-mission-13-status','story-mission-14-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
     });
 }
 function setStoryComms(speakerTr, speakerEn, textTr, textEn) {
