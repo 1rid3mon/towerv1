@@ -347,6 +347,13 @@ function spawnEnemy(isBoss = false) {
         rot: Math.random() * Math.PI * 2, rotSpeed: (Math.random() - 0.5) * 3, animPhase: Math.random() * Math.PI * 2
     });
 
+    if (isBoss) {
+        // A short, original arrival burst gives each boss a physical entrance without changing combat stats.
+        rings.push({ x, y, radius: Math.max(18, radius * 0.62), color: pal.color, life: 0.95 });
+        rings.push({ x, y, radius: Math.max(30, radius * 1.12), color: pal.secColor || '#f8fafc', life: 0.62 });
+        createParticles(x, y, pal.color, 16, 105);
+        createParticles(x, y, pal.secColor || '#f8fafc', 7, 68);
+    }
     if (typeof showBattleMoment === 'function') {
         if (isBoss) showBattleMoment('boss', { wave: w, name });
         else showBattleMoment('wave', { wave: w });
@@ -910,6 +917,12 @@ function killEnemy(enemy) {
 
     createParticles(enemy.x, enemy.y, enemy.color, enemy.type === 'boss' ? 24 : 10, 85);
     rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 0.5, color: enemy.color, life: 1.0 });
+    if (enemy.type === 'boss') {
+        // Boss takedown gets a wider two-stage shockwave; reward logic remains untouched.
+        rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 0.9, color: enemy.secColor || '#f8fafc', life: 0.9 });
+        rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 1.45, color: enemy.color, life: 0.66 });
+        createParticles(enemy.x, enemy.y, enemy.secColor || '#f8fafc', 12, 120);
+    }
     if (enemy.isElite) {
         // Elite defeat gets a brief gold shockwave and extra sparks, using existing effects.
         createParticles(enemy.x, enemy.y, '#fbbf24', 12, 125);
@@ -968,6 +981,12 @@ function completeWave() {
     } else {
         game.holdWaveTimer = 0; game.consecutiveHoldWins++; addFloatingText(tower.x, tower.y - 35, `Farm Modu (${game.consecutiveHoldWins}/4)`, '#38bdf8', 11);
         if (game.consecutiveHoldWins >= 4) { game.holdWave = false; game.consecutiveHoldWins = 0; updateHoldWaveButton(); showToast('Farm modunda 4 dalga geçildi! Otomatik İlerleme aktif.'); }
+    }
+    if (!wasHoldWave) {
+        // Small reward pulse around the core: visual-only, no gameplay values are changed.
+        rings.push({ x: tower.x, y: tower.y, radius: 18, color: '#e8b66b', life: 0.9 });
+        rings.push({ x: tower.x, y: tower.y, radius: 30, color: '#f8d9a0', life: 0.58 });
+        createParticles(tower.x, tower.y, '#e8b66b', 9, 72);
     }
     if (!wasHoldWave && typeof showBattleMoment === 'function') {
         showBattleMoment('clear', { wave: completedWaveNumber, gold: waveRewardGold, crystals: milestoneCrystalsAwarded });
