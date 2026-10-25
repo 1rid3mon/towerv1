@@ -3224,8 +3224,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function syncMascot() {
         const skin = getTowerSkin();
         face.textContent = '🛸';
-        mascot.setAttribute('aria-label', isEnglish() ? 'Tactical mascot — tap to chat' : 'Taktik maskot — konuşmak için dokun');
-        mascot.title = isEnglish() ? 'Tactical mascot · ' + skin.def.name : 'Taktik maskot · ' + skin.def.name;
+        mascot.setAttribute('aria-label', isEnglish() ? 'Piko, the tactical mascot — tap to chat' : 'Piko, taktik maskot — konuşmak için dokun');
+        mascot.title = isEnglish() ? 'Piko · Tactical mascot · ' + skin.def.name : 'Piko · Taktik maskot · ' + skin.def.name;
         return skin;
     }
     function getContextLine() {
@@ -3252,7 +3252,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return chooseLine(english ? personality.en : personality.tr.wave);
         }
         const skinLines = personality.tr.skin[skin.id];
-        if (skinLines && Math.random() < 0.58) return chooseLine(skinLines);
+        if (skinLines && Math.random() < 0.58) {
+            if (english) return chooseLine([skin.def.name + ' looks pretty good, commander. ' + (skin.def.emoji || '✨'), 'I have thoughts about ' + skin.def.name + '. Mostly positive.']);
+            return chooseLine(skinLines);
+        }
         return chooseLine(english ? personality.en : personality.tr.idle);
     }
     function showLine(line) {
