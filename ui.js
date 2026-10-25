@@ -3383,7 +3383,7 @@ const STORY_UI_COPY = {
  memoryAction:['HAFIZA İZİNİ İNCELE','INSPECT MEMORY TRACE'],
  mission9tag:['GÖREV 09','MISSION 09'], mission9title:['Uyanmayı seçmek','The Choice to Wake'],
  mission9desc:['Çekirdeği koru, yoldaşla bağlantıyı yeniden kur ve gerçek biçimini uyandır.','Protect the core, reconnect with the companion, and awaken its true form.'],
- reconnectAction:['BAĞLANTIYI YENİDEN KUR','RECONNECT TO COMPANION'], awakenAction:['YOLDAŞI UYANDIR','AWAKEN COMPANION'], pulseAction:['SİNYAL DARbesİNİ DENE','TEST SIGNAL PULSE'],
+ reconnectAction:['BAĞLANTIYI YENİDEN KUR','RECONNECT TO COMPANION'], awakenAction:['YOLDAŞI UYANDIR','AWAKEN COMPANION'], pulseAction:['SİNYAL DARBESİNİ DENE','TEST SIGNAL PULSE'],
 
  nextstep:['Sıradaki adım','Next step'], nextdesc:['Mavi görüntü, yoldaşın kayıp hafızasından sızan bozuk bir yankı. Gerçek yoldaş ise çekirdeğin yanında uyanan güçsüz bir bakım birimi. Hikâye ilerledikçe onun neye dönüşebileceğini keşfedeceksin.','The blue image is a corrupted echo leaking from the companion’s lost memory. The real companion is a powerless maintenance unit waking beside the core. As the story unfolds, you will discover what it can become.'],
  backmenu:['ANA MENÜYE DÖN','RETURN TO MAIN MENU'],
