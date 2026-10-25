@@ -4277,8 +4277,6 @@ function startStoryMission(missionNumber = 1) {
         else if (missionNumber === 12) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 6 hostiles, then inspect three conflicting archive records.' : 'GÖREV: 6 düşmanı durdur, ardından birbiriyle çelişen üç arşiv kaydını incele.';
         else if (missionNumber === 13) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 7 hostiles, listen to two conflicting testimonies, and choose which record to trust.' : 'GÖREV: 7 düşmanı durdur, çelişen iki tanıklığı dinle ve hangi kayda güveneceğini seç.';
         else if (missionNumber === 14) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 12 hostiles, then disarm three core seals.' : 'GÖREV: 12 düşmanı durdur, ardından çekirdeğin üç kilidini aç.';
-        else if (missionNumber === 13) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 7 hostiles, listen to two records, and decide which testimony to trust.' : 'GÖREV: 7 düşmanı durdur, iki kaydı dinle ve hangi tanıklığa güveneceğine karar ver.';
-        else if (missionNumber === 14) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 12 hostiles, then disarm three core seals.' : 'GÖREV: 12 düşmanı durdur, ardından çekirdeğin üç kilidini devre dışı bırak.';
         else status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat the hostiles.' : 'GÖREV: Düşmanları durdur.';
     }
     const action = document.getElementById('story-scan-action');
