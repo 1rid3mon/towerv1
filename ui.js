@@ -3696,6 +3696,7 @@ const GAME_TRANSLATIONS = {
     "Trajedi Maskesi": "Tragedy Mask"
 };
 
+const GAME_TRANSLATION_KEYS = Object.keys(GAME_TRANSLATIONS).filter(key => key.length >= 4).sort((a, b) => b.length - a.length);
 const gameTextOriginals = new WeakMap();
 const gameAttributeOriginals = new WeakMap();
 let gameLanguageObserver = null;
@@ -3707,8 +3708,7 @@ function getTranslatedGameText(original, language) {
     if (GAME_TRANSLATIONS[trimmed]) return GAME_TRANSLATIONS[trimmed];
     // Also translate known phrases embedded in counters and dynamically generated labels.
     let partial = trimmed;
-    const translationKeys = Object.keys(GAME_TRANSLATIONS).filter(key => key.length >= 4).sort((a, b) => b.length - a.length);
-    for (const key of translationKeys) {
+    for (const key of GAME_TRANSLATION_KEYS) {
         if (partial.includes(key)) partial = partial.split(key).join(GAME_TRANSLATIONS[key]);
     }
     if (partial !== trimmed) return partial;
