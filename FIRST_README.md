@@ -253,3 +253,16 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] **TEST EDİLMEDİ:** Bu oturumda gerçek tarayıcı oynanışı ve Firebase Emulator testleri çalıştırılamadı. Yerel ağdan GitHub kaynaklarını indirme denemesi DNS çözümlemesinde başarısız oldu; branch için görülen son başarılı CI çalışması daha eski `81a7388` commit'indeydi ve bu değişiklikleri kapsamıyor.
 - [ ] **DEPLOY:** Vercel kontrolü build-rate-limit nedeniyle başarısız. Bu değişikliklerin canlı siteye ulaştığı doğrulanmadı; branch main'e merge edilmedi.
 - **Sıradaki adım:** Son kaynak doğrulamalarını çalıştır; sonra hikâye bulut senkronizasyonunu ayrı ve testli bir değişiklik olarak tasarla. Ardından render döngüsü ve Canvas çizim maliyetleri gerçek cihaz ölçümleriyle profillensin; tahmine dayalı büyük yeniden yazım yapılmasın.
+
+
+---
+
+## İş günlüğü — 2026-10-26: Savaş ses efektleri geliştirildi
+
+- [x] `ui.js`: Web Audio tabanlı ses altyapısı geliştirildi; master gain, compressor ve yeniden kullanılan noise buffer eklendi.
+- [x] Özgün sentezlenmiş sesler: kule ateşi, düşmana isabet, kritik vuruş, kulenin hasar alması, yükseltme, sandık açma, dalga başlangıcı, dalga temizleme, boss girişi ve boss yenilmesi.
+- [x] `engine.js`: Kule ateşi, düşman isabeti ve kule HP kaybı olayları seslere bağlandı. Sık tekrarlanan ateş/isabet seslerine cooldown eklendi; ödül, hasar ve savaş mantığı değiştirilmedi.
+- [x] Sesler ilk kullanıcı etkileşiminden sonra başlatılıyor; mevcut SFX aç/kapat düğmesi korunuyor. Harici ses dosyası veya üçüncü taraf ses servisi kullanılmıyor.
+- [ ] **TEST EDİLMEDİ:** iOS Safari/iPad, Android ve masaüstü tarayıcılarda ses seviyesi, gecikme, eşzamanlı ses sayısı ve kapatma düğmesi henüz elle doğrulanmadı.
+- [ ] **DEPLOY:** Değişiklikler yalnızca `feature/story-chapter2-mission11` branch'inde; canlıya dağıtım ve `main` merge durumu doğrulanmadı.
+- **Kontrol notu:** Ses efektleri sentetik Web Audio sesleridir; kayıt stüdyosunda üretilmiş WAV/MP3 dosyaları değildir. Kalite ve cihaz uyumu dinleyerek test edilmelidir.
