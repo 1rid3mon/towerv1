@@ -173,3 +173,16 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] Kalan görev 2
 
 <!-- Bundan sonra tüm yeni iş günlükleri bu satırın altına eklenmelidir. -->
+
+
+### 2026-10-25 — Devir dosyası güncellemesi ve arkadaş sistemi durum düzeltmesi
+- Kullanıcı, yeni sohbetlerin ilk önce bu dosyayı okumasını ve her yeni işin dosyanın en altına checklist ile eklenmesini istedi. Bu kural dosyanın başında ve şablonunda kalıcıdır.
+- [x] GitHub ve canlı site linkleri devir dosyasında mevcut.
+- [x] Arkadaş sistemi birinci öncelik olarak belirlendi.
+- [ ] **DÜZELTME / ÖNEMLİ:** Bu oturumda arkadaş sistemi fonksiyonlarının yazılması için bir kod hazırlığı yapılmıştı ancak GitHub'a commit sonucu alınmadı. Güncel branch'teki ui.js yeniden kontrol edildiğinde `sendFriendRequest`, `respondToFriendRequest`, `removeFriend` ve `renderFriends` fonksiyonları bulunamadı. Bu yüzden önceki bölümde “eklenmişti” diye yazılan arkadaş sistemi JS/rules implementasyonunu gerçek ve tamamlanmış kabul etme; güncel dosyaları tekrar incele ve gerçekten kodlanıp commit edilene kadar yapılacaklar listesinde tut.
+- [ ] Güncel branch'te index.html ve ui.js'in gerçek SHA'larını yeniden çekip bu dosyaya kaydet; dosya içindeki eski SHA'lar güncel olmayabilir.
+- [ ] Arkadaş sistemi UI + JS + Firestore Rules + Emulator testlerini birlikte implement et; sonra CI ve gerçek iki hesapla test et.
+- Test durumu: **Bu ek kaydı yazarken arkadaş sistemi için yeni bir kod commit'i yapılmadı; feature henüz doğrulanmadı.**
+- Main'e merge: DOĞRULANMADI.
+- Canlı deploy: DOĞRULANMADI.
+- Sonraki adım: arkadaş sistemi implementasyonuna başla ve her anlamlı işin sonunda buraya yeni bir kayıt ekle.
