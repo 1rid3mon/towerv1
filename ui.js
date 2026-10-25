@@ -3149,6 +3149,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const companion = syncMascot();
         const lines = companionLines[companion.id] || defaultLines;
         bubble.textContent = lines[Math.floor(Math.random() * lines.length)];
+        const rect = mascot.getBoundingClientRect();
+        bubble.style.left = Math.max(8, Math.min(window.innerWidth - Math.min(230, window.innerWidth - 32) - 8, rect.left + rect.width / 2 - 115)) + 'px';
+        bubble.style.top = Math.max(8, rect.top - 58) + 'px';
+        bubble.style.right = 'auto';
+        bubble.style.bottom = 'auto';
         bubble.classList.add('is-visible');
         mascot.classList.remove('mascot-react');
         void mascot.offsetWidth;
@@ -3194,5 +3199,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     mascot.addEventListener('pointerup', finishPointer);
     mascot.addEventListener('pointercancel', finishPointer);
+    mascot.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            react();
+        }
+    });
     syncMascot();
 })();
