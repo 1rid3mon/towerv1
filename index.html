@@ -621,6 +621,15 @@
 .story-battle-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#a5f3fc;font-size:10px;font-weight:900;letter-spacing:.12em}
 .story-battle-live{color:#86efac;font-size:9px}
 #story-battle-status{font-size:13px;line-height:1.5;color:#f1f5f9;margin:8px 0 10px}
+.story-companion-chip{display:flex;align-items:center;gap:10px;padding:9px 10px;margin:0 0 10px;border:1px solid rgba(129,140,248,.28);border-radius:11px;background:linear-gradient(100deg,rgba(30,41,59,.72),rgba(15,23,42,.6))}
+.story-companion-core{display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;border-radius:10px;border:1px solid rgba(103,232,249,.35);background:rgba(8,145,178,.12);color:#a5f3fc;font-size:20px;box-shadow:inset 0 0 15px rgba(34,211,238,.08)}
+.story-companion-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+.story-companion-copy strong{font-size:10px;letter-spacing:.09em;color:#e0e7ff}
+.story-companion-copy small{font-size:9px;line-height:1.4;color:#94a3b8;letter-spacing:.04em}
+.story-companion-signal{width:7px;height:7px;flex:0 0 7px;margin-left:auto;border-radius:50%;background:#fbbf24;box-shadow:0 0 10px rgba(251,191,36,.6)}
+#story-companion-chip.is-synced{border-color:rgba(103,232,249,.55);background:linear-gradient(100deg,rgba(8,145,178,.16),rgba(49,46,129,.22))}
+#story-companion-chip.is-synced .story-companion-core{color:#c4b5fd;border-color:rgba(196,181,253,.55);background:rgba(124,58,237,.18)}
+#story-companion-chip.is-synced .story-companion-signal{background:#67e8f9;box-shadow:0 0 12px rgba(103,232,249,.8)}
 #story-battle-exit{border:1px solid rgba(148,163,184,.3);border-radius:9px;padding:8px 11px;color:#cbd5e1;background:rgba(15,23,42,.8);font-size:10px;font-weight:800;letter-spacing:.08em}
 @media(max-width:560px){#story-battle-hud{top:68px}.story-battle-panel{padding:10px 11px}#story-battle-status{font-size:12px;margin:6px 0 8px}}
 @media(prefers-reduced-motion:reduce){.story-battle-panel{backdrop-filter:none}}
@@ -703,6 +712,11 @@
  <div class="story-battle-panel">
   <div class="story-battle-heading"><span>✦ <span data-story-ui="chapter">BÖLÜM 01 · KAYIP SİNYAL</span></span><span class="story-battle-live">● LIVE</span></div>
   <p id="story-battle-status">GÖREV: 8 düşmanı durdur ve çekirdeği güvene al.</p>
+  <div class="story-companion-chip" id="story-companion-chip">
+   <span class="story-companion-core" id="story-companion-icon" aria-hidden="true">⚙</span>
+   <span class="story-companion-copy"><strong id="story-companion-name">BAKIM YOLDAŞI · MK-I</strong><small id="story-companion-state">DÜŞÜK GÜÇ · ÇEKİRDEĞE BAĞLANIYOR</small></span>
+   <span class="story-companion-signal" aria-hidden="true"></span>
+  </div>
   <button type="button" id="story-battle-exit" onclick="exitStoryBattle(false)">GÖREVDEN ÇIK</button>
  </div>
 </div>
