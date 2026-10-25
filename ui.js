@@ -4051,7 +4051,10 @@ function startStoryMission(missionNumber = 1) {
         else if (missionNumber === 9) status.textContent = storyLanguage() === 'en' ? 'CLIMAX: Defeat 10 hostiles, reconnect with the companion, then awaken it.' : 'FİNAL: 10 düşmanı durdur, yoldaşla bağlantıyı kur ve onu uyandır.';
         else if (missionNumber === 10) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 6 hostiles, then use the cyan pulse to reveal and activate two hidden nodes.' : 'GÖREV: 6 düşmanı durdur, ardından camgöbeği darbeyle iki gizli düğümü açığa çıkarıp etkinleştir.';
         else if (missionNumber === 11) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 8 hostiles, then pulse three ancient relays to map the lower network.' : 'GÖREV: 8 düşmanı durdur, ardından üç kadim röleye sinyal darbesi göndererek alt ağı haritala.';
-        else status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 6 hostiles, then inspect three conflicting archive records.' : 'GÖREV: 6 düşmanı durdur, ardından birbiriyle çelişen üç arşiv kaydını incele.';
+        else if (missionNumber === 12) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 6 hostiles, then inspect three conflicting archive records.' : 'GÖREV: 6 düşmanı durdur, ardından birbiriyle çelişen üç arşiv kaydını incele.';
+        else if (missionNumber === 13) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 7 hostiles, listen to two records, and decide which testimony to trust.' : 'GÖREV: 7 düşmanı durdur, iki kaydı dinle ve hangi tanıklığa güveneceğine karar ver.';
+        else if (missionNumber === 14) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 12 hostiles, then disarm three core seals.' : 'GÖREV: 12 düşmanı durdur, ardından çekirdeğin üç kilidini devre dışı bırak.';
+        else status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat the hostiles.' : 'GÖREV: Düşmanları durdur.';
     }
     const action = document.getElementById('story-scan-action');
     if (action) action.hidden = true;
@@ -4070,6 +4073,10 @@ function startStoryMission(missionNumber = 1) {
     const mission10Pulse = document.getElementById('story-mission10-pulse-action'); if (mission10Pulse) mission10Pulse.hidden = true;
     const mission11Pulse = document.getElementById('story-mission11-pulse-action'); if (mission11Pulse) mission11Pulse.hidden = true;
     const archiveAction = document.getElementById('story-mission12-archive-action'); if (archiveAction) archiveAction.hidden = true;
+    const voiceAction = document.getElementById('story-mission13-record-action'); if (voiceAction) voiceAction.hidden = true;
+    const trustHuman = document.getElementById('story-mission13-trust-human'); if (trustHuman) trustHuman.hidden = true;
+    const trustStation = document.getElementById('story-mission13-trust-station'); if (trustStation) trustStation.hidden = true;
+    const coreSeal = document.getElementById('story-mission14-seal-action'); if (coreSeal) coreSeal.hidden = true;
     const companionChip = document.getElementById('story-companion-chip');
     const companionIcon = document.getElementById('story-companion-icon');
     const companionState = document.getElementById('story-companion-state');
