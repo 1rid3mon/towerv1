@@ -166,7 +166,7 @@ test('Story Mode mission handler enforces the previous-mission prerequisite even
   );
   const sandbox = {};
   vm.runInNewContext(
-    body + '\\nglobalThis.storyMissionPrerequisiteMet = storyMissionPrerequisiteMet;',
+    body + '\nglobalThis.storyMissionPrerequisiteMet = storyMissionPrerequisiteMet;',
     sandbox
   );
 
@@ -196,5 +196,5 @@ test('Story Mode mission handler enforces the previous-mission prerequisite even
       `mission ${mission} must not unlock from a false completion flag`
     );
   }
-  assert.match(uiSource, /if \\(!storyMissionPrerequisiteMet\\(missionNumber, progress\\)\\)/);
+  assert.match(uiSource, /if \(!storyMissionPrerequisiteMet\(missionNumber, progress\)\)/);
 });
