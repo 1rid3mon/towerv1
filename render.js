@@ -2565,7 +2565,8 @@ function renderGame() {
         const phase = nowCompTime * 0.0015;
         const cx = tx + Math.cos(phase) * 48;
         const cy = ty - 34 + Math.sin(phase * 1.35) * 5;
-        const linked = !!window.__storyBattle.companionSynced;
+        const temporaryFlicker = window.__storyBattle.mission === 6 && window.__storyBattle.completed && window.__storyBattle.repairs >= 3;
+        const linked = !!window.__storyBattle.companionSynced || (temporaryFlicker && Math.sin(nowCompTime * 0.05) > 0.25);
         ctx.save();
         ctx.strokeStyle = linked ? 'rgba(103,232,249,0.42)' : 'rgba(148,163,184,0.24)';
         ctx.lineWidth = 1.4;
@@ -2587,6 +2588,16 @@ function renderGame() {
         ctx.beginPath(); ctx.arc(0, -16, 2, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = 'rgba(148,163,184,0.65)';
         ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-17, 3); ctx.moveTo(12, 0); ctx.lineTo(17, 3); ctx.stroke();
+        if (window.__storyBattle.phase === 'pulseTest') {
+            const pulsePhase = (nowCompTime * 0.055) % 64;
+            ctx.globalAlpha = Math.max(0, 0.48 * (1 - pulsePhase / 64));
+            ctx.strokeStyle = '#67e8f9';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 18 + pulsePhase, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+        }
         ctx.restore();
     }
 
