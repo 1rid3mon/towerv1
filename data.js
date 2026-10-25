@@ -244,6 +244,8 @@ const MULTISHOT_WAVE_REQS = [12, 28, 50, 75, 105];
 function getMultishotRequiredWave(nextLevelIndex) { return MULTISHOT_WAVE_REQS[nextLevelIndex] || 999; }
 
 function getItemStatBonus(type) {
+    // Story combat is a sandbox: Endless Mode equipment bonuses must not leak into it.
+    if (document.body?.dataset?.gameMode === 'story') return 0;
     let total = 0;
     // A malformed or cheat-edited save must never stack the same item multiple times.
     const equipped = new Set(Array.isArray(game.equippedItems) ? game.equippedItems : []);
@@ -296,9 +298,11 @@ function getLevelMilestoneMult(lvl) {
     return Math.pow(1.10, Math.floor(lvl / 10)) * Math.pow(1.18, Math.floor(lvl / 25));
 }
 
-function getPermDamageMult() { 
+function getPermDamageMult() {
+    // Keep the story's combat balance independent from saved Endless Mode bonuses.
+    if (document.body?.dataset?.gameMode === 'story') return 1;
     const itemMultBonus = (1 + getItemStatBonus('damage')) * (1 + getItemStatBonus('damage_mult'));
-    return (1 + game.prestigeUpgrades.permDamage * 0.20) * (1 + game.souls * 0.03) * (1 + (game.lootboxBonuses.extraDamagePct || 0) / 100) * itemMultBonus; 
+    return (1 + game.prestigeUpgrades.permDamage * 0.20) * (1 + game.souls * 0.03) * (1 + (game.lootboxBonuses.extraDamagePct || 0) / 100) * itemMultBonus;
 }
 
 function getTowerDamage() {
