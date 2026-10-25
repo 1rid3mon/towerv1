@@ -489,24 +489,28 @@
         #battle-moment[data-kind="boss"][data-boss-type="leviathan"] .battle-kicker{color:#c4b5fd}
 
     
-        /* Interactive companion mascot: lightweight, touch-friendly and non-gameplay-affecting. */
+        /* Piko: original astral-mechanical companion; inline SVG keeps it crisp and asset-free. */
         #game-mascot {
             position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: max(104px, calc(env(safe-area-inset-bottom) + 88px));
-            z-index: 80; width: 56px; height: 56px; display: grid; place-items: center;
-            border: 1px solid rgba(125,211,252,.55); border-radius: 50%;
-            background: radial-gradient(circle at 32% 25%, rgba(71,85,105,.98), rgba(15,23,42,.97) 72%);
-            box-shadow: 0 5px 22px rgba(56,189,248,.22), inset 0 0 12px rgba(96,165,250,.12);
-            font-size: 30px; line-height: 1; cursor: grab; touch-action: none; user-select: none;
+            z-index: 80; width: 66px; height: 66px; display: grid; place-items: center;
+            padding: 3px; border: 1px solid rgba(103,232,249,.48); border-radius: 22px 22px 25px 25px;
+            background: radial-gradient(circle at 50% 18%, rgba(34,211,238,.18), rgba(8,15,35,.98) 68%);
+            box-shadow: 0 5px 22px rgba(34,211,238,.2), inset 0 0 15px rgba(96,165,250,.13);
+            line-height: 1; cursor: grab; touch-action: none; user-select: none;
             -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
-            animation: mascot-idle 3s ease-in-out infinite;
+            animation: mascot-idle 3.4s ease-in-out infinite;
         }
         #game-mascot:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 3px; }
         #game-mascot.is-dragging { cursor: grabbing; animation: none !important; transition: none !important; will-change: transform; box-shadow: 0 8px 28px rgba(56,189,248,.36); }
-        #game-mascot { will-change: transform; }
-
-        #game-mascot.mascot-react { animation: mascot-react .38s ease-out; }
+        #game-mascot { will-change: transform; overflow: visible; }
+        #game-mascot.mascot-react { animation: mascot-react .42s ease-out; }
+        #game-mascot-face { display:block; width:100%; height:100%; pointer-events:none; filter: drop-shadow(0 0 5px rgba(34,211,238,.3)); }
+        #game-mascot-face .piko-aura { transform-origin:50% 50%; animation:piko-aura 5s linear infinite; }
+        #game-mascot-face .piko-eye { transform-origin:center; animation:piko-blink 5.5s ease-in-out infinite; }
+        #game-mascot-face .piko-core { transform-origin:center; animation:piko-core 2.2s ease-in-out infinite; }
+        #game-mascot-face .piko-sigil { animation:piko-sigil 7s linear infinite; transform-origin:center; }
         #game-mascot-bubble {
-            position: fixed; right: 16px; bottom: max(166px, calc(env(safe-area-inset-bottom) + 150px));
+            position: fixed; right: 16px; bottom: max(176px, calc(env(safe-area-inset-bottom) + 160px));
             z-index: 81; max-width: min(230px, calc(100vw - 32px)); padding: 9px 12px;
             border: 1px solid rgba(125,211,252,.35); border-radius: 13px 13px 3px 13px;
             color: #e0f2fe; background: rgba(15,23,42,.96); box-shadow: 0 8px 24px rgba(0,0,0,.28);
@@ -515,9 +519,13 @@
         }
         #game-mascot-bubble.is-visible { opacity: 1; transform: translateY(0) scale(1); }
         @keyframes mascot-idle { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-4px) rotate(2deg); } }
-        @keyframes mascot-react { 0% { transform: scale(.8) rotate(-10deg); } 65% { transform: scale(1.15) rotate(8deg); } 100% { transform: scale(1) rotate(0); } }
-        @media (prefers-reduced-motion: reduce) { #game-mascot, #game-mascot.mascot-react { animation: none; } }
-        @media (max-width: 480px) { #game-mascot { width: 48px; height: 48px; font-size: 26px; } }
+        @keyframes mascot-react { 0% { transform: scale(.82) rotate(-8deg); } 65% { transform: scale(1.12) rotate(5deg); } 100% { transform: scale(1) rotate(0); } }
+        @keyframes piko-aura { to { transform:rotate(360deg); } }
+        @keyframes piko-blink { 0%,44%,48%,100% { transform:scaleY(1); } 46% { transform:scaleY(.12); } }
+        @keyframes piko-core { 0%,100% { opacity:.7; filter:drop-shadow(0 0 2px #22d3ee); } 50% { opacity:1; filter:drop-shadow(0 0 7px #67e8f9); } }
+        @keyframes piko-sigil { to { transform:rotate(-360deg); } }
+        @media (prefers-reduced-motion: reduce) { #game-mascot, #game-mascot.mascot-react, #game-mascot-face * { animation: none !important; } }
+        @media (max-width: 480px) { #game-mascot { width: 54px; height: 54px; } #game-mascot-bubble { bottom: max(164px, calc(env(safe-area-inset-bottom) + 148px)); } }
 
     
         /* Main mode selection overlay */
@@ -1552,7 +1560,28 @@
 
     <!-- Interactive cosmetic companion; draggable and independent from the game simulation. -->
     <div id="game-mascot-bubble" role="status" aria-live="polite"></div>
-    <button id="game-mascot" type="button" aria-label="Maskot — dokun ve tepki ver"><span id="game-mascot-face">🛸</span></button>
+    <button id="game-mascot" type="button" aria-label="Piko — konuşmak için dokun" title="Piko · Astral mekanik yoldaş">
+        <svg id="game-mascot-face" viewBox="0 0 64 64" role="img" aria-label="Piko, gizemli mekanik uzay yoldaşı" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="piko-shell" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e2e8f0"/><stop offset=".42" stop-color="#64748b"/><stop offset="1" stop-color="#1e293b"/></linearGradient>
+                <linearGradient id="piko-glass" x1="0" y1="0" x2="0.8" y2="1"><stop offset="0" stop-color="#0c2948"/><stop offset="1" stop-color="#020617"/></linearGradient>
+                <radialGradient id="piko-energy"><stop offset="0" stop-color="#cffafe"/><stop offset=".4" stop-color="#22d3ee"/><stop offset="1" stop-color="#2563eb" stop-opacity=".2"/></radialGradient>
+            </defs>
+            <g class="piko-aura" fill="none" stroke="#22d3ee" stroke-width=".8" opacity=".7"><ellipse cx="32" cy="31" rx="27" ry="11" stroke-dasharray="2 4"/><path d="M8 29l4-3m40 9 4 3"/></g>
+            <path d="M15 17L21 7l7 6 8-3 8 6 6 3-2 25-8 7-18-2-8-10z" fill="url(#piko-shell)" stroke="#cbd5e1" stroke-width="1.1"/>
+            <path d="M19 20l4-8 5 4 8-3 7 5 4 4-3 18-6 7-15-2-5-7z" fill="#334155" stroke="#94a3b8" stroke-width=".8"/>
+            <path d="M17 22Q31 13 47 22l-1 17Q32 49 18 39z" fill="url(#piko-glass)" stroke="#38bdf8" stroke-width="1.2"/>
+            <path d="M20 23Q31 18 43 23" fill="none" stroke="#e0f2fe" stroke-opacity=".55" stroke-width="1"/>
+            <g class="piko-eye" fill="#67e8f9"><ellipse cx="26" cy="30" rx="3.1" ry="4.1"/><ellipse cx="38" cy="30" rx="3.1" ry="4.1"/></g>
+            <path d="M27 37q5 4 10 0" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M13 25l-5-4 2-8 7 5m34 8 5-5-2-8-7 5" fill="#1e293b" stroke="#38bdf8" stroke-width="1.4"/>
+            <path d="M10 14l3 5m38-5-3 5" stroke="#a5f3fc" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M24 45l-2 7 7-2m11-5 2 7-7-2" fill="#475569" stroke="#94a3b8" stroke-width="1"/>
+            <circle class="piko-core" cx="32" cy="47" r="4.1" fill="url(#piko-energy)" stroke="#67e8f9" stroke-width=".9"/>
+            <path class="piko-sigil" d="M32 44l1.2 2.1 2.4.4-1.7 1.6.4 2.4-2.3-1.1-2.2 1.1.4-2.4-1.8-1.6 2.4-.4z" fill="#e0f2fe"/>
+            <path d="M24 55l-4 3m20-3 4 3" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+    </button>
 
     <!-- V2.3: battle moments are presentation-only and do not affect rewards or simulation. -->
     <section id="battle-moment" data-kind="wave" aria-live="polite" aria-atomic="true">
