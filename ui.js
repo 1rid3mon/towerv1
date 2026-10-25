@@ -3575,6 +3575,8 @@ const STORY_UI_COPY = {
  chapter2label:['BÖLÜM 02','CHAPTER 02'], chapter2title:['Sinyalin Altında','Beneath the Signal'], chapter2desc:['İstasyonun kayıtlarından eski bir şey uyanıyor.','Something older than the station records is waking.'],
  mission11tag:['GÖREV 11','MISSION 11'], mission11title:['Aşağıdaki istasyona iniş','Descent to the Lower Station'],
  mission11desc:['Alt ağın üç kadim rölesini bul ve Piko’nun çekirdeğiyle bağlantılarını çöz.','Find the three ancient relays in the lower network and uncover their link to Piko’s core.'],
+  mission12tag:['GÖREV 12','MISSION 12'], mission12title:['İmkânsız arşiv','The Impossible Archive'],
+  mission12desc:['Piko’nun çekirdeğinden eski üç kaydı incele; son kayıt geleceğe ait olabilir.','Inspect three records older than Piko’s core; the final file may come from the future.'],
  pulseMission10Action:['SİNYAL DARBESİ','SIGNAL PULSE'],
  reconnectAction:['BAĞLANTIYI YENİDEN KUR','RECONNECT TO COMPANION'], awakenAction:['YOLDAŞI UYANDIR','AWAKEN COMPANION'], pulseAction:['SİNYAL DARBESİNİ DENE','TEST SIGNAL PULSE'],
 
@@ -3605,7 +3607,7 @@ function applyStoryUiLanguage() {
         if (pair) node.textContent = pair[en ? 1 : 0];
     });
     const chapterLabel = document.getElementById('story-chapter-label');
-    if (chapterLabel && window.__storyBattle && window.__storyBattle.active && window.__storyBattle.mission === 10) {
+    if (chapterLabel && window.__storyBattle && window.__storyBattle.active && window.__storyBattle.mission >= 10) {
         chapterLabel.textContent = en ? 'CHAPTER 02 · BENEATH THE SIGNAL' : 'BÖLÜM 02 · SİNYALİN ALTINDA';
     }
     const next = document.getElementById('story-next');
