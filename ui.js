@@ -3520,7 +3520,7 @@ function applyGameLanguage(language) {
             }
         }
     });
-    gameLanguageObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+    gameLanguageObserver.observe(document.body, { childList: true, subtree: true });
 }
 
 function setGameLanguage(language) {
