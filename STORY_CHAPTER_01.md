@@ -1,7 +1,7 @@
 # Chapter 01 — Kayıp Sinyal
 ## Mission outline and production brief
 
-This outline turns the pacing rules into a playable chapter plan. Mission 01 and the first passes of Missions 02–03 are implemented on the draft branch. Mission 02 is a patrol-plus-scan encounter; Mission 03 is a short investigation with a saved evidence choice. Missions 04–09 remain design briefs, not completed gameplay.
+This outline documents the chapter's narrative and pacing. First-pass playable flows for Missions 01–09 are implemented on the draft branch, but they remain prototypes and have not been manually playtested end-to-end.
 
 ### Central mystery
 
@@ -10,21 +10,21 @@ The station's systems shut down as the commander approaches. A blue hologram app
 The companion is a real physical unit; the hologram is not its current form. The story should let the player suspect a connection without confirming exactly what the echo represents.
 
 ### Mission 01 — Cold Start
-**Target:** 15–20 minutes  
+**Target:** 7–9 minutes  
 **Player goal:** stabilize the core by defeating the first hostile group.  
 **What the player learns:** basic combat rhythm and the objective HUD.  
 **Story beat:** the maintenance unit wakes when the core recognizes it. The blue echo flickers, saying only fragments about memory, violet light, and towers.  
 **Pacing note:** this is the current prototype encounter. Keep the first playable section focused; don't add multiple mechanics before the player understands the core loop.
 
 ### Mission 02 — Echoes in the Hull
-**Target:** 12–18 minutes  
+**Target:** 5–7 minutes  
 **Player goal:** inspect three signal traces in a nearby sector while avoiding a small hostile patrol.  
 **Primary interaction:** simple scan/inspect, taught with one clear prompt.  
 **Payoff:** one trace contains a timestamp from before the station's recorded shutdown. The companion recognizes the sound but cannot explain it.  
 **Pacing note:** investigation first; combat is a short interruption, not another full wave marathon.
 
 ### Mission 03 — First Contact
-**Target:** 15–20 minutes  
+**Target:** 6–8 minutes  
 **Player goal:** hold a damaged access corridor long enough for the companion to restore a door relay.  
 **Known tools:** combat and the scan clue from Mission 02.  
 **Change:** one enemy has a readable telegraph that teaches target prioritization. No new currency or upgrade tree.  
@@ -38,7 +38,7 @@ The companion is a real physical unit; the hologram is not its current form. The
 **Payoff:** the choice changes the next encounter's starting advantage, not the overall story branch; avoid creating a huge branching narrative to support a small choice.
 
 ### Mission 05 — The Broken Line
-**Target:** 18–22 minutes  
+**Target:** 7–9 minutes  
 **Player goal:** defend the subsystem the player prioritized, then disable a signal relay.  
 **Known tools:** combat, relay scanning, and the consequence of Mission 04.  
 **Change:** the arena contains one hazard that can be used against enemies after a short readable tell.  
@@ -58,14 +58,14 @@ The companion is a real physical unit; the hologram is not its current form. The
 **Payoff:** interrupting the amplifier reveals the signal is looping from inside the station, not arriving from deep space.
 
 ### Mission 08 — A Familiar Room
-**Target:** 12–18 minutes, plus optional memory discovery  
+**Target:** 4–5 minutes, plus optional memory discovery  
 **Player goal:** return to the opening sector, now partially restored, and compare one physical clue with the corrupted echo.  
 **Primary interaction:** observation and short optional memory event.  
 **Pacing:** a deliberate breath before the climax; a small hostile encounter only if it serves the reveal.  
 **Payoff:** a memory fragment shows the commander beside a violet silhouette, but the image is too damaged to establish whether it is the companion or something using its shape.
 
 ### Mission 09 — The Choice to Wake
-**Target:** 25–35 minutes  
+**Target:** 10–12 minutes  
 **Player goal:** survive a multi-stage encounter while keeping the core and companion safe.  
 **Structure:** first stage uses familiar defense; second stage changes the arena condition; final stage requires the player to act on the enemy tells already learned.  
 **Climax:** the companion protects the core instead of retreating. The commander must create a brief safe window for it to reconnect. It chooses the connection; the player does not simply fill an XP bar.  
