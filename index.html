@@ -488,6 +488,35 @@
         #battle-moment[data-kind="boss"][data-boss-type="leviathan"] .battle-frame{border-color:rgba(196,181,253,.5);border-left-color:#a78bfa;background:linear-gradient(112deg,rgba(26,20,44,.98),rgba(32,28,53,.96) 60%,rgba(14,22,34,.98))}
         #battle-moment[data-kind="boss"][data-boss-type="leviathan"] .battle-kicker{color:#c4b5fd}
 
+    
+        /* Interactive companion mascot: lightweight, touch-friendly and non-gameplay-affecting. */
+        #game-mascot {
+            position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: max(104px, calc(env(safe-area-inset-bottom) + 88px));
+            z-index: 80; width: 56px; height: 56px; display: grid; place-items: center;
+            border: 1px solid rgba(125,211,252,.55); border-radius: 50%;
+            background: radial-gradient(circle at 32% 25%, rgba(71,85,105,.98), rgba(15,23,42,.97) 72%);
+            box-shadow: 0 5px 22px rgba(56,189,248,.22), inset 0 0 12px rgba(96,165,250,.12);
+            font-size: 30px; line-height: 1; cursor: grab; touch-action: none; user-select: none;
+            -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+            animation: mascot-idle 3s ease-in-out infinite;
+        }
+        #game-mascot:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 3px; }
+        #game-mascot.is-dragging { cursor: grabbing; animation: none; box-shadow: 0 8px 28px rgba(56,189,248,.36); }
+        #game-mascot.mascot-react { animation: mascot-react .38s ease-out; }
+        #game-mascot-bubble {
+            position: fixed; right: 16px; bottom: max(166px, calc(env(safe-area-inset-bottom) + 150px));
+            z-index: 81; max-width: min(230px, calc(100vw - 32px)); padding: 9px 12px;
+            border: 1px solid rgba(125,211,252,.35); border-radius: 13px 13px 3px 13px;
+            color: #e0f2fe; background: rgba(15,23,42,.96); box-shadow: 0 8px 24px rgba(0,0,0,.28);
+            font-size: 12px; line-height: 1.4; pointer-events: none; opacity: 0;
+            transform: translateY(5px) scale(.97); transition: opacity .16s ease, transform .16s ease;
+        }
+        #game-mascot-bubble.is-visible { opacity: 1; transform: translateY(0) scale(1); }
+        @keyframes mascot-idle { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-4px) rotate(2deg); } }
+        @keyframes mascot-react { 0% { transform: scale(.8) rotate(-10deg); } 65% { transform: scale(1.15) rotate(8deg); } 100% { transform: scale(1) rotate(0); } }
+        @media (prefers-reduced-motion: reduce) { #game-mascot, #game-mascot.mascot-react { animation: none; } }
+        @media (max-width: 480px) { #game-mascot { width: 48px; height: 48px; font-size: 26px; } }
+
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-pc color-pastel" id="main-body">
@@ -1288,6 +1317,10 @@
         <span id="toast-text">Bildirim</span>
     </div>
 
+
+    <!-- Interactive cosmetic companion; draggable and independent from the game simulation. -->
+    <div id="game-mascot-bubble" role="status" aria-live="polite"></div>
+    <button id="game-mascot" type="button" aria-label="Maskot — dokun ve tepki ver"><span id="game-mascot-face">🛸</span></button>
 
     <!-- V2.3: battle moments are presentation-only and do not affect rewards or simulation. -->
     <section id="battle-moment" data-kind="wave" aria-live="polite" aria-atomic="true">
