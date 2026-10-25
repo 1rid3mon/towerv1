@@ -3227,7 +3227,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function syncMascot() {
         const skin = getTowerSkin();
-        face.textContent = '🛸';
+        // Keep the original astral-mechanical SVG identity; tower skins only affect dialogue.
         mascot.setAttribute('aria-label', isEnglish() ? 'Piko, the tactical mascot — tap to chat' : 'Piko, taktik maskot — konuşmak için dokun');
         mascot.title = isEnglish() ? 'Piko · Tactical mascot · ' + skin.def.name : 'Piko · Taktik maskot · ' + skin.def.name;
         return skin;
