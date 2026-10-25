@@ -517,9 +517,54 @@
         @media (prefers-reduced-motion: reduce) { #game-mascot, #game-mascot.mascot-react { animation: none; } }
         @media (max-width: 480px) { #game-mascot { width: 48px; height: 48px; font-size: 26px; } }
 
+    
+        /* Main mode selection overlay */
+        #mode-main-menu { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; overflow-y: auto; padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom)); background: radial-gradient(ellipse at 50% 18%, rgba(30,64,175,.24), transparent 52%), radial-gradient(ellipse at 85% 85%, rgba(126,34,206,.15), transparent 44%), rgba(2,6,23,.97); }
+        #mode-main-menu.menu-hidden { display: none; }
+        .mode-menu-inner { width: min(880px, 100%); margin: auto; }
+        .mode-menu-eyebrow { color: #7dd3fc; font-size: 11px; font-weight: 800; letter-spacing: .24em; text-transform: uppercase; }
+        .mode-menu-title { font-family: 'Rajdhani', sans-serif; font-size: clamp(34px, 7vw, 62px); line-height: .98; font-weight: 800; letter-spacing: .035em; background: linear-gradient(100deg,#f8fafc 12%,#7dd3fc 52%,#c4b5fd 90%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .mode-menu-subtitle { color: #94a3b8; font-size: 14px; line-height: 1.6; max-width: 540px; margin: 12px auto 0; }
+        .mode-menu-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin-top: 30px; }
+        .mode-menu-card { position: relative; display: flex; flex-direction: column; min-height: 224px; padding: 22px; text-align: left; border: 1px solid rgba(148,163,184,.2); border-radius: 22px; color: #f8fafc; background: linear-gradient(145deg,rgba(15,23,42,.96),rgba(15,23,42,.74)); transition: transform .18s ease,border-color .18s ease,box-shadow .18s ease; }
+        .mode-menu-card:not(:disabled):hover { transform: translateY(-3px); border-color: rgba(125,211,252,.6); box-shadow: 0 14px 34px rgba(14,165,233,.12); }
+        .mode-menu-card:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 3px; }
+        .mode-menu-card:disabled { cursor: default; opacity: .72; }
+        .mode-menu-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 15px; font-size: 23px; margin-bottom: 18px; }
+        .mode-menu-card-title { font-family: 'Rajdhani',sans-serif; font-size: 25px; font-weight: 800; line-height: 1.1; }
+        .mode-menu-card-desc { margin-top: 9px; color: #94a3b8; font-size: 13px; line-height: 1.55; }
+        .mode-menu-card-action { margin-top: auto; padding-top: 18px; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #7dd3fc; }
+        .mode-menu-footer { margin-top: 22px; color: #64748b; font-size: 11px; text-align: center; letter-spacing: .04em; }
+        @media(max-width:560px) { .mode-menu-grid { grid-template-columns: 1fr; gap: 10px; margin-top: 22px; } .mode-menu-card { min-height: 0; padding: 17px; border-radius: 18px; display: grid; grid-template-columns: 46px minmax(0,1fr); column-gap: 13px; align-items: start; } .mode-menu-icon { grid-row: span 3; width: 44px; height: 44px; margin: 0; font-size: 20px; } .mode-menu-card-title { font-size: 22px; } .mode-menu-card-desc { margin-top: 5px; } .mode-menu-card-action { padding-top: 9px; } .mode-menu-footer { margin-top: 15px; } }
+        @media(prefers-reduced-motion:reduce) { .mode-menu-card { transition: none; } .mode-menu-card:not(:disabled):hover { transform: none; } }
+
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-pc color-pastel" id="main-body">
+
+<div id="mode-main-menu" role="dialog" aria-modal="true" aria-labelledby="mode-menu-title">
+    <div class="mode-menu-inner text-center">
+        <div class="mode-menu-eyebrow">SAVUNMA PROTOKOLÜ · 01</div>
+        <h1 id="mode-menu-title" class="mode-menu-title mt-4">KULE SAVUNMA</h1>
+        <p id="mode-menu-subtitle" class="mode-menu-subtitle">Nasıl bir mücadeleye hazırsın, komutan? Bir dünyayı kurtar ya da sınırlarını sonsuza kadar zorla.</p>
+        <div class="mode-menu-grid">
+            <button type="button" class="mode-menu-card" onclick="showStoryModeComingSoon()">
+                <span class="mode-menu-icon bg-violet-500/15 border border-violet-400/25 text-violet-200">✦</span>
+                <span class="mode-menu-card-title">Hikâye Modu</span>
+                <span class="mode-menu-card-desc">Dünyaları keşfet, yeni tehditlerle yüzleş ve final boss'una ulaş. Hikâye yolculuğu hazırlanıyor.</span>
+                <span class="mode-menu-card-action text-violet-300">Yakında gelecek <span aria-hidden="true">↗</span></span>
+            </button>
+            <button type="button" class="mode-menu-card border-cyan-400/35 bg-gradient-to-br from-cyan-950/70 via-slate-900 to-slate-900" onclick="enterGameMode('endless')">
+                <span class="mode-menu-icon bg-cyan-500/15 border border-cyan-400/25 text-cyan-200">∞</span>
+                <span class="mode-menu-card-title">Sonsuz Mod</span>
+                <span class="mode-menu-card-desc">Mevcut savunmana devam et. Dalga sınırı yok; rekorunu geliştir, giderek güçlenen düşmanlara dayan.</span>
+                <span class="mode-menu-card-action">Savunmaya başla <span aria-hidden="true">→</span></span>
+            </button>
+        </div>
+        <div class="mode-menu-footer">İLERLEMEN KORUNUR · SAVAŞ DENGESİ DEĞİŞMEZ</div>
+    </div>
+</div>
+
 
     <header class="bg-slate-900/95 backdrop-blur-xl border-b border-slate-800 p-2 sm:p-3 flex items-center justify-between z-20 shadow-lg shrink-0">
         <div class="flex items-center gap-2 sm:gap-4">

@@ -1164,6 +1164,8 @@ window.onload = function () {
     }
 
     loadGame();
+    // Başlangıçta mod seçimi görünür; simülasyon menü arkasında ilerlemesin.
+    isPaused = true;
     resizeCanvas();
 
     tower.maxHp = getTowerMaxHp();
