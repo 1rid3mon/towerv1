@@ -91,6 +91,7 @@ service cloud.firestore {
     return d.keys().hasOnly(['fromUid','toUid','fromUsername','toUsername','status','createdAt','updatedAt'])
      && d.fromUid is string && d.toUid is string
      && d.fromUid != d.toUid
+     && requestId == d.fromUid + '_' + d.toUid
      && d.fromUsername is string && d.fromUsername.size() >= 3 && d.fromUsername.size() <= 18
      && d.toUsername is string && d.toUsername.size() >= 3 && d.toUsername.size() <= 18
      && d.status == 'pending'
@@ -105,18 +106,23 @@ service cloud.firestore {
    allow create: if request.auth != null
     && request.resource.data.fromUid == request.auth.uid
     && validFriendRequest()
-    && !exists(/databases/$(database)/documents/friendRequests/$(request.resource.data.toUid + '_' + request.resource.data.fromUid));
+    && (!exists(/databases/$(database)/documents/friendRequests/$(request.resource.data.toUid + '_' + request.resource.data.fromUid))
+      || get(/databases/$(database)/documents/friendRequests/$(request.resource.data.toUid + '_' + request.resource.data.fromUid)).data.status == 'rejected');
    allow update: if request.auth != null
-    && resource.data.toUid == request.auth.uid
-    && resource.data.status == 'pending'
     && request.resource.data.fromUid == resource.data.fromUid
     && request.resource.data.toUid == resource.data.toUid
     && request.resource.data.fromUsername == resource.data.fromUsername
     && request.resource.data.toUsername == resource.data.toUsername
-    && request.resource.data.createdAt == resource.data.createdAt
-    && request.resource.data.status in ['accepted','rejected']
     && request.resource.data.updatedAt == request.time
-    && request.resource.data.keys().hasOnly(['fromUid','toUid','fromUsername','toUsername','status','createdAt','updatedAt']);
+    && request.resource.data.keys().hasOnly(['fromUid','toUid','fromUsername','toUsername','status','createdAt','updatedAt'])
+    && ((resource.data.toUid == request.auth.uid
+      && resource.data.status == 'pending'
+      && request.resource.data.createdAt == resource.data.createdAt
+      && request.resource.data.status in ['accepted','rejected'])
+     || (resource.data.fromUid == request.auth.uid
+      && resource.data.status == 'rejected'
+      && request.resource.data.status == 'pending'
+      && request.resource.data.createdAt == request.time));
    allow delete: if request.auth != null
     && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
   }
