@@ -1,7 +1,7 @@
 # Chapter 02 — Beneath the Signal
 ## Narrative and gameplay outline
 
-**Status:** design document only. These missions are not implemented yet. Chapter 01 remains the current playable prototype target.
+**Status:** Mission 10 has a first playable implementation on the feature branch; manual browser/mobile QA and save-isolation regression checks are pending. Missions 11–18 remain design-stage.
 
 ## Purpose
 
@@ -31,12 +31,12 @@ Chapter 02 follows the commander and the newly awakened companion below the stat
 **Story beat:** the lift recognizes the companion's signal as an administrator-level key, even though the companion has no matching identity record.  
 **Question:** who gave a powerless maintenance unit access to a hidden subsystem?
 
-### Mission 11 — No Blueprint
-**Target:** 12–16 minutes  
-**Objective:** map a corridor that does not exist in the station's architectural files.  
-**Gameplay:** scan three environmental anchors while managing a modest patrol. Reuse the scan interaction from Chapter 01, now with pulse-revealed traces.  
-**Story beat:** the corridor is older than the station, but one panel bears a fresh repair mark in the companion's exact maintenance pattern.  
-**Character beat:** the companion asks whether a memory can belong to a machine that never experienced it.
+### Mission 11 — Descent to the Lower Station / Aşağıdaki İstasyona İniş
+**Target:** 10–14 minutes  
+**Objective:** restore a map fragment and identify a safe route through the network beneath the station.  
+**Gameplay:** begin with a quiet descent and three labeled map-fragment actions, then teach the cyan pulse as an exploration tool outside combat. The player chooses to follow the signal or the structure; both routes converge without locking later missions.  
+**Story beat:** the lower network predates the station's mapped architecture, yet responds to a signal the station AI cannot identify.  
+**Character beat:** the companion questions whether it belongs in a place it seems to recognize.
 
 ### Mission 12 — The Listening Wall
 **Target:** 12–16 minutes  
@@ -104,7 +104,7 @@ Chapter 02 ends with the lower archive opening and a distant purple signal answe
 
 ## Mission 10 production package
 
-Mission 10 now has a separate implementation-ready production spec with bilingual dialogue, phase flow, pulse tutorial rules, replay/exit behavior, and acceptance tests: [Story Chapter 02 — Mission 10 Production Spec](STORY_CHAPTER_02_MISSION_10.md). This is a design artifact; it does not mean Mission 10 is implemented in-game yet.
+Mission 10 now has a first playable implementation on the feature branch, with its bilingual dialogue, phase flow, pulse tutorial, replay/exit behavior, and acceptance tests documented in [Story Chapter 02 — Mission 10 Production Spec](STORY_CHAPTER_02_MISSION_10.md). Manual browser/mobile QA and save-isolation regression checks remain required before calling it production-ready. Mission 11’s exploration design is documented in [Mission 11 Design Spec](STORY_CHAPTER_02_MISSION_11.md); its gameplay code is not implemented yet.
 
 ## Production gates
 
