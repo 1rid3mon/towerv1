@@ -35,6 +35,8 @@ function playBattleCue(kind) {
     if (audio.state === 'suspended') audio.resume().catch(() => {});
     const patterns = {
         wave: [{ f: 392, t: 'sine', d: .12, at: 0, v: .045 }, { f: 587.33, t: 'triangle', d: .2, at: .09, v: .035 }],
+        critical: [{ f: 196, t: 'square', d: .16, at: 0, v: .022 }, { f: 293.66, t: 'triangle', d: .19, at: .13, v: .038 }, { f: 440, t: 'sine', d: .24, at: .31, v: .032 }],
+        reward: [{ f: 659.25, t: 'sine', d: .13, at: 0, v: .027 }, { f: 880, t: 'triangle', d: .16, at: .12, v: .032 }, { f: 1174.66, t: 'sine', d: .25, at: .25, v: .027 }],
         clear: [{ f: 523.25, t: 'triangle', d: .16, at: 0, v: .04 }, { f: 659.25, t: 'sine', d: .18, at: .1, v: .04 }, { f: 783.99, t: 'sine', d: .28, at: .2, v: .035 }],
         boss: [{ f: 92.5, t: 'sawtooth', d: .42, at: 0, v: .055 }, { f: 138.59, t: 'triangle', d: .36, at: .16, v: .045 }, { f: 207.65, t: 'sine', d: .26, at: .32, v: .03 }],
         bossKill: [{ f: 392, t: 'triangle', d: .14, at: 0, v: .04 }, { f: 523.25, t: 'sine', d: .18, at: .1, v: .045 }, { f: 783.99, t: 'triangle', d: .32, at: .2, v: .04 }, { f: 1046.5, t: 'sine', d: .25, at: .32, v: .025 }]
@@ -94,6 +96,7 @@ function renderBattleMoment(kind, data) {
 
     clearTimeout(battleMomentHideTimer);
     root.dataset.kind = kind;
+    root.dataset.bossType = kind === 'boss' ? String(data.subtype || 'default') : '';
     rewards.replaceChildren();
     if (kind === 'boss') {
         const bossName = String(data.name || 'BİLİNMEYEN HEDEF');
