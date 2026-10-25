@@ -3207,3 +3207,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     syncMascot();
 })();
+
+
+// ==========================================
+// ANA MENÜ VE OYUN MODU SEÇİMİ
+// ==========================================
+function enterGameMode(mode) {
+    if (mode !== 'endless') return;
+    const menu = document.getElementById('mode-main-menu');
+    if (menu) menu.classList.add('menu-hidden');
+    document.body.dataset.gameMode = 'endless';
+    if (typeof isPaused !== 'undefined') isPaused = false;
+    if (typeof resizeCanvas === 'function') resizeCanvas();
+}
+function showStoryModeComingSoon() {
+    const subtitle = document.getElementById('mode-menu-subtitle');
+    if (subtitle) subtitle.textContent = 'Hikâye modu için dünya haritası, bölüm ilerlemesi ve boss finalleri hazırlanıyor. Şimdilik Sonsuz Mod oynanabilir; mevcut ilerlemen güvende.';
+}
