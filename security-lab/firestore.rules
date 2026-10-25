@@ -92,11 +92,14 @@ service cloud.firestore {
      && d.fromUid is string && d.toUid is string
      && d.fromUid != d.toUid
      && requestId == d.fromUid + '_' + d.toUid
-     && d.fromUsername is string && d.fromUsername.size() >= 3 && d.fromUsername.size() <= 18
-     && d.toUsername is string && d.toUsername.size() >= 3 && d.toUsername.size() <= 18
+     && d.fromUsername is string && d.fromUsername.matches('^[a-z0-9_.-]{3,18}$')
+     && d.toUsername is string && d.toUsername.matches('^[a-z0-9_.-]{3,18}$')
      && d.status == 'pending'
      && d.createdAt == request.time && d.updatedAt == request.time
-     && d.toUsername.matches('^[a-z0-9_.-]{3,18}
+     && exists(/databases/$(database)/documents/usernameRegistry/$(d.toUsername))
+     && get(/databases/$(database)/documents/usernameRegistry/$(d.toUsername)).data.uid == d.toUid
+     && exists(/databases/$(database)/documents/usernameRegistry/$(d.fromUsername))
+     && get(/databases/$(database)/documents/usernameRegistry/$(d.fromUsername)).data.uid == d.fromUid;
    }
    allow read: if request.auth != null
     && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
