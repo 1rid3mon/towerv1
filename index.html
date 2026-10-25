@@ -501,7 +501,9 @@
             animation: mascot-idle 3s ease-in-out infinite;
         }
         #game-mascot:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 3px; }
-        #game-mascot.is-dragging { cursor: grabbing; animation: none; box-shadow: 0 8px 28px rgba(56,189,248,.36); }
+        #game-mascot.is-dragging { cursor: grabbing; animation: none !important; transition: none !important; will-change: transform; box-shadow: 0 8px 28px rgba(56,189,248,.36); }
+        #game-mascot { will-change: transform; }
+
         #game-mascot.mascot-react { animation: mascot-react .38s ease-out; }
         #game-mascot-bubble {
             position: fixed; right: 16px; bottom: max(166px, calc(env(safe-area-inset-bottom) + 150px));
