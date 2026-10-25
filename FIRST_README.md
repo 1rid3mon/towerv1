@@ -225,3 +225,15 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] **TEST EDİLMEDİ:** Tarayıcıda gerçek sandık açılışı, farklı nadirlikler, mobil/masaüstü ve İngilizce dil akışı henüz çalıştırılmadı; bu oturumda yerel repo/dependency erişimi yok.
 - [ ] **DEPLOY DOĞRULANMADI:** Vercel limiti nedeniyle bu commit'in canlıya geçtiği varsayılmamalı.
 - Sonraki adım: Vercel limit sıfırlandıktan sonra branch preview'da üç sandık türünü de açıp Piko balonunun doğru nadirlik ve dilde tepki verdiğini test et; sonra CI/deploy durumunu kontrol et.
+
+
+---
+
+## İş günlüğü — 2026-10-26: Piko boss karşılaşmalarına bağlandı
+
+- [x] `ui.js`: Piko için Türkçe ve İngilizce boss sahneye giriş / boss yenilmesi diyalogları eklendi. Diyaloglar boss adı, dalga numarası ve kristal ödülünü kullanabiliyor.
+- [x] `engine.js`: Boss spawn ve boss kill akışları `window.pikoReactEvent` ile bağlandı. Piko kodu bulunmazsa oyun akışını durdurmaması için varlık kontrolü eklendi.
+- [x] Önceki sandık tepkileri korunarak aynı geliştirme branch'inde değişiklik yapıldı.
+- [ ] **TEST EDİLMEDİ:** Tarayıcıda boss spawn/kill akışı, Türkçe-İngilizce diyalog, mobil/masaüstü görünümü henüz elle oynanarak doğrulanmadı.
+- [ ] **DEPLOY:** Değişiklikler yalnızca `feature/story-chapter2-mission11` branch'inde; main'e merge ve canlı siteye geçiş doğrulanmadı.
+- **Sıradaki adım:** Commit CI durumunu kontrol et; sonra boss olaylarının her birinde yalnızca bir Piko balonu gösterildiğini ve mevcut savaş bildirimleriyle çakışmadığını test et. Ardından Firebase hikâye ilerlemesi kaydına dön.
