@@ -281,3 +281,21 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [x] GitHub Actions koşusu `ef2da01`: JavaScript syntax adımı başarılı; Firebase Emulator suite **126/126 geçti, 0 başarısız**. [Koşu kaydı](https://github.com/1rid3mon/towerv1/actions/runs/40234945180).
 - [ ] **CANLI FIREBASE DOĞRULAMASI YOK:** Aday kural dosyasının düzeltilmesi, üretimdeki Firebase Console kurallarının düzeldiği anlamına gelmez. Gerçek kurallar ayrı doğrulanmalı; bu test dosyası otomatik deploy yapmaz.
 - [ ] **DEPLOY:** Bu committe Vercel kontrolü yine build-rate-limit hatası verdi; canlı siteye geçiş doğrulanmadı.
+
+
+---
+
+## İş günlüğü — 2026-10-26: Hikâye ilerlemesi için bulut senkronizasyonu (CI doğrulaması bekleniyor)
+
+- [x] `ui.js`: Hikâye ilerlemesi artık ayrı `storyProgress/{uid}` Firestore belgesine yazılacak şekilde eklendi; sonsuz modun `saveData` kaydına gömülmedi.
+- [x] [x] Hesap oturumu açıldığında hikâye bulut kaydı okunuyor. Yerel ve bulut kaydı `updatedAt` değerine göre karşılaştırılıyor; daha yeni yerel ilerleme varsa buluta aktarılıyor, aksi durumda uzak kayıt uygulanıyor.
+- [x] Hikâye kaydı 1,2 saniyelik debounce ile yazılıyor; yerel kayıt hemen korunuyor. Bulut yazma/okuma hataları konsola kaydediliyor, yerel kayıt silinmiyor.
+- [x] Yerel hikâye kaydına hesap UID işareti eklendi; bir hesaptan diğerine geçildiğinde önceki hesaba ait ilerlemenin yanlışlıkla yeni hesaba yüklenmesi engelleniyor.
+- [x] Hesap silme akışına `storyProgress/{uid}` belgesinin silinmesi ve ilgili cihazdaki hesap-bağlı hikâye işaretinin temizlenmesi eklendi.
+- [x] `security-lab/firestore.rules`: `storyProgress/{uid}` için yalnızca belge sahibi okuyabilir/yazabilir/silebilir; bilinen alanlar, görev boolean'ları, seçim enum'ları, bölüm numarası ve onarım sayacı doğrulanıyor.
+- [x] `security-lab/firestore.rules.test.js`: Geçerli kayıt, başka hesabın okuma/yazma girişimi, kimlik doğrulamasız erişim ve hatalı/ekstra alanlar için testler eklendi.
+- [ ] **CI BEKLENİYOR:** Bu değişiklikler için GitHub Actions çalışmaları başladı. Son koşunun sonucu görülmeden testler geçti denmemeli.
+- [ ] **GERÇEK CİHAZ TESTİ BEKLENİYOR:** İki farklı cihazda aynı hesapla giriş, görev tamamlama, yenileme ve diğer cihazda ilerlemenin görünmesi henüz elle test edilmedi.
+- [ ] **ÜRETİM KURALLARI:** Bu değişiklik yalnızca repo içindeki `security-lab/firestore.rules` adayını etkiler; Firebase Console kuralları otomatik değişmez. Üretime geçmeden önce gerçek kurallara kontrollü biçimde uygulanmalı.
+- [ ] **DEPLOY:** Branch main'e merge edilmedi; Vercel dağıtımı doğrulanmadı.
+- **Sonraki adım:** CI sonucu kontrol edilecek; başarısızsa düzeltilecek. Ardından hesap değişimi/yerel ilerleme geçişi ve hikâye bulut senkronizasyonu için uç durum testleri eklenecek. Ses efektleri kodda mevcut olsa da iOS/Android ses davranışı hâlâ gerçek cihazda dinlenerek test edilmeli.
