@@ -3270,6 +3270,51 @@ document.addEventListener('DOMContentLoaded', () => {
         const english = isEnglish();
         const lang = english ? pikoThoughts.en : pikoThoughts.tr;
         const skin = getTowerSkin();
+        // Story mode gives Piko a distinct voice: less generic gameplay chatter, more companion banter and mystery.
+        const storyLines = english ? [
+            'I was built to protect something. Nobody included a label saying what.',
+            'The station keeps recognizing me. I would find that flattering if it were not so unsettling.',
+            'I can hear a signal beneath the combat noise. It is using a protocol I thought was extinct.',
+            'For the record, I am not nervous. My core is simply conducting an aggressive amount of diagnostics.',
+            'You keep looking at me like I know the answer. I wish I did, commander.',
+            'That door reacted to my presence before I touched the panel. I am choosing not to unpack that yet.',
+            'I remember the shape of this place, not the place itself. Like a dream with the middle cut out.',
+            'If the archive calls me Operator Zero again, I am filing a complaint with the universe.',
+            'A human voice in my signal history. Either someone copied me, or someone copied the future.',
+            'I dislike mysteries that use my own voice. Very poor manners.',
+            'Stay close. The station is mapping our movements, and I would rather it not learn your habits.',
+            'I can joke about almost anything. Almost. That last recording was not funny.',
+            'There is a gap in my memory exactly where the station expects a name. Convenient, isn’t it?',
+            'I am your companion, not your compass. Though, admittedly, I am better at both than this station.',
+            'The relays are not just transmitting. They are waiting for a response from my core.',
+            'If I start speaking in an ancient machine language, please assume I am doing it on purpose. Please.',
+            'That distress signal has tomorrow’s timestamp. I have several objections to tomorrow sending mail early.',
+            'You trust me. I noticed. I am trying to deserve that without making it weird.',
+            'I ran the recording twelve times. Same voice, same waveform, same impossible result. I hate when maths agrees with ghosts.',
+            'Whatever is ahead knows my designation. It has not earned the right to use it.'
+        ] : [
+            'Bir şeyi korumak için üretildim. Ne olduğunu yazan etiketi koymayı unutmuşlar.',
+            'İstasyon beni tanımaya devam ediyor. Daha az ürkütücü olsaydı gurur duyardım.',
+            'Çatışma sesinin altında bir sinyal duyuyorum. Yok olduğunu sandığım bir protokol kullanıyor.',
+            'Korkmuyorum. Çekirdeğim yalnızca agresif miktarda tanılama yapıyor, o kadar.',
+            'Bana cevabı biliyormuşum gibi bakıyorsun komutan. Keşke bilsem.',
+            'Kapı panele dokunmadan varlığımı algıladı. Şimdilik bunun üzerine düşünmemeyi seçiyorum.',
+            'Buranın şeklini hatırlıyorum ama burayı hatırlamıyorum. Ortası kesilmiş bir rüya gibi.',
+            'Arşiv bana bir daha Operatör Sıfır derse evrene şikâyet dilekçesi yazacağım.',
+            'Sinyal geçmişimde insan sesi var. Ya biri beni kopyaladı ya da gelecek beni kopyaladı.',
+            'Kendi sesimi kullanan gizemlerden hoşlanmıyorum. Çok kaba bir davranış.',
+            'Yakınımda kal. İstasyon hareketlerimizi haritalıyor; alışkanlıklarını öğrenmesini istemem.',
+            'Neredeyse her şeyle dalga geçebilirim. Neredeyse. Son kayıt komik değildi.',
+            'Hafızamda tam istasyonun bir isim beklediği yerde boşluk var. Ne kadar da tesadüfi.',
+            'Ben senin yoldaşınım, pusulan değil. Gerçi ikisini de bu istasyondan iyi yapıyorum.',
+            'Röleler yalnızca yayın yapmıyor. Çekirdeğimden gelecek bir yanıtı bekliyorlar.',
+            'Antik makine diliyle konuşmaya başlarsam lütfen bilerek yaptığımı varsay. Lütfen.',
+            'Yardım sinyalinin tarihi yarın. Geleceğin erken posta göndermesine birkaç itirazım var.',
+            'Bana güveniyorsun, fark ettim. Bunu tuhaflaştırmadan hak etmeye çalışıyorum.',
+            'Kaydı on iki kez analiz ettim. Aynı ses, aynı dalga biçimi, aynı imkânsız sonuç. Matematiğin hayaletlerle aynı fikirde olmasından nefret ediyorum.',
+            'İlerideki her neyse, kod adımı biliyor. Henüz onu kullanma hakkını kazanmadı.'
+        ];
+        if (document.body?.dataset?.gameMode === 'story') return chooseLine(storyLines);
         const activeGame = typeof game !== 'undefined' && game ? game : null;
         const hp = typeof tower !== 'undefined' && tower && Number.isFinite(tower.hp) ? tower.hp : null;
         const maxHp = typeof tower !== 'undefined' && tower && Number.isFinite(tower.maxHp) && tower.maxHp > 0 ? tower.maxHp : null;
