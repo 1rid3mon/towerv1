@@ -27,6 +27,9 @@ initStars();
 
 let spawnTimer = 0;
 let playTimeAccum = 0;
+// HUD values change far less often than the canvas; cap routine DOM refreshes at 10 Hz.
+// Event handlers still call updateHUD() directly for immediate feedback.
+let hudUpdateAccum = 0;
 let waveFrostSpawns = 0;
 let cargoSpawnTimer = 45 + Math.random() * 15;
 
@@ -756,7 +759,14 @@ function updateGame(dt) {
 
     for (let i = lightningBeams.length - 1; i >= 0; i--) { lightningBeams[i].life -= simDt; if (lightningBeams[i].life <= 0) lightningBeams.splice(i, 1); }
     for (let i = floatingTexts.length - 1; i >= 0; i--) { const ft = floatingTexts[i]; ft.y += ft.vy * simDt; ft.alpha -= simDt * 1.1; if (ft.alpha <= 0) floatingTexts.splice(i, 1); }
-    updateHUD();
+
+    // Avoid rewriting dozens of HUD nodes every animation frame (usually ~60 times/sec).
+    // 100 ms keeps health, wave progress and counters responsive while reducing DOM work.
+    hudUpdateAccum += dt;
+    if (hudUpdateAccum >= 0.1) {
+        hudUpdateAccum %= 0.1;
+        updateHUD();
+    }
 }
 
 function fireTowerProjectile(startX, startY, target, barrelIdx = 0, totalBarrels = 1) {
