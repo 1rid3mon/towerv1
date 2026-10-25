@@ -3325,6 +3325,7 @@ function openDailyMissionsFromMainMenu() {
 
 function returnToMainMenu() {
     if (typeof saveGame === 'function') saveGame(true);
+    if (typeof updateStoryUnlockUI === 'function') updateStoryUnlockUI();
     if (typeof isPaused !== 'undefined') isPaused = true;
     dailyMissionsOpenedFromMainMenu = false;
     const menu = document.getElementById('mode-main-menu');
@@ -3415,7 +3416,35 @@ function showStoryMissionBriefing() {
     applyStoryUiLanguage();
     saveStoryProgress({ introSeen: true, chapter: 1 });
 }
+function getStoryUnlockWave() {
+    try {
+        if (typeof game !== 'undefined' && game) return Math.max(Number(game.highestWave) || 1, Number(game.wave) || 1);
+    } catch (_) {}
+    return 1;
+}
+function updateStoryUnlockUI() {
+    const wave = getStoryUnlockWave();
+    const unlocked = wave >= 25;
+    const action = document.getElementById('mode-story-action');
+    const button = document.getElementById('mode-story-button');
+    if (action) action.innerHTML = unlocked
+        ? (storyLanguage() === 'en' ? 'ENTER CHAPTER <span aria-hidden="true">→</span>' : 'BÖLÜME GİR <span aria-hidden="true">→</span>')
+        : (storyLanguage() === 'en' ? `UNLOCK AT WAVE 25 · ${wave}/25 <span aria-hidden="true">🔒</span>` : `25. DALGADA AÇILIR · ${wave}/25 <span aria-hidden="true">🔒</span>`);
+    if (button) {
+        button.setAttribute('aria-disabled', unlocked ? 'false' : 'true');
+        button.classList.toggle('story-locked', !unlocked);
+    }
+    return unlocked;
+}
 function openStoryMode() {
+    if (!updateStoryUnlockUI()) {
+        const subtitle = document.getElementById('mode-menu-subtitle');
+        if (subtitle) subtitle.textContent = storyLanguage() === 'en'
+            ? `Reach wave 25 in Endless Mode to unlock Story Mode. Your record: ${getStoryUnlockWave()}/25.`
+            : `Hikâye Modu’nu açmak için Sonsuz Mod’da 25. dalgaya ulaş. Rekorun: ${getStoryUnlockWave()}/25.`;
+        if (typeof showToast === 'function') showToast(storyLanguage() === 'en' ? 'Story Mode unlocks at Endless Wave 25.' : 'Hikâye Modu, Sonsuz Mod’da 25. dalgada açılır.');
+        return;
+    }
     const screen = document.getElementById('story-mode-screen');
     const menu = document.getElementById('mode-main-menu');
     if (!screen) return;
@@ -3460,6 +3489,7 @@ function closeStoryMode() {
         : 'Görevini seç, komutan. Bilinmeyen sinyal bizi bekliyor.';
 }
 function showStoryModeComingSoon() { openStoryMode(); }
+document.addEventListener('DOMContentLoaded', () => { updateStoryUnlockUI(); });
 document.addEventListener('keydown', event => {
     const screen = document.getElementById('story-mode-screen');
     if (!screen || !screen.classList.contains('is-open')) return;
