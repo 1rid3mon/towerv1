@@ -3976,6 +3976,16 @@ const GAME_CONTENT_TRANSLATIONS = {
     "Yükselt": "Upgrade",
     "Aç": "Unlock",
     "SEÇ": "SELECT"
+,
+
+    "Klasik siber savunma atmosferi.": "A classic cyber-defense atmosphere.",
+    "Buz gibi su dalgalı şişe kulesi.": "A tower skin shaped like a bottle of ice-cold water with rippling waves.",
+    "Alan yavaşlatma ve dondurucu şok dalgası yayar.": "Emits an area slow effect and a freezing shockwave.",
+    "Yüksek patlayıcılı alan (AoE) füzesi fırlatır.": "Launches high-explosive area-of-effect (AoE) missiles.",
+    "Kule Canını ve Plazma Kalkanını yüzdelik olarak onarır.": "Restores a percentage of the tower's health and plasma shield.",
+    "Çoklu hedefe zincirleme yıldırım ve düşman MaksHP yüzdesi hasarı verir.": "Chains lightning across multiple targets and deals damage based on a percentage of enemy max HP.",
+    "Cyber Core": "Cyber Core",
+    "Siber Çekirdek": "Cyber Core"
 
 };
 
