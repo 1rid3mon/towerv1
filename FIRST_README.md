@@ -288,7 +288,7 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 ## İş günlüğü — 2026-10-26: Hikâye ilerlemesi için bulut senkronizasyonu (CI doğrulaması bekleniyor)
 
 - [x] `ui.js`: Hikâye ilerlemesi artık ayrı `storyProgress/{uid}` Firestore belgesine yazılacak şekilde eklendi; sonsuz modun `saveData` kaydına gömülmedi.
-- [x] [x] Hesap oturumu açıldığında hikâye bulut kaydı okunuyor. Yerel ve bulut kaydı `updatedAt` değerine göre karşılaştırılıyor; daha yeni yerel ilerleme varsa buluta aktarılıyor, aksi durumda uzak kayıt uygulanıyor.
+- [x] Hesap oturumu açıldığında hikâye bulut kaydı okunuyor. Yerel ve bulut kaydı `updatedAt` değerine göre karşılaştırılıyor; daha yeni yerel ilerleme varsa buluta aktarılıyor, aksi durumda uzak kayıt uygulanıyor.
 - [x] Hikâye kaydı 1,2 saniyelik debounce ile yazılıyor; yerel kayıt hemen korunuyor. Bulut yazma/okuma hataları konsola kaydediliyor, yerel kayıt silinmiyor.
 - [x] Yerel hikâye kaydına hesap UID işareti eklendi; bir hesaptan diğerine geçildiğinde önceki hesaba ait ilerlemenin yanlışlıkla yeni hesaba yüklenmesi engelleniyor.
 - [x] Hesap silme akışına `storyProgress/{uid}` belgesinin silinmesi ve ilgili cihazdaki hesap-bağlı hikâye işaretinin temizlenmesi eklendi.
