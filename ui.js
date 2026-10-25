@@ -3549,7 +3549,7 @@ function startStoryMission(missionNumber = 1) {
     window.__storyBattle = session;
     game = getDefaultState();
     game.wave = 1; game.highestWave = 1; game.gold = 180;
-    game.waveKills = 0; game.waveTargetKills = missionNumber === 1 ? 8 : (missionNumber === 5 ? 6 : (missionNumber === 7 ? 7 : (missionNumber === 9 ? 10 : 5))); game.holdWave = false;
+    game.waveKills = 0; game.waveTargetKills = missionNumber === 1 ? 8 : (missionNumber === 5 ? 8 : (missionNumber === 7 ? 8 : (missionNumber === 9 ? 10 : 5))); game.holdWave = false;
     game.upgrades.damage = 3; game.upgrades.attackSpeed = 2; game.upgrades.range = 3;
     if (missionNumber === 5 && progress.powerChoice === 'weapon') game.upgrades.damage = 5;
     game.settings.activeTheme = 'space';
@@ -3748,6 +3748,20 @@ function finishStoryBattleEncounter() {
     }
 
     if (session.mission === 9 && session.phase === 'combat') {
+        session.phase = 'combat2'; game.wave = 2; game.highestWave = 2; game.waveKills = 0; game.waveTargetKills = 12; spawnTimer = 0; isPaused = false; enemies = []; projectiles = [];
+        setStatus(en ? 'SECOND CONTACT · The signal is adapting. Survive the next wave to reach the core link.' : 'İKİNCİ TEMAS · Sinyal uyum sağlıyor. Çekirdek bağlantısına ulaşmak için sonraki dalgayı atlat.');
+        setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Tehdit örüntüsü değişti. İlk savunma yalnızca bir yoklamaydı.','Threat pattern changed. The first assault was only a probe.');
+        showToast(en ? 'Final phase 2/3 · Threat pattern changed.' : 'Final aşaması 2/3 · Tehdit örüntüsü değişti.');
+        return;
+    }
+    if (session.mission === 9 && session.phase === 'combat2') {
+        session.phase = 'combat3'; game.wave = 3; game.highestWave = 3; game.waveKills = 0; game.waveTargetKills = 14; spawnTimer = 0; isPaused = false; enemies = []; projectiles = [];
+        setStatus(en ? 'CORE BREACH · The hostile signal is forcing its way into the core. Hold the final line.' : 'ÇEKİRDEK İHLALİ · Düşman sinyali çekirdeğe girmeye çalışıyor. Son savunma hattını koru.');
+        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Çekirdeğin önüne geçiyorum. Bu kez seni korumayı ben seçeceğim.','I am moving in front of the core. This time, I choose to protect you.');
+        showToast(en ? 'Final phase 3/3 · Protect the core.' : 'Final aşaması 3/3 · Çekirdeği koru.');
+        return;
+    }
+    if (session.mission === 9 && session.phase === 'combat3') {
         session.phase = 'reconnect'; isPaused = true; enemies = []; projectiles = [];
         setStatus(en ? 'CORE UNDER PRESSURE · The hostile signal is trying to sever the companion’s link. Reconnect before the core fails.' : 'ÇEKİRDEK BASKI ALTINDA · Düşman sinyali yoldaşın bağlantısını kesmeye çalışıyor. Çekirdek düşmeden bağlantıyı kur.');
         setStoryComms('KOMUTAN','COMMANDER','Seni kaybetmeyeceğim. Bağlantıyı yeniden kuruyoruz—şimdi!','I will not lose you. We are restoring the link—now!');
@@ -3756,6 +3770,13 @@ function finishStoryBattleEncounter() {
         return;
     }
     if (session.mission === 7 && session.phase === 'combat') {
+        session.phase = 'combat2'; game.wave = 2; game.highestWave = 2; game.waveKills = 0; game.waveTargetKills = 10; spawnTimer = 0; isPaused = false; enemies = []; projectiles = [];
+        setStatus(en ? 'SECOND CONTACT · The array draws a heavier patrol. Keep the line stable.' : 'İKİNCİ TEMAS · Dizi daha ağır bir devriye çekiyor. Savunma hattını koru.');
+        setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Yükselticiyi kapatmak için diziye birkaç saniye daha kazandır.','Buy the array a few more seconds so we can shut down the amplifier.');
+        showToast(en ? 'Second defense phase · Reinforcements detected.' : 'İkinci savunma aşaması · Takviye tespit edildi.');
+        return;
+    }
+    if (session.mission === 7 && session.phase === 'combat2') {
         session.phase = 'amplifier'; isPaused = true; enemies = []; projectiles = [];
         setStatus(en ? 'ARRAY STABLE · The amplifier is exposed. Shut it down to trace the signal’s direction.' : 'DİZİ GÜVENDE · Yükseltici açığa çıktı. Sinyalin yönünü izlemek için onu kapat.');
         setAction('story-amplifier-action', false);
@@ -3763,6 +3784,13 @@ function finishStoryBattleEncounter() {
         return;
     }
     if (session.mission === 5 && session.phase === 'combat') {
+        session.phase = 'combat2'; game.wave = 2; game.highestWave = 2; game.waveKills = 0; game.waveTargetKills = 10; spawnTimer = 0; isPaused = false; enemies = []; projectiles = [];
+        setStatus(en ? 'RELAY GUARD · The signal is protecting its source. Defeat the reinforcements to expose the relay.' : 'RÖLE KORUMASI · Sinyal kaynağını koruyor. Röleyi açığa çıkarmak için takviyeleri durdur.');
+        setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','İlk grup yalnızca öncüydü. Röleye erişim açılana kadar savunmayı sürdür.','The first group was only a vanguard. Hold the defense until the relay access opens.');
+        showToast(en ? 'Second defense phase · Relay guards incoming.' : 'İkinci savunma aşaması · Röle muhafızları geliyor.');
+        return;
+    }
+    if (session.mission === 5 && session.phase === 'combat2') {
         session.phase = 'relay'; isPaused = true; enemies = []; projectiles = [];
         setStatus(en ? 'CORRIDOR SECURE · The relay is exposed. Shut it down before the signal loops again.' : 'KORİDOR GÜVENDE · Röle açığa çıktı. Sinyal yeniden döngüye girmeden kapat.');
         setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Röle açığa çıktı. Paket, mavi yankıdaki ses örüntüsüyle eşleşiyor.','The relay is exposed. Its packet matches the voice pattern in the blue echo.');
