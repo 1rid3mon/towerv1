@@ -68,7 +68,7 @@ Aim for **9 core missions** plus optional memory/signals. The second form is the
 
 ## Current implementation status
 
-First-pass playable flows for Missions 01–09 are implemented on the draft branch: combat, signal scans, evidence choice, power-routing choice with a gameplay effect, relay/amplifier interactions, repair sequence, memory inspection, and a multi-step companion awakening. These are prototype implementations, not a polished or manually playtested one-hour chapter. Dialogue, pacing, difficulty, save/retry behavior, mobile layout, and continuity still need playtesting and refinement.
+First-pass playable flows for Missions 01–09 are implemented on the draft branch: combat, signal scans, evidence choice, power-routing choice with a gameplay effect, relay/amplifier interactions, repair sequence, memory inspection, and a multi-step companion awakening. Missions 05, 07, and 09 use escalating combat stages to create longer set pieces. These are prototype implementations, not a polished or manually playtested one-hour chapter. Dialogue, pacing, difficulty, save/retry behavior, mobile layout, and continuity still need playtesting and refinement.
 
 ## Playtest gates before release
 
