@@ -568,7 +568,46 @@
         @media(max-width:560px) { .mode-menu-grid { grid-template-columns: 1fr; gap: 10px; margin-top: 22px; } .mode-menu-card { min-height: 0; padding: 17px; border-radius: 18px; display: grid; grid-template-columns: 46px minmax(0,1fr); column-gap: 13px; align-items: start; } .mode-menu-icon { grid-row: span 3; width: 44px; height: 44px; margin: 0; font-size: 20px; } .mode-menu-card-title { font-size: 22px; } .mode-menu-card-desc { margin-top: 5px; } .mode-menu-card-action { padding-top: 9px; } .mode-menu-footer { margin-top: 15px; } }
         @media(prefers-reduced-motion:reduce) { .mode-menu-card { transition: none; } .mode-menu-card:not(:disabled):hover { transform: none; } }
 
-    </style>
+    
+/* Chapter One story experience — presentation layer only. */
+#story-mode-screen{position:fixed;inset:0;z-index:90;display:none;overflow-y:auto;overscroll-behavior:contain;background:radial-gradient(ellipse at 50% 0%,rgba(8,145,178,.18),transparent 52%),linear-gradient(150deg,#030712 0%,#071426 52%,#020617 100%);color:#e2e8f0;padding:max(16px,env(safe-area-inset-top)) 14px max(18px,env(safe-area-inset-bottom));}
+#story-mode-screen.is-open{display:flex;align-items:center;justify-content:center}
+.story-shell{width:min(100%,880px);margin:auto;position:relative}
+.story-topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;font:700 11px/1.4 Inter,sans-serif;letter-spacing:.2em;color:#67e8f9}
+.story-exit{border:1px solid rgba(148,163,184,.28);border-radius:12px;padding:9px 12px;background:rgba(15,23,42,.75);color:#cbd5e1;font-size:12px}
+.story-hero{position:relative;overflow:hidden;border:1px solid rgba(103,232,249,.2);border-radius:24px;background:linear-gradient(140deg,rgba(8,47,73,.72),rgba(15,23,42,.9) 62%,rgba(30,27,75,.55));padding:clamp(18px,4vw,36px);box-shadow:0 24px 80px rgba(0,0,0,.32)}
+.story-hero:before,.story-hero:after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.story-hero:before{width:260px;height:260px;right:-110px;top:-150px;border:1px solid rgba(103,232,249,.2);box-shadow:0 0 0 24px rgba(34,211,238,.025),0 0 0 52px rgba(34,211,238,.025)}
+.story-hero:after{width:160px;height:160px;right:-60px;top:-100px;border:1px solid rgba(103,232,249,.12)}
+.story-kicker{font-size:10px;letter-spacing:.22em;font-weight:800;color:#67e8f9;text-transform:uppercase}
+.story-title{font-size:clamp(28px,6vw,48px);line-height:1.05;font-weight:900;letter-spacing:-.04em;margin:10px 0 8px;color:#f8fafc}
+.story-lead{max-width:620px;color:#a5b4c8;line-height:1.65;font-size:14px}
+.story-stage{display:grid;grid-template-columns:minmax(105px,170px) minmax(0,1fr);gap:clamp(14px,3vw,26px);align-items:center;margin-top:24px}
+.story-hologram-wrap{display:flex;justify-content:center;align-items:center;min-height:145px}
+.story-hologram{width:clamp(92px,16vw,132px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;position:relative;color:#a5f3fc;font-size:42px;background:radial-gradient(circle,rgba(34,211,238,.26),rgba(8,145,178,.08) 52%,transparent 70%);filter:drop-shadow(0 0 18px rgba(34,211,238,.4));animation:story-float 3.4s ease-in-out infinite}
+.story-hologram:before,.story-hologram:after{content:"";position:absolute;inset:7%;border:1px solid rgba(103,232,249,.48);border-radius:50%;transform:rotateX(68deg) rotate(-18deg)}
+.story-hologram:after{inset:0;border-color:rgba(103,232,249,.2);transform:rotateX(68deg) rotate(38deg)}
+.story-hologram span{position:relative;z-index:1;text-shadow:0 0 22px rgba(34,211,238,.9)}
+@keyframes story-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.story-dialogue{border:1px solid rgba(103,232,249,.2);background:rgba(2,6,23,.48);border-radius:18px;padding:clamp(16px,3vw,24px);min-height:190px;display:flex;flex-direction:column}
+.story-speaker{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#67e8f9;font-weight:800}
+.story-dialogue-copy{font-size:clamp(15px,2.2vw,19px);line-height:1.75;color:#e2e8f0;margin:12px 0 20px;white-space:pre-line}
+.story-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto}
+.story-progress{font-size:11px;color:#94a3b8}
+.story-primary{border:1px solid rgba(103,232,249,.4);border-radius:12px;padding:11px 16px;background:linear-gradient(110deg,rgba(8,145,178,.3),rgba(37,99,235,.25));color:#cffafe;font-weight:800;font-size:12px}
+.story-primary:focus-visible,.story-exit:focus-visible{outline:2px solid #67e8f9;outline-offset:3px}
+.story-mission-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}
+.story-mission{border:1px solid rgba(148,163,184,.2);background:rgba(15,23,42,.7);border-radius:16px;padding:16px;min-width:0}
+.story-mission-number{font-size:10px;letter-spacing:.14em;color:#67e8f9;font-weight:800}
+.story-mission h3{font-size:14px;font-weight:800;margin:8px 0;color:#f1f5f9}
+.story-mission p{font-size:12px;line-height:1.6;color:#94a3b8;margin:0}
+.story-note{margin-top:16px;color:#64748b;font-size:11px;line-height:1.5}
+.story-complete{display:none;margin-top:18px;padding:16px;border:1px solid rgba(103,232,249,.22);background:rgba(8,145,178,.08);border-radius:16px}
+.story-complete.is-visible{display:block}
+@media(max-width:560px){.story-topline{margin-bottom:12px}.story-stage{grid-template-columns:1fr;gap:6px}.story-hologram-wrap{min-height:105px}.story-hologram{width:92px}.story-dialogue{min-height:unset}.story-mission-grid{grid-template-columns:1fr}.story-mission{padding:13px}.story-hero{border-radius:18px}}
+@media(prefers-reduced-motion:reduce){.story-hologram{animation:none}}
+
+</style>
 </head>
 <body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-pc color-pastel" id="main-body">
 
@@ -609,6 +648,38 @@
         <div class="mode-menu-footer">İLERLEMEN KORUNUR · SAVAŞ DENGESİ DEĞİŞMEZ</div>
     </div>
 </div>
+
+
+<section id="story-mode-screen" role="dialog" aria-modal="true" aria-labelledby="story-title" aria-hidden="true">
+ <div class="story-shell">
+  <div class="story-topline"><span data-story-ui="protocol">HİKÂYE PROTOKOLÜ · 01</span><button type="button" class="story-exit" onclick="closeStoryMode()" data-story-ui="return">← ANA MENÜ</button></div>
+  <div class="story-hero">
+   <div class="story-kicker" data-story-ui="chapter">BÖLÜM 01 · KAYIP SİNYAL</div>
+   <h2 class="story-title" id="story-title" data-story-ui="heading">Kayıp Sinyal</h2>
+   <p class="story-lead" data-story-ui="lead">Uzak bir istasyon sessizliğe gömüldü. Son sinyal, savunma çekirdeğinin içinden geliyor.</p>
+   <div id="story-dialogue-view">
+    <div class="story-stage">
+     <div class="story-hologram-wrap" aria-hidden="true"><div class="story-hologram"><span>✦</span></div></div>
+     <div class="story-dialogue" aria-live="polite" aria-atomic="true">
+      <div class="story-speaker" id="story-speaker">İSTASYON YAPAY ZEKÂSI</div>
+      <p class="story-dialogue-copy" id="story-dialogue-copy">Bağlantı kuruluyor…</p>
+      <div class="story-controls"><span class="story-progress" id="story-progress">01 / 05</span><button type="button" class="story-primary" id="story-next" onclick="advanceStoryDialogue()">DEVAM ET →</button></div>
+     </div>
+    </div>
+   </div>
+   <div id="story-mission-view" hidden>
+    <div class="story-mission-grid">
+     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission1tag">GÖREV 01</div><h3 data-story-ui="mission1title">Savunmayı etkinleştir</h3><p data-story-ui="mission1desc">Kule çekirdeğini çevrimiçi duruma getir ve istasyonun savunma protokolünü öğren.</p></article>
+     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission2tag">GÖREV 02</div><h3 data-story-ui="mission2title">İlk temas</h3><p data-story-ui="mission2desc">Bilinmeyen düşmanların ilk saldırısına karşı koy.</p></article>
+     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission3tag">GÖREV 03</div><h3 data-story-ui="mission3title">Sinyalin kaynağı</h3><p data-story-ui="mission3desc">Savaş sonrasında çekirdeğin kaydettiği gizemli sinyali araştır.</p></article>
+    </div>
+    <div class="story-complete" id="story-prototype-note"><strong data-story-ui="nextstep">Sıradaki adım</strong><p class="story-lead" data-story-ui="nextdesc">Bu ilk sürüm hikâye girişini ve görev akışını kurar. Gerçek görev savaşları sonraki aşamada mevcut savaş motoruna güvenli biçimde bağlanacak.</p></div>
+    <div class="story-controls" style="margin-top:20px"><span class="story-progress" id="story-mission-progress">HİKÂYE KAYDI AYRI TUTULUR</span><button type="button" class="story-primary" onclick="closeStoryMode()" data-story-ui="backmenu">ANA MENÜYE DÖN</button></div>
+   </div>
+   <p class="story-note" data-story-ui="save-note">Hikâye ilerlemesi ayrı kaydedilir. Sonsuz Mod kaydına ve savaş dengesine dokunulmaz.</p>
+  </div>
+ </div>
+</section>
 
 
     <header class="bg-slate-900/95 backdrop-blur-xl border-b border-slate-800 p-2 sm:p-3 flex items-center justify-between z-20 shadow-lg shrink-0">
