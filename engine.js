@@ -279,6 +279,9 @@ function spawnEnemy(isBoss = false) {
         }
         if (typeof showBattleMoment === 'function') {
             showBattleMoment('boss', { name, wave: w, subtype: chosenBoss });
+            if (typeof window !== 'undefined' && typeof window.pikoReactEvent === 'function') {
+                window.pikoReactEvent('boss', { name, wave: w, subtype: chosenBoss });
+            }
         }
     } else {
         const roll = Math.random();
@@ -907,6 +910,9 @@ function killEnemy(enemy) {
         showToast(`${enemy.name || 'Boss'} İmha Edildi! +${formatNumber(c)} Kristal!`);
         if (typeof showBattleMoment === 'function') {
             showBattleMoment('bossKill', { name: enemy.name || 'Boss', gold: goldEarned, crystals: c });
+            if (typeof window !== 'undefined' && typeof window.pikoReactEvent === 'function') {
+                window.pikoReactEvent('bossKill', { name: enemy.name || 'Boss', gold: goldEarned, crystals: c });
+            }
         }
     } else if (Math.random() * 100 < crystalChance) {
         const cAmt = Math.max(1, Math.round(crystalMult));
