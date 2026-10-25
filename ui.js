@@ -3669,7 +3669,31 @@ const GAME_TRANSLATIONS = {
     "Başarım": "Achievement",
     "Düşmanlar": "Enemies",
     "Düşman": "Enemy",
-    "Çıkış": "Exit"
+    "Çıkış": "Exit",
+    "Kule Savunma: Sonsuz Döngü | v2.0.0": "Tower Defense: Endless Loop | v2.0.0",
+    "Eşyalar (": "Items (",
+    "Yoldaş (": "Companions (",
+    "Zırh": "Armor",
+    "Sisifos'un Kayası": "Sisyphus' Rock",
+    "Kanlı Kum Saati": "Blood Hourglass",
+    "Gölge Kunai": "Shadow Kunai",
+    "Çubuk kayarken": "While the bar is moving",
+    "sarı": "yellow",
+    "bölgede kilitle:": "lock in the zone:",
+    "bölgede:": "in the zone:",
+    "Kombo Serisi: 0x (Çarpan: x1.0)": "Combo Streak: 0x (Multiplier: x1.0)",
+    "Not: Sıralama puanları şu an oyun istemcisinden bildirilir; henüz sunucu tarafından oynanışla doğrulanmaz.": "Note: Leaderboard scores are currently reported by the game client and are not yet server-verified against gameplay.",
+    "Hesap oluşturarak ilerlemeni buluta yedekle! Telefondan kasıp tabletten veya PC'den aynı hesapla devam et ve": "Create an account to back up your progress to the cloud! Play on your phone, then continue on a tablet or PC with the same account and",
+    "İsim": "Name",
+    "Günlük görevler bu cihazda saklanır ve istemci tarafında hesaplanır. Ödüller rekabetçi veya gerçek para değeri taşıyan ödüller değildir.": "Daily quests are stored on this device and calculated client-side. Rewards have no competitive or real-money value.",
+    "Rozet ve başarımlar mevcut oyun istatistiklerine dayanır. İstemci tarafında hesaplandıkları için tek başlarına hileye dayanıklı rekabet kanıtı değildir.": "Badges and achievements are based on current game statistics. Since they are calculated client-side, they are not independently cheat-proof proof of competition.",
+    "Eşyaları ada, açıklamaya, nadirliğe ve türe göre filtrele; ayrıntılarını aç ve tekrar eden envanter kayıtlarının temizlenmesini sağla.": "Filter items by name, description, rarity, and type; view their details and clean up duplicate inventory entries.",
+    "İlk boss, dalga rekorları ve imha istatistikleri profilinde takip edilir; komutan rozetleri kozmetik ilerleme sağlar.": "Your first boss, wave records, and defeat statistics are tracked in your profile; commander badges provide cosmetic progression.",
+    "Canvas üzerinde çizilen, hareketli aurora şeritleri, yıldız tozu ve kuantum halkalarıyla özgün sezon teması. Dış görsel veya müzik dosyası indirmez.": "An original seasonal theme drawn on canvas, with moving aurora ribbons, stardust, and quantum rings. It downloads no external images or music files.",
+    "Müzik düğmesiyle açılıp kapatılabilen, Web Audio API ile üretilen düşük sesli atmosferik tonlar. Otomatik başlamaz ve dış servise bağlanmaz.": "Soft atmospheric tones generated with the Web Audio API. Toggle them with the music button; they do not start automatically or connect to an external service.",
+    "Düşman imhası, boss savaşı, oyun süresi ve dalga ilerlemesi hedefleri. Görev başına bir kez altın/kristal ödülü; günlük sıfırlama yerel tarihe göre çalışır.": "Objectives cover enemy defeats, boss fights, play time, and wave progress. Each quest grants gold/crystals once; daily reset follows the local date.",
+    "Görevler ve ses istemci tarafındadır. Bu dal canlıya dağıtılmadı; mobil/masaüstü manuel testleri ve CI tamamlanmadan yayımlanmış sayılmaz.": "Quests and sound run client-side. This branch has not been deployed; it should not be considered released until mobile/desktop manual tests and CI are complete.",
+    "Trajedi Maskesi": "Tragedy Mask"
 };
 
 const gameTextOriginals = new WeakMap();
