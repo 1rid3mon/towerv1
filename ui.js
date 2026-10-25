@@ -3436,6 +3436,9 @@ function updateStoryMissionBoard() {
     if (status) status.textContent = progress.mission1Complete
         ? (storyLanguage() === 'en' ? 'CORE STABLE' : 'ÇEKİRDEK GÜVENDE')
         : (storyLanguage() === 'en' ? 'PLAYABLE MISSION' : 'OYNANABİLİR GÖREV');
+    document.querySelectorAll('.story-mission-status.is-locked').forEach(node => {
+        node.textContent = storyLanguage() === 'en' ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
+    });
 }
 function storyDeepCopy(value) { return JSON.parse(JSON.stringify(value)); }
 function startStoryMission(missionNumber = 1) {
