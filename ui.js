@@ -4672,6 +4672,10 @@ function finishStoryBattleEncounter() {
         return;
     }
 
+    // Only missions 1 and 2 use the generic combat/scan completion path below.
+    // Unknown or out-of-order phases must never fall through and falsely award mission 2.
+    if (![1, 2].includes(session.mission)) return;
+
     session.completed = true; isPaused = true; enemies = []; projectiles = [];
     if (session.mission === 1) {
         session.companionSynced = true;
