@@ -3800,6 +3800,27 @@ function finishStoryBattleEncounter() {
     if (companionIcon && session.mission === 1) companionIcon.textContent = '✦';
     showToast(en ? 'Mission complete. Story progress saved separately.' : 'Görev tamamlandı. Hikâye ilerlemesi ayrı kaydedildi.');
 }
+function scanStorySignal() {
+    const session = window.__storyBattle;
+    if (!session || !session.active || session.mission !== 2 || session.phase !== 'scan' || session.completed) return;
+    session.scans = Math.min(3, (session.scans || 0) + 1);
+    const en = storyLanguage() === 'en';
+    const clues = en
+        ? ['Trace 1: a weak pulse repeats every 4.2 seconds.', 'Trace 2: the timestamp predates the station shutdown.', 'Trace 3: the echo contains a voiceprint that matches the blue hologram.']
+        : ['İz 1: zayıf bir sinyal her 4,2 saniyede bir tekrarlanıyor.', 'İz 2: zaman damgası istasyonun kapanışından daha eski.', 'İz 3: yankıda mavi hologramla eşleşen bir ses izi var.'];
+    const status = document.getElementById('story-battle-status');
+    if (session.scans >= 3) {
+        if (status) status.textContent = clues[2] + (en ? ' All three traces are stored.' : ' Üç iz de kaydedildi.');
+        setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bu ses… sanki benim içimden geliyor. Ama ben bu kaydı hiç yaşamadım.','This voice… it feels like it comes from inside me. But I have never lived this recording.');
+        finishStoryBattleEncounter();
+        return;
+    }
+    if (status) status.textContent = clues[session.scans - 1] + (en ? ' Continue scanning.' : ' Taramaya devam et.');
+    const action = document.getElementById('story-scan-action');
+    if (action) action.textContent = en ? 'SCAN TRACE ' + (session.scans + 1) + ' / 3' : 'SİNYAL İZİNİ TARA ' + (session.scans + 1) + ' / 3';
+    setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bir iz daha. Bu sinyal kapanıştan önce varmış.','One more trace. This signal existed before the shutdown.');
+    showToast(en ? 'Signal trace recovered (' + session.scans + '/3).' : 'Sinyal izi kurtarıldı (' + session.scans + '/3).');
+}
 function inspectStoryMemory() {
     const session = window.__storyBattle;
     if (!session || !session.active || session.mission !== 8 || session.phase !== 'memory' || session.completed) return;
