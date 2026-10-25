@@ -3508,6 +3508,13 @@ function updateStoryMissionBoard() {
         if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status','story-mission-6-status','story-mission-7-status','story-mission-8-status','story-mission-9-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
     });
 }
+function setStoryComms(speakerTr, speakerEn, textTr, textEn) {
+    const speaker = document.getElementById('story-comms-speaker');
+    const line = document.getElementById('story-comms-line');
+    const en = storyLanguage() === 'en';
+    if (speaker) speaker.textContent = en ? speakerEn : speakerTr;
+    if (line) line.textContent = en ? textEn : textTr;
+}
 function storyDeepCopy(value) { return JSON.parse(JSON.stringify(value)); }
 function startStoryMission(missionNumber = 1) {
     const progress = getStoryProgress();
@@ -3563,6 +3570,19 @@ function startStoryMission(missionNumber = 1) {
     if (screen) { screen.classList.remove('is-open'); screen.setAttribute('aria-hidden', 'true'); }
     const hud = document.getElementById('story-battle-hud');
     if (hud) { hud.hidden = false; hud.classList.add('is-active'); }
+    const commsByMission = {
+        1: ['İSTASYON YAPAY ZEKÂSI','STATION AI','Savunma protokolü çöktü. Çekirdek yeniden güç kazanıyor; komutan, ilk teması karşıla.','Defense protocol has collapsed. The core is regaining power; Commander, prepare for first contact.'],
+        2: ['BAKIM YOLDAŞI','MAINTENANCE COMPANION','Sinyal gövdede üç noktada yankılanıyor. Tehlike geçince izleri birlikte tarayalım.','The signal echoes at three points in the hull. Once the threat passes, let us scan the traces.'],
+        3: ['KOMUTAN','COMMANDER','Anten sinyali mi tekrarlıyor, yoksa karakutu bunu daha önce mi duymuş? Bir kaydı seçmeliyiz.','Is the antenna repeating the signal, or did the black box hear it first? We need to inspect one record.'],
+        4: ['İSTASYON YAPAY ZEKÂSI','STATION AI','Güç rezervi tek bir sistemi tam onarabilir. Kalkan daha güvenli, silah kalibrasyonu daha hızlı sonuç verir.','The reserve can fully restore only one system. Shields are safer; weapon calibration is faster.'],
+        5: ['KOMUTAN','COMMANDER','Seçim yapıldı. Koridoru açıp röleyi susturacağız. Bu sinyalin başka bir yere yayılmasına izin veremeyiz.','The choice is made. We will clear the corridor and silence the relay. This signal cannot be allowed to spread.'],
+        6: ['BAKIM YOLDAŞI','MAINTENANCE COMPANION','Burada üç bağlantı kopmuş. Ben panelleri işaretleyeceğim. Sen onarımı tamamla.','Three connections are severed here. I will mark the panels. You complete the repairs.'],
+        7: ['İSTASYON YAPAY ZEKÂSI','STATION AI','Haberleşme dizisi sinyali güçlendiriyor. Savunmayı sürdür; yükselticiyi kapatırsak kaynağın yönünü bulabiliriz.','The communications array is amplifying the signal. Hold the defense; shutting down the amplifier may reveal its origin.'],
+        8: ['KOMUTAN','COMMANDER','Bu oda aynı oda. Ama kayıtlar birbirini tutmuyor. Mavi görüntü bir şeyi hatırlıyor—istasyon ise bunun yaşanmadığını söylüyor.','This is the same room. But the records contradict each other. The blue image remembers something—the station insists it never happened.'],
+        9: ['BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bağlantı kopuyor… Komutan, çekirdeği koru. Bu kez kaçmayacağım. Ne olduğumu hatırlamaya hazırım.','The link is breaking… Commander, protect the core. I will not retreat this time. I am ready to remember what I am.']
+    };
+    const openingLine = commsByMission[missionNumber];
+    if (openingLine) setStoryComms(...openingLine);
     const status = document.getElementById('story-battle-status');
     if (status) {
         if (missionNumber === 1) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 8 hostiles and stabilize the core.' : 'GÖREV: 8 düşmanı durdur ve çekirdeği güvene al.';
@@ -3641,6 +3661,7 @@ function finishStoryBattleEncounter() {
         showToast(en ? 'Mission 08 complete. The contradiction is recorded.' : '8. görev tamamlandı. Çelişki kaydedildi.');
         return;
     }
+    setStoryComms('KOMUTAN','COMMANDER','Seni kaybetmeyeceğim. Bağlantıyı yeniden kuruyoruz—şimdi!','I will not lose you. We are restoring the link—now!');
     if (session.mission === 9 && session.phase === 'reconnect') {
         session.phase = 'awaken'; isPaused = true;
         const status = document.getElementById('story-battle-status');
@@ -3651,6 +3672,7 @@ function finishStoryBattleEncounter() {
         const awaken = document.getElementById('story-awaken-action'); if (awaken) awaken.hidden = false;
         return;
     }
+    setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Ben… bunu daha önce yaptım. Bu ışık benim değil. Bu ışık benim hatırladığım şey.','I… have done this before. This light is not mine. It is what I remember.');
     if (session.mission === 9 && session.phase === 'awaken') {
         session.phase = 'pulseTest'; session.companionSynced = true; isPaused = true;
         const status = document.getElementById('story-battle-status');
@@ -3661,6 +3683,7 @@ function finishStoryBattleEncounter() {
         const pulse = document.getElementById('story-pulse-action'); if (pulse) pulse.hidden = false;
         return;
     }
+    setStoryComms('MAVİ YANKI','BLUE ECHO','Uyanma. Henüz değil. Eğer beni duyabiliyorsan… istasyonun altında ne olduğunu unutma.','Do not wake. Not yet. If you can hear me… do not forget what lies beneath the station.');
     if (session.mission === 9 && session.phase === 'pulseTest') {
         session.completed = true; session.companionSynced = true; isPaused = true;
         saveStoryProgress({ introSeen: true, chapter: 1, mission9Complete: true, companionForm: 'cyan' });
@@ -3673,6 +3696,7 @@ function finishStoryBattleEncounter() {
         showToast(storyLanguage() === 'en' ? 'Chapter 01 complete. Companion form saved.' : '1. bölüm tamamlandı. Yoldaşın formu kaydedildi.');
         return;
     }
+    setStoryComms('BAKIM YOLDAŞI','MAINTENANCE COMPANION','Bir bağlantı daha tamamlandı. Bu ses… tanıdık geliyor. Nedenini bilmiyorum.','One more connection restored. This sound… feels familiar. I do not know why.');
     if (session.mission === 6 && session.phase === 'repair') {
         session.repairs = Math.min(3, (session.repairs || 0) + 1);
         const status = document.getElementById('story-battle-status');
@@ -3696,6 +3720,7 @@ function finishStoryBattleEncounter() {
         showToast(en ? 'Mission 06 complete. The flicker is logged, not an evolution.' : '6. görev tamamlandı. Işık kaydedildi; bu henüz evrim değil.');
         return;
     }
+    setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Sinyal dışarıdan gelmiyor. Döngü, istasyonun içinden besleniyor.','The signal is not coming from outside. The loop is being fed from inside the station.');
     if (session.mission === 7 && session.phase === 'amplifier') {
         session.completed = true; isPaused = true;
         saveStoryProgress({ introSeen: true, chapter: 1, mission7Complete: true });
@@ -3708,7 +3733,8 @@ function finishStoryBattleEncounter() {
         showToast(storyLanguage() === 'en' ? 'Mission 07 complete. Signal origin narrowed down.' : '7. görev tamamlandı. Sinyalin kaynağı daraltıldı.');
         return;
     }
-    if (session.mission === 5 && session.phase === 'relay') {
+    setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Röle açığa çıktı. Paket, mavi yankıdaki ses örüntüsüyle eşleşiyor.','The relay is exposed. Its packet matches the voice pattern in the blue echo.');
+        if (session.mission === 5 && session.phase === 'relay') {
         session.completed = true; isPaused = true;
         saveStoryProgress({ introSeen: true, chapter: 1, mission5Complete: true });
         const status = document.getElementById('story-battle-status');
