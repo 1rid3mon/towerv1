@@ -3129,44 +3129,81 @@ document.addEventListener('DOMContentLoaded', () => {
     let hideBubbleTimer = null;
     let dragFrame = 0;
     let pendingPointer = null;
-    const defaultLines = [
-        'Savunma hattı bende, komutan!',
-        'Bir sonraki hamleni merak ediyorum.',
-        'Bu kuleyle iyi bir ikili olduk!',
-        'Hazırım. Sen ne zaman hazırsan. ✨'
-    ];
-    // Tepkiler, yoldaş kostümüne değil oyuncunun kuşandığı KULE SKİNİNE göre seçilir.
-    const towerSkinLines = {
-        default_cyber: ['Siber çekirdekler kararlı. Sistem hazır! ⚡', 'Bu plazma parıltısına bayılıyorum.'],
-        kurt_kaan: ['Kurt Kaan ile sürü gibi güçlüyüz! 🐺', 'Bir uluma duysam da düşmanlar kaçsa.'],
-        dgdvrn: ['Altın kaplama mı? Komutan, zevkin pahalı! 👑', 'Bu kadar parıltıyla düşman bizi görmeden yenilecek.'],
-        black_hole: ['O kara deliğe fazla yaklaşmayalım... 🕳️', 'Uzay-zaman bükülüyor. Ben gayet sakinim.'],
-        nane_tower: ['Nane ferahlığı, tam savaş öncesi lazım olan şey! 🌿', 'Buz gibi strateji, komutan.'],
-        sunkas_tower: ['Güneş kadar parlak, savunma kadar sağlam! ☀️', 'Bu ışıkta güneş gözlüğü takmalıydım.'],
-        ates_tower: ['Sıcaklık yükseliyor! Ben biraz geride durayım. 🔥', 'Alevler şahane ama kaşlarımı seviyorum.'],
-        teyzir_tower: ['Yüksek voltaj, yüksek moral! ⚡', 'Elektrikleniyorum... mecazen!'],
-        bubblegum: ['Balonlar tatlı, patlamaları daha da tatlı! 🫧', 'Sakız gibi yapışkan bir savunma.'],
-        cyber_samurai: ['Keskin ve disiplinli. Saygı duydum. 🥷', 'Bu kuleyle sessizce kazanacağız.'],
-        snowman: ['Bana da bir atkı ayırın! ⛄', 'Düşmanlar erimeden önce donsun!'],
-        star_cruiser: ['Rotamız zafer, kaptan! 🚀', 'Yıldızlara doğru... ama önce şu dalga.'],
-        dragon: ['Ejderha bizim tarafta, içim rahat. 🐉', 'Umarım ateş püskürtürken alarm çalmaz.'],
-        fighter_jet: ['Kalkış izni verildi! ✈️', 'Hız, irtifa, savunma! Hepsi tamam.'],
-        lion: ['Ormanın kralı yanımızda. Kükre komutan! 🦁', 'Bu savunma aslan gibi.'],
-        tiger: ['Sessiz, çevik ve tehlikeli. 🐯', 'Pençeler hazırsa ben de hazırım.'],
-        sofa: ['Kraliyet koltuğu mu? Savunma VIP oldu! 🛋️', 'Komutan, savaş sonrası oturacak yerimiz hazır.'],
-        robot: ['Meka protokolü çevrimiçi. 🤖', 'Bu çelik dostla sistem hata vermez umarım.'],
-        fire_demon: ['Ateş iblisi bile benden daha sakin görünüyor. 👹', 'Bu kuleyle düşmanlara sıcak bir karşılama!'],
-        car: ['Vınnn! Bu savunma tam gaz! 🚗', 'Virajı al, dalgayı geç!'],
-        monkey: ['Muz molası mı? Önce düşmanları halledelim. 🐵', 'Bu maymunun planını anlamadım ama işe yarıyor!'],
-        tree: ['Kökler sağlam, savunma sağlam. 🌳', 'Biraz doğa, biraz strateji.'],
-        sleep_emoji: ['Uyan komutan, kule uyumuyor! 😴', 'Şşşt... düşmanları uyandırmadan yenelim.'],
-        alien: ['Dünya savunması için geldim. 👽', 'Bunlar kesin dünya dışı düşmanlar değil mi?'],
-        bird: ['Kanatlar hazır, gökyüzü bizim! 🐦', 'Yukarıdan her şeyi görüyorum.'],
-        water_bottle: ['Bir yudum su, bir dalga daha. 🧴', 'Susuz kalma komutan, savunma uzun sürecek.'],
-        chair: ['RGB ışıkları aç, mücadele başlıyor! 🪑', 'Oyuncu koltuğu taktik avantaj sayılır mı?'],
-        table: ['Harita önümde, strateji hazır. 🪵', 'Taktik masa kuruldu. Planımız sağlam.'],
-        pizza: ['Zaferden sonra pizza benden! 🍕', 'Peynir uzuyor, düşmanlar kaçıyor.'],
-        toilet: ['Bu skin hakkında sorularım var... 🚽', 'Komutan, mizah anlayışına saygı duyuyorum.']
+    let ambientTimer = null;
+    let lastLine = '';
+    let ambientCount = 0;
+    const MAX_AMBIENT_LINES = 5;
+
+    // The mascot's identity never changes. Tower skins only influence its commentary.
+    const personality = {
+        tr: {
+            idle: [
+                'Komutan, ben burada dekor değilim. Yani… sadece dekor değilim.',
+                'Planın hazır mı? Benimki hazır: hayatta kal, yükselt, tekrarla.',
+                'Bir kule savunma oyunu oynuyoruz ama asıl savunmam sabrına karşı.',
+                'Bazen en iyi taktik, paniklememektir. Bazen de hasarı artırmaktır.',
+                'Ben küçük bir UFO’yum. Büyük beklentilerim var.',
+                'Bir gün beni de yükseltme menüsüne koyarlar mı? Sadece soruyorum.',
+                'Düşmanlar geliyor. Ben de moral desteği veriyorum. İş bölümü.',
+                'Şu an sessizim çünkü stratejik düşünüyorum. Ya da yükleniyorum.'
+            ],
+            upgrade: [
+                'Altın birikiyorsa onu sahaya geri yatırma zamanı olabilir.',
+                'Bir yükseltmeye göz at, komutan. Düşmanlar da boş durmuyor.',
+                'Kule güçlü, ama biraz daha güçlenmesine kim itiraz eder?',
+                'Yükseltme menüsünde güzel şeyler var. Ben olsam bakardım.'
+            ],
+            danger: [
+                'Komutan, kule biraz hırpalanmış. Savunmayı güçlendirmeyi düşün!',
+                'Can göstergesi pek keyifli görünmüyor. Önce hayatta kalalım.',
+                'Alarmı çalmıyorum ama… tamam, biraz çalıyorum. Kuleyi koru!'
+            ],
+            wave: [
+                'Yeni dalga, yeni sorunlar. Neyse ki sorun çözme konusunda havalıyız.',
+                'Dalga geliyor. Omuzlarını gevşet, hedefini seç, devam et.',
+                'Düşmanlar yine randevusuz geldi. Ne görgüsüzlük.'
+            ],
+            en: [
+                'Commander, I am not just decoration. Okay, not ONLY decoration.',
+                'The plan is simple: survive, upgrade, repeat. Very scientific.',
+                'I am a tiny UFO with enormous expectations.',
+                'Enemies incoming. I provide moral support. Teamwork!',
+                'I am thinking strategically. Or buffering. Hard to tell.',
+                'A tower defense game, and somehow I am defending your patience.'
+            ],
+            skin: {
+                default_cyber: ['Siber çekirdek kararlı. Ben de… çoğunlukla. ⚡', 'Temiz plazma, temiz plan. Beğendim.'],
+                kurt_kaan: ['Kurt Kaan ile sürü gibi güçlüyüz! 🐺', 'Bir uluma duysam da düşmanlar kaçsa.'],
+                dgdvrn: ['Altın kaplama mı? Komutan, zevkin pahalı. 👑', 'Bu kadar parıltıyla düşman bizi görmeden yenilecek. Umarım.'],
+                black_hole: ['O kara deliğe fazla yaklaşmayalım. Benim kaybolacak çok güzel bir geleceğim var. 🕳️', 'Uzay-zaman bükülüyor. Ben gayet sakinim. Dışarıdan öyle görünüyor mu?'],
+                nane_tower: ['Nane ferahlığı, savaş öncesi lazım olan şey. 🌿', 'Buz gibi strateji. Kelimenin tam anlamıyla.'],
+                sunkas_tower: ['Güneş kadar parlak! Güneş gözlüğüm nerede? ☀️', 'Bu kuleyle gölgemiz bile kritik hasar veriyor.'],
+                ates_tower: ['Sıcaklık yükseliyor. Ben biraz geride durayım. 🔥', 'Alevler şahane ama kaşlarımı seviyorum.'],
+                teyzir_tower: ['Yüksek voltaj, yüksek moral! ⚡', 'Elektrikleniyorum… mecazen. Umarım.'],
+                bubblegum: ['Balonlar tatlı, patlamaları daha da tatlı! 🫧', 'Sakız gibi yapışkan savunma. Ayakkabıya basmayalım yeter.'],
+                cyber_samurai: ['Keskin ve disiplinli. Saygı duydum. 🥷', 'Bu kuleyle sessizce kazanacağız. Ben konuşmam zaten. Çok konuşmam.'],
+                snowman: ['Bana da bir atkı ayırın! ⛄', 'Düşmanlar erimeden önce donsun. Mantıklı.'],
+                star_cruiser: ['Rotamız zafer, kaptan! 🚀', 'Yıldızlara doğru… ama önce şu dalga.'],
+                dragon: ['Ejderha bizim tarafta, içim rahat. 🐉', 'Ateş püskürtme izni bende değil, değil mi?'],
+                fighter_jet: ['Kalkış izni verildi! ✈️', 'Hız, irtifa, savunma. Kahvemi de alayım mı?'],
+                lion: ['Ormanın kralı yanımızda. Kükreme kısmını sana bırakıyorum. 🦁', 'Bu savunma aslan gibi. Kedi gibi değil.'],
+                tiger: ['Sessiz, çevik ve tehlikeli. 🐯', 'Pençeler hazırsa ben de hazırım.'],
+                sofa: ['Kraliyet koltuğu mu? Savunma VIP oldu! 🛋️', 'Komutan, savaş sonrası oturacak yerimiz hazır. Ben zaten havada oturuyorum.'],
+                robot: ['Meka protokolü çevrimiçi. 🤖', 'Çelik dost iyi görünüyor. Mavi ekran vermesin yeter.'],
+                fire_demon: ['Ateş iblisi bile benden sakin görünüyor. 👹', 'Düşmanlara sıcak bir karşılama. Fazla sıcak.'],
+                car: ['Vınnn! Bu savunma tam gaz! 🚗', 'Virajı al, dalgayı geç. Emniyet kemeri nerede?'],
+                monkey: ['Muz molası mı? Önce düşmanları halledelim. 🐵', 'Planı anlamadım ama maymun enerjisine güveniyorum.'],
+                tree: ['Kökler sağlam, savunma sağlam. 🌳', 'Biraz doğa, biraz strateji. Fotosentez de yükseltme sayılır mı?'],
+                sleep_emoji: ['Uyan komutan, kule uyumuyor! 😴', 'Şşşt… düşmanları uyandırmadan yenelim.'],
+                alien: ['Dünya savunması için geldim. 👽', 'Bunlar kesin dünya dışı düşmanlar değil mi? Çok klişe.'],
+                bird: ['Kanatlar hazır, gökyüzü bizim! 🐦', 'Yukarıdan her şeyi görüyorum. Evet, o atıştırmalığı da.'],
+                water_bottle: ['Bir yudum su, bir dalga daha. 🧴', 'Su içmeyi unutma komutan. Benim hidrasyonum yok, kıskanıyorum.'],
+                chair: ['RGB ışıkları aç, mücadele başlıyor! 🪑', 'Oyuncu koltuğu taktik avantaj sayılır mı? Bilim bunu araştırmalı.'],
+                table: ['Harita önümde, strateji hazır. 🪵', 'Taktik masa kuruldu. Planımız sağlam. Umarım.'],
+                pizza: ['Zaferden sonra pizza benden! 🍕', 'Peynir uzuyor, düşmanlar kaçıyor. Güzel fizik.'],
+                toilet: ['Bu skin hakkında sorularım var… 🚽', 'Komutan, mizah anlayışına saygı duyuyorum. Biraz endişeliyim de.']
+            }
+        }
     };
 
     function getTowerSkin() {
@@ -3174,23 +3211,58 @@ document.addEventListener('DOMContentLoaded', () => {
         const db = typeof SKIN_DATABASE !== 'undefined' ? SKIN_DATABASE : {};
         return { id, def: db[id] || db.default_cyber || { name: 'Plazma Kulesi', emoji: '⚡' } };
     }
+    function isEnglish() {
+        try { return localStorage.getItem('towerDefenseLanguage') === 'en'; } catch (_) { return false; }
+    }
+    function chooseLine(lines) {
+        if (!Array.isArray(lines) || !lines.length) return 'Hazırım, komutan!';
+        const options = lines.filter(line => line !== lastLine);
+        const line = (options.length ? options : lines)[Math.floor(Math.random() * (options.length ? options : lines).length)];
+        lastLine = line;
+        return line;
+    }
     function syncMascot() {
         const skin = getTowerSkin();
         face.textContent = '🛸';
-        mascot.setAttribute('aria-label', 'Taktik maskot — ' + skin.def.name + ' skinine tepki vermek için dokun');
-        mascot.title = 'Taktik maskot · ' + skin.def.name;
+        mascot.setAttribute('aria-label', isEnglish() ? 'Tactical mascot — tap to chat' : 'Taktik maskot — konuşmak için dokun');
+        mascot.title = isEnglish() ? 'Tactical mascot · ' + skin.def.name : 'Taktik maskot · ' + skin.def.name;
         return skin;
     }
-    function react() {
-        const skin = syncMascot();
-        const lines = towerSkinLines[skin.id] || [
-            skin.def.name + ' bayağı havalı görünüyor, komutan!',
-            skin.def.name + ' ile bu savunma akılda kalacak. ' + (skin.def.emoji || '✨')
-        ];
-        bubble.textContent = lines[Math.floor(Math.random() * lines.length)];
+    function getContextLine() {
+        const english = isEnglish();
+        const skin = getTowerSkin();
+        const hp = (typeof tower !== 'undefined' && tower && Number.isFinite(tower.hp)) ? tower.hp : null;
+        const maxHp = (typeof tower !== 'undefined' && tower && Number.isFinite(tower.maxHp) && tower.maxHp > 0) ? tower.maxHp : null;
+        const hpRatio = hp !== null && maxHp !== null ? hp / maxHp : 1;
+        if (hpRatio < 0.38) return chooseLine(english ? ['Tower integrity is low. Defense upgrade might be a good idea!', 'Commander, the tower is looking rough. Let’s reinforce it.'] : personality.tr.danger);
+        if (typeof game !== 'undefined' && game && Number.isFinite(game.gold) && game.gold >= 100) {
+            const affordableUpgrade = typeof UPGRADE_DEFS !== 'undefined' && Object.keys(UPGRADE_DEFS).find(key => {
+                const button = document.getElementById('upg-btn-' + key);
+                return button && !button.disabled;
+            });
+            if (affordableUpgrade && Math.random() < 0.58) {
+                const def = UPGRADE_DEFS[affordableUpgrade];
+                const name = def ? (typeof localizeGameContent === 'function' ? localizeGameContent(def.name) : def.name) : '';
+                return english
+                    ? 'You have some gold to invest. Check the upgrade panel when you get a moment.'
+                    : 'Altın birikmiş, komutan. ' + (name ? name + ' yükseltmesine' : 'bir yükseltmeye') + ' göz atmak iyi olabilir.';
+            }
+        }
+        if (typeof game !== 'undefined' && game && Number.isFinite(game.wave) && game.wave > 1 && Math.random() < 0.45) {
+            return chooseLine(english ? personality.en : personality.tr.wave);
+        }
+        const skinLines = personality.tr.skin[skin.id];
+        if (skinLines && Math.random() < 0.58) return chooseLine(skinLines);
+        return chooseLine(english ? personality.en : personality.tr.idle);
+    }
+    function showLine(line) {
+        syncMascot();
+        bubble.textContent = line;
         const rect = mascot.getBoundingClientRect();
-        bubble.style.left = Math.max(8, Math.min(window.innerWidth - Math.min(230, window.innerWidth - 32) - 8, rect.left + rect.width / 2 - 115)) + 'px';
-        bubble.style.top = Math.max(8, rect.top - 58) + 'px';
+        const bubbleWidth = Math.min(260, window.innerWidth - 32);
+        bubble.style.left = Math.max(8, Math.min(window.innerWidth - bubbleWidth - 8, rect.left + rect.width / 2 - bubbleWidth / 2)) + 'px';
+        bubble.style.top = Math.max(8, rect.top - 64) + 'px';
+        bubble.style.width = bubbleWidth + 'px';
         bubble.style.right = 'auto';
         bubble.style.bottom = 'auto';
         bubble.classList.add('is-visible');
@@ -3198,7 +3270,25 @@ document.addEventListener('DOMContentLoaded', () => {
         void mascot.offsetWidth;
         mascot.classList.add('mascot-react');
         clearTimeout(hideBubbleTimer);
-        hideBubbleTimer = setTimeout(() => bubble.classList.remove('is-visible'), 2600);
+        hideBubbleTimer = setTimeout(() => bubble.classList.remove('is-visible'), 3600);
+    }
+    function react() {
+        showLine(getContextLine());
+    }
+    function isGameVisible() {
+        const menu = document.getElementById('mode-main-menu');
+        return document.visibilityState === 'visible' && (!menu || menu.classList.contains('menu-hidden'));
+    }
+    function scheduleAmbientLine() {
+        clearTimeout(ambientTimer);
+        if (ambientCount >= MAX_AMBIENT_LINES) return;
+        ambientTimer = setTimeout(() => {
+            if (isGameVisible() && !bubble.classList.contains('is-visible') && !mascot.classList.contains('is-dragging')) {
+                showLine(getContextLine());
+                ambientCount++;
+            }
+            scheduleAmbientLine();
+        }, 36000 + Math.random() * 30000);
     }
 
     function initializeMascotDrag() {
@@ -3291,6 +3381,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     syncMascot();
+    scheduleAmbientLine();
 })();
 
 
