@@ -3479,6 +3479,8 @@ const GAME_TRANSLATIONS = {
     "Nasıl bir mücadeleye hazırsın, komutan? Bir dünyayı kurtar ya da sınırlarını sonsuza kadar zorla.": "What challenge are you ready for, Commander? Save a world or push your limits forever.",
     "Hikâye Modu": "Story Mode",
     "Dünyaları keşfet, yeni tehditlerle yüzleş ve final boss'una ulaş. Hikâye yolculuğu hazırlanıyor.": "Explore worlds, face new threats, and reach the final boss. The story campaign is in development.",
+    "Bilinmeyen sinyali araştır, ekibini kur ve istasyonun sırrını ortaya çıkar.": "Investigate the unknown signal, assemble your crew, and uncover the station's secret.",
+    "Bölüme gir": "Enter chapter",
     "Yakında gelecek": "Coming soon",
     "Sonsuz Mod": "Endless Mode",
     "Mevcut savunmana devam et. Dalga sınırı yok; rekorunu geliştir, giderek güçlenen düşmanlara dayan.": "Continue your current defense. No wave limit—beat your record and survive increasingly powerful enemies.",
