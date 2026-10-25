@@ -3124,6 +3124,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let pointerStart = null;
     let moved = false;
+    let dragInitialized = false;
     let hideBubbleTimer = null;
     let dragFrame = 0;
     let pendingPointer = null;
@@ -3199,9 +3200,24 @@ document.addEventListener('DOMContentLoaded', () => {
         hideBubbleTimer = setTimeout(() => bubble.classList.remove('is-visible'), 2600);
     }
 
+    function initializeMascotDrag() {
+        if (dragInitialized || !pointerStart) return;
+        // Do not alter fixed positioning on pointerdown: mobile Safari can
+        // re-map fixed coordinates when its visual viewport/browser chrome shifts.
+        // Only switch to explicit coordinates after a real drag has started.
+        mascot.style.animation = 'none';
+        mascot.style.left = pointerStart.left + 'px';
+        mascot.style.top = pointerStart.top + 'px';
+        mascot.style.right = 'auto';
+        mascot.style.bottom = 'auto';
+        mascot.style.transform = 'translate3d(0,0,0)';
+        mascot.classList.remove('mascot-react');
+        dragInitialized = true;
+    }
+
     function applyDragPosition() {
         dragFrame = 0;
-        if (!pointerStart || !pendingPointer) return;
+        if (!pointerStart || !pendingPointer || !dragInitialized) return;
         const dx = pendingPointer.x - pointerStart.x;
         const dy = pendingPointer.y - pointerStart.y;
         const maxLeft = Math.max(0, window.innerWidth - mascot.offsetWidth);
@@ -3217,16 +3233,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const rect = mascot.getBoundingClientRect();
         pointerStart = { x: event.clientX, y: event.clientY, left: rect.left, top: rect.top };
         moved = false;
+        dragInitialized = false;
         pendingPointer = { x: event.clientX, y: event.clientY };
-        // Disable the idle animation before measuring movement so its transform
-        // cannot fight the user's finger or make the mascot appear to jitter.
-        mascot.style.animation = 'none';
-        mascot.style.left = rect.left + 'px';
-        mascot.style.top = rect.top + 'px';
-        mascot.style.right = 'auto';
-        mascot.style.bottom = 'auto';
-        mascot.style.transform = 'translate3d(0,0,0)';
-        mascot.classList.remove('mascot-react');
+        // A tap leaves the mascot's original CSS position completely untouched.
         mascot.setPointerCapture?.(event.pointerId);
     });
     mascot.addEventListener('pointermove', (event) => {
@@ -3236,13 +3245,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const dy = event.clientY - pointerStart.y;
         if (!moved && Math.hypot(dx, dy) > 5) {
             moved = true;
+            initializeMascotDrag();
             mascot.classList.add('is-dragging');
         }
         if (moved && !dragFrame) dragFrame = requestAnimationFrame(applyDragPosition);
     });
-    function finishPointer(event) {
+    function finishPointer(event, cancelled = false) {
         if (!pointerStart) return;
-        if (event && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
+        // pointercancel coordinates may be stale or reported as (0, 0) on mobile.
+        // Keep the last actual pointermove position rather than teleporting the mascot.
+        if (!cancelled && event && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
             pendingPointer = { x: event.clientX, y: event.clientY };
         }
         if (dragFrame) {
@@ -3251,7 +3263,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (moved) applyDragPosition();
         }
         const wasDragged = moved;
-        if (wasDragged) {
+        if (wasDragged && dragInitialized && pendingPointer) {
             const dx = pendingPointer.x - pointerStart.x;
             const dy = pendingPointer.y - pointerStart.y;
             const maxLeft = Math.max(0, window.innerWidth - mascot.offsetWidth);
@@ -3263,12 +3275,14 @@ document.addEventListener('DOMContentLoaded', () => {
         pointerStart = null;
         pendingPointer = null;
         moved = false;
+        dragInitialized = false;
         mascot.classList.remove('is-dragging');
         mascot.style.animation = '';
-        if (!wasDragged) react();
+        // A canceled touch is not a tap; don't trigger a reaction animation on cancel.
+        if (!wasDragged && !cancelled) react();
     }
-    mascot.addEventListener('pointerup', finishPointer);
-    mascot.addEventListener('pointercancel', finishPointer);
+    mascot.addEventListener('pointerup', (event) => finishPointer(event, false));
+    mascot.addEventListener('pointercancel', (event) => finishPointer(event, true));
     mascot.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
