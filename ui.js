@@ -3367,8 +3367,12 @@ const STORY_UI_COPY = {
  mission3tag:['GÖREV 03','MISSION 03'], mission3title:['Sinyalin kaynağı','Source of the signal'],
  mission3desc:['Sinyalin kaynağını araştır: anten verisini mi, karakutu kaydını mı inceleyeceksin?','Investigate the signal source: will you inspect antenna data or the black-box log.'],
  arrayChoice:['ANTEN VERİSİ','ANTENNA DATA'], blackboxChoice:['KARAKUTU KAYDI','BLACK-BOX LOG'],
- mission3tag:['GÖREV 03','MISSION 03'], mission3title:['Sinyalin kaynağı','Source of the signal'],
- mission3desc:['Savaş sonrasında çekirdeğin kaydettiği gizemli sinyali araştır.','Investigate the mysterious signal recorded by the core after the battle.'],
+ mission4tag:['GÖREV 04','MISSION 04'], mission4title:['Güç dağıtımı','Power Priority'],
+ mission4desc:['İki sistemden birine önce güç ver: savunma kalkanı mı, silah kalibrasyonu mu?','Prioritize one system: defensive shielding or weapon calibration?'],
+ shieldChoice:['KALKANI ONAR','RESTORE SHIELDS'], weaponChoice:['SİLAHI KALİBRE ET','CALIBRATE WEAPONS'],
+ mission5tag:['GÖREV 05','MISSION 05'], mission5title:['Kırık hat','The Broken Line'],
+ mission5desc:['Seçtiğin sistemin avantajıyla koridoru savun ve sinyal rölesini devre dışı bırak.','Use your chosen system’s advantage to defend the corridor and disable the signal relay.'], relayAction:['SİNYAL RÖLESİNİ KAPAT','DISABLE SIGNAL RELAY'],
+
  nextstep:['Sıradaki adım','Next step'], nextdesc:['Mavi görüntü, yoldaşın kayıp hafızasından sızan bozuk bir yankı. Gerçek yoldaş ise çekirdeğin yanında uyanan güçsüz bir bakım birimi. Hikâye ilerledikçe onun neye dönüşebileceğini keşfedeceksin.','The blue image is a corrupted echo leaking from the companion’s lost memory. The real companion is a powerless maintenance unit waking beside the core. As the story unfolds, you will discover what it can become.'],
  backmenu:['ANA MENÜYE DÖN','RETURN TO MAIN MENU'],
  'save-note':['Hikâye ilerlemesi ayrı kaydedilir. Sonsuz Mod kaydına ve savaş dengesine dokunulmaz.','Story progress is saved separately. Endless Mode saves and game balance remain untouched.'],
@@ -3381,8 +3385,8 @@ let storyMissionViewOpen = false;
 function getStoryProgress() {
     try {
         const saved = JSON.parse(localStorage.getItem(STORY_PROGRESS_KEY) || '{}');
-        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Number(saved.chapter) || 1), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true, mission3Complete: saved.mission3Complete === true, routeChoice: ['array','blackbox'].includes(saved.routeChoice) ? saved.routeChoice : null };
-    } catch (_) { return { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false, mission3Complete: false, routeChoice: null }; }
+        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Number(saved.chapter) || 1), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true, mission3Complete: saved.mission3Complete === true, mission4Complete: saved.mission4Complete === true, mission5Complete: saved.mission5Complete === true, routeChoice: ['array','blackbox'].includes(saved.routeChoice) ? saved.routeChoice : null, powerChoice: ['shield','weapon'].includes(saved.powerChoice) ? saved.powerChoice : null };
+    } catch (_) { return { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false, mission3Complete: false, mission4Complete: false, mission5Complete: false, routeChoice: null, powerChoice: null }; }
 }
 function saveStoryProgress(patch) {
     try { localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify({ ...getStoryProgress(), ...patch, updatedAt: Date.now() })); } catch (_) {}
@@ -3464,8 +3468,16 @@ function updateStoryMissionBoard() {
             : (progress.mission2Complete ? (en ? 'PLAYABLE MISSION' : 'OYNANABİLİR GÖREV')
             : (en ? 'LOCKED · COMPLETE MISSION 02' : 'KİLİTLİ · 2. GÖREVİ TAMAMLA'));
     }
+    const m4 = document.getElementById('story-start-mission4');
+    const s4 = document.getElementById('story-mission-4-status');
+    if (m4) { m4.disabled = !progress.mission3Complete || progress.mission4Complete; m4.textContent = progress.mission4Complete ? (en ? 'DECISION LOGGED ✓' : 'KARAR KAYDEDİLDİ ✓') : (en ? 'RESTORE SYSTEMS →' : 'SİSTEMLERİ ONAR →'); }
+    if (s4) { s4.classList.toggle('is-locked', !progress.mission3Complete && !progress.mission4Complete); s4.textContent = progress.mission4Complete ? (en ? 'POWER ROUTED' : 'GÜÇ YÖNLENDİRİLDİ') : (progress.mission3Complete ? (en ? 'PLAYABLE MISSION' : 'OYNANABİLİR GÖREV') : (en ? 'LOCKED · COMPLETE MISSION 03' : 'KİLİTLİ · 3. GÖREVİ TAMAMLA')); }
+    const m5 = document.getElementById('story-start-mission5');
+    const s5 = document.getElementById('story-mission-5-status');
+    if (m5) { m5.disabled = !progress.mission4Complete || progress.mission5Complete; m5.textContent = progress.mission5Complete ? (en ? 'MISSION COMPLETE ✓' : 'GÖREV TAMAMLANDI ✓') : (en ? 'DEPLOY →' : 'GÖREVE BAŞLA →'); }
+    if (s5) { s5.classList.toggle('is-locked', !progress.mission4Complete && !progress.mission5Complete); s5.textContent = progress.mission5Complete ? (en ? 'RELAY DISABLED' : 'RÖLE KAPATILDI') : (progress.mission4Complete ? (en ? 'PLAYABLE MISSION' : 'OYNANABİLİR GÖREV') : (en ? 'LOCKED · COMPLETE MISSION 04' : 'KİLİTLİ · 4. GÖREVİ TAMAMLA')); }
     document.querySelectorAll('.story-mission-status.is-locked').forEach(node => {
-        if (node.id !== 'story-mission-2-status' && node.id !== 'story-mission-3-status') node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
+        if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
     });
 }
 function storyDeepCopy(value) { return JSON.parse(JSON.stringify(value)); }
@@ -3474,14 +3486,16 @@ function startStoryMission(missionNumber = 1) {
     if (missionNumber === 1 && progress.mission1Complete) return;
     if (missionNumber === 2 && (!progress.mission1Complete || progress.mission2Complete)) return;
     if (missionNumber === 3 && (!progress.mission2Complete || progress.mission3Complete)) return;
-    if (![1, 2, 3].includes(missionNumber)) return;
+    if (missionNumber === 4 && (!progress.mission3Complete || progress.mission4Complete)) return;
+    if (missionNumber === 5 && (!progress.mission4Complete || progress.mission5Complete)) return;
+    if (![1, 2, 3, 4, 5].includes(missionNumber)) return;
     if (!updateStoryUnlockUI()) {
         showToast(storyLanguage() === 'en' ? 'Clear 25 waves in Endless Mode first.' : 'Önce Sonsuz Mod’da 25 dalgayı tamamlamalısın.');
         return;
     }
     if (window.__storyBattle.active) return;
     const session = {
-        active: true, completed: false, mission: missionNumber, phase: missionNumber === 3 ? 'investigate' : 'combat', scans: 0, routeChoice: null,
+        active: true, completed: false, mission: missionNumber, phase: missionNumber === 3 ? 'investigate' : (missionNumber === 4 ? 'powerChoice' : 'combat'), scans: 0, routeChoice: null,
         snapshot: {
             game: storyDeepCopy(game), tower: storyDeepCopy(tower),
             enemies: storyDeepCopy(enemies), projectiles: storyDeepCopy(projectiles),
@@ -3498,6 +3512,7 @@ function startStoryMission(missionNumber = 1) {
     game.wave = 1; game.highestWave = 1; game.gold = 180;
     game.waveKills = 0; game.waveTargetKills = missionNumber === 1 ? 8 : 5; game.holdWave = false;
     game.upgrades.damage = 3; game.upgrades.attackSpeed = 2; game.upgrades.range = 3;
+    if (missionNumber === 5 && progress.powerChoice === 'weapon') game.upgrades.damage = 5;
     game.settings.activeTheme = 'space';
     tower = {
         x: canvas.width / 2, y: canvas.height / 2, hp: 100, maxHp: 100, shield: 0, maxShield: 0,
@@ -3506,10 +3521,11 @@ function startStoryMission(missionNumber = 1) {
     };
     tower.maxHp = getTowerMaxHp(); tower.hp = tower.maxHp;
     tower.maxShield = getTowerMaxShield(); tower.shield = tower.maxShield;
+    if (missionNumber === 5 && progress.powerChoice === 'shield') { tower.maxShield += 30; tower.shield = tower.maxShield; }
     enemies = []; projectiles = []; particles = []; floatingTexts = [];
     lightningBeams = []; rings = []; cargoDrones = [];
     spawnTimer = 0; playTimeAccum = 0; waveFrostSpawns = 0; cargoSpawnTimer = 999999;
-    gameSpeed = 1; isPaused = missionNumber === 3; isDefeated = false; defeatTimer = 0;
+    gameSpeed = 1; isPaused = missionNumber === 3 || missionNumber === 4; isDefeated = false; defeatTimer = 0;
     document.body.dataset.gameMode = 'story';
     const screen = document.getElementById('story-mode-screen');
     if (screen) { screen.classList.remove('is-open'); screen.setAttribute('aria-hidden', 'true'); }
@@ -3519,12 +3535,18 @@ function startStoryMission(missionNumber = 1) {
     if (status) {
         if (missionNumber === 1) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 8 hostiles and stabilize the core.' : 'GÖREV: 8 düşmanı durdur ve çekirdeği güvene al.';
         else if (missionNumber === 2) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Stop 5 patrol units, then scan 3 signal traces.' : 'GÖREV: 5 devriye birimini durdur, ardından 3 sinyal izini tara.';
-        else status.textContent = storyLanguage() === 'en' ? 'INVESTIGATION: Choose a data source to trace the signal.' : 'İNCELEME: Sinyalin izini sürmek için bir veri kaynağı seç.';
+        else if (missionNumber === 3) status.textContent = storyLanguage() === 'en' ? 'INVESTIGATION: Choose a data source to trace the signal.' : 'İNCELEME: Sinyalin izini sürmek için bir veri kaynağı seç.';
+        else if (missionNumber === 4) status.textContent = storyLanguage() === 'en' ? 'POWER ROUTING: Choose shields or weapons. This affects your next defense.' : 'GÜÇ DAĞITIMI: Kalkanı veya silahı seç. Seçimin bir sonraki savunmayı etkileyecek.';
+        else status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 6 hostiles, then disable the signal relay.' : 'GÖREV: 6 düşmanı durdur, ardından sinyal rölesini kapat.';
     }
     const action = document.getElementById('story-scan-action');
     if (action) action.hidden = true;
     const investigation = document.getElementById('story-investigation-actions');
     if (investigation) investigation.hidden = missionNumber !== 3;
+    const powerChoices = document.getElementById('story-power-actions');
+    if (powerChoices) powerChoices.hidden = missionNumber !== 4;
+    const relay = document.getElementById('story-relay-action');
+    if (relay) relay.hidden = true;
     const companionChip = document.getElementById('story-companion-chip');
     const companionIcon = document.getElementById('story-companion-icon');
     const companionState = document.getElementById('story-companion-state');
@@ -3541,11 +3563,26 @@ function startStoryMission(missionNumber = 1) {
     if (typeof updateHoldWaveButton === 'function') updateHoldWaveButton();
     if (missionNumber === 1) showToast(storyLanguage() === 'en' ? 'Lost Signal · Mission 01. Your core fires automatically; use the upgrade panel if needed.' : 'Kayıp Sinyal · Görev 01. Çekirdeğin otomatik ateş ediyor; gerekirse yükseltme panelini kullan.');
     else if (missionNumber === 2) showToast(storyLanguage() === 'en' ? 'Mission 02 · Clear the patrol. The companion will help scan the signal traces.' : 'Görev 02 · Devriyeyi durdur. Yoldaş sinyal izlerini taramana yardım edecek.');
-    else showToast(storyLanguage() === 'en' ? 'Mission 03 · Choose which record to inspect.' : 'Görev 03 · Hangi kaydı inceleyeceğini seç.');
+    else if (missionNumber === 3) showToast(storyLanguage() === 'en' ? 'Mission 03 · Choose which record to inspect.' : 'Görev 03 · Hangi kaydı inceleyeceğini seç.');
+    else if (missionNumber === 4) showToast(storyLanguage() === 'en' ? 'Mission 04 · Route power to one subsystem.' : 'Görev 04 · Gücü iki sistemden birine yönlendir.');
+    else showToast(storyLanguage() === 'en' ? 'Mission 05 · The power-routing decision changes your defenses.' : 'Görev 05 · Güç dağıtımı kararın savunmanı değiştiriyor.');
 }
 function finishStoryBattleEncounter() {
     const session = window.__storyBattle;
     if (!session || !session.active || session.completed) return;
+    if (session.mission === 4 && session.phase === 'powerChoice') return;
+    if (session.mission === 5 && session.phase === 'relay') {
+        session.completed = true; isPaused = true;
+        saveStoryProgress({ introSeen: true, chapter: 1, mission5Complete: true });
+        const status = document.getElementById('story-battle-status');
+        if (status) status.textContent = storyLanguage() === 'en'
+            ? 'MISSION COMPLETE · The relay is silent. The recovered packet carries the same broken voice as the blue echo.'
+            : 'GÖREV TAMAMLANDI · Röle sustu. Kurtarılan pakette mavi yankıyla aynı bozuk ses var.';
+        const relay = document.getElementById('story-relay-action'); if (relay) relay.hidden = true;
+        const exit = document.getElementById('story-battle-exit'); if (exit) exit.textContent = storyLanguage() === 'en' ? 'CONTINUE' : 'DEVAM ET';
+        showToast(storyLanguage() === 'en' ? 'Mission 05 complete. Story progress saved.' : '5. görev tamamlandı. Hikâye ilerlemesi kaydedildi.');
+        return;
+    }
     if (session.mission === 3 && session.phase === 'investigate') {
         session.completed = true;
         isPaused = true;
@@ -3559,6 +3596,16 @@ function finishStoryBattleEncounter() {
         const exit = document.getElementById('story-battle-exit');
         if (exit) exit.textContent = storyLanguage() === 'en' ? 'CONTINUE' : 'DEVAM ET';
         showToast(storyLanguage() === 'en' ? 'Mission 03 complete. Evidence saved separately.' : '3. görev tamamlandı. Kanıt ayrı kaydedildi.');
+        return;
+    }
+    if (session.mission === 5 && session.phase === 'combat') {
+        session.phase = 'relay'; isPaused = true; enemies = []; projectiles = [];
+        const status = document.getElementById('story-battle-status');
+        if (status) status.textContent = storyLanguage() === 'en'
+            ? 'CORRIDOR SECURE · The relay is exposed. Shut it down before the signal loops again.'
+            : 'KORİDOR GÜVENDE · Röle açığa çıktı. Sinyal yeniden döngüye girmeden kapat.';
+        const relay = document.getElementById('story-relay-action'); if (relay) relay.hidden = false;
+        showToast(storyLanguage() === 'en' ? 'Relay exposed. Disable it to finish the mission.' : 'Röle açığa çıktı. Görevi bitirmek için kapat.');
         return;
     }
     if (session.mission === 2 && session.phase === 'combat') {
@@ -3626,6 +3673,25 @@ function scanStorySignal() {
         : ['İz 1: zayıf bir sinyal her 4,2 saniyede bir tekrarlanıyor.', 'İz 2: sinyalin zaman damgası kapanış kaydından daha eski.'];
     if (status) status.textContent = clues[session.scans - 1] + (en ? ' Continue scanning.' : ' Taramaya devam et.');
     showToast(en ? 'Signal trace recovered (' + session.scans + '/3).' : 'Sinyal izi kurtarıldı (' + session.scans + '/3).');
+}
+function chooseStoryPowerPriority(choice) {
+    const session = window.__storyBattle;
+    if (!session || !session.active || session.mission !== 4 || session.phase !== 'powerChoice' || session.completed) return;
+    if (choice !== 'shield' && choice !== 'weapon') return;
+    session.completed = true; isPaused = true;
+    saveStoryProgress({ introSeen: true, chapter: 1, mission4Complete: true, powerChoice: choice });
+    const status = document.getElementById('story-battle-status');
+    if (status) status.textContent = choice === 'shield'
+        ? (storyLanguage() === 'en' ? 'POWER ROUTED · The core shield is reinforced. The next corridor will be safer, but weapons remain standard.' : 'GÜÇ YÖNLENDİRİLDİ · Çekirdek kalkanı güçlendirildi. Sonraki koridor daha güvenli olacak, silahlar standart kalacak.')
+        : (storyLanguage() === 'en' ? 'POWER ROUTED · Weapon calibration is improved. You will hit harder in the next corridor, but have no extra shield.' : 'GÜÇ YÖNLENDİRİLDİ · Silah kalibrasyonu iyileştirildi. Sonraki koridorda daha sert vuracaksın ama ek kalkanın olmayacak.');
+    const choices = document.getElementById('story-power-actions'); if (choices) choices.hidden = true;
+    const exit = document.getElementById('story-battle-exit'); if (exit) exit.textContent = storyLanguage() === 'en' ? 'CONTINUE' : 'DEVAM ET';
+    showToast(storyLanguage() === 'en' ? 'Power priority saved. It affects Mission 05.' : 'Güç tercihi kaydedildi. 5. görevi etkileyecek.');
+}
+function disableStoryRelay() {
+    const session = window.__storyBattle;
+    if (!session || !session.active || session.mission !== 5 || session.phase !== 'relay' || session.completed) return;
+    finishStoryBattleEncounter();
 }
 function chooseStorySignalSource(source) {
     const session = window.__storyBattle;
