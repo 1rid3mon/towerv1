@@ -2486,23 +2486,91 @@ function renderGame() {
             ctx.restore();
         }
 
+        // V2.5: restrained boss presence aura. Purely visual; no gameplay state is changed.
+        if (e.type === 'boss') {
+            const bossPulse = 0.5 + 0.5 * Math.sin(nowCompTime * 0.003 + (e.animPhase || 0));
+            const bossRadius = e.radius + 13 + bossPulse * 5;
+            const bossColor = e.color || '#c084fc';
+            ctx.save();
+            const auraGradient = ctx.createRadialGradient(0, 0, Math.max(2, e.radius * 0.35), 0, 0, bossRadius + 13);
+            auraGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            auraGradient.addColorStop(0.62, bossColor + '18');
+            auraGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = auraGradient;
+            ctx.beginPath(); ctx.arc(0, 0, bossRadius + 13, 0, Math.PI * 2); ctx.fill();
+
+            ctx.rotate(-nowCompTime * 0.00045);
+            ctx.strokeStyle = bossColor;
+            ctx.globalAlpha = 0.28 + bossPulse * 0.18;
+            ctx.lineWidth = e.subType === 'leviathan' ? 2 : 1.35;
+            ctx.setLineDash(e.subType === 'tank_boss' ? [10, 5] : [3, 7]);
+            ctx.beginPath();
+            ctx.arc(0, 0, bossRadius, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Four small markers create a readable boss silhouette without covering its sprite.
+            ctx.globalAlpha = 0.42 + bossPulse * 0.2;
+            ctx.fillStyle = bossColor;
+            for (let marker = 0; marker < 4; marker++) {
+                const a = marker * Math.PI / 2;
+                const r = bossRadius + 2;
+                ctx.beginPath();
+                ctx.arc(Math.cos(a) * r, Math.sin(a) * r, e.subType === 'leviathan' ? 2.8 : 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
         drawCustomEnemy(ctx, e, tx, ty, nowCompTime);
 
         if (e.hp < e.maxHp || e.type === 'boss' || e.isElite) {
-            const barW = Math.max(24, e.radius * 2.1);
+            const isBoss = e.type === 'boss';
+            const barW = Math.max(isBoss ? 44 : 24, e.radius * (isBoss ? 2.65 : 2.1));
             const pct = e.maxHp > 0 ? Math.max(0, Math.min(1, e.hp / e.maxHp)) : 0;
-            const barY = -e.radius - 12;
+            const barY = -e.radius - (isBoss ? 15 : 12);
+            const barH = isBoss ? 7 : (e.isElite ? 5 : 4);
+            const barX = -barW / 2;
+            const healthColor = isBoss
+                ? (e.color || '#c084fc')
+                : (pct <= 0.25 ? '#fb7185' : pct <= 0.55 ? '#fbbf24' : '#86efac');
 
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
-            ctx.fillRect(-barW / 2, barY, barW, 4);
-            ctx.fillStyle = e.type === 'boss' ? (e.color || '#d8b4fe') : '#86efac';
-            ctx.fillRect(-barW / 2, barY, barW * pct, 4);
+            // Dark plate + subtle outline improve readability on bright themes.
+            ctx.fillStyle = 'rgba(2, 6, 23, 0.88)';
+            ctx.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
+            ctx.strokeStyle = isBoss ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.24)';
+            ctx.lineWidth = 0.7;
+            ctx.strokeRect(barX - 1, barY - 1, barW + 2, barH + 2);
 
-            if ((e.type === 'boss' || e.isElite) && e.name) {
-                ctx.font = e.type === 'boss' ? "bold 9.5px 'Rajdhani', sans-serif" : "bold 8.5px 'Rajdhani', sans-serif";
-                ctx.fillStyle = e.isElite && e.type !== 'boss' ? '#fcd34d' : '#fef08a';
+            // Empty track and live health fill.
+            ctx.fillStyle = 'rgba(71, 85, 105, 0.72)';
+            ctx.fillRect(barX, barY, barW, barH);
+            if (pct > 0) {
+                const healthGradient = ctx.createLinearGradient(barX, barY, barX, barY + barH);
+                healthGradient.addColorStop(0, healthColor);
+                healthGradient.addColorStop(1, isBoss ? healthColor : (pct <= 0.25 ? '#be123c' : pct <= 0.55 ? '#b45309' : '#15803d'));
+                ctx.fillStyle = healthGradient;
+                ctx.fillRect(barX, barY, barW * pct, barH);
+            }
+
+            // Boss bars use small phase-like ticks as decoration only; HP math is unchanged.
+            if (isBoss) {
+                ctx.strokeStyle = 'rgba(15, 23, 42, 0.72)';
+                ctx.lineWidth = 1;
+                for (let tick = 1; tick < 8; tick++) {
+                    const x = barX + barW * tick / 8;
+                    ctx.beginPath(); ctx.moveTo(x, barY); ctx.lineTo(x, barY + barH); ctx.stroke();
+                }
+            }
+
+            if ((isBoss || e.isElite) && e.name) {
+                ctx.font = isBoss ? "bold 10.5px 'Rajdhani', sans-serif" : "bold 8.5px 'Rajdhani', sans-serif";
                 ctx.textAlign = 'center';
-                ctx.fillText(e.name, 0, barY - 4);
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = 'rgba(2, 6, 23, 0.9)';
+                ctx.strokeText(e.name, 0, barY - 5);
+                ctx.fillStyle = e.isElite && !isBoss ? '#fcd34d' : '#fef08a';
+                ctx.fillText(e.name, 0, barY - 5);
             }
         }
         ctx.restore();
