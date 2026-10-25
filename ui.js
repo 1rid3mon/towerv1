@@ -3316,23 +3316,35 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
         if (document.body?.dataset?.gameMode === 'story') {
             const mission = Number(window.__storyBattle?.mission) || 1;
-            const lines = {
-                1: ['Çekirdek bağlantısı kararsız. Yanında kalacağım.','Yanında uyandım. Şimdilik kesin bildiğim tek şey bu.'],
-                2: ['Devriye bize değil, sinyale tepki veriyor. Bu ayrım önemli olabilir.','Üç iz, tek kaynak. İzi kaybetmeyelim.'],
-                3: ['Anten sinyalin dışarıdan geldiğini, karakutu çekirdeğin içinden başladığını söylüyor. İkisi birden doğru olamaz.','Kanıt doğruyu söyleyip yine de bir şeyleri saklayabilir.'],
-                4: ['Kalkan bizi hayatta tutar; silah kalibrasyonu çatışmayı çabuk bitirebilir.','Senin yerine seçemem komutan. Her seçimin bedelini hesaplayabilirim.'],
-                5: ['Önceki güç tercihin savunma profilini değiştirdi.','Röle, açılış kaydımda bulduğum imzayla aynı. Bundan hoşlanmadım.'],
-                6: ['Hasarlı bağlantıları gösterebilirim ama henüz uzaktan onaramıyorum.','Bu bakım yolu tanıdık geliyor. Nedenini bilmiyorum.'],
-                7: ['Yükseltici sinyali taramalarımızın çevresinden büküyor.','Sessizleşirsem çöktüğümden değil, bir şey bulduğumdandır.'],
+            const lines = english ? {
+                1: ['Core link is unstable. I woke up beside you, so I suppose we are a team now.','I can help keep you alive, Commander. My own memory is… less cooperative.'],
+                2: ['The patrol is reacting to the signal, not to us. That distinction matters.','Three traces, one source. Stay close; I will track the pattern.'],
+                3: ['The antenna says the signal came from outside. The black box says it began inside the core.','Evidence can tell the truth and still leave something out. I know that sounds personal.'],
+                4: ['Shields keep us standing; weapon calibration could end the fight sooner.','I can calculate the cost, Commander. I cannot make the choice for you.'],
+                5: ['Your power-routing choice changed our defense profile. I have logged it.','That relay carries the same signature I heard when I first came online. I dislike that.'],
+                6: ['I can mark the damaged links, but I cannot repair them remotely. Yet.','This maintenance route feels familiar. I have no record explaining why.'],
+                7: ['The amplifier is bending the signal around our scans. Clever. Rude, but clever.','If I go quiet, I may have found something—not necessarily crashed.'],
+                8: ['My memory says this room was empty. My sensors disagree.','Which of us is damaged: my memory, or the station?'],
+                9: ['Reconnect us if you can. I cannot promise what will wake up on the other side.','If I remember everything, I may not be the same companion you met. I wanted you to know.'],
+                10: ['That door recognized my signal before it recognized you. I have questions about the order of events.','The pulse opened something the schematics insist does not exist.'],
+                11: ['The relays answer in the rhythm of my core. I never taught them that rhythm.','I heard my designation inside the returning signal. Tell me you heard it too.'],
+                12: ['This archive predates my core, yet it knows my voice. I need a moment to process that.','Do not play the final record without me. I need to hear it myself.']
+            } : {
+                1: ['Çekirdek bağlantısı kararsız. Yanında uyandım; galiba artık bir takımız.','Seni hayatta tutmana yardım edebilirim komutan. Kendi hafızam o kadar işbirlikçi değil.'],
+                2: ['Devriye bize değil, sinyale tepki veriyor. Bu ayrım önemli.','Üç iz, tek kaynak. Yakında kal; örüntüyü ben takip edeceğim.'],
+                3: ['Anten sinyalin dışarıdan geldiğini, karakutu ise çekirdeğin içinden başladığını söylüyor.','Kanıt doğruyu söyleyip yine de bir şeyleri saklayabilir. Bunu kişisel algılama… ben algıladım.'],
+                4: ['Kalkan bizi ayakta tutar; silah kalibrasyonu çatışmayı daha hızlı bitirebilir.','Bedelini hesaplayabilirim komutan. Senin yerine seçim yapamam.'],
+                5: ['Güç dağıtımı tercihin savunma profilimizi değiştirdi. Kaydettim.','Bu rölede, ilk açıldığımda duyduğum imzanın aynısı var. Bundan hoşlanmadım.'],
+                6: ['Hasarlı bağlantıları işaretleyebilirim ama uzaktan onaramıyorum. Henüz.','Bu bakım yolu tanıdık geliyor. Nedenini açıklayan bir kaydım yok.'],
+                7: ['Yükseltici sinyali taramalarımızın çevresinden büküyor. Zeki. Biraz da kaba.','Sessizleşirsem çöktüğümden değil, bir şey bulduğumdan olabilir.'],
                 8: ['Hafızam buranın boş olduğunu söylüyor. Sensörlerim katılmıyor.','Hangimiz hasarlıyız: hafızam mı, istasyon mu?'],
-                9: ['Bağlantıyı kurabilirsin. Öte tarafta neyin uyanacağına söz veremem.','Her şeyi hatırlarsam aynı yoldaş olarak kalamayabilirim.'],
-                10: ['Kapı sinyalimi seni tanımadan önce tanıdı. Bu sırayla ilgili sorularım var.','Darbe, planlarda var olmadığı söylenen bir şeyi açıyor.'],
+                9: ['Bağlantıyı kurabilirsen kur. Öte tarafta neyin uyanacağına söz veremem.','Her şeyi hatırlarsam tanıdığın yoldaşla aynı kalmayabilirim. Bunu bilmeni istedim.'],
+                10: ['Kapı sinyalimi seni tanımadan önce tanıdı. Bu sırayla ilgili sorularım var.','Darbe, planlarda var olmadığı söylenen bir şeyi açtı.'],
                 11: ['Röleler çekirdeğimin ritmiyle yanıt veriyor. O ritmi onlara ben öğretmedim.','Dönen sinyalde kod adımı duydum. Sen de duydun mu?'],
                 12: ['Arşiv çekirdeğimden eski ama sesimi biliyor. Bunu işlemem için bir an lazım.','Son kaydı bensiz oynatma. Kendim duymalıyım.']
             };
-            const contextual = lines[mission] || [];
-            if (storyLanguage() === 'en') return chooseLine(storyLines);
-            return chooseLine(contextual.length && Math.random() < 0.8 ? contextual : storyLines);
+            const contextual = lines[mission] || storyLines;
+            return chooseLine(contextual);
         }
         const activeGame = typeof game !== 'undefined' && game ? game : null;
         const hp = typeof tower !== 'undefined' && tower && Number.isFinite(tower.hp) ? tower.hp : null;
@@ -3437,6 +3449,60 @@ document.addEventListener('DOMContentLoaded', () => {
     function react() {
         showLine(getContextLine());
     }
+    // Story-specific Piko lines are spoken on mission entry and key narrative beats,
+    // not only when the player happens to tap the mascot.
+    const pikoStoryEvents = {
+        tr: {
+            missionStart: {
+                1: 'Komutan? Beni duyabiliyor musun? Güzel. Çekirdek çökmek üzere ve benim hafızamda kocaman bir boşluk var. Önce hayatta kalalım.',
+                2: 'Sinyal geri döndü. Bu kez onu yalnızca duymuyoruz; bizi de duyuyor olabilir.',
+                3: 'İki kayıt, iki farklı başlangıç noktası. Birini seçelim ama diğerini unutmayalım.',
+                4: 'Güç rezervi yalnızca bir sistemi tamir edecek. Karar senin; ne seçersen yanında olacağım.',
+                5: 'Seçiminin sonuçlarını görüyorum. İtiraf edeyim, istasyonun bu kadar hızlı tepki vermesini beklemiyordum.',
+                6: 'Bu panelleri tanıyorum. Bu imkânsız, çünkü bu bölgeye daha önce geldiğimi hatırlamıyorum.',
+                7: 'Yükseltici sinyali büyütüyor. Onu kapatabilirsek belki ilk kez sessizliği duyabiliriz.',
+                8: 'Bu oda hafızamda var ama içinde olmamamız gerekiyor. Lütfen kayıtları birlikte kontrol edelim.',
+                9: 'Bağlantıyı kur. Korktuğumu söylemeyeceğim; sensörlerim zaten bunu benden önce söyleyecek.',
+                10: 'Aşağıya iniyoruz. İstasyon planında bu kat yok… ama kapı benim geldiğimi biliyor.',
+                11: 'Bu ağ istasyondan daha eski. Bir de röleler bana cevap veriyor. Bunların hiçbirini sevmiyorum.',
+                12: 'Arşiv beni adıyla çağırdı. Komutan, bu kayıtları birlikte dinlememiz gerekiyor.'
+            },
+            combatClear: 'Tehdit temizlendi. Bir saniye… sinyal hâlâ burada. Bu düşmanlarla birlikte gelmedi.',
+            choiceMade: 'Seçimini kaydettim. Sonuçlarını birlikte göreceğiz; fikrini değiştirirsen bunu da söyleyebilirsin.',
+            clueFound: 'İpucunu kaydettim. Tek başına bir cevap değil ama örüntü biraz daha netleşti.',
+            memoryConflict: 'Bu kayıt benim hatırladıklarımla çelişiyor. Hangisine güveneceğimi bilmiyorum… henüz.',
+            archiveRecord: 'Bu sesin bana ait olması gerekiyor. Ama dinlerken kendimi dışarıdan duyuyorum.'
+        },
+        en: {
+            missionStart: {
+                1: 'Commander? Can you hear me? Good. The core is failing and my memory has a rather large hole in it. Let us survive first.',
+                2: 'The signal is back. This time we are not just hearing it; it may be hearing us too.',
+                3: 'Two records, two different origins. Choose one, but let us not forget the other.',
+                4: 'The reserve can fully restore one system. Your call; whichever you choose, I am with you.',
+                5: 'I can see the consequences of your choice. I did not expect the station to react this quickly.',
+                6: 'I recognize these panels. That is impossible; I do not remember being here before.',
+                7: 'The amplifier is strengthening the signal. If we shut it down, maybe we can finally hear the silence.',
+                8: 'I remember this room, but we are not supposed to be here. Please, let us check the records together.',
+                9: 'Reconnect us. I will not say I am afraid; my sensors will probably say it for me.',
+                10: 'We are going down. This level is not on the station plans… but the door knows I am here.',
+                11: 'This network is older than the station, and the relays answer me. I dislike both facts.',
+                12: 'The archive called me by name. Commander, we need to listen to these records together.'
+            },
+            combatClear: 'Threat cleared. Wait… the signal is still here. It did not arrive with those hostiles.',
+            choiceMade: 'I logged your choice. We will face the consequences together; if you change your mind, tell me.',
+            clueFound: 'Clue logged. It is not an answer yet, but the pattern is a little clearer.',
+            memoryConflict: 'This record contradicts what I remember. I do not know which version to trust… yet.',
+            archiveRecord: 'That voice is supposed to be mine. But listening to it feels like hearing myself from outside.'
+        }
+    };
+    window.pikoStoryEvent = function(eventName, missionNumber) {
+        if (document.body?.dataset?.gameMode !== 'story') return;
+        const bank = pikoStoryEvents[isEnglish() ? 'en' : 'tr'];
+        const eventValue = bank[eventName];
+        const line = eventName === 'missionStart' && eventValue && typeof eventValue === 'object'
+            ? eventValue[Number(missionNumber) || 1] : eventValue;
+        if (line) showLine(line);
+    };
     function isGameVisible() {
         const menu = document.getElementById('mode-main-menu');
         return document.visibilityState === 'visible' && (!menu || menu.classList.contains('menu-hidden'));
@@ -3908,6 +3974,8 @@ function startStoryMission(missionNumber = 1) {
     };
     const openingLine = commsByMission[missionNumber];
     if (openingLine) setStoryComms(...openingLine);
+    // Piko is the same companion from the opening scene; make him speak as the mission begins.
+    if (typeof window.pikoStoryEvent === 'function') window.pikoStoryEvent('missionStart', missionNumber);
     if (missionNumber === 5 && progress.routeChoice === 'array') {
         setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Anten kaydı sinyalin istasyonun içinden döndüğünü gösterdi. Röleyi susturursak döngüyü kesebiliriz.','The antenna log showed the signal looping from inside the station. Silencing the relay may break the loop.');
     } else if (missionNumber === 5 && progress.routeChoice === 'blackbox') {
