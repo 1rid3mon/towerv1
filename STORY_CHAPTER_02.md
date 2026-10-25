@@ -102,6 +102,10 @@ Chapter 02 follows the commander and the newly awakened companion below the stat
 
 Chapter 02 ends with the lower archive opening and a distant purple signal answering the cyan pulse. The companion does **not** evolve into purple here; that transformation is reserved for Chapter 03 after the cyan form has been used for a substantial stretch. Chapter 03 also contains the late-campaign tower transformation, where the companion retains consciousness but communicates differently. See [Chapter 03 — The Shape of Memory](STORY_CHAPTER_03.md).
 
+## Mission 10 production package
+
+Mission 10 now has a separate implementation-ready production spec with bilingual dialogue, phase flow, pulse tutorial rules, replay/exit behavior, and acceptance tests: [Story Chapter 02 — Mission 10 Production Spec](STORY_CHAPTER_02_MISSION_10.md). This is a design artifact; it does not mean Mission 10 is implemented in-game yet.
+
 ## Production gates
 
 - Do not begin full production of every mission before the Chapter 01 prototype has passed a complete playthrough.
