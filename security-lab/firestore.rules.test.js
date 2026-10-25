@@ -373,3 +373,51 @@ test("friend requests can be sent and accepted only by the recipient", async () 
     status: "accepted", updatedAt: serverTimestamp()
   }));
 });
+
+
+test("friend requests can only be created by the sender and read by participants", async () => {
+  await testEnv.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await setDoc(doc(db, "usernameRegistry/alice"), { uid: "alice", username: "alice", updatedAt: Date.now() });
+    await setDoc(doc(db, "usernameRegistry/bob"), { uid: "bob", username: "bob", updatedAt: Date.now() });
+  });
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  const mallory = testEnv.authenticatedContext("mallory").firestore();
+  const request = {
+    fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob",
+    status: "pending", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  };
+  await assertSucceeds(setDoc(doc(alice, "friendRequests/alice_bob"), request));
+  await assertSucceeds(getDoc(doc(bob, "friendRequests/alice_bob")));
+  await assertFails(getDoc(doc(mallory, "friendRequests/alice_bob")));
+  await assertFails(setDoc(doc(mallory, "friendRequests/mallory_bob"), {
+    ...request, fromUid: "mallory", fromUsername: "mallory"
+  }));
+});
+
+test("friend requests reject forged identities and unauthorized status changes", async () => {
+  await testEnv.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await setDoc(doc(db, "usernameRegistry/alice"), { uid: "alice", username: "alice", updatedAt: Date.now() });
+    await setDoc(doc(db, "usernameRegistry/bob"), { uid: "bob", username: "bob", updatedAt: Date.now() });
+  });
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  await assertFails(setDoc(doc(alice, "friendRequests/alice_bob"), {
+    fromUid: "alice", toUid: "bob", fromUsername: "mallory", toUsername: "bob",
+    status: "pending", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  }));
+  await assertSucceeds(setDoc(doc(alice, "friendRequests/alice_bob"), {
+    fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob",
+    status: "pending", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  }));
+  await assertFails(setDoc(doc(alice, "friendRequests/alice_bob"), {
+    fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob",
+    status: "accepted", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  }));
+  await assertSucceeds(setDoc(doc(bob, "friendRequests/alice_bob"), {
+    fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob",
+    status: "accepted", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  }));
+});
