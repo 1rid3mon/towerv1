@@ -3339,13 +3339,134 @@ function returnToMainMenu() {
     });
 }
 
-function showStoryModeComingSoon() {
-    const subtitle = document.getElementById('mode-menu-subtitle');
-    if (!subtitle) return;
-    subtitle.textContent = getGameLanguage() === 'en'
-        ? 'The world map, chapter progression, and boss finales are in development. Endless Mode is playable now, and your current progress is safe.'
-        : 'Hikâye modu için dünya haritası, bölüm ilerlemesi ve boss finalleri hazırlanıyor. Şimdilik Sonsuz Mod oynanabilir; mevcut ilerlemen güvende.';
+// Story progress is deliberately isolated from the existing Endless save.
+const STORY_PROGRESS_KEY = 'towerDefenseStoryProgressV1';
+const STORY_DIALOGUES = [
+ {speaker:{tr:'İSTASYON YAPAY ZEKÂSI',en:'STATION AI'},text:{tr:'Komutan, istasyona ulaştık. Fakat hiçbir yaşam belirtisi yok. Bütün sistemler, biz yaklaşınca kapandı.',en:'Commander, we have reached the station. There are no life signs. Every system shut down as we approached.'}},
+ {speaker:{tr:'MAVİ HOLOGRAM',en:'BLUE HOLOGRAM'},text:{tr:'Bağlantı… kuruldu. Sonunda geldiniz, komutan.',en:'Connection… established. You finally made it, Commander.'}},
+ {speaker:{tr:'KOMUTAN',en:'COMMANDER'},text:{tr:'Beni tanıyor musun? Bu istasyonda ne oldu?',en:'Do you know me? What happened at this station?'}},
+ {speaker:{tr:'MAVİ HOLOGRAM',en:'BLUE HOLOGRAM'},text:{tr:'Seni tanıyor olmam gerekiyor. Ama kayıtlarımın çoğu silinmiş. Hatırladığım tek şey: Bu çekirdeği korumalıyız.',en:'I am supposed to know you. But most of my records are gone. I only remember one thing: we must protect this core.'}},
+ {speaker:{tr:'MAVİ HOLOGRAM',en:'BLUE HOLOGRAM'},text:{tr:'Dış savunma hattında hareket var! Sorularını sonra cevaplarım, komutan. Önce istasyonu ayakta tutalım.',en:'Movement on the outer defense line! I will answer your questions later, Commander. First, let us keep this station alive.'}}
+];
+const STORY_UI_COPY = {
+ protocol:['HİKÂYE PROTOKOLÜ · 01','STORY PROTOCOL · 01'],
+ return:['← ANA MENÜ','← MAIN MENU'], chapter:['BÖLÜM 01 · KAYIP SİNYAL','CHAPTER 01 · LOST SIGNAL'],
+ heading:['Kayıp Sinyal','Lost Signal'],
+ lead:['Uzak bir istasyon sessizliğe gömüldü. Son sinyal, savunma çekirdeğinin içinden geliyor.','A remote station has fallen silent. Its last signal is coming from inside the defense core.'],
+ mission1tag:['GÖREV 01','MISSION 01'], mission1title:['Savunmayı etkinleştir','Activate the defense'],
+ mission1desc:['Kule çekirdeğini çevrimiçi duruma getir ve istasyonun savunma protokolünü öğren.','Bring the tower core online and learn the station’s defense protocol.'],
+ mission2tag:['GÖREV 02','MISSION 02'], mission2title:['İlk temas','First contact'],
+ mission2desc:['Bilinmeyen düşmanların ilk saldırısına karşı koy.','Hold back the first attack from unknown enemies.'],
+ mission3tag:['GÖREV 03','MISSION 03'], mission3title:['Sinyalin kaynağı','Source of the signal'],
+ mission3desc:['Savaş sonrasında çekirdeğin kaydettiği gizemli sinyali araştır.','Investigate the mysterious signal recorded by the core after the battle.'],
+ nextstep:['Sıradaki adım','Next step'], nextdesc:['Bu ilk sürüm hikâye girişini ve görev akışını kurar. Gerçek görev savaşları sonraki aşamada mevcut savaş motoruna güvenli biçimde bağlanacak.','This first version establishes the story introduction and mission flow. Actual mission combat will be connected to the existing game engine in the next stage.'],
+ backmenu:['ANA MENÜYE DÖN','RETURN TO MAIN MENU'],
+ 'save-note':['Hikâye ilerlemesi ayrı kaydedilir. Sonsuz Mod kaydına ve savaş dengesine dokunulmaz.','Story progress is saved separately. Endless Mode saves and game balance remain untouched.'],
+ continue:['DEVAM ET →','CONTINUE →'], start:['GÖREV PANOSU →','MISSION BRIEFING →'],
+ progress:['HİKÂYE GİRİŞİ','STORY INTRODUCTION'], completed:['GİRİŞ TAMAMLANDI · GÖREV PANOSU AÇILDI','INTRO COMPLETE · MISSION BRIEFING UNLOCKED']
+};
+let storyDialogueIndex = 0;
+let storyMissionViewOpen = false;
+
+function getStoryProgress() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(STORY_PROGRESS_KEY) || '{}');
+        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Number(saved.chapter) || 1) };
+    } catch (_) { return { introSeen: false, chapter: 1 }; }
 }
+function saveStoryProgress(patch) {
+    try { localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify({ ...getStoryProgress(), ...patch, updatedAt: Date.now() })); } catch (_) {}
+}
+function storyLanguage() { return getGameLanguage() === 'en' ? 'en' : 'tr'; }
+function storyCopy(pair) { return pair[storyLanguage() === 'en' ? 1 : 0]; }
+function applyStoryUiLanguage() {
+    const en = storyLanguage() === 'en';
+    document.querySelectorAll('[data-story-ui]').forEach(node => {
+        const pair = STORY_UI_COPY[node.dataset.storyUi];
+        if (pair) node.textContent = pair[en ? 1 : 0];
+    });
+    const next = document.getElementById('story-next');
+    if (next) next.textContent = storyCopy(STORY_UI_COPY[storyMissionViewOpen ? 'start' : 'continue']);
+}
+function showStoryDialogue() {
+    const line = STORY_DIALOGUES[storyDialogueIndex];
+    if (!line) return;
+    const en = storyLanguage() === 'en';
+    const speaker = document.getElementById('story-speaker');
+    const copy = document.getElementById('story-dialogue-copy');
+    const progress = document.getElementById('story-progress');
+    const next = document.getElementById('story-next');
+    if (speaker) speaker.textContent = line.speaker[en ? 'en' : 'tr'];
+    if (copy) copy.textContent = line.text[en ? 'en' : 'tr'];
+    if (progress) progress.textContent = String(storyDialogueIndex + 1).padStart(2, '0') + ' / ' + String(STORY_DIALOGUES.length).padStart(2, '0');
+    if (next) next.textContent = storyDialogueIndex === STORY_DIALOGUES.length - 1
+        ? storyCopy(STORY_UI_COPY.start) : storyCopy(STORY_UI_COPY.continue);
+}
+function showStoryMissionBriefing() {
+    storyMissionViewOpen = true;
+    const dialogue = document.getElementById('story-dialogue-view');
+    const mission = document.getElementById('story-mission-view');
+    const note = document.getElementById('story-prototype-note');
+    if (dialogue) dialogue.hidden = true;
+    if (mission) mission.hidden = false;
+    if (note) note.classList.add('is-visible');
+    const progress = document.getElementById('story-mission-progress');
+    if (progress) progress.textContent = storyCopy(STORY_UI_COPY.completed);
+    applyStoryUiLanguage();
+    saveStoryProgress({ introSeen: true, chapter: 1 });
+}
+function openStoryMode() {
+    const screen = document.getElementById('story-mode-screen');
+    const menu = document.getElementById('mode-main-menu');
+    if (!screen) return;
+    if (menu) menu.classList.add('menu-hidden');
+    if (typeof isPaused !== 'undefined') isPaused = true;
+    storyMissionViewOpen = false;
+    storyDialogueIndex = 0;
+    const dialogue = document.getElementById('story-dialogue-view');
+    const mission = document.getElementById('story-mission-view');
+    const note = document.getElementById('story-prototype-note');
+    if (dialogue) dialogue.hidden = false;
+    if (mission) mission.hidden = true;
+    if (note) note.classList.remove('is-visible');
+    screen.classList.add('is-open');
+    screen.setAttribute('aria-hidden', 'false');
+    applyStoryUiLanguage();
+    showStoryDialogue();
+    const exit = screen.querySelector('.story-exit');
+    if (exit) exit.focus({ preventScroll: true });
+}
+function advanceStoryDialogue() {
+    if (storyMissionViewOpen) return;
+    if (storyDialogueIndex < STORY_DIALOGUES.length - 1) {
+        storyDialogueIndex++;
+        showStoryDialogue();
+        return;
+    }
+    showStoryMissionBriefing();
+}
+function skipStoryIntro() {
+    showStoryMissionBriefing();
+}
+function closeStoryMode() {
+    const screen = document.getElementById('story-mode-screen');
+    const menu = document.getElementById('mode-main-menu');
+    if (screen) { screen.classList.remove('is-open'); screen.setAttribute('aria-hidden', 'true'); }
+    if (menu) menu.classList.remove('menu-hidden');
+    if (typeof isPaused !== 'undefined') isPaused = true;
+    const subtitle = document.getElementById('mode-menu-subtitle');
+    if (subtitle) subtitle.textContent = storyLanguage() === 'en'
+        ? 'Choose your mission, Commander. The unknown signal is waiting.'
+        : 'Görevini seç, komutan. Bilinmeyen sinyal bizi bekliyor.';
+}
+function showStoryModeComingSoon() { openStoryMode(); }
+document.addEventListener('keydown', event => {
+    const screen = document.getElementById('story-mode-screen');
+    if (!screen || !screen.classList.contains('is-open')) return;
+    if (event.key === 'Escape') { closeStoryMode(); return; }
+    if (event.key === 'Enter' && !event.repeat && !storyMissionViewOpen) advanceStoryDialogue();
+});
+
 
 
 // ==========================================
