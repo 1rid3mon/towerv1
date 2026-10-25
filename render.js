@@ -2565,7 +2565,7 @@ function renderGame() {
         const phase = nowCompTime * 0.0015;
         const cx = tx + Math.cos(phase) * 48;
         const cy = ty - 34 + Math.sin(phase * 1.35) * 5;
-        const linked = !!window.__storyBattle.completed;
+        const linked = !!window.__storyBattle.companionSynced;
         ctx.save();
         ctx.strokeStyle = linked ? 'rgba(103,232,249,0.42)' : 'rgba(148,163,184,0.24)';
         ctx.lineWidth = 1.4;
