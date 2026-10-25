@@ -10,7 +10,7 @@ The station's systems shut down as the commander approaches. A blue hologram app
 The companion is a real physical unit; the hologram is not its current form. The story should let the player suspect a connection without confirming exactly what the echo represents.
 
 ### Mission 01 — Cold Start
-**Target:** 7–9 minutes  
+**Target:** 6–8 minutes  
 **Player goal:** stabilize the core by defeating the first hostile group.  
 **What the player learns:** basic combat rhythm and the objective HUD.  
 **Story beat:** the maintenance unit wakes when the core recognizes it. The blue echo flickers, saying only fragments about memory, violet light, and towers.  
@@ -24,14 +24,14 @@ The companion is a real physical unit; the hologram is not its current form. The
 **Pacing note:** investigation first; combat is a short interruption, not another full wave marathon.
 
 ### Mission 03 — First Contact
-**Target:** 6–8 minutes  
+**Target:** 3–4 minutes  
 **Player goal:** hold a damaged access corridor long enough for the companion to restore a door relay.  
 **Known tools:** combat and the scan clue from Mission 02.  
 **Change:** one enemy has a readable telegraph that teaches target prioritization. No new currency or upgrade tree.  
 **Payoff:** the hostile signal reacts to the companion rather than the commander.
 
 ### Mission 04 — A Quiet Circuit
-**Target:** 12–18 minutes  
+**Target:** 3–4 minutes  
 **Player goal:** restore power to two linked subsystems and choose which one receives power first.  
 **Primary interaction:** a small, reversible route/power choice with a visible short-term consequence.  
 **Tone:** lower pressure. No mandatory combat wave.  
@@ -45,13 +45,13 @@ The companion is a real physical unit; the hologram is not its current form. The
 **Payoff:** the relay sends a packet that includes a memory fragment matching the hologram's voice.
 
 ### Mission 06 — Beyond the Bulkhead
-**Target:** 15–20 minutes  
+**Target:** 4–5 minutes  
 **Player goal:** cross a newly powered sector and escort the maintenance companion through a short exposed route.  
 **Primary interaction:** position/route awareness; no new complex escort controls.  
 **Payoff:** the companion briefly emits cyan light while repairing a damaged panel, then returns to its weak state. This is a clue, not an evolution or a permanent power-up.
 
 ### Mission 07 — The Signal Bends
-**Target:** 18–22 minutes  
+**Target:** 7–9 minutes  
 **Player goal:** protect an exposed communications array while the player chooses between clearing an incoming group early or interrupting a signal amplifier.  
 **Known tools:** learned combat tells, hazards, and relay interaction.  
 **Change:** combine known mechanics under pressure rather than introducing another whole system.  
