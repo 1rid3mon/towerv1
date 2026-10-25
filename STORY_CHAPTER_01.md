@@ -74,7 +74,7 @@ The companion is a real physical unit; the hologram is not its current form. The
 
 ## Long-term chapter roadmap
 
-Chapter 01 is the first approximately one-hour playable slice, not the entire game. Chapter 02 is planned as nine additional missions (10–18), expanding the story beneath the station and teaching the cyan pulse in controlled steps. The purple form is intentionally reserved for a later chapter, after the player has spent meaningful time with the cyan form. The broader campaign can grow to roughly 27 core missions across three chapters, with optional logs and breathing room extending the total experience toward a 4–6 hour target. This is a production target, not implemented or measured playtime. See [Chapter 02 — Beneath the Signal](STORY_CHAPTER_02.md).
+Chapter 01 is the first approximately one-hour playable slice, not the entire game. Chapter 02 is planned as nine additional missions (10–18), expanding the story beneath the station and teaching the cyan pulse in controlled steps. The purple form is intentionally reserved for a later chapter, after the player has spent meaningful time with the cyan form. The broader campaign can grow to roughly 27 core missions across three chapters, with optional logs and breathing room extending the total experience toward a 4–6 hour target. This is a production target, not implemented or measured playtime. See [Chapter 02 — Beneath the Signal](STORY_CHAPTER_02.md) and [Chapter 03 — The Shape of Memory](STORY_CHAPTER_03.md).
 
 ## Player comfort and quality gates
 
