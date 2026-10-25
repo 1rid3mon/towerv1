@@ -65,7 +65,7 @@ Aim for **9 core missions** plus a few optional memory/signals. The second form 
 
 ## Current implementation status
 
-Mission 01 is playable as an isolated combat prototype. Mission 02 now has a playable patrol encounter followed by a three-step signal-scan interaction, with its own story progress flag. Mission 03–09, deeper consequences for evidence choices, checkpoints, and the second-form climax still need implementation and playtesting. The 3–4 hour arc is a target, not delivered content yet.
+Mission 01 is playable as an isolated combat prototype. Mission 02 has a patrol encounter followed by a three-step signal-scan interaction. Mission 03 is a short non-combat investigation in which the player chooses antenna data or a black-box log; the choice is saved in Story Mode progress. Mission 04–09, any later gameplay consequences for that choice, checkpoints, and the second-form climax still need implementation and playtesting. The 3–4 hour arc is a target, not delivered content yet.
 
 ## Playtest gates before release
 
