@@ -1252,6 +1252,27 @@
                         Sıralama değerleri şu an oyuncu istemcisinden gönderilir; sunucu tarafından doğrulanmaz. Bu nedenle hileye dayanıklı veya ödüllü rekabet için güvenilir skor sayılmaz.
                     </div>
 
+                    <!-- GERÇEK ARKADAŞ SİSTEMİ: Firestore friendRequests + usernameRegistry -->
+                    <section id="friends-center" class="mt-4 rounded-2xl border border-sky-500/25 bg-slate-900/80 p-3 sm:p-4 space-y-3" aria-labelledby="friends-center-title">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div><h3 id="friends-center-title" class="font-tech text-lg font-bold text-sky-200"><i class="fa-solid fa-user-group mr-1"></i> ARKADAŞ MERKEZİ</h3><p class="text-[10px] sm:text-xs text-slate-400">Kullanıcı adıyla bul, istek gönder ve arkadaşlarını yönet.</p></div>
+                            <span id="friends-count" class="rounded-full border border-sky-400/20 bg-sky-950/50 px-2.5 py-1 text-[10px] text-sky-200">Hesap gerekli</span>
+                        </div>
+                        <form id="friends-add-form" class="flex flex-col sm:flex-row gap-2" onsubmit="event.preventDefault(); sendFriendRequest();">
+                            <label for="friends-add-username" class="sr-only">Arkadaşının kullanıcı adı</label>
+                            <input id="friends-add-username" name="friendUsername" autocomplete="off" autocapitalize="none" maxlength="32" placeholder="Kullanıcı adı (örn. komutan_07)" class="min-w-0 flex-1 rounded-xl border border-white/10 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-sky-400" />
+                            <button id="friends-add-button" type="submit" class="rounded-xl bg-sky-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-sky-500 disabled:opacity-50">İstek Gönder</button>
+                        </form>
+                        <div id="friends-notice" role="status" aria-live="polite" class="hidden text-xs rounded-lg px-2.5 py-2"></div>
+                        <div class="grid grid-cols-1 xl:grid-cols-2 gap-3">
+                            <div class="min-w-0 rounded-xl border border-white/5 bg-slate-950/40 p-2.5"><h4 class="mb-2 text-xs font-bold text-white"><i class="fa-solid fa-users mr-1 text-sky-300"></i> Arkadaşların</h4><div id="friends-list" class="space-y-2 max-h-56 overflow-y-auto"><div class="py-3 text-center text-xs text-slate-400">Yükleniyor…</div></div></div>
+                            <div class="min-w-0 space-y-3">
+                                <div class="rounded-xl border border-white/5 bg-slate-950/40 p-2.5"><h4 class="mb-2 text-xs font-bold text-white">Gelen İstekler</h4><div id="friends-incoming" class="space-y-2"><div class="text-xs text-slate-500">Giriş yapınca isteklerin burada görünür.</div></div></div>
+                                <div class="rounded-xl border border-white/5 bg-slate-950/40 p-2.5"><h4 class="mb-2 text-xs font-bold text-white">Gönderilen İstekler</h4><div id="friends-outgoing" class="space-y-2"><div class="text-xs text-slate-500">Gönderdiğin istekler burada görünür.</div></div></div>
+                            </div>
+                        </div>
+                    </section>
+
                     <!-- Oyuncu Listesi -->
                     <div id="leaderboard-list" class="space-y-2 max-h-[380px] overflow-y-auto pr-1"></div>
                 </div>
