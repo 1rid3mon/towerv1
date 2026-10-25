@@ -951,6 +951,10 @@ function damageTower(rawDamage, attacker) {
 }
 
 function completeWave() {
+    if (window.__storyBattle && window.__storyBattle.active) {
+        if (typeof finishStoryBattleEncounter === 'function') finishStoryBattleEncounter();
+        return;
+    }
     const completedWaveNumber = game.wave;
     const wasHoldWave = game.holdWave;
     let waveRewardGold = 0;
@@ -1019,6 +1023,18 @@ function triggerTowerDefeat() {
 }
 
 function recoverFromDefeat() {
+    if (window.__storyBattle && window.__storyBattle.active) {
+        isDefeated = false;
+        const overlay = document.getElementById('defeat-overlay');
+        if (overlay) overlay.classList.add('hidden');
+        enemies = []; projectiles = [];
+        tower.freezeTimer = 0; tower.freezeImmunityTimer = 0; tower.frostSlowTimer = 0; waveFrostSpawns = 0;
+        game.waveKills = 0; tower.hp = getTowerMaxHp(); tower.shield = getTowerMaxShield();
+        isPaused = false;
+        if (typeof updateHUD === 'function') updateHUD();
+        if (typeof showToast === 'function') showToast(storyLanguage() === 'en' ? 'Core rebooted. The mission continues.' : 'Çekirdek yeniden başlatıldı. Görev devam ediyor.');
+        return;
+    }
     isDefeated = false; document.getElementById('defeat-overlay').classList.add('hidden'); enemies = []; projectiles = [];
     tower.freezeTimer = 0; tower.freezeImmunityTimer = 0; tower.frostSlowTimer = 0; waveFrostSpawns = 0;
 

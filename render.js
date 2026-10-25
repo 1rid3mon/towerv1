@@ -2558,6 +2558,49 @@ function renderGame() {
 
     const activeCompSkin = game.activeCompanionSkin || 'default_tech';
     const nowCompTime = performance.now();
+
+    // Story-only companion: a powerless maintenance unit, visually separate from owned combat companions.
+    // It never enters game.companions, so it cannot grant attacks, rewards, or persist into Endless Mode.
+    if (window.__storyBattle && window.__storyBattle.active) {
+        const phase = nowCompTime * 0.0015;
+        const cx = tx + Math.cos(phase) * 48;
+        const cy = ty - 34 + Math.sin(phase * 1.35) * 5;
+        const temporaryFlicker = window.__storyBattle.mission === 6 && window.__storyBattle.completed && window.__storyBattle.repairs >= 3;
+        const linked = !!window.__storyBattle.companionSynced || (temporaryFlicker && Math.sin(nowCompTime * 0.05) > 0.25);
+        ctx.save();
+        ctx.strokeStyle = linked ? 'rgba(103,232,249,0.42)' : 'rgba(148,163,184,0.24)';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.moveTo(tx + 14, ty - 9); ctx.quadraticCurveTo(tx + 32, ty - 34, cx - 10, cy + 2); ctx.stroke();
+        ctx.translate(cx, cy);
+        const glow = ctx.createRadialGradient(0, 0, 2, 0, 0, 24);
+        glow.addColorStop(0, linked ? 'rgba(103,232,249,0.22)' : 'rgba(148,163,184,0.13)');
+        glow.addColorStop(1, 'rgba(56,189,248,0)');
+        ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(0, 0, 24, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = linked ? 'rgba(103,232,249,0.9)' : 'rgba(148,163,184,0.75)';
+        ctx.fillStyle = linked ? '#172554' : '#1e293b';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.roundRect(-12, -9, 24, 18, 5); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = linked ? '#67e8f9' : '#94a3b8';
+        ctx.beginPath(); ctx.arc(-4, -1, 2, 0, Math.PI * 2); ctx.arc(4, -1, 2, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = linked ? '#67e8f9' : '#64748b';
+        ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(0, -15); ctx.stroke();
+        ctx.fillStyle = linked ? '#a5f3fc' : '#64748b';
+        ctx.beginPath(); ctx.arc(0, -16, 2, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = 'rgba(148,163,184,0.65)';
+        ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-17, 3); ctx.moveTo(12, 0); ctx.lineTo(17, 3); ctx.stroke();
+        if (window.__storyBattle.phase === 'pulseTest') {
+            const pulsePhase = (nowCompTime * 0.055) % 64;
+            ctx.globalAlpha = Math.max(0, 0.48 * (1 - pulsePhase / 64));
+            ctx.strokeStyle = '#67e8f9';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 18 + pulsePhase, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+        }
+        ctx.restore();
+    }
+
     for (const [key, st] of Object.entries(game.companions)) {
         if (!st.unlocked || !st.x) continue;
         const star = Math.min(5, Math.max(1, st.level || 1));

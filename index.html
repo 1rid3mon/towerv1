@@ -609,6 +609,31 @@
 @media(max-width:560px){.story-topline{margin-bottom:12px}.story-stage{grid-template-columns:1fr;gap:6px}.story-hologram-wrap{min-height:105px}.story-hologram{width:92px}.story-dialogue{min-height:unset}.story-mission-grid{grid-template-columns:1fr}.story-mission{padding:13px}.story-hero{border-radius:18px}}
 @media(prefers-reduced-motion:reduce){.story-hologram{animation:none}}
 
+
+/* First playable story encounter: HUD stays compact over the existing combat canvas. */
+.story-mission-status{margin-top:12px;color:#67e8f9;font-size:10px;font-weight:800;letter-spacing:.1em}
+.story-mission-status.is-locked{color:#94a3b8}
+.story-deploy{width:100%;margin-top:10px;min-height:42px}
+.story-deploy:disabled{opacity:.55;cursor:default}
+#story-battle-hud{position:fixed;z-index:35;top:78px;left:50%;transform:translateX(-50%);width:min(540px,calc(100% - 20px));max-height:calc(100dvh - 90px);overflow:auto;overscroll-behavior:contain;pointer-events:none}
+#story-battle-hud[hidden]{display:none}
+.story-battle-panel{pointer-events:auto;border:1px solid rgba(103,232,249,.38);border-radius:15px;padding:12px 14px;background:linear-gradient(130deg,rgba(3,20,38,.96),rgba(30,27,75,.92));box-shadow:0 10px 35px rgba(0,0,0,.32);backdrop-filter:blur(12px)}
+.story-battle-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#a5f3fc;font-size:10px;font-weight:900;letter-spacing:.12em}
+.story-battle-live{color:#86efac;font-size:9px}
+#story-battle-status{font-size:13px;line-height:1.5;color:#f1f5f9;margin:8px 0 10px}
+.story-companion-chip{display:flex;align-items:center;gap:10px;padding:9px 10px;margin:0 0 10px;border:1px solid rgba(129,140,248,.28);border-radius:11px;background:linear-gradient(100deg,rgba(30,41,59,.72),rgba(15,23,42,.6))}
+.story-companion-core{display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;border-radius:10px;border:1px solid rgba(103,232,249,.35);background:rgba(8,145,178,.12);color:#a5f3fc;font-size:20px;box-shadow:inset 0 0 15px rgba(34,211,238,.08)}
+.story-companion-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+.story-companion-copy strong{font-size:10px;letter-spacing:.09em;color:#e0e7ff}
+.story-companion-copy small{font-size:9px;line-height:1.4;color:#94a3b8;letter-spacing:.04em}
+.story-companion-signal{width:7px;height:7px;flex:0 0 7px;margin-left:auto;border-radius:50%;background:#fbbf24;box-shadow:0 0 10px rgba(251,191,36,.6)}
+#story-companion-chip.is-synced{border-color:rgba(103,232,249,.55);background:linear-gradient(100deg,rgba(8,145,178,.16),rgba(49,46,129,.22))}
+#story-companion-chip.is-synced .story-companion-core{color:#c4b5fd;border-color:rgba(196,181,253,.55);background:rgba(124,58,237,.18)}
+#story-companion-chip.is-synced .story-companion-signal{background:#67e8f9;box-shadow:0 0 12px rgba(103,232,249,.8)}
+#story-battle-exit{border:1px solid rgba(148,163,184,.3);border-radius:9px;padding:8px 11px;color:#cbd5e1;background:rgba(15,23,42,.8);font-size:10px;font-weight:800;letter-spacing:.08em}
+@media(max-width:560px){#story-battle-hud{top:68px}.story-battle-panel{padding:10px 11px}#story-battle-status{font-size:12px;margin:6px 0 8px}}
+@media(prefers-reduced-motion:reduce){.story-battle-panel{backdrop-filter:none}}
+
 </style>
 </head>
 <body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-pc color-pastel" id="main-body">
@@ -671,9 +696,15 @@
    </div>
    <div id="story-mission-view" hidden>
     <div class="story-mission-grid">
-     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission1tag">GÖREV 01</div><h3 data-story-ui="mission1title">Savunmayı etkinleştir</h3><p data-story-ui="mission1desc">Kule çekirdeğini çevrimiçi duruma getir ve istasyonun savunma protokolünü öğren.</p></article>
-     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission2tag">GÖREV 02</div><h3 data-story-ui="mission2title">İlk temas</h3><p data-story-ui="mission2desc">Bilinmeyen düşmanların ilk saldırısına karşı koy.</p></article>
-     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission3tag">GÖREV 03</div><h3 data-story-ui="mission3title">Sinyalin kaynağı</h3><p data-story-ui="mission3desc">Savaş sonrasında çekirdeğin kaydettiği gizemli sinyali araştır.</p></article>
+     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission1tag">GÖREV 01</div><h3 data-story-ui="mission1title">Savunmayı etkinleştir</h3><p data-story-ui="mission1desc">Kule çekirdeğini çevrimiçi duruma getir ve istasyonun savunma protokolünü öğren.</p><div class="story-mission-status" id="story-mission-1-status">OYNANABİLİR GÖREV</div><button type="button" class="story-primary story-deploy" id="story-start-mission1" onclick="startStoryMission(1)">GÖREVE BAŞLA →</button></article>
+     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission2tag">GÖREV 02</div><h3 data-story-ui="mission2title">İlk temas</h3><p data-story-ui="mission2desc">Devriye saldırısını durdur, ardından üç sinyal izini tara.</p><div class="story-mission-status is-locked" id="story-mission-2-status">KİLİTLİ · 1. GÖREVİ TAMAMLA</div><button type="button" class="story-primary story-deploy" id="story-start-mission2" onclick="startStoryMission(2)" disabled>GÖREVE BAŞLA →</button></article>
+     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission3tag">GÖREV 03</div><h3 data-story-ui="mission3title">Sinyalin kaynağı</h3><p data-story-ui="mission3desc">Anten verisini mi, karakutu kaydını mı inceleyeceksin?</p><div class="story-mission-status is-locked" id="story-mission-3-status">KİLİTLİ · 2. GÖREVİ TAMAMLA</div><button type="button" class="story-primary story-deploy" id="story-start-mission3" onclick="startStoryMission(3)" disabled>İNCELE →</button></article>
+<article class="story-mission"><div class="story-mission-number" data-story-ui="mission4tag">GÖREV 04</div><h3 data-story-ui="mission4title">Güç dağıtımı</h3><p data-story-ui="mission4desc">Kalkanı mı, silah kalibrasyonunu mu önce onaracaksın?</p><div class="story-mission-status is-locked" id="story-mission-4-status">KİLİTLİ · 3. GÖREVİ TAMAMLA</div><button type="button" class="story-primary story-deploy" id="story-start-mission4" onclick="startStoryMission(4)" disabled>SİSTEMLERİ ONAR →</button></article>
+<article class="story-mission"><div class="story-mission-number" data-story-ui="mission5tag">GÖREV 05</div><h3 data-story-ui="mission5title">Kırık hat</h3><p data-story-ui="mission5desc">Seçtiğin sistemin avantajıyla koridoru savun ve sinyal rölesini kapat.</p><div class="story-mission-status is-locked" id="story-mission-5-status">KİLİTLİ · 4. GÖREVİ TAMAMLA</div><button type="button" class="story-primary story-deploy" id="story-start-mission5" onclick="startStoryMission(5)" disabled>GÖREVE BAŞLA →</button></article>
+<article class="story-mission"><div class="story-mission-number" data-story-ui="mission6tag">GÖREV 06</div><h3 data-story-ui="mission6title">Bölmenin ötesinde</h3><p data-story-ui="mission6desc">Yoldaşınla hasarlı bakım bölümünden geç ve üç bağlantıyı onar.</p><div class="story-mission-status is-locked" id="story-mission-6-status">KİLİTLİ · 5. GÖREVİ TAMAMLA</div><button type="button" class="story-primary story-deploy" id="story-start-mission6" onclick="startStoryMission(6)" disabled>ONARIMA BAŞLA →</button></article>
+<article class="story-mission"><div class="story-mission-number" data-story-ui="mission7tag">GÖREV 07</div><h3 data-story-ui="mission7title">Sinyal bükülüyor</h3><p data-story-ui="mission7desc">Haberleşme dizisini savun ve sinyal yükselticisini sustur.</p><div class="story-mission-status is-locked" id="story-mission-7-status">KİLİTLİ · 6. GÖREVİ TAMAMLA</div><button type="button" class="story-primary story-deploy" id="story-start-mission7" onclick="startStoryMission(7)" disabled>DİZİYİ SAVUN →</button></article>
+<article class="story-mission"><div class="story-mission-number" data-story-ui="mission8tag">GÖREV 08</div><h3 data-story-ui="mission8title">Tanıdık oda</h3><p data-story-ui="mission8desc">Başlangıç bölmesine dön ve üç fiziksel izi incele.</p><div class="story-mission-status is-locked" id="story-mission-8-status">KİLİTLİ · 7. GÖREVİ TAMAMLA</div><button type="button" class="story-primary story-deploy" id="story-start-mission8" onclick="startStoryMission(8)" disabled>İNCELE →</button></article>
+<article class="story-mission"><div class="story-mission-number" data-story-ui="mission9tag">GÖREV 09</div><h3 data-story-ui="mission9title">Uyanmayı seçmek</h3><p data-story-ui="mission9desc">Çekirdeği koru, yoldaşla bağlantıyı kur ve onu uyandır.</p><div class="story-mission-status is-locked" id="story-mission-9-status">KİLİTLİ · 8. GÖREVİ TAMAMLA</div><button type="button" class="story-primary story-deploy" id="story-start-mission9" onclick="startStoryMission(9)" disabled>UYANIŞI BAŞLAT →</button></article>
     </div>
     <div class="story-complete" id="story-prototype-note"><strong data-story-ui="nextstep">Sıradaki adım</strong><p class="story-lead" data-story-ui="nextdesc">Bu ilk sürüm hikâye girişini ve görev akışını kurar. Gerçek görev savaşları sonraki aşamada mevcut savaş motoruna güvenli biçimde bağlanacak.</p></div>
     <div class="story-controls" style="margin-top:20px"><span class="story-progress" id="story-mission-progress">HİKÂYE KAYDI AYRI TUTULUR</span><button type="button" class="story-primary" onclick="closeStoryMode()" data-story-ui="backmenu">ANA MENÜYE DÖN</button></div>
@@ -683,6 +714,38 @@
  </div>
 </section>
 
+<div id="story-battle-hud" hidden aria-live="polite">
+ <div class="story-battle-panel">
+  <div class="story-battle-heading"><span>✦ <span data-story-ui="chapter">BÖLÜM 01 · KAYIP SİNYAL</span></span><span class="story-battle-live">● LIVE</span></div>
+  <p id="story-battle-status">GÖREV: 8 düşmanı durdur ve çekirdeği güvene al.</p>
+  <div id="story-comms" style="margin:8px 0;padding:9px 10px;border:1px solid rgba(103,232,249,.18);border-left:2px solid rgba(103,232,249,.75);border-radius:8px;background:rgba(8,20,39,.76)">
+   <div id="story-comms-speaker" style="font-size:10px;letter-spacing:.12em;font-weight:800;color:#67e8f9;margin-bottom:4px">İSTASYON YAPAY ZEKÂSI</div>
+   <div id="story-comms-line" style="font-size:12px;line-height:1.45;color:#dbeafe">Savunma protokolü çöktü.</div>
+  </div>
+  <button type="button" id="story-scan-action" class="story-primary story-deploy" onclick="scanStorySignal()" hidden>SİNYAL İZİNİ TARA 1 / 3</button>
+  <div id="story-investigation-actions" hidden style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0 10px">
+   <button type="button" class="story-primary" data-story-ui="arrayChoice" onclick="chooseStorySignalSource('array')">ANTEN VERİSİ</button>
+   <button type="button" class="story-primary" data-story-ui="blackboxChoice" onclick="chooseStorySignalSource('blackbox')">KARAKUTU KAYDI</button>
+  </div>
+  <div id="story-power-actions" hidden style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0 10px">
+   <button type="button" class="story-primary" data-story-ui="shieldChoice" onclick="chooseStoryPowerPriority('shield')">KALKANI ONAR</button>
+   <button type="button" class="story-primary" data-story-ui="weaponChoice" onclick="chooseStoryPowerPriority('weapon')">SİLAHI KALİBRE ET</button>
+  </div>
+  <button type="button" id="story-relay-action" class="story-primary story-deploy" data-story-ui="relayAction" onclick="disableStoryRelay()" hidden>SİNYAL RÖLESİNİ KAPAT</button>
+  <button type="button" id="story-repair-action" class="story-primary story-deploy" data-story-ui="repairAction" onclick="repairStoryConnection()" hidden>BAĞLANTIYI ONAR 1/3</button>
+  <button type="button" id="story-amplifier-action" class="story-primary story-deploy" data-story-ui="amplifierAction" onclick="disableStoryAmplifier()" hidden>YÜKSELTİCİYİ DEVRE DIŞI BIRAK</button>
+  <button type="button" id="story-memory-action" class="story-primary story-deploy" data-story-ui="memoryAction" onclick="inspectStoryMemory()" hidden>HAFIZA İZİNİ İNCELE 1/3</button>
+  <button type="button" id="story-reconnect-action" class="story-primary story-deploy" data-story-ui="reconnectAction" onclick="reconnectStoryCompanion()" hidden>BAĞLANTIYI YENİDEN KUR</button>
+  <button type="button" id="story-awaken-action" class="story-primary story-deploy" data-story-ui="awakenAction" onclick="awakenStoryCompanion()" hidden>YOLDAŞI UYANDIR</button>
+  <button type="button" id="story-pulse-action" class="story-primary story-deploy" data-story-ui="pulseAction" onclick="testStoryPulse()" hidden>SİNYAL DARBESİNİ DENE</button>
+  <div class="story-companion-chip" id="story-companion-chip">
+   <span class="story-companion-core" id="story-companion-icon" aria-hidden="true">⚙</span>
+   <span class="story-companion-copy"><strong id="story-companion-name">BAKIM YOLDAŞI · MK-I</strong><small id="story-companion-state">DÜŞÜK GÜÇ · ÇEKİRDEĞE BAĞLANIYOR</small></span>
+   <span class="story-companion-signal" aria-hidden="true"></span>
+  </div>
+  <button type="button" id="story-battle-exit" onclick="exitStoryBattle(false)">GÖREVDEN ÇIK</button>
+ </div>
+</div>
 
     <header class="bg-slate-900/95 backdrop-blur-xl border-b border-slate-800 p-2 sm:p-3 flex items-center justify-between z-20 shadow-lg shrink-0">
         <div class="flex items-center gap-2 sm:gap-4">
