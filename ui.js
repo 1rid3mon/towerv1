@@ -3314,7 +3314,26 @@ document.addEventListener('DOMContentLoaded', () => {
             'Kaydı on iki kez analiz ettim. Aynı ses, aynı dalga biçimi, aynı imkânsız sonuç. Matematiğin hayaletlerle aynı fikirde olmasından nefret ediyorum.',
             'İlerideki her neyse, kod adımı biliyor. Henüz onu kullanma hakkını kazanmadı.'
         ];
-        if (document.body?.dataset?.gameMode === 'story') return chooseLine(storyLines);
+        if (document.body?.dataset?.gameMode === 'story') {
+            const mission = Number(window.__storyBattle?.mission) || 1;
+            const lines = {
+                1: ['Çekirdek bağlantısı kararsız. Yanında kalacağım.','Yanında uyandım. Şimdilik kesin bildiğim tek şey bu.'],
+                2: ['Devriye bize değil, sinyale tepki veriyor. Bu ayrım önemli olabilir.','Üç iz, tek kaynak. İzi kaybetmeyelim.'],
+                3: ['Anten sinyalin dışarıdan geldiğini, karakutu çekirdeğin içinden başladığını söylüyor. İkisi birden doğru olamaz.','Kanıt doğruyu söyleyip yine de bir şeyleri saklayabilir.'],
+                4: ['Kalkan bizi hayatta tutar; silah kalibrasyonu çatışmayı çabuk bitirebilir.','Senin yerine seçemem komutan. Her seçimin bedelini hesaplayabilirim.'],
+                5: ['Önceki güç tercihin savunma profilini değiştirdi.','Röle, açılış kaydımda bulduğum imzayla aynı. Bundan hoşlanmadım.'],
+                6: ['Hasarlı bağlantıları gösterebilirim ama henüz uzaktan onaramıyorum.','Bu bakım yolu tanıdık geliyor. Nedenini bilmiyorum.'],
+                7: ['Yükseltici sinyali taramalarımızın çevresinden büküyor.','Sessizleşirsem çöktüğümden değil, bir şey bulduğumdandır.'],
+                8: ['Hafızam buranın boş olduğunu söylüyor. Sensörlerim katılmıyor.','Hangimiz hasarlıyız: hafızam mı, istasyon mu?'],
+                9: ['Bağlantıyı kurabilirsin. Öte tarafta neyin uyanacağına söz veremem.','Her şeyi hatırlarsam aynı yoldaş olarak kalamayabilirim.'],
+                10: ['Kapı sinyalimi seni tanımadan önce tanıdı. Bu sırayla ilgili sorularım var.','Darbe, planlarda var olmadığı söylenen bir şeyi açıyor.'],
+                11: ['Röleler çekirdeğimin ritmiyle yanıt veriyor. O ritmi onlara ben öğretmedim.','Dönen sinyalde kod adımı duydum. Sen de duydun mu?'],
+                12: ['Arşiv çekirdeğimden eski ama sesimi biliyor. Bunu işlemem için bir an lazım.','Son kaydı bensiz oynatma. Kendim duymalıyım.']
+            };
+            const contextual = lines[mission] || [];
+            if (storyLanguage() === 'en') return chooseLine(storyLines);
+            return chooseLine(contextual.length && Math.random() < 0.8 ? contextual : storyLines);
+        }
         const activeGame = typeof game !== 'undefined' && game ? game : null;
         const hp = typeof tower !== 'undefined' && tower && Number.isFinite(tower.hp) ? tower.hp : null;
         const maxHp = typeof tower !== 'undefined' && tower && Number.isFinite(tower.maxHp) && tower.maxHp > 0 ? tower.maxHp : null;
