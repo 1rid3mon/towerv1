@@ -3187,36 +3187,60 @@ document.addEventListener('DOMContentLoaded', () => {
         hideBubbleTimer = setTimeout(() => bubble.classList.remove('is-visible'), 2600);
     }
 
+    // Smooth drag: batch touch movement into one compositor update per animation frame.
+    let dragFrame = 0;
+    let pendingDx = 0;
+    let pendingDy = 0;
+    function paintDrag() {
+        dragFrame = 0;
+        if (!pointerStart || !moved) return;
+        const maxLeft = Math.max(0, window.innerWidth - mascot.offsetWidth);
+        const maxTop = Math.max(0, window.innerHeight - mascot.offsetHeight);
+        const left = Math.max(0, Math.min(maxLeft, pointerStart.left + pendingDx));
+        const top = Math.max(0, Math.min(maxTop, pointerStart.top + pendingDy));
+        mascot.style.transform = 'translate3d(' + (left - pointerStart.left) + 'px,' + (top - pointerStart.top) + 'px,0)';
+    }
     mascot.addEventListener('pointerdown', (event) => {
         if (event.button !== undefined && event.button !== 0) return;
         event.preventDefault();
         const rect = mascot.getBoundingClientRect();
         pointerStart = { x: event.clientX, y: event.clientY, left: rect.left, top: rect.top };
+        pendingDx = 0;
+        pendingDy = 0;
         moved = false;
+        mascot.classList.remove('mascot-react');
+        if (dragFrame) { cancelAnimationFrame(dragFrame); dragFrame = 0; }
         mascot.setPointerCapture?.(event.pointerId);
     });
     mascot.addEventListener('pointermove', (event) => {
         if (!pointerStart) return;
-        const dx = event.clientX - pointerStart.x;
-        const dy = event.clientY - pointerStart.y;
-        if (!moved && Math.hypot(dx, dy) > 7) {
+        pendingDx = event.clientX - pointerStart.x;
+        pendingDy = event.clientY - pointerStart.y;
+        if (!moved && Math.hypot(pendingDx, pendingDy) > 5) {
             moved = true;
             mascot.classList.add('is-dragging');
             mascot.style.left = pointerStart.left + 'px';
             mascot.style.top = pointerStart.top + 'px';
             mascot.style.right = 'auto';
             mascot.style.bottom = 'auto';
+            mascot.style.willChange = 'transform';
         }
-        if (moved) {
-            const maxLeft = Math.max(0, window.innerWidth - mascot.offsetWidth);
-            const maxTop = Math.max(0, window.innerHeight - mascot.offsetHeight);
-            mascot.style.left = Math.max(0, Math.min(maxLeft, pointerStart.left + dx)) + 'px';
-            mascot.style.top = Math.max(0, Math.min(maxTop, pointerStart.top + dy)) + 'px';
-        }
+        if (moved && !dragFrame) dragFrame = requestAnimationFrame(paintDrag);
     });
     function finishPointer() {
         if (!pointerStart) return;
+        if (dragFrame) { cancelAnimationFrame(dragFrame); dragFrame = 0; }
         const wasDragged = moved;
+        if (wasDragged) {
+            const maxLeft = Math.max(0, window.innerWidth - mascot.offsetWidth);
+            const maxTop = Math.max(0, window.innerHeight - mascot.offsetHeight);
+            const left = Math.max(0, Math.min(maxLeft, pointerStart.left + pendingDx));
+            const top = Math.max(0, Math.min(maxTop, pointerStart.top + pendingDy));
+            mascot.style.transform = '';
+            mascot.style.left = left + 'px';
+            mascot.style.top = top + 'px';
+            mascot.style.willChange = 'auto';
+        }
         pointerStart = null;
         moved = false;
         mascot.classList.remove('is-dragging');
@@ -3224,6 +3248,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     mascot.addEventListener('pointerup', finishPointer);
     mascot.addEventListener('pointercancel', finishPointer);
+    window.addEventListener('resize', () => {
+        if (pointerStart) return;
+        const rect = mascot.getBoundingClientRect();
+        mascot.style.left = Math.max(0, Math.min(window.innerWidth - rect.width, rect.left)) + 'px';
+        mascot.style.top = Math.max(0, Math.min(window.innerHeight - rect.height, rect.top)) + 'px';
+        mascot.style.right = 'auto';
+        mascot.style.bottom = 'auto';
+    }, { passive: true });
     mascot.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
@@ -3556,32 +3588,72 @@ const GAME_TRANSLATIONS = {
 const gameTextOriginals = new WeakMap();
 const gameAttributeOriginals = new WeakMap();
 let gameLanguageObserver = null;
+let languageTranslationBusy = false;
+
+function getTranslatedGameText(original, language) {
+    if (language !== 'en') return original;
+    const trimmed = original.trim();
+    if (GAME_TRANSLATIONS[trimmed]) return GAME_TRANSLATIONS[trimmed];
+    const dynamicRules = [
+        [/^⚠️ BOSS GELDİ:\\s*/, '⚠️ BOSS INCOMING: '],
+        [/^💥 Kule Yıkıldı! Enkazdan /, '💥 Tower destroyed! Salvaged '],
+        [/^🏆 Dalga (.+) Rekor Ödülü: /, '🏆 Wave $1 Record Reward: '],
+        [/^Dalga Ödülü: /, 'Wave Reward: '],
+        [/^💎 Kargo İmha Edildi! /, '💎 Cargo destroyed! '],
+        [/^🪙 Altın Kargosu Toplandı! /, '🪙 Gold cargo collected! '],
+        [/^Farm süresi doldu! /, 'Farming timer ended! '],
+        [/^Farm modunda /, 'In farming mode, '],
+        [/^\d+ \/ \d+ ödül alındı$/, trimmed.replace('ödül alındı', 'rewards claimed')],
+        [/^\d+ \/ \d+ tamamlandı$/, trimmed.replace('tamamlandı', 'completed')]
+    ];
+    for (const [pattern, replacement] of dynamicRules) {
+        if (pattern.test(trimmed)) return trimmed.replace(pattern, replacement);
+    }
+    return undefined;
+}
 
 function translateGameNode(node, language) {
-    if (!node) return;
+    if (!node || languageTranslationBusy) return;
     if (node.nodeType === Node.TEXT_NODE) {
-        if (!gameTextOriginals.has(node)) gameTextOriginals.set(node, node.nodeValue);
-        const original = gameTextOriginals.get(node);
-        const trimmed = original.trim();
-        if (!trimmed) return;
-        const translated = language === 'en' ? GAME_TRANSLATIONS[trimmed] : original;
-        if (translated !== undefined) {
-            const leading = original.match(/^\s*/)?.[0] || '';
-            const trailing = original.match(/\s*$/)?.[0] || '';
-            const next = language === 'en' ? leading + translated + trailing : original;
-            if (node.nodeValue !== next) node.nodeValue = next;
+        const current = node.nodeValue;
+        let record = gameTextOriginals.get(node);
+        if (!record) {
+            record = { original: current, translated: null };
+            gameTextOriginals.set(node, record);
+        } else if (record.translated !== null && current !== record.translated) {
+            record.original = current;
+            record.translated = null;
+        }
+        const original = record.original;
+        if (!original.trim()) return;
+        const translated = getTranslatedGameText(original, language);
+        const leading = original.match(/^\\s*/)?.[0] || '';
+        const trailing = original.match(/\\s*$/)?.[0] || '';
+        if (language === 'en' && translated !== undefined) {
+            const next = leading + translated + trailing;
+            record.translated = next;
+            if (node.nodeValue !== next) {
+                languageTranslationBusy = true;
+                node.nodeValue = next;
+                languageTranslationBusy = false;
+            }
+        } else if (language === 'tr' && current !== original) {
+            languageTranslationBusy = true;
+            node.nodeValue = original;
+            languageTranslationBusy = false;
+            record.translated = null;
         }
     } else if (node.nodeType === Node.ELEMENT_NODE) {
         if (['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(node.tagName)) return;
         for (const attr of ['placeholder', 'title', 'aria-label']) {
-            if (node.hasAttribute(attr)) {
-                let originals = gameAttributeOriginals.get(node);
-                if (!originals) { originals = {}; gameAttributeOriginals.set(node, originals); }
-                if (!(attr in originals)) originals[attr] = node.getAttribute(attr);
-                const original = originals[attr];
-                if (language === 'en' && GAME_TRANSLATIONS[original]) node.setAttribute(attr, GAME_TRANSLATIONS[original]);
-                else if (language === 'tr') node.setAttribute(attr, original);
-            }
+            if (!node.hasAttribute(attr)) continue;
+            let originals = gameAttributeOriginals.get(node);
+            if (!originals) { originals = {}; gameAttributeOriginals.set(node, originals); }
+            if (!(attr in originals)) originals[attr] = node.getAttribute(attr);
+            const original = originals[attr];
+            const translated = getTranslatedGameText(original, language);
+            if (language === 'en' && translated !== undefined) node.setAttribute(attr, translated);
+            else if (language === 'tr') node.setAttribute(attr, original);
         }
         for (const child of node.childNodes) translateGameNode(child, language);
     }
@@ -3596,7 +3668,8 @@ function applyGameLanguage(language) {
     if (selector) selector.value = selected;
     if (gameLanguageObserver) gameLanguageObserver.disconnect();
     gameLanguageObserver = new MutationObserver(mutations => {
-        const current = localStorage.getItem('towerDefenseLanguage') || 'tr';
+        let current = 'tr';
+        try { current = localStorage.getItem('towerDefenseLanguage') || 'tr'; } catch (_) {}
         for (const mutation of mutations) {
             if (mutation.type === 'childList') {
                 for (const node of mutation.addedNodes) translateGameNode(node, current);
@@ -3605,7 +3678,7 @@ function applyGameLanguage(language) {
             }
         }
     });
-    gameLanguageObserver.observe(document.body, { childList: true, subtree: true });
+    gameLanguageObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
 }
 
 function setGameLanguage(language) {
