@@ -211,3 +211,25 @@ test('routine HUD refresh is throttled while explicit event updates remain avail
   assert.match(engineSource, /if \(hudUpdateAccum >= 0\.1\)[\s\S]{0,100}updateHUD\(\);/);
   assert.match(uiSource, /function updateHUD\(\)/);
 });
+
+
+test('unsupported Story Mode phases cannot fall through and falsely complete mission 2', () => {
+  const body = extractFunction(
+    uiSource,
+    'function finishStoryBattleEncounter()',
+    'function scanStorySignal()'
+  );
+  const guard = body.indexOf('if (![1, 2].includes(session.mission)) return;');
+  const genericCompletion = body.indexOf('session.completed = true; isPaused = true; enemies = []; projectiles = [];');
+  assert.ok(guard >= 0 && genericCompletion > guard,
+    'only mission 1/2 may use the generic completion branch');
+  assert.match(body, /if \(session\.mission === 1\)[\s\S]*?else \{[\s\S]*?mission2Complete: true/);
+});
+
+test('mission 13 and 14 each have exactly one initial objective label branch', () => {
+  const start = uiSource.indexOf('function startStoryMission(');
+  const end = uiSource.indexOf('function finishStoryBattleEncounter()', start);
+  const body = uiSource.slice(start, end);
+  assert.equal((body.match(/else if \(missionNumber === 13\) status\.textContent/g) || []).length, 1);
+  assert.equal((body.match(/else if \(missionNumber === 14\) status\.textContent/g) || []).length, 1);
+});
