@@ -160,6 +160,30 @@ function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
                 c.fillStyle = muzzleCol;
                 c.fillRect(startX + bLen - 3.5, -bH / 2 - 0.8, 3.5, bH + 1.6);
             }
+
+            // V2.6 muzzle flare: use the existing recoil pulse, so no firing/gameplay state is added.
+            if (recoil > 0.25) {
+                const flash = Math.min(1, recoil / 4);
+                const tipX = startX + bLen;
+                c.save();
+                c.globalAlpha = flash * 0.88;
+                c.shadowColor = muzzleCol;
+                c.shadowBlur = 8 + flash * 10;
+                c.fillStyle = '#fff7ed';
+                c.beginPath();
+                c.moveTo(tipX - 1, -bH * 0.48);
+                c.lineTo(tipX + 5 + flash * 5, 0);
+                c.lineTo(tipX - 1, bH * 0.48);
+                c.lineTo(tipX + 1, 0);
+                c.closePath();
+                c.fill();
+                c.globalAlpha = flash * 0.42;
+                c.fillStyle = muzzleCol;
+                c.beginPath();
+                c.ellipse(tipX + 2, 0, 3 + flash * 4, bH * 0.8 + flash * 2, 0, 0, Math.PI * 2);
+                c.fill();
+                c.restore();
+            }
             c.restore();
         }
         c.restore();
@@ -967,6 +991,31 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
     c.shadowColor = 'rgba(0, 0, 0, 0.45)';
     c.shadowBlur = e.type === 'boss' ? 10 : 5;
     c.shadowOffsetY = 2;
+
+    // V2.6 impact feedback: short directional sparks/ring when the existing hitFlash is active.
+    if (isHit) {
+        const hitStrength = Math.min(1, e.hitFlash);
+        const impactColor = e.type === 'boss' ? (e.secColor || '#f8fafc') : (e.color || '#e2e8f0');
+        c.save();
+        c.globalAlpha = 0.28 + hitStrength * 0.42;
+        c.strokeStyle = impactColor;
+        c.lineWidth = e.type === 'boss' ? 2.4 : 1.5;
+        c.beginPath();
+        c.arc(0, 0, r + 3 + (1 - hitStrength) * 5, -0.8, 1.35);
+        c.stroke();
+        c.rotate(faceAngle + Math.PI);
+        c.lineCap = 'round';
+        c.lineWidth = e.type === 'boss' ? 2 : 1.3;
+        for (let spark = 0; spark < 3; spark++) {
+            const a = -0.65 + spark * 0.65;
+            const len = (e.type === 'boss' ? 9 : 5) * hitStrength;
+            c.beginPath();
+            c.moveTo(Math.cos(a) * (r * 0.55), Math.sin(a) * (r * 0.55));
+            c.lineTo(Math.cos(a) * (r * 0.55 + len), Math.sin(a) * (r * 0.55 + len));
+            c.stroke();
+        }
+        c.restore();
+    }
 
     switch (kind) {
         case 'tank_boss': {
@@ -2292,11 +2341,28 @@ function renderGame() {
     }
 
     for (const r of rings) {
-        ctx.save(); ctx.beginPath(); ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = r.color; ctx.globalAlpha = Math.max(0, r.life);
-        ctx.lineWidth = 1 + r.life * 3;
-        ctx.shadowColor = r.color; ctx.shadowBlur = 10;
-        ctx.stroke(); ctx.restore();
+        ctx.save();
+        const life = Math.max(0, Math.min(1, r.life));
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = r.color;
+        ctx.globalAlpha = r.isBossDeath ? life * 0.9 : life;
+        ctx.lineWidth = r.isBossDeath ? 1.5 + life * 4.5 : 1 + life * 3;
+        ctx.shadowColor = r.color;
+        ctx.shadowBlur = r.isBossDeath ? 16 : 10;
+        ctx.stroke();
+
+        // Boss takedown rings get a second, broken arc for a more cinematic implosion/explosion.
+        if (r.isBossDeath) {
+            ctx.globalAlpha = life * 0.62;
+            ctx.lineWidth = 1.2 + life * 2;
+            ctx.setLineDash([7, 9]);
+            ctx.beginPath();
+            ctx.arc(r.x, r.y, Math.max(2, r.radius - 5), -0.9, Math.PI * 1.55);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        ctx.restore();
     }
 
     const activeCompSkin = game.activeCompanionSkin || 'default_tech';
