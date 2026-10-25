@@ -3706,6 +3706,7 @@ function getTranslatedGameText(original, language) {
     if (language !== 'en') return original;
     const trimmed = original.trim();
     if (GAME_TRANSLATIONS[trimmed]) return GAME_TRANSLATIONS[trimmed];
+    if (!/[ÇĞİÖŞÜçğıöşü]/.test(trimmed)) return undefined;
     // Also translate known phrases embedded in counters and dynamically generated labels.
     let partial = trimmed;
     for (const key of GAME_TRANSLATION_KEYS) {
@@ -3713,7 +3714,7 @@ function getTranslatedGameText(original, language) {
     }
     if (partial !== trimmed) return partial;
     const dynamicRules = [
-        [/^⚠️ BOSS GELDİ:\\s*/, '⚠️ BOSS INCOMING: '],
+        [/^⚠️ BOSS GELDİ:\s*/, '⚠️ BOSS INCOMING: '],
         [/^💥 Kule Yıkıldı! Enkazdan /, '💥 Tower destroyed! Salvaged '],
         [/^🏆 Dalga (.+) Rekor Ödülü: /, '🏆 Wave $1 Record Reward: '],
         [/^Dalga Ödülü: /, 'Wave Reward: '],
