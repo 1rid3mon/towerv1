@@ -160,6 +160,30 @@ function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
                 c.fillStyle = muzzleCol;
                 c.fillRect(startX + bLen - 3.5, -bH / 2 - 0.8, 3.5, bH + 1.6);
             }
+
+            // V2.6 muzzle flare: use the existing recoil pulse, so no firing/gameplay state is added.
+            if (recoil > 0.25) {
+                const flash = Math.min(1, recoil / 4);
+                const tipX = startX + bLen;
+                c.save();
+                c.globalAlpha = flash * 0.88;
+                c.shadowColor = muzzleCol;
+                c.shadowBlur = 8 + flash * 10;
+                c.fillStyle = '#fff7ed';
+                c.beginPath();
+                c.moveTo(tipX - 1, -bH * 0.48);
+                c.lineTo(tipX + 5 + flash * 5, 0);
+                c.lineTo(tipX - 1, bH * 0.48);
+                c.lineTo(tipX + 1, 0);
+                c.closePath();
+                c.fill();
+                c.globalAlpha = flash * 0.42;
+                c.fillStyle = muzzleCol;
+                c.beginPath();
+                c.ellipse(tipX + 2, 0, 3 + flash * 4, bH * 0.8 + flash * 2, 0, 0, Math.PI * 2);
+                c.fill();
+                c.restore();
+            }
             c.restore();
         }
         c.restore();
@@ -967,6 +991,31 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
     c.shadowColor = 'rgba(0, 0, 0, 0.45)';
     c.shadowBlur = e.type === 'boss' ? 10 : 5;
     c.shadowOffsetY = 2;
+
+    // V2.6 impact feedback: short directional sparks/ring when the existing hitFlash is active.
+    if (isHit) {
+        const hitStrength = Math.min(1, e.hitFlash);
+        const impactColor = e.type === 'boss' ? (e.secColor || '#f8fafc') : (e.color || '#e2e8f0');
+        c.save();
+        c.globalAlpha = 0.28 + hitStrength * 0.42;
+        c.strokeStyle = impactColor;
+        c.lineWidth = e.type === 'boss' ? 2.4 : 1.5;
+        c.beginPath();
+        c.arc(0, 0, r + 3 + (1 - hitStrength) * 5, -0.8, 1.35);
+        c.stroke();
+        c.rotate(faceAngle + Math.PI);
+        c.lineCap = 'round';
+        c.lineWidth = e.type === 'boss' ? 2 : 1.3;
+        for (let spark = 0; spark < 3; spark++) {
+            const a = -0.65 + spark * 0.65;
+            const len = (e.type === 'boss' ? 9 : 5) * hitStrength;
+            c.beginPath();
+            c.moveTo(Math.cos(a) * (r * 0.55), Math.sin(a) * (r * 0.55));
+            c.lineTo(Math.cos(a) * (r * 0.55 + len), Math.sin(a) * (r * 0.55 + len));
+            c.stroke();
+        }
+        c.restore();
+    }
 
     switch (kind) {
         case 'tank_boss': {
@@ -2218,6 +2267,36 @@ function renderGame() {
         }
     }
 
+    // V2.4 visual polish: a restrained tactical frame and vignette unify all themes.
+    // Pure rendering pass: no game state, timing, economy, or combat values are modified.
+    {
+        const edgeShade = ctx.createRadialGradient(tx, ty, maxDim * 0.12, tx, ty, maxDim * 0.78);
+        edgeShade.addColorStop(0, 'rgba(2, 6, 23, 0)');
+        edgeShade.addColorStop(0.68, 'rgba(2, 6, 23, 0.08)');
+        edgeShade.addColorStop(1, 'rgba(2, 6, 23, 0.38)');
+        ctx.fillStyle = edgeShade;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const frameColor = theme === 'frost' ? 'rgba(125, 211, 252, 0.24)'
+            : theme === 'space' ? 'rgba(196, 181, 253, 0.22)'
+            : theme === 'bubblegum' ? 'rgba(249, 168, 212, 0.20)'
+            : theme === 'forest' ? 'rgba(134, 239, 172, 0.18)'
+            : 'rgba(125, 211, 252, 0.20)';
+        const inset = Math.max(12, Math.min(24, maxDim * 0.025));
+        const mark = Math.max(9, Math.min(17, maxDim * 0.018));
+        ctx.save();
+        ctx.strokeStyle = frameColor;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        // Four corner brackets only: keep the center and enemy silhouettes unobstructed.
+        ctx.moveTo(inset, inset + mark); ctx.lineTo(inset, inset); ctx.lineTo(inset + mark, inset);
+        ctx.moveTo(canvas.width - inset - mark, inset); ctx.lineTo(canvas.width - inset, inset); ctx.lineTo(canvas.width - inset, inset + mark);
+        ctx.moveTo(inset, canvas.height - inset - mark); ctx.lineTo(inset, canvas.height - inset); ctx.lineTo(inset + mark, canvas.height - inset);
+        ctx.moveTo(canvas.width - inset - mark, canvas.height - inset); ctx.lineTo(canvas.width - inset, canvas.height - inset); ctx.lineTo(canvas.width - inset, canvas.height - inset - mark);
+        ctx.stroke();
+        ctx.restore();
+    }
+
     if (game.settings.showRange) {
         const r = getTowerRange(); ctx.beginPath(); ctx.arc(tx, ty, r, 0, Math.PI * 2);
         ctx.strokeStyle = 'rgba(199, 210, 254, 0.25)';
@@ -2262,11 +2341,28 @@ function renderGame() {
     }
 
     for (const r of rings) {
-        ctx.save(); ctx.beginPath(); ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = r.color; ctx.globalAlpha = Math.max(0, r.life);
-        ctx.lineWidth = 1 + r.life * 3;
-        ctx.shadowColor = r.color; ctx.shadowBlur = 10;
-        ctx.stroke(); ctx.restore();
+        ctx.save();
+        const life = Math.max(0, Math.min(1, r.life));
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = r.color;
+        ctx.globalAlpha = r.isBossDeath ? life * 0.9 : life;
+        ctx.lineWidth = r.isBossDeath ? 1.5 + life * 4.5 : 1 + life * 3;
+        ctx.shadowColor = r.color;
+        ctx.shadowBlur = r.isBossDeath ? 16 : 10;
+        ctx.stroke();
+
+        // Boss takedown rings get a second, broken arc for a more cinematic implosion/explosion.
+        if (r.isBossDeath) {
+            ctx.globalAlpha = life * 0.62;
+            ctx.lineWidth = 1.2 + life * 2;
+            ctx.setLineDash([7, 9]);
+            ctx.beginPath();
+            ctx.arc(r.x, r.y, Math.max(2, r.radius - 5), -0.9, Math.PI * 1.55);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        ctx.restore();
     }
 
     const activeCompSkin = game.activeCompanionSkin || 'default_tech';
@@ -2283,6 +2379,33 @@ function renderGame() {
     for (const b of lightningBeams) { ctx.save(); ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2); ctx.strokeStyle = b.color; ctx.lineWidth = 2.5; ctx.stroke(); ctx.restore(); }
 
     ctx.save(); ctx.translate(tx, ty);
+    // V2.4 reactor underglow: low-intensity light and segmented telemetry ring beneath the tower skin.
+    // The effect is cosmetic and deliberately remains visible without enabling the range overlay.
+    {
+        const pulse = 0.5 + 0.5 * Math.sin(nowCompTime * 0.0022);
+        const coreGlow = ctx.createRadialGradient(0, 0, 5, 0, 0, 48);
+        coreGlow.addColorStop(0, 'rgba(56, 189, 248, ' + (0.10 + pulse * 0.045).toFixed(3) + ')');
+        coreGlow.addColorStop(0.55, 'rgba(37, 99, 235, 0.055)');
+        coreGlow.addColorStop(1, 'rgba(37, 99, 235, 0)');
+        ctx.fillStyle = coreGlow;
+        ctx.beginPath(); ctx.arc(0, 0, 48, 0, Math.PI * 2); ctx.fill();
+
+        ctx.save();
+        ctx.rotate(-nowCompTime * 0.00012);
+        ctx.strokeStyle = 'rgba(125, 211, 252, ' + (0.20 + pulse * 0.08).toFixed(3) + ')';
+        ctx.lineWidth = 1.1;
+        for (let segment = 0; segment < 12; segment++) {
+            const angle = segment * Math.PI / 6;
+            const inner = segment % 3 === 0 ? 35 : 38;
+            const outer = segment % 3 === 0 ? 43 : 41;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner);
+            ctx.lineTo(Math.cos(angle) * outer, Math.sin(angle) * outer);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
     if (tower.shield > 0) {
         ctx.beginPath(); ctx.arc(0, 0, 32, 0, Math.PI * 2);
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.75)'; ctx.lineWidth = 2; ctx.setLineDash([10, 5]);
@@ -2429,23 +2552,93 @@ function renderGame() {
             ctx.restore();
         }
 
+        // V2.5: restrained boss presence aura. Purely visual; no gameplay state is changed.
+        if (e.type === 'boss') {
+            const bossPulse = 0.5 + 0.5 * Math.sin(nowCompTime * 0.003 + (e.animPhase || 0));
+            const bossRadius = e.radius + 13 + bossPulse * 5;
+            const bossColor = e.color || '#c084fc';
+            ctx.save();
+            const auraGradient = ctx.createRadialGradient(0, 0, Math.max(2, e.radius * 0.35), 0, 0, bossRadius + 13);
+            auraGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            auraGradient.addColorStop(0.62, bossColor);
+            auraGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = auraGradient;
+            ctx.globalAlpha = 0.16;
+            ctx.beginPath(); ctx.arc(0, 0, bossRadius + 13, 0, Math.PI * 2); ctx.fill();
+            ctx.globalAlpha = 1;
+
+            ctx.rotate(-nowCompTime * 0.00045);
+            ctx.strokeStyle = bossColor;
+            ctx.globalAlpha = 0.28 + bossPulse * 0.18;
+            ctx.lineWidth = e.subType === 'leviathan' ? 2 : 1.35;
+            ctx.setLineDash(e.subType === 'tank_boss' ? [10, 5] : [3, 7]);
+            ctx.beginPath();
+            ctx.arc(0, 0, bossRadius, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Four small markers create a readable boss silhouette without covering its sprite.
+            ctx.globalAlpha = 0.42 + bossPulse * 0.2;
+            ctx.fillStyle = bossColor;
+            for (let marker = 0; marker < 4; marker++) {
+                const a = marker * Math.PI / 2;
+                const r = bossRadius + 2;
+                ctx.beginPath();
+                ctx.arc(Math.cos(a) * r, Math.sin(a) * r, e.subType === 'leviathan' ? 2.8 : 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
         drawCustomEnemy(ctx, e, tx, ty, nowCompTime);
 
         if (e.hp < e.maxHp || e.type === 'boss' || e.isElite) {
-            const barW = Math.max(24, e.radius * 2.1);
+            const isBoss = e.type === 'boss';
+            const barW = Math.max(isBoss ? 44 : 24, e.radius * (isBoss ? 2.65 : 2.1));
             const pct = e.maxHp > 0 ? Math.max(0, Math.min(1, e.hp / e.maxHp)) : 0;
-            const barY = -e.radius - 12;
+            const barY = -e.radius - (isBoss ? 15 : 12);
+            const barH = isBoss ? 7 : (e.isElite ? 5 : 4);
+            const barX = -barW / 2;
+            const healthColor = isBoss
+                ? (e.color || '#c084fc')
+                : (pct <= 0.25 ? '#fb7185' : pct <= 0.55 ? '#fbbf24' : '#86efac');
 
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
-            ctx.fillRect(-barW / 2, barY, barW, 4);
-            ctx.fillStyle = e.type === 'boss' ? (e.color || '#d8b4fe') : '#86efac';
-            ctx.fillRect(-barW / 2, barY, barW * pct, 4);
+            // Dark plate + subtle outline improve readability on bright themes.
+            ctx.fillStyle = 'rgba(2, 6, 23, 0.88)';
+            ctx.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
+            ctx.strokeStyle = isBoss ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.24)';
+            ctx.lineWidth = 0.7;
+            ctx.strokeRect(barX - 1, barY - 1, barW + 2, barH + 2);
 
-            if ((e.type === 'boss' || e.isElite) && e.name) {
-                ctx.font = e.type === 'boss' ? "bold 9.5px 'Rajdhani', sans-serif" : "bold 8.5px 'Rajdhani', sans-serif";
-                ctx.fillStyle = e.isElite && e.type !== 'boss' ? '#fcd34d' : '#fef08a';
+            // Empty track and live health fill.
+            ctx.fillStyle = 'rgba(71, 85, 105, 0.72)';
+            ctx.fillRect(barX, barY, barW, barH);
+            if (pct > 0) {
+                const healthGradient = ctx.createLinearGradient(barX, barY, barX, barY + barH);
+                healthGradient.addColorStop(0, healthColor);
+                healthGradient.addColorStop(1, isBoss ? healthColor : (pct <= 0.25 ? '#be123c' : pct <= 0.55 ? '#b45309' : '#15803d'));
+                ctx.fillStyle = healthGradient;
+                ctx.fillRect(barX, barY, barW * pct, barH);
+            }
+
+            // Boss bars use small phase-like ticks as decoration only; HP math is unchanged.
+            if (isBoss) {
+                ctx.strokeStyle = 'rgba(15, 23, 42, 0.72)';
+                ctx.lineWidth = 1;
+                for (let tick = 1; tick < 8; tick++) {
+                    const x = barX + barW * tick / 8;
+                    ctx.beginPath(); ctx.moveTo(x, barY); ctx.lineTo(x, barY + barH); ctx.stroke();
+                }
+            }
+
+            if ((isBoss || e.isElite) && e.name) {
+                ctx.font = isBoss ? "bold 10.5px 'Rajdhani', sans-serif" : "bold 8.5px 'Rajdhani', sans-serif";
                 ctx.textAlign = 'center';
-                ctx.fillText(e.name, 0, barY - 4);
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = 'rgba(2, 6, 23, 0.9)';
+                ctx.strokeText(e.name, 0, barY - 5);
+                ctx.fillStyle = e.isElite && !isBoss ? '#fcd34d' : '#fef08a';
+                ctx.fillText(e.name, 0, barY - 5);
             }
         }
         ctx.restore();
