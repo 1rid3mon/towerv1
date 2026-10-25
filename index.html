@@ -698,7 +698,7 @@
     <div class="story-mission-grid">
      <article class="story-mission"><div class="story-mission-number" data-story-ui="mission1tag">GÖREV 01</div><h3 data-story-ui="mission1title">Savunmayı etkinleştir</h3><p data-story-ui="mission1desc">Kule çekirdeğini çevrimiçi duruma getir ve istasyonun savunma protokolünü öğren.</p><div class="story-mission-status" id="story-mission-1-status">OYNANABİLİR GÖREV</div><button type="button" class="story-primary story-deploy" id="story-start-mission1" onclick="startStoryMission(1)">GÖREVE BAŞLA →</button></article>
      <article class="story-mission"><div class="story-mission-number" data-story-ui="mission2tag">GÖREV 02</div><h3 data-story-ui="mission2title">İlk temas</h3><p data-story-ui="mission2desc">Devriye saldırısını durdur, ardından üç sinyal izini tara.</p><div class="story-mission-status is-locked" id="story-mission-2-status">KİLİTLİ · 1. GÖREVİ TAMAMLA</div><button type="button" class="story-primary story-deploy" id="story-start-mission2" onclick="startStoryMission(2)" disabled>GÖREVE BAŞLA →</button></article>
-     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission3tag">GÖREV 03</div><h3 data-story-ui="mission3title">Sinyalin kaynağı</h3><p data-story-ui="mission3desc">Savaş sonrasında çekirdeğin kaydettiği gizemli sinyali araştır.</p><div class="story-mission-status is-locked">KİLİTLİ · SONRAKİ AŞAMA</div></article>
+     <article class="story-mission"><div class="story-mission-number" data-story-ui="mission3tag">GÖREV 03</div><h3 data-story-ui="mission3title">Sinyalin kaynağı</h3><p data-story-ui="mission3desc">Anten verisini mi, karakutu kaydını mı inceleyeceksin?</p><div class="story-mission-status is-locked" id="story-mission-3-status">KİLİTLİ · 2. GÖREVİ TAMAMLA</div><button type="button" class="story-primary story-deploy" id="story-start-mission3" onclick="startStoryMission(3)" disabled>İNCELE →</button></article>
     </div>
     <div class="story-complete" id="story-prototype-note"><strong data-story-ui="nextstep">Sıradaki adım</strong><p class="story-lead" data-story-ui="nextdesc">Bu ilk sürüm hikâye girişini ve görev akışını kurar. Gerçek görev savaşları sonraki aşamada mevcut savaş motoruna güvenli biçimde bağlanacak.</p></div>
     <div class="story-controls" style="margin-top:20px"><span class="story-progress" id="story-mission-progress">HİKÂYE KAYDI AYRI TUTULUR</span><button type="button" class="story-primary" onclick="closeStoryMode()" data-story-ui="backmenu">ANA MENÜYE DÖN</button></div>
@@ -713,6 +713,10 @@
   <div class="story-battle-heading"><span>✦ <span data-story-ui="chapter">BÖLÜM 01 · KAYIP SİNYAL</span></span><span class="story-battle-live">● LIVE</span></div>
   <p id="story-battle-status">GÖREV: 8 düşmanı durdur ve çekirdeği güvene al.</p>
   <button type="button" id="story-scan-action" class="story-primary story-deploy" onclick="scanStorySignal()" hidden>SİNYAL İZİNİ TARA 1 / 3</button>
+  <div id="story-investigation-actions" hidden style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0 10px">
+   <button type="button" class="story-primary" onclick="chooseStorySignalSource('array')">ANTEN VERİSİ</button>
+   <button type="button" class="story-primary" onclick="chooseStorySignalSource('blackbox')">KARAKUTU KAYDI</button>
+  </div>
   <div class="story-companion-chip" id="story-companion-chip">
    <span class="story-companion-core" id="story-companion-icon" aria-hidden="true">⚙</span>
    <span class="story-companion-copy"><strong id="story-companion-name">BAKIM YOLDAŞI · MK-I</strong><small id="story-companion-state">DÜŞÜK GÜÇ · ÇEKİRDEĞE BAĞLANIYOR</small></span>
