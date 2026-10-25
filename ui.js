@@ -1663,7 +1663,7 @@ function switchTab(tab) {
     if (tab === 'prestige') buildPrestigeUI();
     if (tab === 'casino' && activeMiniGame === 'roulette') drawRouletteWheel();
     if (tab === 'casino' && activeMiniGame === 'quantum') drawQuantumBar();
-    if (tab === 'leaderboard') refreshLeaderboard(false);
+    if (tab === 'leaderboard') { refreshLeaderboard(false); renderFriends(); }
 }
 
 function toggleGameSpeed() { gameSpeed = gameSpeed === 1 ? 2 : (gameSpeed === 2 ? 3 : 1); setElText('ui-speed', `${gameSpeed}x`); }
@@ -1954,9 +1954,11 @@ function initAuthAndCloudSystem() {
                     updateAccountHeaderUI();
                     await forceCloudPull(true);
                     await pushScoreToLeaderboard();
+                    await renderFriends();
                 } else {
                     currentUser = null;
                     updateAccountHeaderUI();
+                    renderFriends();
                 }
             });
             return;
