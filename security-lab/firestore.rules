@@ -85,6 +85,41 @@ service cloud.firestore {
     && request.resource.data.updatedAt is number;
    allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
   }
+  match /friendRequests/{requestId} {
+   function validFriendRequest() {
+    let d = request.resource.data;
+    return d.keys().hasOnly(['fromUid','toUid','fromUsername','toUsername','status','createdAt','updatedAt'])
+     && d.fromUid is string && d.toUid is string
+     && d.fromUid != d.toUid
+     && d.fromUsername is string && d.fromUsername.size() >= 3 && d.fromUsername.size() <= 18
+     && d.toUsername is string && d.toUsername.size() >= 3 && d.toUsername.size() <= 18
+     && d.status == 'pending'
+     && d.createdAt == request.time && d.updatedAt == request.time
+     && exists(/databases/$(database)/documents/usernameRegistry/$(d.toUsername.lower()))
+     && get(/databases/$(database)/documents/usernameRegistry/$(d.toUsername.lower())).data.uid == d.toUid
+     && exists(/databases/$(database)/documents/usernameRegistry/$(d.fromUsername.lower()))
+     && get(/databases/$(database)/documents/usernameRegistry/$(d.fromUsername.lower())).data.uid == d.fromUid;
+   }
+   allow read: if request.auth != null
+    && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
+   allow create: if request.auth != null
+    && request.resource.data.fromUid == request.auth.uid
+    && validFriendRequest()
+    && !exists(/databases/$(database)/documents/friendRequests/$(request.resource.data.toUid + '_' + request.resource.data.fromUid));
+   allow update: if request.auth != null
+    && resource.data.toUid == request.auth.uid
+    && resource.data.status == 'pending'
+    && request.resource.data.fromUid == resource.data.fromUid
+    && request.resource.data.toUid == resource.data.toUid
+    && request.resource.data.fromUsername == resource.data.fromUsername
+    && request.resource.data.toUsername == resource.data.toUsername
+    && request.resource.data.createdAt == resource.data.createdAt
+    && request.resource.data.status in ['accepted','rejected']
+    && request.resource.data.updatedAt == request.time
+    && request.resource.data.keys().hasOnly(['fromUid','toUid','fromUsername','toUsername','status','createdAt','updatedAt']);
+   allow delete: if request.auth != null
+    && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
+  }
   match /users/{userId}{
    allow read: if isOwner(userId);
    allow create,update: if isOwner(userId)&&validUserDoc();
