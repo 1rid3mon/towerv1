@@ -1714,7 +1714,7 @@ let toastTimeout = null;
 function showToast(msg) {
     const el = document.getElementById('toast-msg'), txt = document.getElementById('toast-text');
     if (!el || !txt) return;
-    txt.textContent = msg; el.classList.remove('opacity-0'); clearTimeout(toastTimeout); toastTimeout = setTimeout(() => el.classList.add('opacity-0'), 2600);
+    txt.textContent = typeof localizeGameMessage === 'function' ? localizeGameMessage(msg) : msg; el.classList.remove('opacity-0'); clearTimeout(toastTimeout); toastTimeout = setTimeout(() => el.classList.add('opacity-0'), 2600);
 }
 
 // =======================================================
@@ -2678,7 +2678,7 @@ function getDailyMissionDefinitions(state = readDailyMissionState()) {
     return [
         { id: 'daily-kills', icon: '🎯', title: 'Tehdit Temizliği', desc: 'Bugün 50 düşman imha et', progress: Math.min(50, kills), target: 50, rewardGold: 250, rewardCrystals: 4 },
         { id: 'daily-boss', icon: '🐉', title: 'Boss Avı', desc: 'Bugün 1 boss yen', progress: Math.min(1, bosses), target: 1, rewardGold: 200, rewardCrystals: 8 },
-        { id: 'daily-time', icon: '⏱️', title: 'Nöbet Mesaisi', desc: 'Bugün 10 dakika savaş alanında kal', progress: Math.min(600, playTime), target: 600, rewardGold: 300, rewardCrystals: 5, format: v => `${Math.floor(v / 60)} dk` },
+        { id: 'daily-time', icon: '⏱️', title: 'Nöbet Mesaisi', desc: 'Bugün 10 dakika savaş alanında kal', progress: Math.min(600, playTime), target: 600, rewardGold: 300, rewardCrystals: 5, format: v => getGameLanguage() === 'en' ? `${Math.floor(v / 60)} min` : `${Math.floor(v / 60)} dk` },
         { id: 'daily-waves', icon: '🌊', title: 'Dalga Dalgaya', desc: 'Bugün 5 dalga ilerle', progress: Math.min(5, waveDelta), target: 5, rewardGold: 350, rewardCrystals: 6 }
     ];
 }
@@ -2687,11 +2687,21 @@ function openDailyMissionsModal() {
     renderDailyMissions();
     const modal = document.getElementById('daily-missions-modal');
     if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+    const action = document.getElementById('daily-missions-close-action');
+    if (action) action.textContent = dailyMissionsOpenedFromMainMenu
+        ? (getGameLanguage() === 'en' ? 'RETURN TO MAIN MENU' : 'ANA MENÜYE DÖN')
+        : (getGameLanguage() === 'en' ? 'RETURN TO BATTLEFIELD' : 'SAVAŞ ALANINA DÖN');
 }
 
 function closeDailyMissionsModal() {
     const modal = document.getElementById('daily-missions-modal');
     if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    if (dailyMissionsOpenedFromMainMenu) {
+        dailyMissionsOpenedFromMainMenu = false;
+        if (typeof isPaused !== 'undefined') isPaused = true;
+        const menu = document.getElementById('mode-main-menu');
+        if (menu) menu.classList.remove('menu-hidden');
+    }
 }
 
 function renderDailyMissions() {
@@ -2699,8 +2709,8 @@ function renderDailyMissions() {
     const state = readDailyMissionState();
     const missions = getDailyMissionDefinitions(state);
     const claimedCount = missions.filter(m => state.claimed.includes(m.id)).length;
-    setElText('daily-missions-date', `Günlük hedefler • ${state.date}`);
-    setElText('daily-missions-progress', `${claimedCount} / ${missions.length} ödül alındı`);
+    setElText('daily-missions-date', getGameLanguage() === 'en' ? `Daily objectives • ${state.date}` : `Günlük hedefler • ${state.date}`);
+    setElText('daily-missions-progress', getGameLanguage() === 'en' ? `${claimedCount} / ${missions.length} rewards claimed` : `${claimedCount} / ${missions.length} ödül alındı`);
     const list = document.getElementById('daily-missions-list');
     if (!list) return;
     list.innerHTML = missions.map(m => {
@@ -2710,11 +2720,12 @@ function renderDailyMissions() {
         const percent = Math.max(0, Math.min(100, value / m.target * 100));
         const current = m.format ? m.format(value) : formatNumber(value);
         const target = m.format ? m.format(m.target) : formatNumber(m.target);
+        const english = getGameLanguage() === 'en';
         const button = claimed
-            ? '<button disabled class="shrink-0 rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-[10px] font-bold text-emerald-300">ALINDI ✓</button>'
+            ? `<button disabled class="shrink-0 rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-[10px] font-bold text-emerald-300">${english ? 'CLAIMED ✓' : 'ALINDI ✓'}</button>`
             : done
-                ? `<button onclick="claimDailyMission('${m.id}')" class="shrink-0 rounded-lg bg-amber-500 px-3 py-2 text-[10px] font-bold text-slate-950 hover:bg-amber-400">ÖDÜLÜ AL</button>`
-                : '<button disabled class="shrink-0 rounded-lg bg-slate-800 px-3 py-2 text-[10px] font-bold text-slate-500">DEVAM ET</button>';
+                ? `<button onclick="claimDailyMission('${m.id}')" class="shrink-0 rounded-lg bg-amber-500 px-3 py-2 text-[10px] font-bold text-slate-950 hover:bg-amber-400">${english ? 'CLAIM REWARD' : 'ÖDÜLÜ AL'}</button>`
+                : `<button disabled class="shrink-0 rounded-lg bg-slate-800 px-3 py-2 text-[10px] font-bold text-slate-500">${english ? 'IN PROGRESS' : 'DEVAM ET'}</button>`;
         return `<div class="rounded-xl border ${claimed ? 'border-emerald-400/25' : 'border-white/10'} bg-slate-950/70 p-3">
             <div class="flex items-start gap-2.5">
                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-xl">${m.icon}</div>
@@ -3271,17 +3282,55 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 // ANA MENÜ VE OYUN MODU SEÇİMİ
 // ==========================================
+let dailyMissionsOpenedFromMainMenu = false;
+
+function getGameLanguage() {
+    try { return localStorage.getItem('towerDefenseLanguage') === 'en' ? 'en' : 'tr'; }
+    catch (_) { return 'tr'; }
+}
+
 function enterGameMode(mode) {
     if (mode !== 'endless') return;
     const menu = document.getElementById('mode-main-menu');
     if (menu) menu.classList.add('menu-hidden');
+    dailyMissionsOpenedFromMainMenu = false;
     document.body.dataset.gameMode = 'endless';
     if (typeof isPaused !== 'undefined') isPaused = false;
     if (typeof resizeCanvas === 'function') resizeCanvas();
 }
+
+function openDailyMissionsFromMainMenu() {
+    dailyMissionsOpenedFromMainMenu = true;
+    if (typeof isPaused !== 'undefined') isPaused = true;
+    const menu = document.getElementById('mode-main-menu');
+    if (menu) menu.classList.add('menu-hidden');
+    openDailyMissionsModal();
+    const action = document.getElementById('daily-missions-close-action');
+    if (action) action.textContent = getGameLanguage() === 'en' ? 'RETURN TO MAIN MENU' : 'ANA MENÜYE DÖN';
+}
+
+function returnToMainMenu() {
+    if (typeof saveGame === 'function') saveGame(true);
+    if (typeof isPaused !== 'undefined') isPaused = true;
+    dailyMissionsOpenedFromMainMenu = false;
+    const menu = document.getElementById('mode-main-menu');
+    if (menu) menu.classList.remove('menu-hidden');
+    const drawer = document.getElementById('upgrade-drawer');
+    if (drawer) drawer.classList.add('-translate-x-full');
+    if (typeof isDrawerOpen !== 'undefined') isDrawerOpen = false;
+    if (typeof syncHudPositionsWithDrawer === 'function') syncHudPositionsWithDrawer();
+    ['daily-missions-modal','achievements-modal','settings-modal','theme-modal','confirm-modal','auth-modal','update-notes-modal','lootbox-anim-modal'].forEach(id => {
+        const modal = document.getElementById(id);
+        if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    });
+}
+
 function showStoryModeComingSoon() {
     const subtitle = document.getElementById('mode-menu-subtitle');
-    if (subtitle) subtitle.textContent = 'Hikâye modu için dünya haritası, bölüm ilerlemesi ve boss finalleri hazırlanıyor. Şimdilik Sonsuz Mod oynanabilir; mevcut ilerlemen güvende.';
+    if (!subtitle) return;
+    subtitle.textContent = getGameLanguage() === 'en'
+        ? 'The world map, chapter progression, and boss finales are in development. Endless Mode is playable now, and your current progress is safe.'
+        : 'Hikâye modu için dünya haritası, bölüm ilerlemesi ve boss finalleri hazırlanıyor. Şimdilik Sonsuz Mod oynanabilir; mevcut ilerlemen güvende.';
 }
 
 
@@ -3499,7 +3548,131 @@ const GAME_TRANSLATIONS = {
     "Altın": "Gold",
     "Kristal": "Crystals",
     "Ruh": "Soul",
-    "Kristaller": "Crystals"
+    "Kristaller": "Crystals",
+"Ana Menü": "Main Menu",
+    "Görevler": "Quests",
+    "Günlük Görevler": "Daily Quests",
+    "Görevleri görüntüle ve ödüllerini topla.": "View your daily objectives and claim rewards.",
+    "Günlük hedefler": "Daily objectives",
+    "KUZEY IŞIKLARI SEZONU": "NORTHERN LIGHTS SEASON",
+    "Hedefleri tamamla, altın ve kristal kazan. Görevler yerel gün değiştiğinde yenilenir.": "Complete objectives to earn gold and crystals. Quests reset when the local day changes.",
+    "Günlük görevler bu cihazda saklanır ve istemci tarafında hesaplanır. Ödüller rekabetçi veya gerçek para değeri taşıyan ödüller değildir.": "Daily quests are stored on this device and calculated on the client. Rewards have no competitive or real-money value.",
+    "SAVAŞ ALANINA DÖN": "RETURN TO BATTLEFIELD",
+    "ANA MENÜYE DÖN": "RETURN TO MAIN MENU",
+    "Tehdit Temizliği": "Threat Cleanup",
+    "Bugün 50 düşman imha et": "Destroy 50 enemies today",
+    "Boss Avı": "Boss Hunt",
+    "Bugün 1 boss yen": "Defeat 1 boss today",
+    "Nöbet Mesaisi": "On Duty",
+    "Bugün 10 dakika savaş alanında kal": "Stay on the battlefield for 10 minutes today",
+    "Dalga Dalgaya": "Wave Runner",
+    "Bugün 5 dalga ilerle": "Advance 5 waves today",
+    "ödül alındı": "rewards claimed",
+    "ÖDÜLÜ AL": "CLAIM REWARD",
+    "ALINDI ✓": "CLAIMED ✓",
+    "DEVAM ET": "IN PROGRESS",
+    "Hikâye modu için dünya haritası, bölüm ilerlemesi ve boss finalleri hazırlanıyor. Şimdilik Sonsuz Mod oynanabilir; mevcut ilerlemen güvende.": "The world map, chapter progression, and boss finales are in development. Endless Mode is playable now, and your current progress is safe.",
+    "Görevler": "Quests",
+    "Görev": "Quest",
+    "Ayarlar": "Settings",
+    "Hesap & Bulut Kayıt": "Account & Cloud Save",
+    "Başarımlar ve istatistikler": "Achievements & statistics",
+    "Kristal": "Crystals",
+    "Ruh Taşı": "Soul Stone",
+    "Yenilgi": "Defeat",
+    "Yeniden Dene": "Try Again",
+    "Devam Et": "Continue",
+    "Savaş Alanına Dön": "Return to Battlefield",
+    "Kule ağır hasar aldı! 2. yenilgide farm moduna geçilecek.": "The tower took heavy damage! Farm mode activates after a second defeat.",
+    "Otomatik İlerleme Açıldı": "Auto Advance enabled",
+    "Farm Modu Açıldı (4 dalga sonra oto döner)": "Farm Mode enabled (auto-advance returns after 4 waves)",
+    "Farm modunda 4 dalga geçildi! Otomatik İlerleme aktif.": "Four waves cleared in Farm Mode! Auto Advance is now active.",
+    "Oyun başka bir sekmede açık": "The game is open in another tab",
+    "Oynamak için diğer oyun sekmesini kapatıp bu sayfayı yenile.": "Close the other game tab and refresh this page to play.",
+    "Siber": "Cyber",
+    "Plazma Kulesi": "Plasma Tower",
+    "Kaydediliyor...": "Saving...",
+    "Bulut kaydı başarılı": "Cloud save successful",
+    "Bulut kaydı yüklenemedi": "Could not load cloud save",
+    "Bağlantı hatası": "Connection error",
+    "Günlük görev ödülü alındı!": "Daily quest reward claimed!",
+    "Ödül alındı!": "Reward claimed!",
+    "Yetersiz kaynak": "Insufficient resources",
+    "Günlük görevler yenilendi!": "Daily quests refreshed!",
+"Görevleri görüntüle": "View quests",
+    "Eşyalar (": "Items (",
+    "Yoldaş (": "Companions (",
+    "Zırh": "Armor",
+    "Sisifos'un Kayası": "Sisyphus' Rock",
+    "Kanlı Kum Saati": "Bloody Hourglass",
+    "Balonlu Sakız": "Bubble Gum",
+    "Gölge Kunai": "Shadow Kunai",
+    "Çubuk kayarken": "While the slider moves",
+    "sarı": "yellow",
+    "bölgede kilitle:": "lock in the zone:",
+    "bölgede:": "in the zone:",
+    ". Her başarı kombo çarpanını artırır, kaçırırsan kombo sıfırlanır.": ". Each success increases the combo multiplier; a miss resets the combo.",
+    "Kombo Serisi: 0x (Çarpan: x1.0)": "Combo Streak: 0x (Multiplier: x1.0)",
+    "Not: Sıralama puanları şu an oyun istemcisinden bildirilir; henüz sunucu tarafından oynanışla doğrulanmaz.": "Note: Leaderboard scores are currently reported by the game client and are not yet server-validated against gameplay.",
+    "Sıralama değerleri şu an oyuncu istemcisinden gönderilir; sunucu tarafından doğrulanmaz. Bu nedenle hileye dayanıklı veya ödüllü rekabet için güvenilir skor sayılmaz.": "Leaderboard values are currently submitted by the player client and are not server-validated. They should not be treated as cheat-resistant scores for prize-based competition.",
+    "Hesap oluşturarak ilerlemeni buluta yedekle! Telefondan kasıp tabletten veya PC'den aynı hesapla devam et ve": "Create an account to back up your progress to the cloud! Play on your phone and continue on a tablet or PC with the same account, and",
+    "İsim": "Name",
+    "🇹🇷 Türkçe": "🇹🇷 Turkish",
+    "0 / 13 tamamlandı": "0 / 13 completed",
+    "Rozet ve başarımlar mevcut oyun istatistiklerine dayanır. İstemci tarafında hesaplandıkları için tek başlarına hileye dayanıklı rekabet kanıtı değildir.": "Badges and achievements are based on current game statistics. Since they are calculated client-side, they are not by themselves proof of cheat-resistant competition.",
+    "Dalga başında taktik çağrı, boss geldiğinde özel tehdit kartı ve dalga bitince altın/kristal ödül özeti. Gösterimler gerçek oyun olaylarına bağlıdır; ödülleri veya düşman dengesini değiştirmez.": "Tactical callouts at wave start, special threat cards for bosses, and gold/crystal summaries after waves. These displays reflect actual game events and do not change rewards or enemy balance.",
+    "Eşyaları ada, açıklamaya, nadirliğe ve türe göre filtrele; ayrıntılarını aç ve tekrar eden envanter kayıtlarının temizlenmesini sağla.": "Filter items by name, description, rarity, and type; inspect details and clean up duplicate inventory entries.",
+    "İlk boss, dalga rekorları ve imha istatistikleri profilinde takip edilir; komutan rozetleri kozmetik ilerleme sağlar.": "Your first boss, wave records, and elimination stats are tracked in your profile; commander badges provide cosmetic progression.",
+    "Canvas üzerinde çizilen, hareketli aurora şeritleri, yıldız tozu ve kuantum halkalarıyla özgün sezon teması. Dış görsel veya müzik dosyası indirmez.": "An original seasonal theme with animated aurora bands, stardust, and quantum rings drawn on the canvas. No external image or music files are downloaded.",
+    "Müzik düğmesiyle açılıp kapatılabilen, Web Audio API ile üretilen düşük sesli atmosferik tonlar. Otomatik başlamaz ve dış servise bağlanmaz.": "Soft atmospheric tones generated with the Web Audio API, toggled with the music button. They do not start automatically or connect to external services.",
+    "Günlük görevler": "Daily quests",
+    "Düşman imhası, boss savaşı, oyun süresi ve dalga ilerlemesi hedefleri. Görev başına bir kez altın/kristal ödülü; günlük sıfırlama yerel tarihe göre çalışır.": "Objectives for enemy eliminations, boss fights, playtime, and wave progress. Each quest grants gold/crystal rewards once; daily reset follows the local date.",
+    "1.3.0 başarımlar, istatistikler, komutan rozetleri ve kargo dronu refleks görevi bu sürümde yer almaya devam eder.": "Version 1.3.0 achievements, statistics, commander badges, and the cargo-drone reflex challenge remain available in this release.",
+    "Görevler ve ses istemci tarafındadır. Bu dal canlıya dağıtılmadı; mobil/masaüstü manuel testleri ve CI tamamlanmadan yayımlanmış sayılmaz.": "Quests and audio run client-side. This branch is not live; it should not be considered released until mobile/desktop manual tests and CI are complete.",
+    "Savaş ses efektlerini kapat": "Turn battle sound effects off",
+    "Savaş ses efektlerini aç": "Turn battle sound effects on",
+    "BİLİNMEYEN HEDEF": "UNKNOWN TARGET",
+    "TEHDİT ALGILANDI  /  ÖNCELİKLİ HEDEF": "THREAT DETECTED / PRIORITY TARGET",
+    "Ağır zırh tespit edildi. Yakın menzilli darbelerine dikkat et.": "Heavy armor detected. Watch out for its close-range strikes.",
+    "Topçusu": "Artillery",
+    "Uzun menzilli topçu. Ateş baskısını kır ve kuleyi koru.": "Long-range artillery. Break its firing pressure and protect the tower.",
+    "Vektörü": "Vector",
+    "Yüksek hız ve ani atak. Saldırı penceresini iyi yakala.": "High speed and sudden attacks. Time your attack window carefully.",
+    "Kriyo saldırıları algılandı. Donma etkisi ateş ritmini kesebilir.": "Cryo attacks detected. The freeze effect can interrupt your firing rhythm.",
+    "Çok yönlü saldırı paterni. Kritik anlarda savunmayı koru.": "Versatile attack pattern. Protect your defense during critical moments.",
+    "Ağır hedef yaklaşıyor. Kuleyi koru.": "Heavy target approaching. Protect the tower.",
+    "TEHDİT ETKİSİZ HALE GETİRİLDİ": "THREAT NEUTRALIZED",
+    "BOSS İMHA EDİLDİ": "BOSS ELIMINATED",
+    "Ağır hedef": "Heavy target",
+    "etkisiz. Savunma hattı nefes alıyor.": "neutralized. The defense line can breathe again.",
+    "KRİSTAL": "CRYSTAL",
+    "BÖLGE GÜVENDE  /  DALGA TAMAMLANDI": "AREA SECURE / WAVE COMPLETE",
+    "TEMİZLENDİ": "CLEARED",
+    "Savunma hattı ayakta. Sonraki temas için sistemler hazırlanıyor.": "The defense line stands. Systems are preparing for the next contact.",
+    "KIRMIZI ALARM  /  KRİTİK DALGA": "RED ALERT / CRITICAL WAVE",
+    "SAVUNMA PROTOKOLÜ  /  BOSS DALGASI": "DEFENSE PROTOCOL / BOSS WAVE",
+    "YÜKSEK YOĞUNLUK  /  SÜRÜ DALGASI": "HIGH DENSITY / SWARM WAVE",
+    "SAVUNMA HATTI  /  TEMAS BEKLENİYOR": "DEFENSE LINE / AWAITING CONTACT",
+    "Tehdit seviyesi kritik. Bütün savunma sistemleri hazır olsun.": "Threat level critical. All defense systems, stand by.",
+    "Ağır hedef sinyali bekleniyor. Pozisyonunu koru.": "Heavy target signal expected. Hold your position.",
+    "Birden fazla temas algılandı. Alan kontrolünü bırakma.": "Multiple contacts detected. Maintain area control.",
+    "Yeni düşman sinyalleri tespit edildi.": "New enemy signals detected.",
+    "TEHDİT: KRİTİK": "THREAT: CRITICAL",
+    "BOSS SİNYALİ": "BOSS SIGNAL",
+    "SÜRÜ HAREKETİ": "SWARM MOVEMENT",
+    "JavaScript hatası:": "JavaScript error:",
+    "• Satır": "• Line",
+    "Bilinmeyen Promise hatası": "Unknown promise error",
+    "İşlem tamamlanamadı:": "Operation failed:",
+    "Yakalanmamış Promise hatası": "Unhandled promise error",
+    "Ana Menü": "Main Menu",
+    "Görevleri görüntüle, tamamladığın görevlerin altın ve kristal ödüllerini topla.": "View your quests and claim gold and crystal rewards.",
+    "Günlük görevleri kapat": "Close daily quests",
+    "Oyun başka bir sekmede açık": "The game is open in another tab",
+    "Oynamak için diğer oyun sekmesini kapatıp bu sayfayı yenile.": "Close the other game tab and refresh this page to play.",
+    "Görevleri görüntüle, tamamladığın görevlerin altın ve kristal ödüllerini topla.": "View your quests and claim gold and crystal rewards.",
+    "Günlük görev ödülü alındı!": "Daily quest reward claimed!",
+    "Günlük görevler bu cihazda saklanır ve istemci tarafında hesaplanır. Ödüller rekabetçi veya gerçek para değeri taşıyan ödüller değildir.": "Daily quests are stored on this device and calculated client-side. Rewards have no competitive or real-money value."
 };
 
 const gameTextOriginals = new WeakMap();
@@ -3555,6 +3728,11 @@ function applyGameLanguage(language) {
         }
     });
     gameLanguageObserver.observe(document.body, { childList: true, subtree: true });
+}
+
+function localizeGameMessage(message) {
+    if (getGameLanguage() !== 'en' || typeof message !== 'string') return message;
+    return GAME_TRANSLATIONS[message] || message;
 }
 
 function setGameLanguage(language) {
