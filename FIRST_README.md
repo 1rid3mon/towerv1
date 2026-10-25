@@ -272,3 +272,12 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 
 - [x] `.github/workflows/security-lab.yml`: `feature/**` branch push'ları da syntax check ve Firebase Emulator test workflow'unu tetikleyecek şekilde eklendi. Böylece özellik branch'indeki değişiklikler yalnızca PR açılana kadar test dışı kalmamalı.
 - [ ] **BEKLENİYOR:** Workflow bu son committen sonra çalışmalı; sonuçlar kontrol edilmeden testleri geçti demeyin.
+
+
+### Denetim sonucu — CI yeniden çalıştırıldı
+
+- [x] `security-lab/firestore.rules` dosyasının ilk 163 satırı tam kural setiydi; sonrasındaki bozuk/tekrarlanan parçalar kaldırıldı ve dosya doğru kapanışla bitirildi. Bu, yalnızca **emülatörde kullanılan aday kural dosyasıdır**; canlı Firebase Console kurallarının aynısı olduğu doğrulanmış değildir.
+- [x] `security-lab/firestore.rules.test.js`: Arkadaş isteği kabul testinde ikinci yazımın ilk `createdAt` değerini koruması sağlandı. Gerçek istemci zaten yalnızca `status` ve `updatedAt` güncelliyor; test eski zaman damgasını yeniden üretmeye çalıştığı için yanlış başarısız oluyordu.
+- [x] GitHub Actions koşusu `ef2da01`: JavaScript syntax adımı başarılı; Firebase Emulator suite **126/126 geçti, 0 başarısız**. [Koşu kaydı](https://github.com/1rid3mon/towerv1/actions/runs/40234945180).
+- [ ] **CANLI FIREBASE DOĞRULAMASI YOK:** Aday kural dosyasının düzeltilmesi, üretimdeki Firebase Console kurallarının düzeldiği anlamına gelmez. Gerçek kurallar ayrı doğrulanmalı; bu test dosyası otomatik deploy yapmaz.
+- [ ] **DEPLOY:** Bu committe Vercel kontrolü yine build-rate-limit hatası verdi; canlı siteye geçiş doğrulanmadı.
