@@ -345,3 +345,30 @@ test("leaderboard and rate-limit documents cannot be deleted by another user", a
   await assertFails(deleteDoc(doc(bob, "leaderboard/alice")));
   await assertFails(deleteDoc(doc(bob, "leaderboardRateLimits/alice")));
 });
+
+test("friend requests can be sent and accepted only by the recipient", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  await testEnv.withSecurityRulesDisabled(async context => {
+    const admin = context.firestore();
+    await setDoc(doc(admin, "usernameRegistry/alice"), { uid: "alice", username: "alice", updatedAt: Date.now() });
+    await setDoc(doc(admin, "usernameRegistry/bob"), { uid: "bob", username: "bob", updatedAt: Date.now() });
+  });
+  const request = {
+    fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob",
+    status: "pending", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  };
+  await assertSucceeds(setDoc(doc(alice, "friendRequests/alice_bob"), request));
+  await assertSucceeds(getDoc(doc(bob, "friendRequests/alice_bob")));
+  await assertFails(getDoc(doc(testEnv.authenticatedContext("mallory").firestore(), "friendRequests/alice_bob")));
+  await assertFails(setDoc(doc(alice, "friendRequests/bob_alice"), {
+    ...request, fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob"
+  }));
+  const { updateDoc } = require("firebase/firestore");
+  await assertFails(updateDoc(doc(alice, "friendRequests/alice_bob"), {
+    status: "accepted", updatedAt: serverTimestamp()
+  }));
+  await assertSucceeds(updateDoc(doc(bob, "friendRequests/alice_bob"), {
+    status: "accepted", updatedAt: serverTimestamp()
+  }));
+});
