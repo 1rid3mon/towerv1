@@ -1852,6 +1852,8 @@ function applyParsedGameData(parsed) {
 }
 
 function saveGame(silent = false) {
+    // Story missions run on a temporary in-memory state; never persist it over the Endless Mode save.
+    if (document.body?.dataset?.gameMode === 'story') return false;
     if (window.__storyBattle && window.__storyBattle.active) return;
     try {
         if (typeof game === 'undefined') return;
