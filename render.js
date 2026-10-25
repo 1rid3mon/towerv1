@@ -2556,6 +2556,35 @@ function renderGame() {
         ctx.restore();
     }
 
+    // Story Mission 10 pulse is a render-only effect: it remains visible while the
+    // encounter is paused and never touches combat, rewards, or persistent game state.
+    const storyPulse = window.__storyBattle;
+    if (storyPulse && storyPulse.active && storyPulse.mission === 10 && Number.isFinite(storyPulse.pulseVisualAt)) {
+        const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+        const age = Math.max(0, (now - storyPulse.pulseVisualAt) / 1000);
+        if (age < 0.95 && typeof tower !== 'undefined' && tower) {
+            const reducedMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const progress = reducedMotion ? 0.35 : age / 0.95;
+            ctx.save();
+            ctx.globalAlpha = reducedMotion ? 0.42 : (1 - progress) * 0.72;
+            ctx.strokeStyle = '#67e8f9';
+            ctx.lineWidth = 2.5;
+            ctx.shadowColor = '#22d3ee';
+            ctx.shadowBlur = reducedMotion ? 4 : 14;
+            ctx.beginPath();
+            ctx.arc(tower.x, tower.y, reducedMotion ? 42 : 12 + progress * 108, 0, Math.PI * 2);
+            ctx.stroke();
+            if (!reducedMotion) {
+                ctx.globalAlpha = (1 - progress) * 0.34;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(tower.x, tower.y, 7 + progress * 78, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+    }
+
     const activeCompSkin = game.activeCompanionSkin || 'default_tech';
     const nowCompTime = performance.now();
 
