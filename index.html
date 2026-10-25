@@ -527,7 +527,7 @@
         .mode-menu-eyebrow { color: #7dd3fc; font-size: 11px; font-weight: 800; letter-spacing: .24em; text-transform: uppercase; }
         .mode-menu-title { font-family: 'Rajdhani', sans-serif; font-size: clamp(34px, 7vw, 62px); line-height: .98; font-weight: 800; letter-spacing: .035em; background: linear-gradient(100deg,#f8fafc 12%,#7dd3fc 52%,#c4b5fd 90%); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .mode-menu-subtitle { color: #94a3b8; font-size: 14px; line-height: 1.6; max-width: 540px; margin: 12px auto 0; }
-        .mode-menu-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin-top: 30px; }
+        .mode-menu-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; margin-top: 30px; }
         .mode-menu-card { position: relative; display: flex; flex-direction: column; min-height: 224px; padding: 22px; text-align: left; border: 1px solid rgba(148,163,184,.2); border-radius: 22px; color: #f8fafc; background: linear-gradient(145deg,rgba(15,23,42,.96),rgba(15,23,42,.74)); transition: transform .18s ease,border-color .18s ease,box-shadow .18s ease; }
         .mode-menu-card:not(:disabled):hover { transform: translateY(-3px); border-color: rgba(125,211,252,.6); box-shadow: 0 14px 34px rgba(14,165,233,.12); }
         .mode-menu-card:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 3px; }
@@ -561,6 +561,12 @@
                 <span class="mode-menu-card-title">Sonsuz Mod</span>
                 <span class="mode-menu-card-desc">Mevcut savunmana devam et. Dalga sınırı yok; rekorunu geliştir, giderek güçlenen düşmanlara dayan.</span>
                 <span class="mode-menu-card-action">Savunmaya başla <span aria-hidden="true">→</span></span>
+            </button>
+            <button type="button" class="mode-menu-card border-teal-400/30 bg-gradient-to-br from-teal-950/60 via-slate-900 to-slate-900" onclick="openDailyMissionsFromMainMenu()">
+                <span class="mode-menu-icon bg-teal-500/15 border border-teal-400/25 text-teal-200">☑</span>
+                <span class="mode-menu-card-title">Görevler</span>
+                <span class="mode-menu-card-desc">Görevleri görüntüle, tamamladığın görevlerin altın ve kristal ödüllerini topla.</span>
+                <span class="mode-menu-card-action text-teal-200">Görevleri görüntüle <span aria-hidden="true">→</span></span>
             </button>
         </div>
         <div class="mode-menu-footer">İLERLEMEN KORUNUR · SAVAŞ DENGESİ DEĞİŞMEZ</div>
@@ -597,6 +603,9 @@
         </div>
 
         <div class="flex items-center space-x-1 sm:space-x-2">
+            <button type="button" onclick="returnToMainMenu()" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600/70 text-slate-200 font-tech font-bold text-xs transition flex items-center gap-1" title="Ana Menü" aria-label="Ana Menü">
+                <i class="fa-solid fa-house text-xs"></i><span class="hidden sm:inline">Ana Menü</span>
+            </button>
             <!-- Hesap & Bulut Kayıt Butonu -->
             <button onclick="openAuthModal()" id="btn-header-account" class="px-2 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-tech font-bold text-xs transition flex items-center gap-1" title="Hesap & Bulut Kayıt">
                 <i id="ui-account-icon" class="fa-solid fa-user-astronaut text-xs"></i>
@@ -1266,7 +1275,7 @@
             </div>
             <div id="daily-missions-list" class="mt-3 space-y-2"></div>
             <p class="mt-3 text-[10px] leading-relaxed text-slate-500">Günlük görevler bu cihazda saklanır ve istemci tarafında hesaplanır. Ödüller rekabetçi veya gerçek para değeri taşıyan ödüller değildir.</p>
-            <button type="button" onclick="closeDailyMissionsModal()" class="mt-4 w-full rounded-xl border border-teal-400/30 bg-teal-500/10 py-2.5 font-tech font-bold text-teal-200 transition hover:bg-teal-500/20">SAVAŞ ALANINA DÖN</button>
+            <button id="daily-missions-close-action" type="button" onclick="closeDailyMissionsModal()" class="mt-4 w-full rounded-xl border border-teal-400/30 bg-teal-500/10 py-2.5 font-tech font-bold text-teal-200 transition hover:bg-teal-500/20">SAVAŞ ALANINA DÖN</button>
         </div>
     </div>
 
