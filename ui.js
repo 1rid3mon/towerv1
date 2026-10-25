@@ -3345,11 +3345,15 @@ function returnToMainMenu() {
 // Story progress is deliberately isolated from the existing Endless save.
 const STORY_PROGRESS_KEY = 'towerDefenseStoryProgressV1';
 const STORY_DIALOGUES = [
- {speaker:{tr:'İSTASYON YAPAY ZEKÂSI',en:'STATION AI'},text:{tr:'Komutan, istasyona ulaştık. Fakat hiçbir yaşam belirtisi yok. Bütün sistemler, biz yaklaşınca kapandı.',en:'Commander, we have reached the station. There are no life signs. Every system shut down as we approached.'}},
+ {speaker:{tr:'İSTASYON YAPAY ZEKÂSI',en:'STATION AI'},text:{tr:'Komutan, istasyona ulaştık. Yaşam belirtisi yok. Bütün sistemler biz yaklaşınca kapandı; sanki gelişimizi bekliyorlardı.',en:'Commander, we have reached the station. No life signs. Every system shut down as we approached—as if they were waiting for us.'}},
  {speaker:{tr:'MAVİ HOLOGRAM',en:'BLUE HOLOGRAM'},text:{tr:'Bağlantı… kuruldu. Sonunda geldiniz, komutan.',en:'Connection… established. You finally made it, Commander.'}},
- {speaker:{tr:'KOMUTAN',en:'COMMANDER'},text:{tr:'Beni tanıyor musun? Bu istasyonda ne oldu?',en:'Do you know me? What happened at this station?'}},
- {speaker:{tr:'MAVİ HOLOGRAM',en:'BLUE HOLOGRAM'},text:{tr:'Seni tanıyor olmam gerekiyor. Ama kayıtlarımın çoğu silinmiş. Hatırladığım tek şey: Bu çekirdeği korumalıyız.',en:'I am supposed to know you. But most of my records are gone. I only remember one thing: we must protect this core.'}},
- {speaker:{tr:'MAVİ HOLOGRAM',en:'BLUE HOLOGRAM'},text:{tr:'Dış savunma hattında hareket var! Sorularını sonra cevaplarım, komutan. Önce istasyonu ayakta tutalım.',en:'Movement on the outer defense line! I will answer your questions later, Commander. First, let us keep this station alive.'}}
+ {speaker:{tr:'KOMUTAN',en:'COMMANDER'},text:{tr:'Beni tanıyor musun? Sen kimsin? Bu istasyonda ne oldu?',en:'Do you know me? Who are you? What happened here?'}},
+ {speaker:{tr:'MAVİ HOLOGRAM',en:'BLUE HOLOGRAM'},text:{tr:'Ben… senin yanında… Sinyali takip etme. Çekirdek…',en:'I was… beside you… Do not follow the signal. The core…'}},
+ {speaker:{tr:'İSTASYON YAPAY ZEKÂSI',en:'STATION AI'},text:{tr:'Görüntü kaynağı canlı değil. Bu, kayıtlarla eşleşmeyen bozuk bir hafıza yankısı. Kimden kaldığını belirleyemiyorum.',en:'The image source is not live. It is a corrupted memory echo with no matching identity record. I cannot determine whose memory it came from.'}},
+ {speaker:{tr:'KOMUTAN',en:'COMMANDER'},text:{tr:'O zaman çekirdeğin yanındaki şey ne? Hareket ediyor.',en:'Then what is that thing beside the core? It is moving.'}},
+ {speaker:{tr:'İSTASYON YAPAY ZEKÂSI',en:'STATION AI'},text:{tr:'Eski tip bakım yoldaşı. Gücü neredeyse tükenmiş; silah sistemi yok. Yine de çekirdek onu tanıdı… ve yeniden başlattı.',en:'An old maintenance companion. Almost out of power; no weapons installed. Yet the core recognized it… and restarted it.'}},
+ {speaker:{tr:'MAVİ HOLOGRAM',en:'BLUE HOLOGRAM'},text:{tr:'Beni… hatırladığında… mor ışık… kuleler…',en:'When you… remember me… violet light… towers…'}},
+ {speaker:{tr:'İSTASYON YAPAY ZEKÂSI',en:'STATION AI'},text:{tr:'Dış savunma hattında düşman teması! Bakım yoldaşı çekirdeğe bağlandı. Komutan, savunmayı şimdi etkinleştirmeliyiz.',en:'Hostile contacts on the outer defense line! The maintenance companion has linked to the core. Commander, we must activate the defenses now.'}}
 ];
 const STORY_UI_COPY = {
  protocol:['HİKÂYE PROTOKOLÜ · 01','STORY PROTOCOL · 01'],
@@ -3362,7 +3366,7 @@ const STORY_UI_COPY = {
  mission2desc:['Bilinmeyen düşmanların ilk saldırısına karşı koy.','Hold back the first attack from unknown enemies.'],
  mission3tag:['GÖREV 03','MISSION 03'], mission3title:['Sinyalin kaynağı','Source of the signal'],
  mission3desc:['Savaş sonrasında çekirdeğin kaydettiği gizemli sinyali araştır.','Investigate the mysterious signal recorded by the core after the battle.'],
- nextstep:['Sıradaki adım','Next step'], nextdesc:['Bu ilk sürüm hikâye girişini ve görev akışını kurar. Gerçek görev savaşları sonraki aşamada mevcut savaş motoruna güvenli biçimde bağlanacak.','This first version establishes the story introduction and mission flow. Actual mission combat will be connected to the existing game engine in the next stage.'],
+ nextstep:['Sıradaki adım','Next step'], nextdesc:['Mavi görüntü, yoldaşın kayıp hafızasından sızan bozuk bir yankı. Gerçek yoldaş ise çekirdeğin yanında uyanan güçsüz bir bakım birimi. Hikâye ilerledikçe onun neye dönüşebileceğini keşfedeceksin.','The blue image is a corrupted echo leaking from the companion’s lost memory. The real companion is a powerless maintenance unit waking beside the core. As the story unfolds, you will discover what it can become.'],
  backmenu:['ANA MENÜYE DÖN','RETURN TO MAIN MENU'],
  'save-note':['Hikâye ilerlemesi ayrı kaydedilir. Sonsuz Mod kaydına ve savaş dengesine dokunulmaz.','Story progress is saved separately. Endless Mode saves and game balance remain untouched.'],
  continue:['DEVAM ET →','CONTINUE →'], start:['GÖREV PANOSU →','MISSION BRIEFING →'],
@@ -3506,8 +3510,8 @@ function finishStoryBattleEncounter() {
     saveStoryProgress({ introSeen: true, chapter: 1, mission1Complete: true });
     const status = document.getElementById('story-battle-status');
     if (status) status.textContent = storyLanguage() === 'en'
-        ? 'MISSION COMPLETE · The core is stable. A fragment of the signal has been recovered.'
-        : 'GÖREV TAMAMLANDI · Çekirdek güvende. Sinyalin bir parçası kurtarıldı.';
+        ? 'MISSION COMPLETE · The core is stable. The maintenance companion has synchronized with you; one signal fragment recovered.'
+        : 'GÖREV TAMAMLANDI · Çekirdek güvende. Bakım yoldaşı seninle eşitlendi; sinyalin bir parçası kurtarıldı.';
     const exit = document.getElementById('story-battle-exit');
     if (exit) exit.textContent = storyLanguage() === 'en' ? 'CONTINUE' : 'DEVAM ET';
     showToast(storyLanguage() === 'en' ? 'Mission 01 complete. Story progress saved separately.' : '1. görev tamamlandı. Hikâye ilerlemesi ayrı kaydedildi.');
