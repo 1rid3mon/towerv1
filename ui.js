@@ -3414,6 +3414,10 @@ function applyStoryUiLanguage() {
         const pair = STORY_UI_COPY[node.dataset.storyUi];
         if (pair) node.textContent = pair[en ? 1 : 0];
     });
+    const chapterLabel = document.getElementById('story-chapter-label');
+    if (chapterLabel && window.__storyBattle && window.__storyBattle.active && window.__storyBattle.mission === 10) {
+        chapterLabel.textContent = en ? 'CHAPTER 02 · BENEATH THE SIGNAL' : 'BÖLÜM 02 · SİNYALİN ALTINDA';
+    }
     const next = document.getElementById('story-next');
     if (next) next.textContent = storyCopy(STORY_UI_COPY[storyMissionViewOpen ? 'start' : 'continue']);
     updateStoryMissionBoard();
@@ -3591,6 +3595,10 @@ function startStoryMission(missionNumber = 1) {
     if (screen) { screen.classList.remove('is-open'); screen.setAttribute('aria-hidden', 'true'); }
     const hud = document.getElementById('story-battle-hud');
     if (hud) { hud.hidden = false; hud.classList.add('is-active'); }
+    const chapterLabel = document.getElementById('story-chapter-label');
+    if (chapterLabel) chapterLabel.textContent = missionNumber === 10
+        ? (storyLanguage() === 'en' ? 'CHAPTER 02 · BENEATH THE SIGNAL' : 'BÖLÜM 02 · SİNYALİN ALTINDA')
+        : (storyLanguage() === 'en' ? 'CHAPTER 01 · LOST SIGNAL' : 'BÖLÜM 01 · KAYIP SİNYAL');
     const commsByMission = {
         1: ['İSTASYON YAPAY ZEKÂSI','STATION AI','Savunma protokolü çöktü. Çekirdek yeniden güç kazanıyor; komutan, ilk teması karşıla.','Defense protocol has collapsed. The core is regaining power; Commander, prepare for first contact.'],
         2: ['BAKIM YOLDAŞI','MAINTENANCE COMPANION','Sinyal gövdede üç noktada yankılanıyor. Tehlike geçince izleri birlikte tarayalım.','The signal echoes at three points in the hull. Once the threat passes, let us scan the traces.'],
