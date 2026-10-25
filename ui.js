@@ -1848,6 +1848,7 @@ function applyParsedGameData(parsed) {
 }
 
 function saveGame(silent = false) {
+    if (window.__storyBattle && window.__storyBattle.active) return;
     try {
         if (typeof game === 'undefined') return;
         game.lastSaveTime = Date.now();
@@ -3324,6 +3325,7 @@ function openDailyMissionsFromMainMenu() {
 }
 
 function returnToMainMenu() {
+    if (window.__storyBattle && window.__storyBattle.active && typeof exitStoryBattle === 'function') { exitStoryBattle(true); return; }
     if (typeof saveGame === 'function') saveGame(true);
     if (typeof updateStoryUnlockUI === 'function') updateStoryUnlockUI();
     if (typeof isPaused !== 'undefined') isPaused = true;
@@ -3372,8 +3374,8 @@ let storyMissionViewOpen = false;
 function getStoryProgress() {
     try {
         const saved = JSON.parse(localStorage.getItem(STORY_PROGRESS_KEY) || '{}');
-        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Number(saved.chapter) || 1) };
-    } catch (_) { return { introSeen: false, chapter: 1 }; }
+        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Number(saved.chapter) || 1), mission1Complete: saved.mission1Complete === true };
+    } catch (_) { return { introSeen: false, chapter: 1, mission1Complete: false }; }
 }
 function saveStoryProgress(patch) {
     try { localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify({ ...getStoryProgress(), ...patch, updatedAt: Date.now() })); } catch (_) {}
@@ -3388,6 +3390,7 @@ function applyStoryUiLanguage() {
     });
     const next = document.getElementById('story-next');
     if (next) next.textContent = storyCopy(STORY_UI_COPY[storyMissionViewOpen ? 'start' : 'continue']);
+    updateStoryMissionBoard();
 }
 function showStoryDialogue() {
     const line = STORY_DIALOGUES[storyDialogueIndex];
@@ -3415,6 +3418,134 @@ function showStoryMissionBriefing() {
     if (progress) progress.textContent = storyCopy(STORY_UI_COPY.completed);
     applyStoryUiLanguage();
     saveStoryProgress({ introSeen: true, chapter: 1 });
+    updateStoryMissionBoard();
+}
+// The story encounter temporarily borrows the existing combat engine, but never its save.
+// All mutable combat state is snapshotted and restored when the player leaves the mission.
+window.__storyBattle = window.__storyBattle || { active: false };
+function updateStoryMissionBoard() {
+    const progress = getStoryProgress();
+    const start = document.getElementById('story-start-mission1');
+    const status = document.getElementById('story-mission-1-status');
+    if (start) {
+        start.disabled = progress.mission1Complete;
+        start.textContent = progress.mission1Complete
+            ? (storyLanguage() === 'en' ? 'MISSION COMPLETE ✓' : 'GÖREV TAMAMLANDI ✓')
+            : (storyLanguage() === 'en' ? 'DEPLOY →' : 'GÖREVE BAŞLA →');
+    }
+    if (status) status.textContent = progress.mission1Complete
+        ? (storyLanguage() === 'en' ? 'CORE STABLE' : 'ÇEKİRDEK GÜVENDE')
+        : (storyLanguage() === 'en' ? 'PLAYABLE MISSION' : 'OYNANABİLİR GÖREV');
+}
+function storyDeepCopy(value) { return JSON.parse(JSON.stringify(value)); }
+function startStoryMission(missionNumber = 1) {
+    if (missionNumber !== 1 || getStoryProgress().mission1Complete) return;
+    if (!updateStoryUnlockUI()) {
+        showToast(storyLanguage() === 'en' ? 'Clear 25 waves in Endless Mode first.' : 'Önce Sonsuz Mod’da 25 dalgayı tamamlamalısın.');
+        return;
+    }
+    if (window.__storyBattle.active) return;
+    const session = {
+        active: true, completed: false, mission: 1,
+        snapshot: {
+            game: storyDeepCopy(game), tower: storyDeepCopy(tower),
+            enemies: storyDeepCopy(enemies), projectiles: storyDeepCopy(projectiles),
+            particles: storyDeepCopy(particles), floatingTexts: storyDeepCopy(floatingTexts),
+            lightningBeams: storyDeepCopy(lightningBeams), rings: storyDeepCopy(rings),
+            cargoDrones: storyDeepCopy(cargoDrones),
+            spawnTimer, playTimeAccum, waveFrostSpawns, cargoSpawnTimer,
+            gameSpeed, isPaused, isDefeated, defeatTimer,
+            gameMode: document.body.dataset.gameMode || ''
+        }
+    };
+    window.__storyBattle = session;
+    game = getDefaultState();
+    game.wave = 1; game.highestWave = 1; game.gold = 180;
+    game.waveKills = 0; game.waveTargetKills = 8; game.holdWave = false;
+    game.upgrades.damage = 3; game.upgrades.attackSpeed = 2; game.upgrades.range = 3;
+    game.settings.activeTheme = 'space';
+    tower = {
+        x: canvas.width / 2, y: canvas.height / 2, hp: 100, maxHp: 100, shield: 0, maxShield: 0,
+        fireCooldown: 0, angle: 0, recoil: 0, freezeTimer: 0, freezeImmunityTimer: 0,
+        frostSlowTimer: 0, frostVisualTick: 0, overdriveTimer: 0, overdriveVisualTick: 0
+    };
+    tower.maxHp = getTowerMaxHp(); tower.hp = tower.maxHp;
+    tower.maxShield = getTowerMaxShield(); tower.shield = tower.maxShield;
+    enemies = []; projectiles = []; particles = []; floatingTexts = [];
+    lightningBeams = []; rings = []; cargoDrones = [];
+    spawnTimer = 0; playTimeAccum = 0; waveFrostSpawns = 0; cargoSpawnTimer = 999999;
+    gameSpeed = 1; isPaused = false; isDefeated = false; defeatTimer = 0;
+    document.body.dataset.gameMode = 'story';
+    const screen = document.getElementById('story-mode-screen');
+    if (screen) { screen.classList.remove('is-open'); screen.setAttribute('aria-hidden', 'true'); }
+    const hud = document.getElementById('story-battle-hud');
+    if (hud) { hud.hidden = false; hud.classList.add('is-active'); }
+    const status = document.getElementById('story-battle-status');
+    if (status) status.textContent = storyLanguage() === 'en'
+        ? 'OBJECTIVE: Defeat 8 hostiles and stabilize the core.'
+        : 'GÖREV: 8 düşmanı durdur ve çekirdeği güvene al.';
+    const exit = document.getElementById('story-battle-exit');
+    if (exit) exit.textContent = storyLanguage() === 'en' ? 'ABORT MISSION' : 'GÖREVDEN ÇIK';
+    if (typeof resizeCanvas === 'function') resizeCanvas();
+    if (typeof updateHUD === 'function') updateHUD();
+    if (typeof refreshUpgradeButtonsState === 'function') refreshUpgradeButtonsState();
+    if (typeof updateHoldWaveButton === 'function') updateHoldWaveButton();
+    showToast(storyLanguage() === 'en'
+        ? 'Lost Signal · Mission 01. Your core fires automatically; use the upgrade panel if you need more power.'
+        : 'Kayıp Sinyal · Görev 01. Çekirdeğin otomatik ateş ediyor; gerekirse yükseltme panelini kullan.');
+}
+function finishStoryBattleEncounter() {
+    const session = window.__storyBattle;
+    if (!session || !session.active || session.completed) return;
+    session.completed = true;
+    isPaused = true;
+    enemies = []; projectiles = [];
+    saveStoryProgress({ introSeen: true, chapter: 1, mission1Complete: true });
+    const status = document.getElementById('story-battle-status');
+    if (status) status.textContent = storyLanguage() === 'en'
+        ? 'MISSION COMPLETE · The core is stable. A fragment of the signal has been recovered.'
+        : 'GÖREV TAMAMLANDI · Çekirdek güvende. Sinyalin bir parçası kurtarıldı.';
+    const exit = document.getElementById('story-battle-exit');
+    if (exit) exit.textContent = storyLanguage() === 'en' ? 'CONTINUE' : 'DEVAM ET';
+    showToast(storyLanguage() === 'en' ? 'Mission 01 complete. Story progress saved separately.' : '1. görev tamamlandı. Hikâye ilerlemesi ayrı kaydedildi.');
+}
+function exitStoryBattle(toMainMenu = false) {
+    const session = window.__storyBattle;
+    if (!session || !session.active || !session.snapshot) return;
+    const s = session.snapshot;
+    game = s.game; tower = s.tower; enemies = s.enemies; projectiles = s.projectiles;
+    particles = s.particles; floatingTexts = s.floatingTexts; lightningBeams = s.lightningBeams;
+    rings = s.rings; cargoDrones = s.cargoDrones;
+    spawnTimer = s.spawnTimer; playTimeAccum = s.playTimeAccum; waveFrostSpawns = s.waveFrostSpawns;
+    cargoSpawnTimer = s.cargoSpawnTimer; gameSpeed = s.gameSpeed; isPaused = true;
+    isDefeated = s.isDefeated; defeatTimer = s.defeatTimer;
+    document.body.dataset.gameMode = s.gameMode;
+    window.__storyBattle = { active: false, completed: session.completed };
+    const hud = document.getElementById('story-battle-hud');
+    if (hud) { hud.hidden = true; hud.classList.remove('is-active'); }
+    if (typeof updateHUD === 'function') updateHUD();
+    if (typeof refreshUpgradeButtonsState === 'function') refreshUpgradeButtonsState();
+    if (typeof updateHoldWaveButton === 'function') updateHoldWaveButton();
+    if (typeof updateStoryUnlockUI === 'function') updateStoryUnlockUI();
+    if (toMainMenu) {
+        closeStoryMode();
+        return;
+    }
+    const screen = document.getElementById('story-mode-screen');
+    const menu = document.getElementById('mode-main-menu');
+    if (menu) menu.classList.add('menu-hidden');
+    if (screen) { screen.classList.add('is-open'); screen.setAttribute('aria-hidden', 'false'); }
+    storyMissionViewOpen = true;
+    const dialogue = document.getElementById('story-dialogue-view');
+    const missions = document.getElementById('story-mission-view');
+    const note = document.getElementById('story-prototype-note');
+    if (dialogue) dialogue.hidden = true;
+    if (missions) missions.hidden = false;
+    if (note) note.classList.add('is-visible');
+    const progress = document.getElementById('story-mission-progress');
+    if (progress) progress.textContent = storyCopy(STORY_UI_COPY.completed);
+    applyStoryUiLanguage();
+    updateStoryMissionBoard();
 }
 function getStoryUnlockWave() {
     try {
