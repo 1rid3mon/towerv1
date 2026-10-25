@@ -294,7 +294,7 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [x] Hesap silme akışına `storyProgress/{uid}` belgesinin silinmesi ve ilgili cihazdaki hesap-bağlı hikâye işaretinin temizlenmesi eklendi.
 - [x] `security-lab/firestore.rules`: `storyProgress/{uid}` için yalnızca belge sahibi okuyabilir/yazabilir/silebilir; bilinen alanlar, görev boolean'ları, seçim enum'ları, bölüm numarası ve onarım sayacı doğrulanıyor.
 - [x] `security-lab/firestore.rules.test.js`: Geçerli kayıt, başka hesabın okuma/yazma girişimi, kimlik doğrulamasız erişim ve hatalı/ekstra alanlar için testler eklendi.
-- [ ] **CI BEKLENİYOR:** Bu değişiklikler için GitHub Actions çalışmaları başladı. Son koşunun sonucu görülmeden testler geçti denmemeli.
+- [x] **CI:** GitHub Actions koşusu [40236495173](https://github.com/1rid3mon/towerv1/actions/runs/40236495173) başarılı; JavaScript syntax ve Firestore Emulator testleri geçti. **130/130 test geçti, 0 başarısız.**
 - [ ] **GERÇEK CİHAZ TESTİ BEKLENİYOR:** İki farklı cihazda aynı hesapla giriş, görev tamamlama, yenileme ve diğer cihazda ilerlemenin görünmesi henüz elle test edilmedi.
 - [ ] **ÜRETİM KURALLARI:** Bu değişiklik yalnızca repo içindeki `security-lab/firestore.rules` adayını etkiler; Firebase Console kuralları otomatik değişmez. Üretime geçmeden önce gerçek kurallara kontrollü biçimde uygulanmalı.
 - [ ] **DEPLOY:** Branch main'e merge edilmedi; Vercel dağıtımı doğrulanmadı.
