@@ -523,7 +523,35 @@
         /* Main mode selection overlay */
         #mode-main-menu { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; overflow-y: auto; padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom)); background: radial-gradient(ellipse at 50% 18%, rgba(30,64,175,.24), transparent 52%), radial-gradient(ellipse at 85% 85%, rgba(126,34,206,.15), transparent 44%), rgba(2,6,23,.97); }
         #mode-main-menu.menu-hidden { display: none; }
-        .mode-menu-inner { width: min(880px, 100%); margin: auto; }
+        .mode-menu-inner { width: min(960px, 100%); margin: auto; }
+        .mode-menu-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; margin-top: 30px; }
+        .mode-menu-card { min-height: 260px; padding: 28px; border-radius: 24px; }
+        .mode-menu-icon { width: 58px; height: 58px; font-size: 28px; margin-bottom: 20px; }
+        .mode-menu-card-title { font-size: clamp(26px,3vw,34px); }
+        .mode-menu-card-desc { font-size: 14px; }
+        .mode-menu-tools { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 10px; margin-top: 16px; }
+        .mode-menu-tool { display: flex; align-items: center; justify-content: center; gap: 9px; min-width: 0; padding: 13px 10px; border: 1px solid rgba(148,163,184,.2); border-radius: 14px; background: rgba(15,23,42,.7); color: #cbd5e1; font-size: 12px; font-weight: 800; transition: background .15s ease,border-color .15s ease; }
+        .mode-menu-tool:hover { background: rgba(30,41,59,.95); border-color: rgba(125,211,252,.45); }
+        .mode-menu-tool i { flex: 0 0 auto; font-size: 14px; }
+        .mode-menu-tool-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .mode-menu-tool-account .mode-menu-tool-label { max-width: 115px; }
+        @media(max-width:560px) {
+            #mode-main-menu { align-items: flex-start; padding: max(14px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom)); }
+            .mode-menu-inner { width: 100%; }
+            .mode-menu-grid { grid-template-columns: 1fr; gap: 12px; margin-top: 20px; }
+            .mode-menu-card { min-height: 0; padding: 19px; border-radius: 18px; display: grid; grid-template-columns: 48px minmax(0,1fr); column-gap: 14px; align-items: start; }
+            .mode-menu-icon { grid-row: span 3; width: 46px; height: 46px; margin: 0; font-size: 22px; }
+            .mode-menu-card-title { font-size: 25px; }
+            .mode-menu-card-desc { margin-top: 6px; font-size: 13px; }
+            .mode-menu-card-action { padding-top: 10px; }
+            .mode-menu-tools { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; margin-top: 13px; }
+            .mode-menu-tool { justify-content: flex-start; padding: 13px 12px; min-height: 46px; font-size: 12px; }
+            .mode-menu-tool-account .mode-menu-tool-label { max-width: 125px; }
+            .mode-menu-footer { margin-top: 16px; }
+        }
+        @media(min-width:561px) and (max-width:800px) {
+            .mode-menu-tools { grid-template-columns: repeat(3,minmax(0,1fr)); }
+        }
         .mode-menu-eyebrow { color: #7dd3fc; font-size: 11px; font-weight: 800; letter-spacing: .24em; text-transform: uppercase; }
         .mode-menu-title { font-family: 'Rajdhani', sans-serif; font-size: clamp(34px, 7vw, 62px); line-height: .98; font-weight: 800; letter-spacing: .035em; background: linear-gradient(100deg,#f8fafc 12%,#7dd3fc 52%,#c4b5fd 90%); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .mode-menu-subtitle { color: #94a3b8; font-size: 14px; line-height: 1.6; max-width: 540px; margin: 12px auto 0; }
@@ -550,7 +578,7 @@
         <h1 id="mode-menu-title" class="mode-menu-title mt-4">KULE SAVUNMA</h1>
         <p id="mode-menu-subtitle" class="mode-menu-subtitle">Nasıl bir mücadeleye hazırsın, komutan? Bir dünyayı kurtar ya da sınırlarını sonsuza kadar zorla.</p>
         <div class="mode-menu-grid">
-            <button type="button" class="mode-menu-card" onclick="showStoryModeComingSoon()">
+            <button type="button" class="mode-menu-card border-violet-400/30 bg-gradient-to-br from-violet-950/65 via-slate-900 to-slate-900" onclick="showStoryModeComingSoon()">
                 <span class="mode-menu-icon bg-violet-500/15 border border-violet-400/25 text-violet-200">✦</span>
                 <span class="mode-menu-card-title">Hikâye Modu</span>
                 <span class="mode-menu-card-desc">Dünyaları keşfet, yeni tehditlerle yüzleş ve final boss'una ulaş. Hikâye yolculuğu hazırlanıyor.</span>
@@ -562,13 +590,25 @@
                 <span class="mode-menu-card-desc">Mevcut savunmana devam et. Dalga sınırı yok; rekorunu geliştir, giderek güçlenen düşmanlara dayan.</span>
                 <span class="mode-menu-card-action">Savunmaya başla <span aria-hidden="true">→</span></span>
             </button>
-            <button type="button" class="mode-menu-card border-teal-400/30 bg-gradient-to-br from-teal-950/60 via-slate-900 to-slate-900" onclick="openDailyMissionsFromMainMenu()">
-                <span class="mode-menu-icon bg-teal-500/15 border border-teal-400/25 text-teal-200">☑</span>
-                <span class="mode-menu-card-title">Görevler</span>
-                <span class="mode-menu-card-desc">Görevleri görüntüle, tamamladığın görevlerin altın ve kristal ödüllerini topla.</span>
-                <span class="mode-menu-card-action text-teal-200">Görevleri görüntüle <span aria-hidden="true">→</span></span>
-            </button>
         </div>
+        <nav class="mode-menu-tools" aria-label="Hesap ve oyun seçenekleri">
+            <button type="button" id="btn-header-account" class="mode-menu-tool mode-menu-tool-account" onclick="openAuthModal()" title="Hesap ve bulut kayıt">
+                <i id="ui-account-icon" class="fa-solid fa-user-astronaut text-emerald-300"></i>
+                <span id="ui-account-name" class="mode-menu-tool-label">Giriş Yap</span>
+            </button>
+            <button type="button" class="mode-menu-tool" onclick="openAchievementsModal()">
+                <i class="fa-solid fa-medal text-amber-300"></i><span class="mode-menu-tool-label">Başarımlar</span>
+            </button>
+            <button type="button" class="mode-menu-tool" onclick="openThemeModal()">
+                <i id="ui-theme-icon" class="fa-solid fa-palette text-indigo-300"></i><span id="ui-theme-name" class="mode-menu-tool-label">Siber</span>
+            </button>
+            <button type="button" class="mode-menu-tool" onclick="openSettingsModal()">
+                <i class="fa-solid fa-gear text-slate-300"></i><span class="mode-menu-tool-label">Ayarlar</span>
+            </button>
+            <button type="button" class="mode-menu-tool" onclick="openDailyMissionsFromMainMenu()">
+                <i class="fa-solid fa-list-check text-teal-300"></i><span class="mode-menu-tool-label">Görevler</span>
+            </button>
+        </nav>
         <div class="mode-menu-footer">İLERLEMEN KORUNUR · SAVAŞ DENGESİ DEĞİŞMEZ</div>
     </div>
 </div>
@@ -606,18 +646,6 @@
             <button type="button" onclick="returnToMainMenu()" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600/70 text-slate-200 font-tech font-bold text-xs transition flex items-center gap-1" title="Ana Menü" aria-label="Ana Menü">
                 <i class="fa-solid fa-house text-xs"></i><span class="hidden sm:inline">Ana Menü</span>
             </button>
-            <!-- Hesap & Bulut Kayıt Butonu -->
-            <button onclick="openAuthModal()" id="btn-header-account" class="px-2 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-tech font-bold text-xs transition flex items-center gap-1" title="Hesap & Bulut Kayıt">
-                <i id="ui-account-icon" class="fa-solid fa-user-astronaut text-xs"></i>
-                <span id="ui-account-name" class="hidden md:inline max-w-[90px] truncate">Giriş Yap</span>
-            </button>
-            <button onclick="openAchievementsModal()" class="p-2 rounded-lg bg-amber-600/15 hover:bg-amber-600/25 border border-amber-400/30 text-amber-300 transition text-xs" title="Başarımlar ve istatistikler" aria-label="Başarımlar ve istatistikler">
-                <i class="fa-solid fa-medal w-3 text-center"></i>
-            </button>
-            <button onclick="openThemeModal()" class="px-2 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-tech font-bold text-xs transition flex items-center gap-1">
-                <i id="ui-theme-icon" class="fa-solid fa-palette text-xs"></i>
-                <span id="ui-theme-name" class="hidden lg:inline">Siber</span>
-            </button>
             <button id="btn-speed" onclick="toggleGameSpeed()" class="px-2 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-tech font-bold text-xs transition flex items-center gap-1">
                 <i class="fa-solid fa-forward-fast text-xs"></i>
                 <span id="ui-speed">1x</span>
@@ -625,9 +653,7 @@
             <button id="btn-pause" onclick="togglePause()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition text-xs">
                 <i id="icon-pause" class="fa-solid fa-pause w-3 text-center"></i>
             </button>
-            <button onclick="openSettingsModal()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition text-xs" title="Ayarlar">
-                <i class="fa-solid fa-gear w-3 text-center"></i>
-            </button>
+
         </div>
     </header>
 
