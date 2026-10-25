@@ -3816,10 +3816,47 @@ const GAME_TRANSLATIONS = {
     "SÜPER NADİR": "SUPER RARE",
     "NADİR": "RARE",
     "EŞYA": "ITEM",
-    "KOZMETİK": "COSMETIC"
+    "KOZMETİK": "COSMETIC",
+    "Trajedi & Komedi Maskesi": "Tragedy & Comedy Mask",
+    "Sisifos'un Ebedi Kayası": "Sisyphus' Eternal Rock",
+    "Muramasa Plazma Kılıcı": "Muramasa Plasma Sword",
+    "Aegis Yansıtıcı Kalkan": "Aegis Reflective Shield",
+    "Kuantum Mıknatısı": "Quantum Magnet",
+    "Valkür Kanadı": "Valkyrie Wing",
+    "Ebedi Yaşam Kalbi": "Heart of Eternal Life",
+    "Tanrısal Hükümdar Tacı": "Divine Ruler's Crown",
+    "Ölümsüzlük Kadehi": "Chalice of Immortality",
+    "Hiper-Türbin Motoru": "Hyper-Turbine Engine",
+    "Kozmik Tekillik Çekirdeği": "Cosmic Singularity Core",
+    "Sonsuzluk Efsanevi Yayı": "Legendary Bow of Infinity",
+    "Kurt Kaan'ın Ebedi Totemi": "Kurt Kaan's Eternal Totem",
+    "Siber Taktik Dronu": "Cyber Tactical Drone",
+    "Origami Turna": "Origami Crane",
+    "Kuantum Prizma": "Quantum Prism",
+    "Hayalet Ruh Küresi": "Ghost Wisp Orb",
+    "Gölge Shuriken": "Shadow Shuriken",
+    "Kızıl Kum Sarkacı": "Crimson Sand Pendulum",
+    "Tiyatro Maskeleri": "Theatre Masks",
+    "Valkür Kanatları": "Valkyrie Wings",
+    "Tutulma Hilali": "Eclipse Crescent",
+    "Bozkurt Ruhu (Alfa)": "Wolf Spirit (Alpha)",
+    "Optik Radar Merceği": "Optical Radar Lens",
+    "Gümüş Sadak": "Silver Quiver",
+    "Tüccar Yüzüğü": "Merchant's Ring",
+    "Titanyum Levha": "Titanium Plate",
+    "Rüzgar Tılsımı": "Wind Charm",
+    "Yakut Göz": "Ruby Eye",
+    "Enerji Hücresi": "Energy Cell",
+    "Sıfır Noktası Modülü": "Zero-Point Module",
+    "Termal Lazer Dürbünü": "Thermal Laser Scope",
+    "Gölge Avcısı Yayı": "Shadow Hunter's Bow",
+    "Ejderha Pul Zırhı": "Dragon Scale Armor",
+    "Zaman Kumları": "Sands of Time",
+    "Vampir Dişi": "Vampire Fang",
+    "Kararsız Plazma Çekirdeği": "Unstable Plasma Core"
 };
 
-const GAME_TRANSLATION_KEYS = Object.keys(GAME_TRANSLATIONS).filter(key => key.length >= 4).sort((a, b) => b.length - a.length);
+const GAME_TRANSLATION_KEYS = Object.keys(GAME_TRANSLATIONS).filter(key => key.length >= 6 && !['Kristaller', 'Düşmanlar'].includes(key)).sort((a, b) => b.length - a.length);
 const gameTextOriginals = new WeakMap();
 const gameAttributeOriginals = new WeakMap();
 let gameLanguageObserver = null;
@@ -3829,12 +3866,16 @@ function getTranslatedGameText(original, language) {
     if (language !== 'en') return original;
     const trimmed = original.trim();
     if (GAME_TRANSLATIONS[trimmed]) return GAME_TRANSLATIONS[trimmed];
-    if (!/[ÇĞİÖŞÜçğıöşü]/.test(trimmed)) return undefined;
+    if (!/[A-Za-zÇĞİÖŞÜçğıöşü]/.test(trimmed)) return undefined;
     // Also translate known phrases embedded in counters and dynamically generated labels.
     let partial = trimmed;
     for (const key of GAME_TRANSLATION_KEYS) {
         if (partial.includes(key)) partial = partial.split(key).join(GAME_TRANSLATIONS[key]);
     }
+    partial = partial.split(' Altın').join(' Gold').split(' altın').join(' gold');
+    partial = partial.split(' Kristaller').join(' Crystals').split(' Kristal').join(' Crystal').split(' kristal').join(' crystal');
+    partial = partial.split(' Dalga').join(' Wave').split(' dalga').join(' wave');
+    partial = partial.split(' Yoldaş').join(' Companion').split(' yoldaş').join(' companion');
     if (partial !== trimmed) return partial;
     const dynamicRules = [
         [/^⚠️ BOSS GELDİ:\s*/, '⚠️ BOSS INCOMING: '],
