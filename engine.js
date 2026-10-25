@@ -358,10 +358,6 @@ function spawnEnemy(isBoss = false) {
         createParticles(x, y, pal.color, 16, 105);
         createParticles(x, y, pal.secColor || '#f8fafc', 7, 68);
     }
-    if (typeof showBattleMoment === 'function') {
-        if (isBoss) showBattleMoment('boss', { wave: w, name });
-        else showBattleMoment('wave', { wave: w });
-    }
 }
 
 function applyFrostToTower(freezeDur = 0, slowDur = 3.0) {
