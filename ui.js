@@ -3646,7 +3646,30 @@ const GAME_TRANSLATIONS = {
     "Zaferden sonra pizza benden! 🍕": "Pizza's on me after victory! 🍕",
     "Peynir uzuyor, düşmanlar kaçıyor.": "Cheese stretches, enemies flee.",
     "Bu skin hakkında sorularım var... 🚽": "I have questions about this skin... 🚽",
-    "Komutan, mizah anlayışına saygı duyuyorum.": "Commander, I respect your sense of humor."
+    "Komutan, mizah anlayışına saygı duyuyorum.": "Commander, I respect your sense of humor.",
+    "Plazma Kulesi": "Plasma Tower",
+    "DGDVRN (Altın Kaplama)": "DGDVRN (Gold Plated)",
+    "Balonlu Sakız": "Bubble Gum",
+    "Siber Samuray": "Cyber Samurai",
+    "Kardan Adam Kulesi": "Snowman Tower",
+    "Ormanlar Kralı Aslan": "King of the Jungle Lion",
+    "Kraliyet Koltuğu": "Royal Throne",
+    "Siber Meka": "Cyber Mech",
+    "Ateş İblisi": "Fire Demon",
+    "Yarış Arabası": "Racing Car",
+    "Çılgın Maymun": "Crazy Monkey",
+    "Kadim Ağaç": "Ancient Tree",
+    "Uyku Emojisi": "Sleepy Emoji",
+    "Altın Porselen": "Golden Porcelain",
+    "Siber Çekirdek": "Cyber Core",
+    "Kuzey Işıkları Sezonu": "Northern Lights Season",
+    "Yoldaşlar": "Companions",
+    "Kule Skini": "Tower Skin",
+    "Yoldaş Skini": "Companion Skin",
+    "Başarım": "Achievement",
+    "Düşmanlar": "Enemies",
+    "Düşman": "Enemy",
+    "Çıkış": "Exit"
 };
 
 const gameTextOriginals = new WeakMap();
@@ -3658,6 +3681,13 @@ function getTranslatedGameText(original, language) {
     if (language !== 'en') return original;
     const trimmed = original.trim();
     if (GAME_TRANSLATIONS[trimmed]) return GAME_TRANSLATIONS[trimmed];
+    // Also translate known phrases embedded in counters and dynamically generated labels.
+    let partial = trimmed;
+    const translationKeys = Object.keys(GAME_TRANSLATIONS).filter(key => key.length >= 4).sort((a, b) => b.length - a.length);
+    for (const key of translationKeys) {
+        if (partial.includes(key)) partial = partial.split(key).join(GAME_TRANSLATIONS[key]);
+    }
+    if (partial !== trimmed) return partial;
     const dynamicRules = [
         [/^⚠️ BOSS GELDİ:\\s*/, '⚠️ BOSS INCOMING: '],
         [/^💥 Kule Yıkıldı! Enkazdan /, '💥 Tower destroyed! Salvaged '],
@@ -3684,7 +3714,7 @@ function translateGameNode(node, language) {
         if (!record) {
             record = { original: current, translated: null };
             gameTextOriginals.set(node, record);
-        } else if (record.translated !== null && current !== record.translated) {
+        } else if (current !== record.original && current !== record.translated) {
             record.original = current;
             record.translated = null;
         }
