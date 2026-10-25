@@ -3516,11 +3516,7 @@ function setStoryComms(speakerTr, speakerEn, textTr, textEn) {
     if (line) line.textContent = en ? textEn : textTr;
 }
 function storyDeepCopy(value) { return JSON.parse(JSON.stringify(value)); }
-function startStoryMission(missionNumber = 1) {
-    const progress = getStoryProgress();
-    if (![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(missionNumber)) return;
-    // Enforce mission order in the handler as well as the disabled UI buttons.
-    // This prevents direct calls from bypassing the chapter's narrative gates.
+function storyMissionPrerequisiteMet(missionNumber, progress) {
     const prerequisiteByMission = {
         2: 'mission1Complete',
         3: 'mission2Complete',
@@ -3532,7 +3528,14 @@ function startStoryMission(missionNumber = 1) {
         9: 'mission8Complete'
     };
     const requiredProgressFlag = prerequisiteByMission[missionNumber];
-    if (requiredProgressFlag && progress[requiredProgressFlag] !== true) {
+    return !requiredProgressFlag || progress[requiredProgressFlag] === true;
+}
+function startStoryMission(missionNumber = 1) {
+    const progress = getStoryProgress();
+    if (![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(missionNumber)) return;
+    // Enforce mission order in the handler as well as the disabled UI buttons.
+    // This prevents direct calls from bypassing the chapter's narrative gates.
+    if (!storyMissionPrerequisiteMet(missionNumber, progress)) {
         showToast(storyLanguage() === 'en'
             ? 'Complete the previous mission before deploying this one.'
             : 'Bu göreve geçmeden önce bir önceki görevi tamamlamalısın.');
