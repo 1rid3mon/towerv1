@@ -189,7 +189,6 @@ function spawnEnemy(isBoss = false) {
     const y = tower.y + Math.sin(angle) * spawnDist;
 
     const w = game.wave;
-    if (!isBoss && typeof showBattleMoment === 'function') showBattleMoment('wave', { wave: w });
     const earlyBuffer = w <= 10 ? (0.75 + (w * 0.025)) : 1.0;
     // Preserve the established endless-wave balance until measured playtest data supports a change.
     const tierMult = Math.pow(1.22, Math.floor(w / 10)) * Math.pow(1.35, Math.floor(w / 25));
