@@ -3020,10 +3020,11 @@ async function removeFriend(requestId) {
         const snap = await ref.get();
         if (!snap.exists) return renderFriends();
         const d = snap.data();
-        if (d.fromUid !== currentUser.uid && d.toUid !== currentUser.uid) throw new Error('Bu arkadaşlığı yönetme yetkin yok.');
-        if (d.status !== 'accepted') throw new Error('Bu kayıt artık arkadaşlık değil.');
+        if (d.fromUid !== currentUser.uid && d.toUid !== currentUser.uid) throw new Error('Bu kaydı yönetme yetkin yok.');
+        if (d.status === 'pending' && d.fromUid !== currentUser.uid) throw new Error('Gelen isteği buradan iptal edemezsin; kabul veya reddet.');
+        if (!['accepted','pending'].includes(d.status)) throw new Error('Bu kayıt artık aktif değil.');
         await ref.delete();
-        renderFriendNotice('Arkadaş listenden kaldırıldı.');
+        renderFriendNotice(d.status === 'pending' ? 'Arkadaşlık isteği iptal edildi.' : 'Arkadaş listenden kaldırıldı.');
         await renderFriends();
     } catch (err) {
         renderFriendNotice(err && err.message ? err.message : 'Arkadaş kaldırılamadı.', true);
