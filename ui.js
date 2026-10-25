@@ -2653,6 +2653,8 @@ function renderAchievementsModal() {
         titleSelect.value = currentTitle.id;
     }
     if (titleHint) titleHint.textContent = getGameLanguage() === 'en' ? unlockedTitles.length + ' / ' + COMMANDER_TITLES.length + ' titles unlocked.' : unlockedTitles.length + ' / ' + COMMANDER_TITLES.length + ' unvan açık.';
+    const equippedTitleEl = document.getElementById('profile-title-equipped');
+    if (equippedTitleEl) equippedTitleEl.textContent = currentTitle.icon + ' ' + (getGameLanguage() === 'en' ? currentTitle.en : currentTitle.name) + (getGameLanguage() === 'en' ? ' · EQUIPPED' : ' · KUŞANILDI');
     const values = {
         'profile-stat-wave': formatNumber(highWave),
         'profile-stat-kills': formatNumber(stats.totalKills || 0),
