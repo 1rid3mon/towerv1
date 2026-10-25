@@ -2029,6 +2029,7 @@ function initAuthAndCloudSystem() {
                 if (user) {
                     const cleanName = user.displayName || (user.email ? user.email.split('@')[0] : 'Komutan');
                     currentUser = { uid: user.uid, username: cleanName, email: user.email || '', isCloud: true };
+                    clearTimeout(storyCloudSaveTimer);
                     updateAccountHeaderUI();
                     await forceCloudPull(true);
                     await pullStoryProgressFromCloud(true);
@@ -3984,6 +3985,7 @@ function returnToMainMenu() {
 
 // Story progress is deliberately isolated from the existing Endless save.
 const STORY_PROGRESS_KEY = 'towerDefenseStoryProgressV1';
+const STORY_PROGRESS_OWNER_KEY = 'towerDefenseStoryProgressOwnerV1';
 const STORY_DIALOGUES = [
  {speaker:{tr:'İSTASYON YAPAY ZEKÂSI',en:'STATION AI'},text:{tr:'Komutan, istasyona ulaştık. Yaşam belirtisi yok. Bütün sistemler biz yaklaşınca kapandı; sanki gelişimizi bekliyorlardı.',en:'Commander, we have reached the station. No life signs. Every system shut down as we approached—as if they were waiting for us.'}},
  {speaker:{tr:'MAVİ HOLOGRAM',en:'BLUE HOLOGRAM'},text:{tr:'Bağlantı… kuruldu. Sonunda geldiniz, komutan.',en:'Connection… established. You finally made it, Commander.'}},
@@ -4086,6 +4088,7 @@ async function pushStoryProgressToCloud(silent = true) {
         const payload = { ...progress, updatedAt: Math.max(Date.now(), progress.updatedAt || 0) };
         await fbDb.collection('storyProgress').doc(currentUser.uid).set(payload);
         localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(payload));
+        localStorage.setItem(STORY_PROGRESS_OWNER_KEY, currentUser.uid);
         if (!silent) showToast('☁️ Hikâye ilerlemen buluta kaydedildi.');
         return true;
     } catch (err) {
@@ -4099,16 +4102,27 @@ async function pullStoryProgressFromCloud(silent = true) {
     try {
         const ref = fbDb.collection('storyProgress').doc(currentUser.uid);
         const snapshot = await ref.get();
-        const local = getStoryProgress();
+        const localOwner = localStorage.getItem(STORY_PROGRESS_OWNER_KEY);
+        const belongsToAnotherAccount = !!localOwner && localOwner !== currentUser.uid;
+        const local = belongsToAnotherAccount ? null : getStoryProgress();
         if (!snapshot.exists) {
-            if (local.updatedAt > 0) await pushStoryProgressToCloud(true);
+            if (local && local.updatedAt > 0) {
+                await pushStoryProgressToCloud(true);
+            } else if (belongsToAnotherAccount) {
+                localStorage.removeItem(STORY_PROGRESS_KEY);
+                localStorage.setItem(STORY_PROGRESS_OWNER_KEY, currentUser.uid);
+                updateStoryMissionBoard();
+            } else {
+                localStorage.setItem(STORY_PROGRESS_OWNER_KEY, currentUser.uid);
+            }
             return false;
         }
         const remote = getValidatedStoryProgress(snapshot.data());
-        if (local.updatedAt > remote.updatedAt && local.updatedAt > 0) {
+        if (local && local.updatedAt > remote.updatedAt && local.updatedAt > 0) {
             await pushStoryProgressToCloud(true);
         } else {
             localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(remote));
+            localStorage.setItem(STORY_PROGRESS_OWNER_KEY, currentUser.uid);
             updateStoryMissionBoard();
         }
         return true;
