@@ -2,7 +2,7 @@
 
 ## Core target
 
-- Target **about 3–4 hours** from the basic maintenance companion to its second (cyan/awakened) form on a first playthrough.
+- Target **about one hour** for the first complete chapter, from the silent station arrival to the companion’s second (cyan/awakened) form. This is the first release slice; the later purple form and tower transformations belong to a future chapter.
 - This is a pacing target, not a timer or a grind requirement. Skilled players may finish sooner; struggling players must not be trapped in repetition.
 - The chapter should feel like one unfolding adventure, not a checklist of new mechanics.
 - **Not every mission needs a new mechanic or major reveal.** Most missions should let players use what they already know, with one meaningful change only when the story earns it.
@@ -27,19 +27,22 @@ Then begin another cycle when it feels natural. Some story stretches may need tw
 
 ## Pacing model
 
-Aim for **9 core missions** plus a few optional memory/signals. The second form is the chapter climax, not an early level-up. Mission count and timing can change after playtests.
+Aim for **9 core missions** plus optional memory/signals. The second form is the chapter climax, not an early level-up. Mission count and timing can change after playtests.
 
 | Segment | Target time | Experience | Companion state |
 |---|---:|---|---|
-| Prologue + Mission 01 | 15–20 min | Silent station, corrupted blue memory echo, first defense tutorial | Basic / low power |
-| Missions 02–03 | 30–40 min | First hostile contact, then investigation using the skill already taught | Basic; learns to scan |
-| Missions 04–05 | 35–45 min | Repair/escort sequence and a changed tactical objective; no unrelated system pile-up | Basic; first subtle reaction to recovered signal |
-| Missions 06–07 | 35–45 min | New station sector and one meaningful route choice; familiar tools used under pressure | Brief unstable energy traces, no full evolution |
-| Mission 08 + optional memory event | 25–35 min | Return to a known place only if its layout/state has changed; reveal one key contradiction | A few cyan flickers, clues remain ambiguous |
-| Mission 09: awakening | 25–35 min | Multi-stage climax combining already-learned skills; protect the companion while it chooses to reconnect | Evolves into second / cyan form |
-| Breathing room | 10–20 min | Optional logs, quiet companion interaction, test the new ability, or continue directly | New form established |
+| Prologue + Mission 01 | 6–8 min | Silent station, corrupted blue memory echo, first defense tutorial | Basic / low power |
+| Mission 02 | 5–7 min | Short patrol and signal-trace scan | Basic; learns to scan |
+| Mission 03 | 3–4 min | Choose antenna data or black-box evidence | Basic; memory remains unclear |
+| Mission 04 | 3–4 min | Route reserve power to shields or weapons | Basic; practical choice |
+| Mission 05 | 7–9 min | Defend corridor, then disable relay | Basic; voice packet matches the echo |
+| Mission 06 | 4–5 min | Repair three connections with the companion | Brief cyan flicker, no evolution |
+| Mission 07 | 7–9 min | Defend communications array, then disable amplifier | Basic; signal loops from inside |
+| Mission 08 | 4–5 min | Return to opening room and inspect three contradictions | Violet silhouette remains unidentified |
+| Mission 09: awakening | 10–12 min | Final defense, reconnect, awaken, test pulse | Evolves into cyan form |
+| Optional logs / breathing room | 5–10 min | Revisit evidence and let the reveal land | New form established |
 
-**Expected total:** roughly 3–4 hours with optional content. A clean playthrough should not be delayed by mandatory collectibles or grinding.
+**Target total:** roughly 54–73 minutes including optional content. This is a design target, not a verified playtime; it must be measured with first-time testers.
 
 ## Mission design rules
 
@@ -65,7 +68,7 @@ Aim for **9 core missions** plus a few optional memory/signals. The second form 
 
 ## Current implementation status
 
-Mission 01 is playable as an isolated combat prototype. Mission 02 has a patrol encounter followed by a three-step signal-scan interaction. Mission 03 is a short non-combat investigation in which the player chooses antenna data or a black-box log; the choice is saved in Story Mode progress. Mission 04–09, any later gameplay consequences for that choice, checkpoints, and the second-form climax still need implementation and playtesting. The 3–4 hour arc is a target, not delivered content yet.
+First-pass playable flows for Missions 01–09 are implemented on the draft branch: combat, signal scans, evidence choice, power-routing choice with a gameplay effect, relay/amplifier interactions, repair sequence, memory inspection, and a multi-step companion awakening. These are prototype implementations, not a polished or manually playtested one-hour chapter. Dialogue, pacing, difficulty, save/retry behavior, mobile layout, and continuity still need playtesting and refinement.
 
 ## Playtest gates before release
 
