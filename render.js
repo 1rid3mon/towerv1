@@ -890,95 +890,470 @@ function adjustColorBrightness(col, amt) {
 }
 
 // =======================================================
-// ÖZEL DÜŞMAN VE BOSS GÖRSEL ÇİZİM MOTORU
+// ÖZEL DÜŞMAN VE BOSS GÖRSEL ÇİZİM MOTORU (YENİLENMİŞ PRO TASARIMLAR)
 // =======================================================
-// Shared hand-ink pass: a few restrained seams and edge catches tie every enemy family together.
-function drawEnemyInkAccents(c, kind, r, faceAngle, isHit) {
-    if (isHit || r < 5) return;
-
-    let seam = 'rgba(15, 23, 42, 0.46)';
-    let edge = 'rgba(255, 255, 255, 0.34)';
-    if (kind === 'frost' || kind === 'frost_boss') {
-        seam = 'rgba(8, 47, 73, 0.62)';
-        edge = 'rgba(224, 242, 254, 0.72)';
-    } else if (kind === 'tank' || kind === 'tank_boss') {
-        seam = 'rgba(15, 23, 42, 0.66)';
-        edge = 'rgba(226, 232, 240, 0.58)';
-    } else if (kind === 'leviathan' || kind === 'boss') {
-        seam = 'rgba(30, 10, 55, 0.68)';
-        edge = 'rgba(216, 180, 254, 0.52)';
-    } else if (kind === 'speed_boss' || kind === 'runner') {
-        seam = 'rgba(76, 5, 25, 0.58)';
-        edge = 'rgba(255, 228, 230, 0.54)';
-    } else if (kind === 'ranged' || kind === 'ranged_boss') {
-        seam = 'rgba(8, 47, 73, 0.60)';
-        edge = 'rgba(186, 230, 253, 0.58)';
-    } else if (kind === 'teleporter') {
-        seam = 'rgba(120, 53, 15, 0.58)';
-        edge = 'rgba(254, 240, 138, 0.60)';
-    } else if (kind === 'green') {
-        seam = 'rgba(20, 83, 45, 0.58)';
-        edge = 'rgba(220, 252, 231, 0.60)';
-    }
-
-    c.save();
-    c.rotate(faceAngle);
-    c.lineCap = 'round';
-    c.lineJoin = 'round';
-    c.lineWidth = Math.max(0.8, r * 0.035);
-    c.strokeStyle = seam;
-    c.beginPath();
-    c.moveTo(-r * 0.48, -r * 0.20);
-    c.lineTo(-r * 0.30, -r * 0.08);
-    c.lineTo(-r * 0.36, r * 0.08);
-    c.moveTo(-r * 0.18, r * 0.34);
-    c.lineTo(-r * 0.05, r * 0.25);
-    c.stroke();
-
-    c.strokeStyle = edge;
-    c.lineWidth = Math.max(0.7, r * 0.025);
-    c.beginPath();
-    c.moveTo(-r * 0.54, -r * 0.42);
-    c.lineTo(-r * 0.40, -r * 0.48);
-    c.moveTo(r * 0.18, -r * 0.58);
-    c.lineTo(r * 0.30, -r * 0.52);
-    c.stroke();
-
-    // Bosses get one extra old scar, not a bigger glow or a busier particle effect.
-    if (kind === 'tank_boss' || kind === 'ranged_boss' || kind === 'speed_boss' ||
-        kind === 'frost_boss' || kind === 'leviathan' || kind === 'boss') {
-        c.strokeStyle = seam;
-        c.lineWidth = Math.max(1, r * 0.045);
-        c.beginPath();
-        c.moveTo(-r * 0.30, -r * 0.05);
-        c.lineTo(-r * 0.12, r * 0.02);
-        c.lineTo(-r * 0.20, r * 0.18);
-        c.stroke();
-    }
-    c.restore();
-}
-
 function drawCustomEnemy(c, e, tx, ty, nowTime) {
     const r = e.radius;
     const isHit = e.hitFlash > 0;
     const faceAngle = Math.atan2(ty - e.y, tx - e.x);
     const kind = e.subType || (e.type === 'boss' ? 'leviathan' : (e.isTeleporter ? 'teleporter' : (e.isRanged ? 'ranged' : e.type)));
 
-    c.shadowColor = 'rgba(0, 0, 0, 0.45)';
-    c.shadowBlur = e.type === 'boss' ? 10 : 5;
+    c.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    c.shadowBlur = e.type === 'boss' ? 14 : 7;
     c.shadowOffsetY = 2;
 
     switch (kind) {
-        case 'tank_boss': {
+        // =======================================================
+        // 1. YEŞİL (ZOMBİ / SWARM) - KULEYE AÇ GÖZLÜCE SALDIRAN
+        // =======================================================
+        case 'green': {
             c.save();
-            c.rotate(nowTime * 0.0012);
-            c.fillStyle = isHit ? '#ffffff' : '#78350f';
-            c.strokeStyle = '#facc15';
+            c.rotate(faceAngle);
+
+            const jawSnap = Math.sin((e.animPhase || 0) + nowTime * 0.012) * (r * 0.18);
+            const walkWobble = Math.cos(nowTime * 0.015) * 0.12;
+            c.rotate(walkWobble);
+
+            // Çürümüş kemik çıkıntıları (omuz & sırt)
+            c.fillStyle = '#e2e8f0';
+            c.strokeStyle = '#475569';
+            c.lineWidth = 1.2;
+            c.beginPath();
+            c.moveTo(-r * 0.4, -r * 0.7); c.lineTo(-r * 0.7, -r * 1.05); c.lineTo(-r * 0.2, -r * 0.75);
+            c.moveTo(-r * 0.5, r * 0.6); c.lineTo(-r * 0.85, r * 0.95); c.lineTo(-r * 0.3, r * 0.7);
+            c.fill(); c.stroke();
+
+            // Zombi Gövdesi / Kafatası (Asimetrik hastalıklı et)
+            const zGrad = c.createRadialGradient(-r * 0.2, -r * 0.2, 2, 0, 0, r);
+            zGrad.addColorStop(0, isHit ? '#ffffff' : '#4ade80');
+            zGrad.addColorStop(0.65, isHit ? '#e2e8f0' : '#15803d');
+            zGrad.addColorStop(1, isHit ? '#cbd5e1' : '#052e16');
+
+            c.fillStyle = zGrad;
+            c.strokeStyle = isHit ? '#ffffff' : '#86efac';
+            c.lineWidth = 1.8;
+            c.beginPath();
+            c.moveTo(r * 0.85, -r * 0.2);
+            c.quadraticCurveTo(r * 0.6, -r * 0.85, -r * 0.2, -r * 0.8);
+            c.quadraticCurveTo(-r * 0.95, -r * 0.6, -r * 0.85, 0);
+            c.quadraticCurveTo(-r * 0.95, r * 0.6, -r * 0.2, r * 0.8);
+            c.quadraticCurveTo(r * 0.6, r * 0.85, r * 0.85, r * 0.2);
+            c.closePath();
+            c.fill(); c.stroke();
+
+            // Çürük lekeleri ve dikiş izi
+            c.fillStyle = 'rgba(20, 83, 45, 0.6)';
+            c.beginPath();
+            c.arc(-r * 0.35, -r * 0.35, r * 0.22, 0, Math.PI * 2);
+            c.arc(-r * 0.1, r * 0.4, r * 0.18, 0, Math.PI * 2);
+            c.fill();
+
+            // Kafadaki dikiş çizgisi
+            c.strokeStyle = '#022c22';
+            c.lineWidth = 1.4;
+            c.beginPath();
+            c.moveTo(-r * 0.5, -r * 0.4); c.lineTo(-r * 0.1, -r * 0.1);
+            c.moveTo(-r * 0.42, -r * 0.32); c.lineTo(-r * 0.35, -r * 0.22);
+            c.moveTo(-r * 0.28, -r * 0.22); c.lineTo(-r * 0.2, -r * 0.12);
+            c.stroke();
+
+            // Açılıp kapanan canavar ağzı (Kuleyi ısırmaya hazırlanan zombi)
+            c.fillStyle = '#450a0a';
+            c.beginPath();
+            c.moveTo(r * 0.3, -r * 0.35 - jawSnap);
+            c.lineTo(r * 1.05, -r * 0.1 - jawSnap);
+            c.lineTo(r * 0.6, 0);
+            c.lineTo(r * 1.05, r * 0.1 + jawSnap);
+            c.lineTo(r * 0.3, r * 0.35 + jawSnap);
+            c.closePath();
+            c.fill();
+
+            // Sivri çürük dişler
+            c.fillStyle = '#fef08a';
+            c.beginPath();
+            c.moveTo(r * 0.45, -r * 0.3 - jawSnap); c.lineTo(r * 0.7, -r * 0.1 - jawSnap); c.lineTo(r * 0.55, -jawSnap * 0.5);
+            c.moveTo(r * 0.45, r * 0.3 + jawSnap); c.lineTo(r * 0.7, r * 0.1 + jawSnap); c.lineTo(r * 0.55, jawSnap * 0.5);
+            c.fill();
+
+            // Gözler: Biri patlamış/kör beyaz, diğeri parlayan manyak zombi gözü
+            c.fillStyle = '#cbd5e1'; // Kör sol göz
+            c.beginPath(); c.arc(r * 0.15, -r * 0.38, r * 0.14, 0, Math.PI * 2); c.fill();
+            c.strokeStyle = '#991b1b'; c.lineWidth = 1; c.stroke();
+
+            // Parlayan sağ göz
+            c.fillStyle = '#facc15';
+            c.beginPath(); c.arc(r * 0.2, r * 0.32, r * 0.16, 0, Math.PI * 2); c.fill();
+            c.fillStyle = '#dc2626';
+            c.beginPath(); c.arc(r * 0.25, r * 0.32, r * 0.08, 0, Math.PI * 2); c.fill();
+
+            c.restore();
+            break;
+        }
+
+        // =======================================================
+        // 2. SARI (TELEPORTER) - BOYUT YARIĞI / PHASE SHIFTER
+        // =======================================================
+        case 'teleporter': {
+            c.save();
+
+            // Dış boyutsal yarık aurası (Warp Field)
+            const warpPhase = nowTime * 0.005;
+            c.save();
+            c.rotate(warpPhase);
+            c.strokeStyle = 'rgba(250, 204, 21, 0.45)';
+            c.lineWidth = 2;
+            c.setLineDash([8, 6]);
+            c.beginPath(); c.arc(0, 0, r * 1.3, 0, Math.PI * 2); c.stroke();
+            c.restore();
+
+            // Ters dönen iç faz dişlileri
+            c.save();
+            c.rotate(-warpPhase * 1.5);
+            c.fillStyle = isHit ? '#ffffff' : '#eab308';
+            c.strokeStyle = '#fef08a';
+            c.lineWidth = 1.8;
+            c.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const a = (i * Math.PI) / 3;
+                const rOut = r * 1.15;
+                const rIn = r * 0.65;
+                const px1 = Math.cos(a) * rOut, py1 = Math.sin(a) * rOut;
+                const px2 = Math.cos(a + 0.3) * rIn, py2 = Math.sin(a + 0.3) * rIn;
+                if (i === 0) c.moveTo(px1, py1); else c.lineTo(px1, py1);
+                c.lineTo(px2, py2);
+            }
+            c.closePath();
+            c.fill(); c.stroke();
+            c.restore();
+
+            // Boyut yarığı çekirdeği (Void Eye)
+            const voidGrad = c.createRadialGradient(0, 0, 1, 0, 0, r * 0.55);
+            voidGrad.addColorStop(0, '#581c87');
+            voidGrad.addColorStop(0.6, '#0f172a');
+            voidGrad.addColorStop(1, '#facc15');
+            c.fillStyle = voidGrad;
+            c.beginPath(); c.arc(0, 0, r * 0.55, 0, Math.PI * 2); c.fill();
+            c.strokeStyle = '#ffffff'; c.lineWidth = 1.5; c.stroke();
+
+            // Merkezdeki dikey boyutsal göz bebeği
+            c.save();
+            c.rotate(faceAngle);
+            const pupilPulse = Math.sin(nowTime * 0.01) * 0.3 + 1;
+            c.fillStyle = '#fef08a';
+            c.beginPath();
+            c.ellipse(0, 0, r * 0.15 * pupilPulse, r * 0.4, 0, 0, Math.PI * 2);
+            c.fill();
+            c.restore();
+
+            c.restore();
+            break;
+        }
+
+        // =======================================================
+        // 3. KIRMIZI (RUNNER / HAYDUT) - ÇILGIN HIZLI / İTİCİLİ
+        // =======================================================
+        case 'runner': {
+            c.save();
+            c.rotate(faceAngle);
+
+            // Çift jet egzoz ateşi ve arkadaki hava dalgası
+            const jetBurn1 = r * (0.8 + Math.sin(nowTime * 0.05) * 0.35);
+            const jetBurn2 = r * (0.8 + Math.cos(nowTime * 0.05) * 0.35);
+
+            // Alev 1
+            const flGrad1 = c.createLinearGradient(-r * 0.6, 0, -r * 0.6 - jetBurn1, 0);
+            flGrad1.addColorStop(0, '#ffffff');
+            flGrad1.addColorStop(0.3, '#facc15');
+            flGrad1.addColorStop(0.7, '#f97316');
+            flGrad1.addColorStop(1, 'rgba(239, 68, 68, 0)');
+            c.fillStyle = flGrad1;
+            c.beginPath();
+            c.moveTo(-r * 0.5, -r * 0.4);
+            c.lineTo(-r * 0.6 - jetBurn1, -r * 0.3);
+            c.lineTo(-r * 0.5, -r * 0.15);
+            c.closePath(); c.fill();
+
+            // Alev 2
+            c.beginPath();
+            c.moveTo(-r * 0.5, r * 0.15);
+            c.lineTo(-r * 0.6 - jetBurn2, r * 0.3);
+            c.lineTo(-r * 0.5, r * 0.4);
+            c.closePath(); c.fill();
+
+            // Aerodinamik Dart / Haydut Zırhı Gövdesi
+            const rGrad = c.createRadialGradient(r * 0.2, 0, 2, 0, 0, r * 1.2);
+            rGrad.addColorStop(0, isHit ? '#ffffff' : '#fb7185');
+            rGrad.addColorStop(0.5, isHit ? '#fda4af' : '#dc2626');
+            rGrad.addColorStop(1, isHit ? '#cbd5e1' : '#7f1d1d');
+
+            c.fillStyle = rGrad;
+            c.strokeStyle = isHit ? '#ffffff' : '#fecdd3';
+            c.lineWidth = 1.8;
+            c.beginPath();
+            c.moveTo(r * 1.35, 0); // Sivri ön burun
+            c.lineTo(r * 0.1, -r * 0.55);
+            c.lineTo(-r * 0.7, -r * 0.95); // Sol kanat ucu
+            c.lineTo(-r * 0.5, -r * 0.2);
+            c.lineTo(-r * 0.8, 0); // Arka kuyruk
+            c.lineTo(-r * 0.5, r * 0.2);
+            c.lineTo(-r * 0.7, r * 0.95); // Sağ kanat ucu
+            c.lineTo(r * 0.1, r * 0.55);
+            c.closePath();
+            c.fill(); c.stroke();
+
+            // Kanat üstü rüzgar yarıkları (aerodinamik çizgiler)
+            c.strokeStyle = '#450a0a';
+            c.lineWidth = 1.5;
+            c.beginPath();
+            c.moveTo(0, -r * 0.35); c.lineTo(-r * 0.4, -r * 0.65);
+            c.moveTo(0, r * 0.35); c.lineTo(-r * 0.4, r * 0.65);
+            c.stroke();
+
+            // Kokpit / Öfkeli Vizör (Sarı ve Akkor)
+            c.fillStyle = '#0f172a';
+            c.beginPath();
+            c.moveTo(r * 0.8, 0);
+            c.lineTo(r * 0.2, -r * 0.28);
+            c.lineTo(0, 0);
+            c.lineTo(r * 0.2, r * 0.28);
+            c.closePath();
+            c.fill();
+
+            c.fillStyle = '#fde047';
+            c.beginPath();
+            c.moveTo(r * 0.7, 0);
+            c.lineTo(r * 0.25, -r * 0.18);
+            c.lineTo(r * 0.1, 0);
+            c.lineTo(r * 0.25, r * 0.18);
+            c.closePath();
+            c.fill();
+
+            c.restore();
+            break;
+        }
+
+        // =======================================================
+        // 4. MAVİ (RANGED) - UZAKTAN ATEŞ EDEN MEKANİK KESKİN NİŞANCI
+        // =======================================================
+        case 'ranged': {
+            c.save();
+            c.rotate(faceAngle);
+
+            // Uzun Raylı Top Namluları (Dual Railgun / Sniping Barrel)
+            c.fillStyle = '#0f172a';
+            c.strokeStyle = '#38bdf8';
+            c.lineWidth = 1.4;
+            // Üst Namlu
+            c.fillRect(r * 0.1, -r * 0.35, r * 1.35, r * 0.18);
+            c.strokeRect(r * 0.1, -r * 0.35, r * 1.35, r * 0.18);
+            // Alt Namlu
+            c.fillRect(r * 0.1, r * 0.17, r * 1.35, r * 0.18);
+            c.strokeRect(r * 0.1, r * 0.17, r * 1.35, r * 0.18);
+
+            // Namlu ucundaki parlayan plazma mermileri
+            c.fillStyle = '#38bdf8';
+            c.beginPath();
+            c.arc(r * 1.45, -r * 0.26, r * 0.12, 0, Math.PI * 2);
+            c.arc(r * 1.45, r * 0.26, r * 0.12, 0, Math.PI * 2);
+            c.fill();
+
+            // Gövde (Mekanik Geometrik Platform)
+            const mGrad = c.createRadialGradient(-r * 0.2, 0, 2, 0, 0, r);
+            mGrad.addColorStop(0, isHit ? '#ffffff' : '#38bdf8');
+            mGrad.addColorStop(0.6, isHit ? '#bae6fd' : '#0284c7');
+            mGrad.addColorStop(1, isHit ? '#94a3b8' : '#082f49');
+
+            c.fillStyle = mGrad;
+            c.strokeStyle = isHit ? '#ffffff' : '#bae6fd';
+            c.lineWidth = 2;
+            c.beginPath();
+            c.moveTo(r * 0.7, 0);
+            c.lineTo(r * 0.1, -r * 0.85);
+            c.lineTo(-r * 0.75, -r * 0.65);
+            c.lineTo(-r * 0.95, 0);
+            c.lineTo(-r * 0.75, r * 0.65);
+            c.lineTo(r * 0.1, r * 0.85);
+            c.closePath();
+            c.fill(); c.stroke();
+
+            // Dengeleyici Stabilizatör Kanatçıklar
+            c.fillStyle = '#0369a1';
+            c.fillRect(-r * 0.65, -r * 0.95, r * 0.3, r * 0.3);
+            c.fillRect(-r * 0.65, r * 0.65, r * 0.3, r * 0.3);
+
+            // Ortadaki Lazer Sensör / Hedefleme Vizörü
+            c.fillStyle = '#0f172a';
+            c.beginPath(); c.arc(-r * 0.1, 0, r * 0.38, 0, Math.PI * 2); c.fill();
+            c.strokeStyle = '#f43f5e'; c.lineWidth = 1.5; c.stroke();
+
+            c.fillStyle = '#f43f5e';
+            c.beginPath(); c.arc(-r * 0.1, 0, r * 0.2, 0, Math.PI * 2); c.fill();
+            c.fillStyle = '#ffffff';
+            c.beginPath(); c.arc(-r * 0.05, -r * 0.05, r * 0.08, 0, Math.PI * 2); c.fill();
+
+            c.restore();
+            break;
+        }
+
+        // =======================================================
+        // 5. BUZ (FROST) - KRİSTALİZE DONDURUCU ELEMENTAL
+        // =======================================================
+        case 'frost': {
+            c.save();
+            const icePulse = Math.sin(nowTime * 0.007) * (r * 0.08);
+
+            // Dondurucu Soğuk Dış Kristal Halkası
+            c.save();
+            c.rotate(-nowTime * 0.0015);
+            c.fillStyle = 'rgba(56, 189, 248, 0.2)';
+            c.strokeStyle = '#bae6fd';
+            c.lineWidth = 1.2;
+            c.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const a = (i * Math.PI) / 3;
+                const dist = r * 1.25 + icePulse;
+                const px = Math.cos(a) * dist, py = Math.sin(a) * dist;
+                c.rect(px - 3, py - 3, 6, 6);
+            }
+            c.fill(); c.stroke();
+            c.restore();
+
+            // Ana Sivri Buzul Gövdesi
+            c.save();
+            c.rotate(e.rot || 0);
+
+            const fGrad = c.createRadialGradient(0, 0, 2, 0, 0, r * 1.1);
+            fGrad.addColorStop(0, isHit ? '#ffffff' : '#f0f9ff');
+            fGrad.addColorStop(0.4, isHit ? '#e0f2fe' : '#38bdf8');
+            fGrad.addColorStop(0.85, isHit ? '#bae6fd' : '#0284c7');
+            fGrad.addColorStop(1, isHit ? '#7dd3fc' : '#0c4a6e');
+
+            c.fillStyle = fGrad;
+            c.strokeStyle = '#ffffff';
+            c.lineWidth = 2;
+            c.beginPath();
+            for (let i = 0; i < 10; i++) {
+                const a = (i * Math.PI) / 5;
+                const rad = i % 2 === 0 ? r * 1.2 : r * 0.55;
+                const px = Math.cos(a) * rad, py = Math.sin(a) * rad;
+                if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+            }
+            c.closePath();
+            c.fill(); c.stroke();
+
+            // Buz Çatlakları ve Kırılma Detayları
+            c.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+            c.lineWidth = 1.5;
+            c.beginPath();
+            c.moveTo(0, 0); c.lineTo(-r * 0.7, -r * 0.4);
+            c.moveTo(0, 0); c.lineTo(r * 0.6, -r * 0.6);
+            c.moveTo(0, 0); c.lineTo(r * 0.2, r * 0.75);
+            c.moveTo(0, 0); c.lineTo(-r * 0.5, r * 0.65);
+            c.stroke();
+
+            // Mutlak Sıfır (Absolute Zero) Çekirdeği
+            c.fillStyle = '#082f49';
+            c.beginPath(); c.arc(0, 0, r * 0.32, 0, Math.PI * 2); c.fill();
+            c.fillStyle = '#cffafe';
+            c.beginPath(); c.arc(0, 0, r * 0.18, 0, Math.PI * 2); c.fill();
+
+            c.restore();
+            c.restore();
+            break;
+        }
+
+        // =======================================================
+        // 6. SİYAH (TANK) - YIKILMAZ AĞIR ZIRHLI BEHEMOTH
+        // =======================================================
+        case 'tank': {
+            c.save();
+            c.rotate(faceAngle);
+
+            // Yan Ağır Zırh Paletleri / Çelik Destekler
+            c.fillStyle = '#0f172a';
+            c.strokeStyle = '#475569';
+            c.lineWidth = 1.6;
+            c.fillRect(-r * 0.75, -r * 0.95, r * 1.2, r * 0.32);
+            c.strokeRect(-r * 0.75, -r * 0.95, r * 1.2, r * 0.32);
+            c.fillRect(-r * 0.75, r * 0.63, r * 1.2, r * 0.32);
+            c.strokeRect(-r * 0.75, r * 0.63, r * 1.2, r * 0.32);
+
+            // Palet Çarkları
+            c.fillStyle = '#334155';
+            for (let i = 0; i < 3; i++) {
+                c.beginPath();
+                c.arc(-r * 0.5 + i * (r * 0.45), -r * 0.79, r * 0.11, 0, Math.PI * 2);
+                c.arc(-r * 0.5 + i * (r * 0.45), r * 0.79, r * 0.11, 0, Math.PI * 2);
+                c.fill();
+            }
+
+            // Ana Ağır Çelik Gövde (Oktagonal Zırh)
+            const tGrad = c.createRadialGradient(-r * 0.2, 0, 3, 0, 0, r);
+            tGrad.addColorStop(0, isHit ? '#ffffff' : '#475569');
+            tGrad.addColorStop(0.7, isHit ? '#cbd5e1' : '#1e293b');
+            tGrad.addColorStop(1, isHit ? '#94a3b8' : '#090d16');
+
+            c.fillStyle = tGrad;
+            c.strokeStyle = isHit ? '#ffffff' : '#64748b';
             c.lineWidth = 2.2;
             c.beginPath();
-            for (let i = 0; i < 24; i++) {
-                const a = (i * Math.PI) / 12;
-                const rad = i % 2 === 0 ? r * 1.12 : r * 0.88;
+            c.moveTo(r * 0.6, -r * 0.55);
+            c.lineTo(r * 0.85, 0);
+            c.lineTo(r * 0.6, r * 0.55);
+            c.lineTo(-r * 0.5, r * 0.65);
+            c.lineTo(-r * 0.85, 0);
+            c.lineTo(-r * 0.5, -r * 0.55);
+            c.closePath();
+            c.fill(); c.stroke();
+
+            // Devasa Ön Balistik Kalkan (Riot / Blast Shield)
+            c.fillStyle = '#0f172a';
+            c.strokeStyle = '#e2e8f0';
+            c.lineWidth = 2.4;
+            c.beginPath();
+            c.roundRect(r * 0.45, -r * 0.8, r * 0.35, r * 1.6, 4);
+            c.fill(); c.stroke();
+
+            // Kalkan üzerindeki tehlike şeritleri (Sarı / Siyah Çizgiler)
+            c.strokeStyle = '#facc15';
+            c.lineWidth = 2;
+            c.beginPath();
+            c.moveTo(r * 0.55, -r * 0.6); c.lineTo(r * 0.7, -r * 0.45);
+            c.moveTo(r * 0.55, -r * 0.15); c.lineTo(r * 0.7, 0);
+            c.moveTo(r * 0.55, r * 0.3); c.lineTo(r * 0.7, r * 0.45);
+            c.stroke();
+
+            // Zırh Perçinleri (Bolts)
+            c.fillStyle = '#f8fafc';
+            c.beginPath();
+            c.arc(-r * 0.35, -r * 0.35, 1.8, 0, Math.PI * 2);
+            c.arc(-r * 0.35, r * 0.35, 1.8, 0, Math.PI * 2);
+            c.arc(r * 0.25, -r * 0.35, 1.8, 0, Math.PI * 2);
+            c.arc(r * 0.25, r * 0.35, 1.8, 0, Math.PI * 2);
+            c.fill();
+
+            // Nükleer Reaktif Çekirdek (Kırmızı/Turuncu Uyarı Işığı)
+            c.fillStyle = '#ef4444';
+            c.beginPath(); c.arc(0, 0, r * 0.24, 0, Math.PI * 2); c.fill();
+            c.strokeStyle = '#fca5a5'; c.lineWidth = 1.5; c.stroke();
+
+            c.restore();
+            break;
+        }
+
+        // =======================================================
+        // BOSS: TANK BOSS (TITAN SIEGE ENGINE)
+        // =======================================================
+        case 'tank_boss': {
+            c.save();
+            c.rotate(nowTime * 0.001);
+            c.fillStyle = isHit ? '#ffffff' : '#78350f';
+            c.strokeStyle = '#facc15';
+            c.lineWidth = 2.4;
+            c.beginPath();
+            for (let i = 0; i < 20; i++) {
+                const a = (i * Math.PI) / 10;
+                const rad = i % 2 === 0 ? r * 1.15 : r * 0.9;
                 const px = Math.cos(a) * rad, py = Math.sin(a) * rad;
                 if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
             }
@@ -989,154 +1364,151 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.rotate(faceAngle);
             c.fillStyle = isHit ? '#ffffff' : '#1e293b';
             c.strokeStyle = '#f59e0b';
-            c.lineWidth = 2.5;
+            c.lineWidth = 3;
             c.beginPath();
             for (let i = 0; i < 8; i++) {
                 const a = (i * Math.PI) / 4 + Math.PI / 8;
-                const px = Math.cos(a) * (r * 0.82), py = Math.sin(a) * (r * 0.82);
+                const px = Math.cos(a) * (r * 0.85), py = Math.sin(a) * (r * 0.85);
                 if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
             }
             c.closePath(); c.fill(); c.stroke();
 
-            c.fillStyle = isHit ? '#ffffff' : '#b45309';
+            c.fillStyle = '#b45309';
             c.strokeStyle = '#fef08a';
-            c.lineWidth = 1.6;
-            c.fillRect(-r * 0.35, -r * 0.85, r * 0.65, r * 0.32);
-            c.strokeRect(-r * 0.35, -r * 0.85, r * 0.65, r * 0.32);
-            c.fillRect(-r * 0.35, r * 0.53, r * 0.65, r * 0.32);
-            c.strokeRect(-r * 0.35, r * 0.53, r * 0.65, r * 0.32);
+            c.lineWidth = 2;
+            c.fillRect(-r * 0.35, -r * 0.9, r * 0.7, r * 0.35);
+            c.strokeRect(-r * 0.35, -r * 0.9, r * 0.7, r * 0.35);
+            c.fillRect(-r * 0.35, r * 0.55, r * 0.7, r * 0.35);
+            c.strokeRect(-r * 0.35, r * 0.55, r * 0.7, r * 0.35);
 
+            // Dev Çelik Kalkan
             c.fillStyle = '#facc15';
             c.beginPath();
-            c.moveTo(r * 0.98, 0);
-            c.lineTo(r * 0.55, -r * 0.58);
-            c.lineTo(r * 0.38, -r * 0.35);
-            c.lineTo(r * 0.38, r * 0.35);
-            c.lineTo(r * 0.55, r * 0.58);
+            c.moveTo(r * 1.1, 0);
+            c.lineTo(r * 0.6, -r * 0.65);
+            c.lineTo(r * 0.4, -r * 0.4);
+            c.lineTo(r * 0.4, r * 0.4);
+            c.lineTo(r * 0.6, r * 0.65);
             c.closePath(); c.fill(); c.stroke();
 
-            const corePulse = r * 0.32 + Math.sin(nowTime * 0.008) * 2.5;
+            const corePulse = r * 0.32 + Math.sin(nowTime * 0.008) * 3;
             c.fillStyle = '#f97316';
             c.beginPath(); c.arc(0, 0, corePulse, 0, Math.PI * 2); c.fill();
             c.fillStyle = '#fef08a';
             c.beginPath(); c.arc(0, 0, corePulse * 0.5, 0, Math.PI * 2); c.fill();
-
-            // Offset armor seams and rivets: original canvas marks, not a texture.
-            c.strokeStyle = isHit ? 'rgba(255, 255, 255, 0.85)' : 'rgba(69, 26, 3, 0.88)';
-            c.lineWidth = Math.max(1, r * 0.045);
-            c.beginPath();
-            c.moveTo(-r * 0.62, -r * 0.30);
-            c.lineTo(-r * 0.40, -r * 0.12);
-            c.lineTo(-r * 0.58, r * 0.18);
-            c.moveTo(r * 0.22, -r * 0.62);
-            c.lineTo(r * 0.44, -r * 0.46);
-            c.lineTo(r * 0.36, -r * 0.30);
-            c.stroke();
-            c.fillStyle = isHit ? '#ffffff' : '#fef3c7';
-            c.beginPath();
-            c.arc(-r * 0.48, -r * 0.40, Math.max(1, r * 0.055), 0, Math.PI * 2);
-            c.arc(r * 0.52, r * 0.40, Math.max(1, r * 0.055), 0, Math.PI * 2);
-            c.fill();
             c.restore();
             break;
         }
+
+        // =======================================================
+        // BOSS: RANGED BOSS (ORBITAL BATTLECRUISER)
+        // =======================================================
         case 'ranged_boss': {
             c.save();
             c.rotate(faceAngle);
 
-            c.save();
-            c.strokeStyle = 'rgba(244, 63, 94, 0.35)';
-            c.lineWidth = 1.4;
+            c.strokeStyle = 'rgba(244, 63, 94, 0.4)';
+            c.lineWidth = 1.6;
             c.setLineDash([6, 6]);
-            c.beginPath(); c.moveTo(r * 0.8, 0); c.lineTo(r * 3.8, 0); c.stroke();
-            c.restore();
+            c.beginPath(); c.moveTo(r * 0.8, 0); c.lineTo(r * 4.5, 0); c.stroke();
+            c.setLineDash([]);
 
-            c.fillStyle = isHit ? '#ffffff' : '#334155';
+            // Ağır Çift Namlu
+            c.fillStyle = isHit ? '#ffffff' : '#0f172a';
             c.strokeStyle = '#f472b6';
-            c.lineWidth = 2;
-            c.fillRect(r * 0.15, -r * 0.56, r * 1.15, r * 0.26);
-            c.strokeRect(r * 0.15, -r * 0.56, r * 1.15, r * 0.26);
-            c.fillRect(r * 0.15, r * 0.30, r * 1.15, r * 0.26);
-            c.strokeRect(r * 0.15, r * 0.30, r * 1.15, r * 0.26);
+            c.lineWidth = 2.2;
+            c.fillRect(r * 0.15, -r * 0.6, r * 1.25, r * 0.28);
+            c.strokeRect(r * 0.15, -r * 0.6, r * 1.25, r * 0.28);
+            c.fillRect(r * 0.15, r * 0.32, r * 1.25, r * 0.28);
+            c.strokeRect(r * 0.15, r * 0.32, r * 1.25, r * 0.28);
 
             c.fillStyle = '#38bdf8';
             c.beginPath();
-            c.arc(r * 1.3, -r * 0.43, r * 0.14, 0, Math.PI * 2);
-            c.arc(r * 1.3, r * 0.43, r * 0.14, 0, Math.PI * 2);
+            c.arc(r * 1.4, -r * 0.46, r * 0.15, 0, Math.PI * 2);
+            c.arc(r * 1.4, r * 0.46, r * 0.15, 0, Math.PI * 2);
             c.fill();
 
+            // Savaş Gemisi Gövdesi
             c.fillStyle = isHit ? '#ffffff' : '#500724';
             c.strokeStyle = '#fbcfe8';
-            c.lineWidth = 2.2;
+            c.lineWidth = 2.4;
             c.beginPath();
-            c.moveTo(r * 0.65, 0);
-            c.lineTo(-r * 0.15, -r * 1.08);
-            c.lineTo(-r * 0.90, -r * 0.72);
-            c.lineTo(-r * 0.60, 0);
-            c.lineTo(-r * 0.90, r * 0.72);
-            c.lineTo(-r * 0.15, r * 1.08);
+            c.moveTo(r * 0.75, 0);
+            c.lineTo(-r * 0.2, -r * 1.15);
+            c.lineTo(-r * 0.95, -r * 0.75);
+            c.lineTo(-r * 0.65, 0);
+            c.lineTo(-r * 0.95, r * 0.75);
+            c.lineTo(-r * 0.2, r * 1.15);
             c.closePath(); c.fill(); c.stroke();
 
             c.fillStyle = '#ec4899';
-            c.beginPath(); c.arc(-r * 0.05, 0, r * 0.42, 0, Math.PI * 2); c.fill(); c.stroke();
+            c.beginPath(); c.arc(-r * 0.05, 0, r * 0.45, 0, Math.PI * 2); c.fill(); c.stroke();
             c.fillStyle = '#fef08a';
-            c.beginPath(); c.arc(r * 0.08, 0, r * 0.18, 0, Math.PI * 2); c.fill();
+            c.beginPath(); c.arc(r * 0.1, 0, r * 0.2, 0, Math.PI * 2); c.fill();
             c.restore();
             break;
         }
+
+        // =======================================================
+        // BOSS: SPEED BOSS (INFERNAL COMET)
+        // =======================================================
         case 'speed_boss': {
             c.save();
             c.rotate(faceAngle);
 
-            const flameLen = r * (0.65 + Math.sin(nowTime * 0.04) * 0.28);
+            const flameLen = r * (0.85 + Math.sin(nowTime * 0.04) * 0.35);
             c.fillStyle = '#f97316';
             c.beginPath();
-            c.moveTo(-r * 0.65, -r * 0.35); c.lineTo(-r * 0.65 - flameLen, -r * 0.22); c.lineTo(-r * 0.65, -r * 0.08);
-            c.moveTo(-r * 0.65, r * 0.08); c.lineTo(-r * 0.65 - flameLen, r * 0.22); c.lineTo(-r * 0.65, r * 0.35);
+            c.moveTo(-r * 0.7, -r * 0.4); c.lineTo(-r * 0.7 - flameLen, -r * 0.25); c.lineTo(-r * 0.7, -r * 0.1);
+            c.moveTo(-r * 0.7, r * 0.1); c.lineTo(-r * 0.7 - flameLen, r * 0.25); c.lineTo(-r * 0.7, r * 0.4);
             c.closePath(); c.fill();
 
             c.fillStyle = isHit ? '#ffffff' : '#7f1d1d';
             c.strokeStyle = '#fca5a5';
-            c.lineWidth = 2.2;
+            c.lineWidth = 2.4;
             c.beginPath();
-            c.moveTo(r * 1.30, 0);
-            c.lineTo(r * 0.20, -r * 0.42);
-            c.lineTo(-r * 0.35, -r * 1.18);
-            c.lineTo(-r * 0.95, -r * 0.85);
-            c.lineTo(-r * 0.50, -r * 0.25);
-            c.lineTo(-r * 0.80, 0);
-            c.lineTo(-r * 0.50, r * 0.25);
-            c.lineTo(-r * 0.95, r * 0.85);
-            c.lineTo(-r * 0.35, r * 1.18);
-            c.lineTo(r * 0.20, r * 0.42);
+            c.moveTo(r * 1.45, 0);
+            c.lineTo(r * 0.25, -r * 0.45);
+            c.lineTo(-r * 0.4, -r * 1.25);
+            c.lineTo(-r * 1.0, -r * 0.9);
+            c.lineTo(-r * 0.55, -r * 0.25);
+            c.lineTo(-r * 0.85, 0);
+            c.lineTo(-r * 0.55, r * 0.25);
+            c.lineTo(-r * 1.0, r * 0.9);
+            c.lineTo(-r * 0.4, r * 1.25);
+            c.lineTo(r * 0.25, r * 0.45);
             c.closePath(); c.fill(); c.stroke();
 
             c.fillStyle = '#ef4444';
             c.beginPath();
-            c.moveTo(r * 0.9, 0); c.lineTo(-r * 0.3, -r * 0.35); c.lineTo(-r * 0.15, 0); c.lineTo(-r * 0.3, r * 0.35);
+            c.moveTo(r * 0.95, 0); c.lineTo(-r * 0.3, -r * 0.38); c.lineTo(-r * 0.15, 0); c.lineTo(-r * 0.3, r * 0.38);
             c.closePath(); c.fill();
 
             c.fillStyle = '#fef08a';
             c.beginPath();
-            c.arc(r * 0.35, -r * 0.14, 2.5, 0, Math.PI * 2);
-            c.arc(r * 0.35, r * 0.14, 2.5, 0, Math.PI * 2);
+            c.arc(r * 0.4, -r * 0.15, 3, 0, Math.PI * 2);
+            c.arc(r * 0.4, r * 0.15, 3, 0, Math.PI * 2);
             c.fill();
             c.restore();
             break;
         }
+
+        // =======================================================
+        // BOSS: FROST BOSS (GLACIAL MONOLITH)
+        // =======================================================
         case 'frost_boss': {
-            c.fillStyle = 'rgba(56, 189, 248, 0.18)';
-            c.beginPath(); c.arc(0, 0, r * 1.25 + Math.sin(nowTime * 0.006) * 3, 0, Math.PI * 2); c.fill();
+            c.fillStyle = 'rgba(56, 189, 248, 0.25)';
+            c.beginPath(); c.arc(0, 0, r * 1.35 + Math.sin(nowTime * 0.006) * 4, 0, Math.PI * 2); c.fill();
 
             c.save();
             c.rotate(nowTime * 0.0018);
             c.fillStyle = isHit ? '#ffffff' : '#0284c7';
             c.strokeStyle = '#e0f2fe';
-            c.lineWidth = 2;
+            c.lineWidth = 2.2;
             c.beginPath();
             for (let i = 0; i < 16; i++) {
                 const a = (i * Math.PI) / 8;
-                const rad = i % 2 === 0 ? r * 1.15 : r * 0.55;
+                const rad = i % 2 === 0 ? r * 1.25 : r * 0.6;
                 const px = Math.cos(a) * rad, py = Math.sin(a) * rad;
                 if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
             }
@@ -1147,11 +1519,11 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.rotate(-nowTime * 0.0025);
             c.fillStyle = isHit ? '#ffffff' : '#38bdf8';
             c.strokeStyle = '#ffffff';
-            c.lineWidth = 1.8;
+            c.lineWidth = 2;
             c.beginPath();
             for (let i = 0; i < 12; i++) {
                 const a = (i * Math.PI) / 6;
-                const rad = i % 2 === 0 ? r * 0.78 : r * 0.38;
+                const rad = i % 2 === 0 ? r * 0.85 : r * 0.42;
                 const px = Math.cos(a) * rad, py = Math.sin(a) * rad;
                 if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
             }
@@ -1159,45 +1531,25 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.restore();
 
             c.fillStyle = '#f0f9ff';
-            c.beginPath(); c.arc(0, 0, r * 0.30, 0, Math.PI * 2); c.fill();
-            c.fillStyle = '#0369a1';
-            c.beginPath();
-            c.arc(-4, -2, 2.2, 0, Math.PI * 2);
-            c.arc(4, -2, 2.2, 0, Math.PI * 2);
-            c.fill();
-
-            // A darker, off-centre ice seam gives the boss a carved, old-glacier feel.
-            c.strokeStyle = 'rgba(7, 89, 133, 0.82)';
-            c.lineWidth = Math.max(1, r * 0.045);
-            c.lineCap = 'round';
-            c.beginPath();
-            c.moveTo(-r * 0.48, -r * 0.18);
-            c.lineTo(-r * 0.22, -r * 0.05);
-            c.lineTo(-r * 0.30, r * 0.22);
-            c.lineTo(-r * 0.08, r * 0.36);
-            c.moveTo(r * 0.34, -r * 0.52);
-            c.lineTo(r * 0.22, -r * 0.34);
-            c.stroke();
-            c.fillStyle = '#67e8f9';
-            c.beginPath();
-            c.moveTo(-r * 0.18, -r * 0.12);
-            c.lineTo(r * 0.02, -r * 0.02);
-            c.lineTo(-r * 0.08, r * 0.12);
-            c.closePath();
-            c.fill();
+            c.beginPath(); c.arc(0, 0, r * 0.35, 0, Math.PI * 2); c.fill();
             break;
         }
+
+        // =======================================================
+        // BOSS: LEVIATHAN (VOID OVERLORD)
+        // =======================================================
         case 'leviathan':
-        case 'boss': {
+        case 'boss':
+        default: {
             c.save();
             c.rotate(-nowTime * 0.002);
             c.fillStyle = isHit ? '#ffffff' : '#3b0764';
             c.strokeStyle = '#d8b4fe';
-            c.lineWidth = 2.2;
+            c.lineWidth = 2.4;
             c.beginPath();
             for (let i = 0; i < 16; i++) {
                 const a = (i * Math.PI) / 8;
-                const rad = i % 2 === 0 ? r * 1.10 : r * 0.72;
+                const rad = i % 2 === 0 ? r * 1.15 : r * 0.75;
                 const px = Math.cos(a) * rad, py = Math.sin(a) * rad;
                 if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
             }
@@ -1208,385 +1560,30 @@ function drawCustomEnemy(c, e, tx, ty, nowTime) {
             c.rotate(faceAngle);
             c.fillStyle = isHit ? '#ffffff' : '#581c87';
             c.strokeStyle = '#f0abfc';
-            c.lineWidth = 2;
+            c.lineWidth = 2.2;
             c.beginPath();
-            c.moveTo(r * 1.15, -r * 0.28);
-            c.lineTo(r * 0.55, -r * 0.12);
-            c.lineTo(r * 0.55, r * 0.12);
-            c.lineTo(r * 1.15, r * 0.28);
-            c.lineTo(r * 0.45, r * 0.72);
-            c.lineTo(-r * 0.75, r * 0.60);
-            c.lineTo(-r * 0.90, 0);
-            c.lineTo(-r * 0.75, -r * 0.60);
-            c.lineTo(r * 0.45, -r * 0.72);
+            c.moveTo(r * 1.2, -r * 0.3);
+            c.lineTo(r * 0.6, -r * 0.12);
+            c.lineTo(r * 0.6, r * 0.12);
+            c.lineTo(r * 1.2, r * 0.3);
+            c.lineTo(r * 0.5, r * 0.75);
+            c.lineTo(-r * 0.8, r * 0.65);
+            c.lineTo(-r * 0.95, 0);
+            c.lineTo(-r * 0.8, -r * 0.65);
+            c.lineTo(r * 0.5, -r * 0.75);
             c.closePath(); c.fill(); c.stroke();
 
+            // Üçlü Göz
             c.fillStyle = '#facc15';
             c.beginPath();
-            c.arc(r * 0.28, -r * 0.26, 3.2, 0, Math.PI * 2);
-            c.arc(r * 0.28, r * 0.26, 3.2, 0, Math.PI * 2);
-            c.arc(r * 0.42, 0, 4.0, 0, Math.PI * 2);
-            c.fill();
-
-            // Two worn plates and a single scar break up the boss's otherwise smooth face.
-            c.fillStyle = '#4c1d95';
-            c.strokeStyle = 'rgba(216, 180, 254, 0.65)';
-            c.lineWidth = Math.max(1, r * 0.035);
-            c.beginPath();
-            c.moveTo(-r * 0.62, -r * 0.43);
-            c.lineTo(-r * 0.24, -r * 0.56);
-            c.lineTo(-r * 0.08, -r * 0.34);
-            c.lineTo(-r * 0.34, -r * 0.18);
-            c.closePath();
-            c.fill(); c.stroke();
-            c.beginPath();
-            c.moveTo(-r * 0.60, r * 0.38);
-            c.lineTo(-r * 0.30, r * 0.22);
-            c.lineTo(-r * 0.12, r * 0.43);
-            c.lineTo(-r * 0.38, r * 0.55);
-            c.closePath();
-            c.fill(); c.stroke();
-
-            c.strokeStyle = 'rgba(30, 10, 55, 0.85)';
-            c.lineWidth = Math.max(1, r * 0.04);
-            c.beginPath();
-            c.moveTo(-r * 0.08, -r * 0.12);
-            c.lineTo(r * 0.02, r * 0.02);
-            c.lineTo(-r * 0.02, r * 0.18);
-            c.stroke();
-
-            // Offset crown etching gives this boss a distinct silhouette without a copied texture.
-            c.strokeStyle = 'rgba(233, 213, 255, 0.72)';
-            c.lineWidth = Math.max(0.8, r * 0.028);
-            c.lineCap = 'round';
-            c.beginPath();
-            c.moveTo(-r * 0.54, -r * 0.66);
-            c.lineTo(-r * 0.34, -r * 0.78);
-            c.lineTo(-r * 0.18, -r * 0.62);
-            c.moveTo(r * 0.48, r * 0.62);
-            c.lineTo(r * 0.62, r * 0.46);
-            c.stroke();
-            c.restore();
-            break;
-        }
-        case 'tank': {
-            c.save();
-            c.rotate(faceAngle);
-            c.fillStyle = isHit ? '#ffffff' : '#334155';
-            c.strokeStyle = '#e2e8f0';
-            c.lineWidth = 2;
-            c.beginPath();
-            for (let i = 0; i < 8; i++) {
-                const a = (i * Math.PI) / 4 + Math.PI / 8;
-                const px = Math.cos(a) * r, py = Math.sin(a) * r;
-                if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
-            }
-            c.closePath(); c.fill(); c.stroke();
-
-            c.fillStyle = '#94a3b8';
-            c.strokeStyle = '#f8fafc';
-            c.lineWidth = 1.5;
-            c.beginPath();
-            c.roundRect(r * 0.35, -r * 0.75, r * 0.45, r * 1.5, 3);
-            c.fill(); c.stroke();
-
-            c.fillStyle = '#f97316';
-            c.fillRect(-r * 0.15, -r * 0.38, r * 0.28, r * 0.76);
-
-            // Small bolts and an offset armor seam make the heavy unit read as assembled metal.
-            c.strokeStyle = 'rgba(15, 23, 42, 0.8)';
-            c.lineWidth = Math.max(1, r * 0.045);
-            c.beginPath();
-            c.moveTo(-r * 0.48, 0);
-            c.lineTo(-r * 0.16, 0);
-            c.moveTo(r * 0.02, -r * 0.48);
-            c.lineTo(r * 0.02, r * 0.48);
-            c.stroke();
-            c.fillStyle = '#f8fafc';
-            c.beginPath();
-            c.arc(-r * 0.45, -r * 0.45, Math.max(0.8, r * 0.055), 0, Math.PI * 2);
-            c.arc(-r * 0.45, r * 0.45, Math.max(0.8, r * 0.055), 0, Math.PI * 2);
-            c.arc(r * 0.52, -r * 0.45, Math.max(0.8, r * 0.055), 0, Math.PI * 2);
-            c.arc(r * 0.52, r * 0.45, Math.max(0.8, r * 0.055), 0, Math.PI * 2);
-            c.fill();
-            c.fillStyle = 'rgba(148, 163, 184, 0.8)';
-            c.fillRect(-r * 0.55, -r * 0.10, r * 0.16, r * 0.20);
-            c.restore();
-            break;
-        }
-        case 'frost': {
-            c.save();
-            c.rotate(e.rot);
-            c.fillStyle = isHit ? '#ffffff' : '#0891b2';
-            c.strokeStyle = '#cffafe';
-            c.lineWidth = 1.8;
-            c.beginPath();
-            for (let i = 0; i < 12; i++) {
-                const a = (i * Math.PI) / 6;
-                const rad = i % 2 === 0 ? r * 1.15 : r * 0.48;
-                const px = Math.cos(a) * rad, py = Math.sin(a) * rad;
-                if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
-            }
-            c.closePath(); c.fill(); c.stroke();
-
-            c.fillStyle = '#e0f2fe';
-            c.beginPath(); c.arc(0, 0, r * 0.35, 0, Math.PI * 2); c.fill();
-
-            // Natural fracture lines: a few uneven cuts, not a perfect decorative pattern.
-            c.strokeStyle = 'rgba(8, 47, 73, 0.72)';
-            c.lineWidth = Math.max(1, r * 0.055);
-            c.lineCap = 'round';
-            c.beginPath();
-            c.moveTo(-r * 0.62, -r * 0.12);
-            c.lineTo(-r * 0.25, -r * 0.04);
-            c.lineTo(-r * 0.12, r * 0.20);
-            c.moveTo(r * 0.18, -r * 0.62);
-            c.lineTo(r * 0.08, -r * 0.32);
-            c.lineTo(r * 0.27, -r * 0.16);
-            c.moveTo(r * 0.50, r * 0.38);
-            c.lineTo(r * 0.28, r * 0.26);
-            c.stroke();
-
-            c.strokeStyle = 'rgba(255, 255, 255, 0.78)';
-            c.lineWidth = Math.max(0.8, r * 0.035);
-            c.beginPath();
-            c.moveTo(-r * 0.72, -r * 0.34);
-            c.lineTo(-r * 0.48, -r * 0.53);
-            c.lineTo(-r * 0.32, -r * 0.48);
-            c.moveTo(r * 0.36, r * 0.55);
-            c.lineTo(r * 0.55, r * 0.43);
-            c.stroke();
-            c.restore();
-            break;
-        }
-        case 'runner': {
-            c.save();
-            c.rotate(faceAngle);
-            const jet = r * (0.55 + Math.sin(nowTime * 0.04) * 0.25);
-            c.fillStyle = '#fb923c';
-            c.beginPath();
-            c.moveTo(-r * 0.6, -r * 0.28); c.lineTo(-r * 0.6 - jet, 0); c.lineTo(-r * 0.6, r * 0.28);
-            c.closePath(); c.fill();
-
-            c.fillStyle = isHit ? '#ffffff' : '#e11d48';
-            c.strokeStyle = '#fda4af';
-            c.lineWidth = 1.6;
-            c.beginPath();
-            c.moveTo(r * 1.25, 0);
-            c.lineTo(-r * 0.65, -r * 0.90);
-            c.lineTo(-r * 0.30, 0);
-            c.lineTo(-r * 0.65, r * 0.90);
-            c.closePath(); c.fill(); c.stroke();
-
-            c.fillStyle = '#fef08a';
-            c.beginPath(); c.arc(r * 0.25, 0, r * 0.22, 0, Math.PI * 2); c.fill();
-
-            // Hand-cut speed grooves: dark, offset marks rather than a copied texture.
-            c.strokeStyle = 'rgba(136, 19, 55, 0.82)';
-            c.lineWidth = Math.max(0.7, r * 0.065);
-            c.lineCap = 'round';
-            c.beginPath();
-            c.moveTo(-r * 0.42, -r * 0.43);
-            c.lineTo(-r * 0.12, -r * 0.22);
-            c.moveTo(-r * 0.42, r * 0.43);
-            c.lineTo(-r * 0.12, r * 0.22);
-            c.moveTo(r * 0.18, -r * 0.38);
-            c.lineTo(r * 0.48, -r * 0.18);
-            c.stroke();
-
-            c.strokeStyle = 'rgba(255, 228, 230, 0.78)';
-            c.lineWidth = Math.max(0.6, r * 0.045);
-            c.beginPath();
-            c.moveTo(r * 0.68, 0);
-            c.lineTo(r * 0.38, -r * 0.13);
-            c.moveTo(r * 0.38, r * 0.13);
-            c.lineTo(r * 0.68, 0);
-            c.stroke();
-            c.restore();
-            break;
-        }
-        case 'teleporter': {
-            c.save();
-            c.rotate(e.rot);
-            c.fillStyle = isHit ? '#ffffff' : '#ca8a04';
-            c.strokeStyle = '#fef08a';
-            c.lineWidth = 1.6;
-            c.beginPath();
-            for (let i = 0; i < 8; i++) {
-                const a = (i * Math.PI) / 4;
-                const rad = i % 2 === 0 ? r * 1.18 : r * 0.42;
-                const px = Math.cos(a) * rad, py = Math.sin(a) * rad;
-                if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
-            }
-            c.closePath(); c.fill(); c.stroke();
-            c.restore();
-
-            c.fillStyle = '#ffffff';
-            c.beginPath(); c.arc(0, 0, r * 0.42, 0, Math.PI * 2); c.fill();
-            c.fillStyle = '#7c2d12';
-            c.beginPath();
-            c.arc(Math.cos(faceAngle) * 1.5, Math.sin(faceAngle) * 1.5, r * 0.20, 0, Math.PI * 2);
-            c.fill();
-
-            // Broken, offset phase marks keep the teleporter readable without a glow texture.
-            c.strokeStyle = 'rgba(120, 53, 15, 0.78)';
-            c.lineWidth = Math.max(0.7, r * 0.065);
-            c.lineCap = 'round';
-            c.beginPath();
-            c.moveTo(-r * 0.72, -r * 0.12);
-            c.lineTo(-r * 0.42, -r * 0.30);
-            c.lineTo(-r * 0.22, -r * 0.12);
-            c.moveTo(r * 0.24, r * 0.28);
-            c.lineTo(r * 0.48, r * 0.12);
-            c.lineTo(r * 0.70, r * 0.22);
-            c.stroke();
-
-            c.strokeStyle = 'rgba(255, 251, 235, 0.82)';
-            c.lineWidth = Math.max(0.6, r * 0.045);
-            c.beginPath();
-            c.moveTo(-r * 0.16, -r * 0.70);
-            c.lineTo(r * 0.08, -r * 0.54);
-            c.moveTo(-r * 0.04, r * 0.60);
-            c.lineTo(r * 0.18, r * 0.48);
-            c.stroke();
-            break;
-        }
-        case 'ranged': {
-            c.save();
-            c.rotate(faceAngle);
-            c.fillStyle = '#1e293b';
-            c.strokeStyle = '#38bdf8';
-            c.lineWidth = 1.5;
-            c.fillRect(r * 0.2, -2.2, r * 1.05, 4.4);
-            c.strokeRect(r * 0.2, -2.2, r * 1.05, 4.4);
-
-            c.fillStyle = isHit ? '#ffffff' : '#0284c7';
-            c.strokeStyle = '#bae6fd';
-            c.lineWidth = 1.6;
-            c.beginPath();
-            c.moveTo(r * 0.55, 0);
-            c.lineTo(-r * 0.45, -r * 0.95);
-            c.lineTo(-r * 0.85, -r * 0.55);
-            c.lineTo(-r * 0.50, 0);
-            c.lineTo(-r * 0.85, r * 0.55);
-            c.lineTo(-r * 0.45, r * 0.95);
-            c.closePath(); c.fill(); c.stroke();
-
-            c.fillStyle = '#f43f5e';
-            c.beginPath(); c.arc(0, 0, r * 0.28, 0, Math.PI * 2); c.fill();
-
-            // A few worn sensor plates make the ranged unit read as a deliberate marksman.
-            c.strokeStyle = 'rgba(7, 89, 133, 0.82)';
-            c.lineWidth = Math.max(0.8, r * 0.07);
-            c.lineCap = 'round';
-            c.beginPath();
-            c.moveTo(-r * 0.46, -r * 0.48);
-            c.lineTo(-r * 0.12, -r * 0.28);
-            c.lineTo(r * 0.08, -r * 0.40);
-            c.moveTo(-r * 0.46, r * 0.48);
-            c.lineTo(-r * 0.12, r * 0.28);
-            c.lineTo(r * 0.08, r * 0.40);
-            c.stroke();
-
-            c.strokeStyle = 'rgba(224, 242, 254, 0.78)';
-            c.lineWidth = Math.max(0.7, r * 0.045);
-            c.beginPath();
-            c.moveTo(r * 0.54, -r * 0.24);
-            c.lineTo(r * 0.78, -r * 0.24);
-            c.moveTo(r * 0.66, -r * 0.36);
-            c.lineTo(r * 0.66, -r * 0.12);
-            c.stroke();
-
-            c.fillStyle = isHit ? '#ffffff' : '#fda4af';
-            c.beginPath();
-            c.arc(r * 0.12, 0, Math.max(1.1, r * 0.10), 0, Math.PI * 2);
-            c.fill();
-            c.restore();
-            break;
-        }
-        case 'green':
-        default: {
-            c.save();
-            c.rotate(faceAngle);
-            const bite = Math.sin(e.animPhase || nowTime * 0.01) * 1.8;
-
-            c.strokeStyle = '#bbf7d0';
-            c.lineWidth = 2;
-            c.beginPath();
-            c.moveTo(r * 0.5, -r * 0.35); c.lineTo(r * 1.15, -r * 0.15 - bite);
-            c.moveTo(r * 0.5, r * 0.35); c.lineTo(r * 1.15, r * 0.15 + bite);
-            c.stroke();
-
-            c.strokeStyle = '#15803d';
-            c.lineWidth = 1.6;
-            c.beginPath();
-            c.moveTo(0, -r * 0.6); c.lineTo(-r * 0.2, -r * 1.05);
-            c.moveTo(-r * 0.4, -r * 0.5); c.lineTo(-r * 0.65, -r * 0.95);
-            c.moveTo(0, r * 0.6); c.lineTo(-r * 0.2, r * 1.05);
-            c.moveTo(-r * 0.4, r * 0.5); c.lineTo(-r * 0.65, r * 0.95);
-            c.stroke();
-
-            c.fillStyle = isHit ? '#ffffff' : (e.color || '#16a34a');
-            c.strokeStyle = e.secColor || '#86efac';
-            c.lineWidth = 1.6;
-            c.beginPath();
-            c.ellipse(0, 0, r * 0.92, r * 0.72, 0, 0, Math.PI * 2);
-            c.fill(); c.stroke();
-
-            c.strokeStyle = 'rgba(15, 23, 42, 0.45)';
-            c.beginPath();
-            c.arc(-r * 0.2, 0, r * 0.45, -Math.PI * 0.4, Math.PI * 0.4);
-            c.stroke();
-
-            // Hand-drawn surface markings give the common creature a less generic silhouette.
-            c.fillStyle = 'rgba(20, 83, 45, 0.34)';
-            c.beginPath();
-            c.ellipse(-r * 0.30, -r * 0.22, r * 0.17, r * 0.10, -0.35, 0, Math.PI * 2);
-            c.ellipse(-r * 0.12, r * 0.29, r * 0.12, r * 0.08, 0.45, 0, Math.PI * 2);
-            c.ellipse(-r * 0.58, r * 0.03, r * 0.10, r * 0.15, -0.2, 0, Math.PI * 2);
-            c.fill();
-
-            c.fillStyle = 'rgba(220, 252, 231, 0.22)';
-            c.beginPath();
-            c.ellipse(r * 0.08, r * 0.36, r * 0.34, r * 0.16, 0.1, 0, Math.PI * 2);
-            c.fill();
-
-            // Tiny feet and a crooked mouth add a little character without image assets.
-            c.fillStyle = '#166534';
-            c.beginPath();
-            c.ellipse(-r * 0.34, r * 0.62, r * 0.18, r * 0.09, -0.15, 0, Math.PI * 2);
-            c.ellipse(-r * 0.34, -r * 0.62, r * 0.18, r * 0.09, 0.15, 0, Math.PI * 2);
-            c.fill();
-
-            c.strokeStyle = '#14532d';
-            c.lineWidth = Math.max(1, r * 0.055);
-            c.lineCap = 'round';
-            c.beginPath();
-            c.moveTo(r * 0.52, -r * 0.03);
-            c.quadraticCurveTo(r * 0.70, r * 0.12, r * 0.58, r * 0.20);
-            c.stroke();
-
-            c.fillStyle = '#fef08a';
-            c.beginPath();
-            c.arc(r * 0.42, -r * 0.25, Math.max(1.8, r * 0.11), 0, Math.PI * 2);
-            c.arc(r * 0.42, r * 0.25, Math.max(1.8, r * 0.11), 0, Math.PI * 2);
-            c.fill();
-            c.fillStyle = '#1f2937';
-            c.beginPath();
-            c.arc(r * 0.46, -r * 0.25, Math.max(0.8, r * 0.045), 0, Math.PI * 2);
-            c.arc(r * 0.46, r * 0.25, Math.max(0.8, r * 0.045), 0, Math.PI * 2);
-            c.fill();
-            c.fillStyle = 'rgba(255,255,255,0.9)';
-            c.beginPath();
-            c.arc(r * 0.44, -r * 0.29, Math.max(0.6, r * 0.025), 0, Math.PI * 2);
-            c.arc(r * 0.44, r * 0.21, Math.max(0.6, r * 0.025), 0, Math.PI * 2);
+            c.arc(r * 0.3, -r * 0.28, 3.5, 0, Math.PI * 2);
+            c.arc(r * 0.3, r * 0.28, 3.5, 0, Math.PI * 2);
+            c.arc(r * 0.45, 0, 4.5, 0, Math.PI * 2);
             c.fill();
             c.restore();
             break;
         }
     }
-
-    drawEnemyInkAccents(c, kind, r, faceAngle, isHit);
 }
 
 // =======================================================
@@ -2086,7 +2083,7 @@ function renderGame() {
             const a = (i * Math.PI) / 4;
             const rad = i % 2 === 0 ? 27 : 21;
             const px = Math.cos(a) * rad, py = Math.sin(a) * rad;
-            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            if (i === 0) ctx.moveTo(px, py); else c.lineTo(px, py);
         }
         ctx.closePath(); ctx.fill(); ctx.stroke();
     } else if (tower.freezeImmunityTimer && tower.freezeImmunityTimer > 0) {
@@ -2153,9 +2150,9 @@ function renderGame() {
     }
 }
 
-// =======================================================
+// ==========================================
 // OTOMATİK MOBİL OPTİMİZASYON (DİREKT GENİŞ PANEL & HUD)
-// =======================================================
+// ==========================================
 (function initMobileOptimizer() {
     function injectMobileStylesAndFixes() {
         if (document.getElementById('mobile-auto-optimizer-style')) return;
@@ -2261,7 +2258,6 @@ function renderGame() {
             btn.innerHTML = '🔽 Paneli Gizle';
 
             btn.addEventListener('click', (e) => {
-                // ui_8.js bu butona kendi onclick'ini bağladıysa (çekmece sistemi) çift tetiklenmesin
                 if (typeof btn.onclick === 'function') return;
                 e.stopPropagation();
                 scanAndTagMobileElements();
@@ -2291,7 +2287,6 @@ function renderGame() {
     let _resizeTimer = null;
     window.addEventListener('resize', () => {
         if (typeof resizeCanvas === 'function') resizeCanvas();
-        // Mobilde adres çubuğu açılıp kapanırken saniyede onlarca resize gelir; ağır taramayı beklet
         clearTimeout(_resizeTimer);
         _resizeTimer = setTimeout(scanAndTagMobileElements, 250);
     });
@@ -2300,5 +2295,4 @@ function renderGame() {
             if (typeof resizeCanvas === 'function') resizeCanvas();
         }, 150);
     });
- //   setInterval(scanAndTagMobileElements, 1200);
 })();
