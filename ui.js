@@ -10,6 +10,7 @@ let battleAudioUnlocked = false;
 let battleAudioContext = null;
 let battleMomentHideTimer = null;
 let battleMomentBossTimer = null;
+let battleMomentClearTimer = null;
 let battleIntroWaveShown = null;
 
 function unlockBattleAudio() {
@@ -192,6 +193,7 @@ function showBattleMoment(kind, data = {}) {
     }
     if (kind === 'boss') {
         clearTimeout(battleMomentBossTimer);
+        clearTimeout(battleMomentClearTimer);
         const root = document.getElementById('battle-moment');
         // Let the just-earned wave reward breathe before the boss announcement takes over.
         const delay = root && root.classList.contains('is-visible') && root.dataset.kind === 'clear' ? 1500 : 0;
@@ -200,10 +202,20 @@ function showBattleMoment(kind, data = {}) {
     }
     if (kind === 'bossKill') {
         clearTimeout(battleMomentBossTimer);
+        clearTimeout(battleMomentClearTimer);
         renderBattleMoment('bossKill', data);
         return;
     }
-    if (kind === 'clear') renderBattleMoment('clear', data);
+    if (kind === 'clear') {
+        const root = document.getElementById('battle-moment');
+        clearTimeout(battleMomentClearTimer);
+        // Preserve the boss takedown beat before showing the wave-clear reward.
+        if (root && root.classList.contains('is-visible') && root.dataset.kind === 'bossKill') {
+            battleMomentClearTimer = setTimeout(() => renderBattleMoment('clear', data), 1750);
+        } else {
+            renderBattleMoment('clear', data);
+        }
+    }
 }
 
 // Hata paneli: JavaScript hataları ve yakalanmamış Promise hatalarını anlaşılır göster.
