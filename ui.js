@@ -3100,3 +3100,99 @@ document.addEventListener('DOMContentLoaded', () => {
         injectMobileHudCSS();
     }
 })();
+
+
+// ==========================================
+// ETKİLEŞİMLİ MASKOT — yalnızca görsel/kozmetik özellik
+// ==========================================
+(function initInteractiveMascot() {
+    const mascot = document.getElementById('game-mascot');
+    const face = document.getElementById('game-mascot-face');
+    const bubble = document.getElementById('game-mascot-bubble');
+    if (!mascot || !face || !bubble) return;
+
+    let pointerStart = null;
+    let moved = false;
+    let hideBubbleTimer = null;
+    const defaultLines = [
+        'Savunma hattı bende, komutan!',
+        'Bir sonraki hamleni merak ediyorum.',
+        'Biraz dinlenmek yok, kule bizi bekliyor!',
+        'Bu manzaraya alışabilirim. ✨'
+    ];
+    const companionLines = {
+        default_tech: ['Tarama tamamlandı. Şimdilik güvendeyiz.', 'Düşman hareketlerini izliyorum. 🛸'],
+        origami_crane: ['Sakin kal, komutan. Her şey adım adım.', 'Biraz huzur, biraz strateji. 🕊️'],
+        cyber_prism: ['Enerji spektrumu şahane görünüyor!', 'Kuantum seviyesinde havalıyız. 💠'],
+        ghost_wisp: ['Böö! ...Şaka yaptım. 👻', 'Ben korkmam. Galiba.'],
+        shadow_kunai: ['Sessiz ve hazır. 🥷', 'Gölge gibi buradayım.'],
+        crimson_sand: ['Zaman akıyor; hamleni seç.', 'Her saniye önemli. ⏳'],
+        drama_mask: ['Bu sahne için alkış istiyorum! 🎭', 'Trajedi mi, zafer mi? Perde açık.'],
+        valkyrie_halo: ['Yanındayım, savunmacı. 🪽', 'Işığımız sönmeyecek.'],
+        eclipse_crescent: ['Karanlıkta bile yolumuzu buluruz. 🌙', 'Tutulma başladı... şaka şaka!'],
+        kurt_spirit: ['Auuuu! Sürü hazır! 🐺', 'Bozkurt ruhu yanında, komutan!']
+    };
+
+    function getCompanion() {
+        const id = (typeof game !== 'undefined' && game && game.activeCompanionSkin) || 'default_tech';
+        const db = typeof COMPANION_SKIN_DATABASE !== 'undefined' ? COMPANION_SKIN_DATABASE : {};
+        return { id, def: db[id] || db.default_tech || { name: 'Taktik Yoldaş', emoji: '🛸' } };
+    }
+    function syncMascot() {
+        const companion = getCompanion();
+        face.textContent = companion.def.emoji || '🛸';
+        mascot.setAttribute('aria-label', (companion.def.name || 'Maskot') + ' — dokun ve tepki ver');
+        mascot.title = companion.def.name || 'Maskot';
+        return companion;
+    }
+    function react() {
+        const companion = syncMascot();
+        const lines = companionLines[companion.id] || defaultLines;
+        bubble.textContent = lines[Math.floor(Math.random() * lines.length)];
+        bubble.classList.add('is-visible');
+        mascot.classList.remove('mascot-react');
+        void mascot.offsetWidth;
+        mascot.classList.add('mascot-react');
+        clearTimeout(hideBubbleTimer);
+        hideBubbleTimer = setTimeout(() => bubble.classList.remove('is-visible'), 2600);
+    }
+
+    mascot.addEventListener('pointerdown', (event) => {
+        if (event.button !== undefined && event.button !== 0) return;
+        event.preventDefault();
+        const rect = mascot.getBoundingClientRect();
+        pointerStart = { x: event.clientX, y: event.clientY, left: rect.left, top: rect.top };
+        moved = false;
+        mascot.setPointerCapture?.(event.pointerId);
+    });
+    mascot.addEventListener('pointermove', (event) => {
+        if (!pointerStart) return;
+        const dx = event.clientX - pointerStart.x;
+        const dy = event.clientY - pointerStart.y;
+        if (!moved && Math.hypot(dx, dy) > 7) {
+            moved = true;
+            mascot.classList.add('is-dragging');
+            mascot.style.left = pointerStart.left + 'px';
+            mascot.style.top = pointerStart.top + 'px';
+            mascot.style.right = 'auto';
+            mascot.style.bottom = 'auto';
+        }
+        if (moved) {
+            const maxLeft = Math.max(0, window.innerWidth - mascot.offsetWidth);
+            const maxTop = Math.max(0, window.innerHeight - mascot.offsetHeight);
+            mascot.style.left = Math.max(0, Math.min(maxLeft, pointerStart.left + dx)) + 'px';
+            mascot.style.top = Math.max(0, Math.min(maxTop, pointerStart.top + dy)) + 'px';
+        }
+    });
+    function finishPointer() {
+        if (!pointerStart) return;
+        const wasDragged = moved;
+        pointerStart = null;
+        moved = false;
+        mascot.classList.remove('is-dragging');
+        if (!wasDragged) react();
+    }
+    mascot.addEventListener('pointerup', finishPointer);
+    mascot.addEventListener('pointercancel', finishPointer);
+    syncMascot();
+})();
