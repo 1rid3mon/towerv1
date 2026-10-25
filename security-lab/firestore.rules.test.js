@@ -421,3 +421,44 @@ test("friend requests reject forged identities and unauthorized status changes",
     status: "accepted", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
   }));
 });
+
+
+test("friend requests reject self-requests, duplicate pending requests, and reverse pending requests", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  await testEnv.withSecurityRulesDisabled(async context => {
+    const admin = context.firestore();
+    await setDoc(doc(admin, "usernameRegistry/alice"), { uid: "alice", username: "alice", updatedAt: Date.now() });
+    await setDoc(doc(admin, "usernameRegistry/bob"), { uid: "bob", username: "bob", updatedAt: Date.now() });
+  });
+  const request = {
+    fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob",
+    status: "pending", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  };
+  await assertFails(setDoc(doc(alice, "friendRequests/alice_alice"), {
+    ...request, toUid: "alice", toUsername: "alice"
+  }));
+  await assertSucceeds(setDoc(doc(alice, "friendRequests/alice_bob"), request));
+  await assertFails(setDoc(doc(alice, "friendRequests/alice_bob"), request));
+  await assertFails(setDoc(doc(bob, "friendRequests/bob_alice"), {
+    fromUid: "bob", toUid: "alice", fromUsername: "bob", toUsername: "alice",
+    status: "pending", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  }));
+});
+
+test("either participant can remove an accepted friendship, but outsiders cannot", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  const mallory = testEnv.authenticatedContext("mallory").firestore();
+  await testEnv.withSecurityRulesDisabled(async context => {
+    const admin = context.firestore();
+    await setDoc(doc(admin, "usernameRegistry/alice"), { uid: "alice", username: "alice", updatedAt: Date.now() });
+    await setDoc(doc(admin, "usernameRegistry/bob"), { uid: "bob", username: "bob", updatedAt: Date.now() });
+    await setDoc(doc(admin, "friendRequests/alice_bob"), {
+      fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob",
+      status: "accepted", createdAt: new Date(), updatedAt: new Date()
+    });
+  });
+  await assertFails(deleteDoc(doc(mallory, "friendRequests/alice_bob")));
+  await assertSucceeds(deleteDoc(doc(bob, "friendRequests/alice_bob")));
+});
