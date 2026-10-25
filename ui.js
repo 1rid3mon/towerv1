@@ -3516,9 +3516,31 @@ function setStoryComms(speakerTr, speakerEn, textTr, textEn) {
     if (line) line.textContent = en ? textEn : textTr;
 }
 function storyDeepCopy(value) { return JSON.parse(JSON.stringify(value)); }
+function storyMissionPrerequisiteMet(missionNumber, progress) {
+    const prerequisiteByMission = {
+        2: 'mission1Complete',
+        3: 'mission2Complete',
+        4: 'mission3Complete',
+        5: 'mission4Complete',
+        6: 'mission5Complete',
+        7: 'mission6Complete',
+        8: 'mission7Complete',
+        9: 'mission8Complete'
+    };
+    const requiredProgressFlag = prerequisiteByMission[missionNumber];
+    return !requiredProgressFlag || progress[requiredProgressFlag] === true;
+}
 function startStoryMission(missionNumber = 1) {
     const progress = getStoryProgress();
     if (![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(missionNumber)) return;
+    // Enforce mission order in the handler as well as the disabled UI buttons.
+    // This prevents direct calls from bypassing the chapter's narrative gates.
+    if (!storyMissionPrerequisiteMet(missionNumber, progress)) {
+        showToast(storyLanguage() === 'en'
+            ? 'Complete the previous mission before deploying this one.'
+            : 'Bu göreve geçmeden önce bir önceki görevi tamamlamalısın.');
+        return;
+    }
     if (!updateStoryUnlockUI()) {
         showToast(storyLanguage() === 'en' ? 'Clear 25 waves in Endless Mode first.' : 'Önce Sonsuz Mod’da 25 dalgayı tamamlamalısın.');
         return;
