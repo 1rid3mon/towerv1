@@ -215,3 +215,13 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] **DEVAM EDİYOR:** Arkadaş sistemi değişiklikleri yalnızca `feature/story-chapter2-mission11` branch'inde. Main'e aktarılmadı.
 - [ ] **DEVAM EDİYOR:** İki hesapla canlı uçtan uca test ve mobil/masaüstü görsel testi yapılmadı.
 - Sonraki adım: ağ erişimi olan GitHub Actions üzerinde workflow çalıştırılmalı; güvenlik testleri geçmeden main'e taşıma veya canlı deploy iddiasında bulunulmamalı.
+
+
+### 2026-10-25 — Piko görsel doğrulaması ve sandık tepkileri
+- [x] `index.html` incelendi: Piko görseli oyuna ekli. Harici görsel dosyası yerine özgün inline SVG kullanıyor; astral aura, göz kırpma, enerji çekirdeği, yüzen idle animasyonu ve tepki animasyonu CSS ile tanımlı. `#game-mascot` düğmesi ile konuşma balonu mevcut.
+- [x] `ui.js` içinde Piko'nun yükseltme tepkisi doğrulandı; hikâye modunda Piko'ya özel diyaloglar ve görev başlangıç satırları da mevcut.
+- [x] Yeni özellik eklendi: eşya, kule skini ve yoldaş skini sandığı açılınca Piko tepki veriyor; repliği açılan en yüksek ganimet nadirliğine göre değişiyor. Türkçe ve İngilizce replikler eklendi.
+- [x] Kod değişikliği commit'i: `691f1c7547f139dafc2ea7bbefbb98c737025816` (`Add Piko lootbox reactions`), yalnızca `feature/story-chapter2-mission11` branch'inde.
+- [ ] **TEST EDİLMEDİ:** Tarayıcıda gerçek sandık açılışı, farklı nadirlikler, mobil/masaüstü ve İngilizce dil akışı henüz çalıştırılmadı; bu oturumda yerel repo/dependency erişimi yok.
+- [ ] **DEPLOY DOĞRULANMADI:** Vercel limiti nedeniyle bu commit'in canlıya geçtiği varsayılmamalı.
+- Sonraki adım: Vercel limit sıfırlandıktan sonra branch preview'da üç sandık türünü de açıp Piko balonunun doğru nadirlik ve dilde tepki verdiğini test et; sonra CI/deploy durumunu kontrol et.
