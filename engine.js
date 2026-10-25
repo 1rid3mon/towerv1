@@ -920,11 +920,12 @@ function killEnemy(enemy) {
     }
 
     createParticles(enemy.x, enemy.y, enemy.color, enemy.type === 'boss' ? 24 : 10, 85);
-    rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 0.5, color: enemy.color, life: 1.0 });
+    rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 0.5, color: enemy.color, life: 1.0, isBossDeath: enemy.type === 'boss' });
     if (enemy.type === 'boss') {
-        // Boss takedown gets a wider two-stage shockwave; reward logic remains untouched.
-        rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 0.9, color: enemy.secColor || '#f8fafc', life: 0.9 });
-        rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 1.45, color: enemy.color, life: 0.66 });
+        // V2.6 cinematic boss defeat: mark only the existing cosmetic rings for enhanced rendering.
+        // The same ring timing, reward path, and combat outcome are preserved.
+        rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 0.9, color: enemy.secColor || '#f8fafc', life: 0.9, isBossDeath: true });
+        rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 1.45, color: enemy.color, life: 0.66, isBossDeath: true });
         createParticles(enemy.x, enemy.y, enemy.secColor || '#f8fafc', 12, 120);
     }
     if (enemy.isElite) {
