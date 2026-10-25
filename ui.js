@@ -3775,7 +3775,16 @@ function startStoryMission(missionNumber = 1) {
     game = getDefaultState();
     game.wave = 1; game.highestWave = 1; game.gold = 180;
     game.waveKills = 0; game.waveTargetKills = missionNumber === 1 ? 8 : (missionNumber === 5 ? 8 : (missionNumber === 7 ? 8 : (missionNumber === 9 ? 10 : (missionNumber === 10 ? 6 : (missionNumber === 11 ? 8 : 5))))); game.holdWave = false;
+    // Story missions use a deterministic loadout, never the endless-mode save's upgrades/items.
     game.upgrades.damage = 3; game.upgrades.attackSpeed = 2; game.upgrades.range = 3;
+    game.upgrades.critChance = 0; game.upgrades.critMult = 1; game.upgrades.multishot = 0;
+    game.upgrades.bounce = 0; game.upgrades.knockback = 0; game.upgrades.maxHp = 1;
+    game.upgrades.hpRegen = 1; game.upgrades.armor = 0; game.upgrades.thorns = 0;
+    game.upgrades.shield = 0; game.upgrades.lifesteal = 0; game.upgrades.goldBonus = 0;
+    game.upgrades.waveGold = 0; game.upgrades.crystalChance = 0; game.upgrades.interest = 0;
+    game.inventory = []; game.equippedItems = [];
+    game.prestigeUpgrades = { permDamage: 0, permGold: 0, companionBoost: 0, costDiscount: 0, startWave: 0 };
+    game.lootboxBonuses = { extraDamagePct: 0, extraGoldPct: 0, totalOpened: 0 };
     if (missionNumber === 5 && progress.powerChoice === 'weapon') game.upgrades.damage = 5;
     game.settings.activeTheme = 'space';
     tower = {
@@ -3791,6 +3800,10 @@ function startStoryMission(missionNumber = 1) {
     spawnTimer = 0; playTimeAccum = 0; waveFrostSpawns = 0; cargoSpawnTimer = 999999;
     gameSpeed = 1; isPaused = [3, 4, 6, 8].includes(missionNumber); isDefeated = false; defeatTimer = 0;
     document.body.dataset.gameMode = 'story';
+    // Rebuild upgrade controls against the fresh mission state, not the previous Endless Mode save.
+    if (typeof buildUpgradesUI === 'function') buildUpgradesUI();
+    if (typeof buildInventoryUI === 'function') buildInventoryUI();
+    if (typeof applyBodyClasses === 'function') applyBodyClasses();
     const screen = document.getElementById('story-mode-screen');
     if (screen) { screen.classList.remove('is-open'); screen.setAttribute('aria-hidden', 'true'); }
     const hud = document.getElementById('story-battle-hud');
