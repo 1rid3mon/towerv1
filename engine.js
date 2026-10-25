@@ -799,6 +799,7 @@ function fireTowerProjectile(startX, startY, target, barrelIdx = 0, totalBarrels
         radius: isCrit ? 5 : 4.0, color: projColor, damage: dmg, isCrit,
         bouncesLeft: game.upgrades.bounce, hitList: [], life: 2.0, fromEnemy: false
     });
+    if (typeof playBattleCue === 'function') playBattleCue(isCrit ? 'critical' : 'shot');
 }
 
 function updateCompanions(simDt) {
@@ -897,6 +898,7 @@ function getClosestEnemy(x, y, maxDist) {
 function dealDamageToEnemy(enemy, amount, isCrit = false, color = '#ffffff', applyLS = false) {
     if (!enemies.includes(enemy)) return;
     enemy.hp -= amount; enemy.hitFlash = 1;
+    if (typeof playBattleCue === 'function') playBattleCue(isCrit ? 'critical' : 'impact');
     addFloatingText(enemy.x, enemy.y, formatNumber(amount) + (isCrit ? '!' : ''), color, isCrit ? 14 : 11);
 
     if (applyLS) { const ls = getTowerLifesteal(); if (ls > 0 && tower.hp < tower.maxHp) tower.hp = Math.min(tower.maxHp, tower.hp + amount * ls); }
@@ -962,7 +964,7 @@ function damageTower(rawDamage, attacker) {
 
     let rem = reduced;
     if (tower.shield > 0) { if (tower.shield >= rem) { tower.shield -= rem; rem = 0; } else { rem -= tower.shield; tower.shield = 0; } }
-    if (rem > 0) { tower.hp -= rem; createParticles(tower.x, tower.y, '#ef4444', 5, 50); }
+    if (rem > 0) { tower.hp -= rem; createParticles(tower.x, tower.y, '#ef4444', 5, 50); if (typeof playBattleCue === 'function') playBattleCue('towerHit'); }
     if (tower.hp <= 0) { tower.hp = 0; triggerTowerDefeat(); }
 }
 
