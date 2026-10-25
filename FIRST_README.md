@@ -266,3 +266,9 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] **TEST EDİLMEDİ:** iOS Safari/iPad, Android ve masaüstü tarayıcılarda ses seviyesi, gecikme, eşzamanlı ses sayısı ve kapatma düğmesi henüz elle doğrulanmadı.
 - [ ] **DEPLOY:** Değişiklikler yalnızca `feature/story-chapter2-mission11` branch'inde; canlıya dağıtım ve `main` merge durumu doğrulanmadı.
 - **Kontrol notu:** Ses efektleri sentetik Web Audio sesleridir; kayıt stüdyosunda üretilmiş WAV/MP3 dosyaları değildir. Kalite ve cihaz uyumu dinleyerek test edilmelidir.
+
+
+### Denetim devamı — CI doğrulama hattı
+
+- [x] `.github/workflows/security-lab.yml`: `feature/**` branch push'ları da syntax check ve Firebase Emulator test workflow'unu tetikleyecek şekilde eklendi. Böylece özellik branch'indeki değişiklikler yalnızca PR açılana kadar test dışı kalmamalı.
+- [ ] **BEKLENİYOR:** Workflow bu son committen sonra çalışmalı; sonuçlar kontrol edilmeden testleri geçti demeyin.
