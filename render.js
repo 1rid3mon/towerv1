@@ -2218,6 +2218,36 @@ function renderGame() {
         }
     }
 
+    // V2.4 visual polish: a restrained tactical frame and vignette unify all themes.
+    // Pure rendering pass: no game state, timing, economy, or combat values are modified.
+    {
+        const edgeShade = ctx.createRadialGradient(tx, ty, maxDim * 0.12, tx, ty, maxDim * 0.78);
+        edgeShade.addColorStop(0, 'rgba(2, 6, 23, 0)');
+        edgeShade.addColorStop(0.68, 'rgba(2, 6, 23, 0.08)');
+        edgeShade.addColorStop(1, 'rgba(2, 6, 23, 0.38)');
+        ctx.fillStyle = edgeShade;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const frameColor = theme === 'frost' ? 'rgba(125, 211, 252, 0.24)'
+            : theme === 'space' ? 'rgba(196, 181, 253, 0.22)'
+            : theme === 'bubblegum' ? 'rgba(249, 168, 212, 0.20)'
+            : theme === 'forest' ? 'rgba(134, 239, 172, 0.18)'
+            : 'rgba(125, 211, 252, 0.20)';
+        const inset = Math.max(12, Math.min(24, maxDim * 0.025));
+        const mark = Math.max(9, Math.min(17, maxDim * 0.018));
+        ctx.save();
+        ctx.strokeStyle = frameColor;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        // Four corner brackets only: keep the center and enemy silhouettes unobstructed.
+        ctx.moveTo(inset, inset + mark); ctx.lineTo(inset, inset); ctx.lineTo(inset + mark, inset);
+        ctx.moveTo(canvas.width - inset - mark, inset); ctx.lineTo(canvas.width - inset, inset); ctx.lineTo(canvas.width - inset, inset + mark);
+        ctx.moveTo(inset, canvas.height - inset - mark); ctx.lineTo(inset, canvas.height - inset); ctx.lineTo(inset + mark, canvas.height - inset);
+        ctx.moveTo(canvas.width - inset - mark, canvas.height - inset); ctx.lineTo(canvas.width - inset, canvas.height - inset); ctx.lineTo(canvas.width - inset, canvas.height - inset - mark);
+        ctx.stroke();
+        ctx.restore();
+    }
+
     if (game.settings.showRange) {
         const r = getTowerRange(); ctx.beginPath(); ctx.arc(tx, ty, r, 0, Math.PI * 2);
         ctx.strokeStyle = 'rgba(199, 210, 254, 0.25)';
@@ -2283,6 +2313,33 @@ function renderGame() {
     for (const b of lightningBeams) { ctx.save(); ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2); ctx.strokeStyle = b.color; ctx.lineWidth = 2.5; ctx.stroke(); ctx.restore(); }
 
     ctx.save(); ctx.translate(tx, ty);
+    // V2.4 reactor underglow: low-intensity light and segmented telemetry ring beneath the tower skin.
+    // The effect is cosmetic and deliberately remains visible without enabling the range overlay.
+    {
+        const pulse = 0.5 + 0.5 * Math.sin(nowCompTime * 0.0022);
+        const coreGlow = ctx.createRadialGradient(0, 0, 5, 0, 0, 48);
+        coreGlow.addColorStop(0, 'rgba(56, 189, 248, ' + (0.10 + pulse * 0.045).toFixed(3) + ')');
+        coreGlow.addColorStop(0.55, 'rgba(37, 99, 235, 0.055)');
+        coreGlow.addColorStop(1, 'rgba(37, 99, 235, 0)');
+        ctx.fillStyle = coreGlow;
+        ctx.beginPath(); ctx.arc(0, 0, 48, 0, Math.PI * 2); ctx.fill();
+
+        ctx.save();
+        ctx.rotate(-nowCompTime * 0.00012);
+        ctx.strokeStyle = 'rgba(125, 211, 252, ' + (0.20 + pulse * 0.08).toFixed(3) + ')';
+        ctx.lineWidth = 1.1;
+        for (let segment = 0; segment < 12; segment++) {
+            const angle = segment * Math.PI / 6;
+            const inner = segment % 3 === 0 ? 35 : 38;
+            const outer = segment % 3 === 0 ? 43 : 41;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner);
+            ctx.lineTo(Math.cos(angle) * outer, Math.sin(angle) * outer);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
     if (tower.shield > 0) {
         ctx.beginPath(); ctx.arc(0, 0, 32, 0, Math.PI * 2);
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.75)'; ctx.lineWidth = 2; ctx.setLineDash([10, 5]);
