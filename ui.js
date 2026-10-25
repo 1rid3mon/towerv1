@@ -437,6 +437,10 @@ function buyUpgrade(key) {
     refreshUpgradeButtonsState();
     updateHUD();
     saveGame(true);
+    if (typeof window.pikoReactEvent === 'function') {
+        const upgradeName = typeof localizeGameContent === 'function' ? localizeGameContent(def.name) : def.name;
+        window.pikoReactEvent('upgrade', { key, name: upgradeName });
+    }
 }
 
 function refreshUpgradeButtonsState() {
@@ -3223,41 +3227,130 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function syncMascot() {
         const skin = getTowerSkin();
-        face.textContent = '🛸';
+        // Keep the original astral-mechanical SVG identity; tower skins only affect dialogue.
         mascot.setAttribute('aria-label', isEnglish() ? 'Piko, the tactical mascot — tap to chat' : 'Piko, taktik maskot — konuşmak için dokun');
         mascot.title = isEnglish() ? 'Piko · Tactical mascot · ' + skin.def.name : 'Piko · Taktik maskot · ' + skin.def.name;
         return skin;
     }
+    const pikoThoughts = {
+        tr: {
+            lowGold: ['Altın hesabını yaptım. Sonuç: biraz daha altın lazım. Matematik bazen çok acımasız.', 'Şu an her altını harcamak zorunda değilsin. İyi bir yükseltme için biriktirmek de strateji.', 'Cüzdan sessiz, düşmanlar gürültülü. Öncelikleri biliyoruz.'],
+            healthy: ['Canımız yerinde. Bu, dikkatsiz davranmak için izin belgesi değil.', 'Şimdilik iyiyiz. “Şimdilik” kelimesini özellikle vurguluyorum.', 'Savunma ayakta, ben de havadayım. Herkes görevinde.'],
+            busy: ['Ekranda çok hareket var. Ben hepsini takip ediyorum. Tamamını değil ama önemli kısmını.', 'Şu an plan yapıyorum. Planın yarısı hedef, diğer yarısı panik yapmamak.', 'Bir düşman, bir mermi, bir karar… Benim işlemcim bile heyecanlandı.'],
+            calm: ['Bir saniye durup durumu okumak bazen daha iyi hamledir. Acele etmekle hızlı olmak aynı şey değil.', 'Bir sonraki yükseltmeyi seçerken sadece fiyatına değil, neyi çözdüğüne de bak.', 'Strateji dediğin, her şeyi almak değil; şu anda en çok işine yarayanı seçmek.'],
+            upgrade: ['İyi yatırım, komutan. Ben olsam bunu rapora “çok havalı karar” diye yazardım.', 'Yükseltme tamam. Güç arttı; şimdi bunun dalgalarda karşılığını görelim.', 'Harika, kaynakları bir amaca çevirdik. Ekonomi dersi bitti, savaş devam.', 'Not aldım: bu yükseltmeyi seçtin. Benim hafızam var, merak etme. Çoğu zaman.'],
+            attack: ['Hasar yükseldi. Düşmanların müşteri memnuniyeti düşebilir.', 'Daha sert vuruyoruz. Diplomasi seçeneğini zaten tüketmiştik.', 'Saldırı gücü arttı. Şimdi isabetli kararlar da gelsin.'],
+            defense: ['Savunmayı güçlendirmek gösterişsiz ama çok akıllıca. Hayatta kalmak hâlâ meta.', 'Biraz daha dayanıklılık. Kuleye terapi değil, zırh lazım.', 'Güzel seçim. Kahramanlık bazen hasar yemek zorunda kalmamaktır.'],
+            economy: ['Ekonomiye yatırım yaptık. Gelecekteki sen şu anki sana teşekkür edebilir.', 'Altının altın getirmesi fikrini seviyorum. Benim maaşım yok tabii.', 'Önce kaynak, sonra güç. Ya da acil durum varsa tam tersi. Duruma göre.'],
+            newWave: ['Yeni dalga başladı. Önce tehditleri oku, sonra kahramanlık yap.', 'Dalga kapıda. Kapı diye bir şey varsa tabii; düşmanlar genelde izin istemiyor.', 'Tamam ekip, yeni tur. Hata yaparsak en azından havalı yapalım.'],
+            bigWave: ['Bu dalga önceki kadar kibar görünmüyor. Hazır olalım.', 'Düşman sayısı arttıysa panik sayısını artırmak zorunda değiliz.', 'Biraz daha baskı var. Planı sade tut: hayatta kal ve işe yarayan yükseltmeleri seç.'],
+            idle: ['Komutan, bir gözlem: sen tıklıyorsun, ben yorum yapıyorum. Takım çalışması.', 'Beni dekor sanıyorsan alınmam. Çok az alınırım. Dijital olarak.', 'Benim de hayalim var: bir gün düşmanlardan biri bana “lütfen” desin.', 'Şu an sessizce ortamı analiz ediyordum. Analiz sonucu: uzaylılar yine sorun çıkarıyor.', 'Ben küçük bir UFO olabilirim ama dedikodu radarım büyük.', 'Sana tavsiye vereceğim ama önce dramatik bir duruş almam gerekiyor.', 'Bu kadar stratejiden sonra bir kupa çay hak ettik. Benim kupam sıfır yerçekiminde.', 'Kuleyi savunuyoruz. Ben de senin moralini savunuyorum. İkisi de düşük cana düşmesin.', 'Sence UFO ehliyeti almak zor mu? Soruyorum çünkü… neyse.', 'Bir şey fark ettim: düşmanlar hiç güncelleme notlarını okumuyor.', 'Eğer plan A çalışmazsa plan B var. Plan B, plan A’yı daha özgüvenli yapmak.', 'Benim tahminim: birazdan ya büyük bir hamle yapacaksın ya da menüye bakacaksın. İkisi de kabul.']
+        },
+        en: {
+            lowGold: ['I checked the budget. Conclusion: we need more budget. Math can be cruel.', 'You do not have to spend every coin immediately. Saving for the right upgrade is strategy too.', 'The wallet is quiet, the enemies are loud. Priorities are clear.'],
+            healthy: ['Tower health looks good. That is not a permission slip to get careless.', 'We are fine for now. I am emphasizing “for now.”', 'The tower is standing and I am floating. Everyone is on duty.'],
+            busy: ['Lots happening on screen. I am tracking the important bits. Most of them. Probably.', 'My plan is half target selection, half not panicking.', 'One enemy, one projectile, one decision. Even my processor is excited.'],
+            calm: ['Sometimes reading the situation beats rushing. Fast and reckless are not the same thing.', 'When choosing an upgrade, think about what problem it solves, not just the price.', 'Strategy is not buying everything. It is choosing what helps most right now.'],
+            upgrade: ['Good investment, commander. I would label that report “extremely cool decision.”', 'Upgrade complete. Now let us see it pay off in the next waves.', 'We turned resources into a plan. Economics class is over; back to defense.', 'Noted: you picked that upgrade. I have a memory. Most of the time.'],
+            attack: ['More damage. Enemy customer satisfaction may decline.', 'We hit harder now. We already exhausted the diplomacy option.', 'Attack power is up. Let us pair it with smart decisions.'],
+            defense: ['Defense upgrades are not flashy, but staying alive is still meta.', 'More durability. The tower needs armor, not therapy.', 'Smart choice. Sometimes heroism means not taking damage.'],
+            economy: ['We invested in the economy. Future-you might send a thank-you note.', 'I like the idea of gold making more gold. I do not get paid, by the way.', 'Resources first, power second. Unless it is an emergency. Context matters.'],
+            newWave: ['New wave incoming. Read the threats before doing anything heroic.', 'The wave is at the door. If it had a door; enemies rarely ask permission.', 'New round, team. If we mess up, let us at least look cool.'],
+            bigWave: ['This wave looks less polite than the last one. Stay sharp.', 'More enemies does not mean we need more panic.', 'Pressure is rising. Keep the plan simple: survive and buy useful upgrades.'],
+            idle: ['Observation, commander: you click, I comment. Teamwork.', 'If you think I am decoration, I am not offended. Digitally speaking.', 'My dream is that one day an enemy says “please” before attacking.', 'I was quietly analyzing the situation. Result: space trouble again.', 'I am a tiny UFO with a very large gossip radar.', 'I have advice, but first I need a dramatic pose.', 'After all this strategy, we deserve tea. My cup would need zero gravity.', 'We defend the tower. I defend your morale. Neither should hit zero.', 'Is getting a UFO license difficult? Asking for a friend.', 'Enemies never read patch notes. Explains a lot.', 'If plan A fails, we have plan B: make plan A look more confident.', 'My prediction: you are about to make a big move or open a menu. Both are valid.']
+        }
+    };
+    let lastObservedWave = null;
+    let lastObservedGold = null;
+    let lastObservedHpRatio = null;
+
     function getContextLine() {
         const english = isEnglish();
+        const lang = english ? pikoThoughts.en : pikoThoughts.tr;
         const skin = getTowerSkin();
-        const hp = (typeof tower !== 'undefined' && tower && Number.isFinite(tower.hp)) ? tower.hp : null;
-        const maxHp = (typeof tower !== 'undefined' && tower && Number.isFinite(tower.maxHp) && tower.maxHp > 0) ? tower.maxHp : null;
-        const hpRatio = hp !== null && maxHp !== null ? hp / maxHp : 1;
-        if (hpRatio < 0.38) return chooseLine(english ? ['Tower integrity is low. Defense upgrade might be a good idea!', 'Commander, the tower is looking rough. Let’s reinforce it.'] : personality.tr.danger);
-        if (typeof game !== 'undefined' && game && Number.isFinite(game.gold) && game.gold >= 100) {
-            const affordableUpgrade = typeof UPGRADE_DEFS !== 'undefined' && Object.keys(UPGRADE_DEFS).find(key => {
+        const activeGame = typeof game !== 'undefined' && game ? game : null;
+        const hp = typeof tower !== 'undefined' && tower && Number.isFinite(tower.hp) ? tower.hp : null;
+        const maxHp = typeof tower !== 'undefined' && tower && Number.isFinite(tower.maxHp) && tower.maxHp > 0 ? tower.maxHp : null;
+        const hpRatio = hp !== null && maxHp !== null ? Math.max(0, Math.min(1, hp / maxHp)) : 1;
+        const gold = activeGame && Number.isFinite(activeGame.gold) ? activeGame.gold : null;
+        const wave = activeGame && Number.isFinite(activeGame.wave) ? activeGame.wave : null;
+        const enemiesAlive = typeof enemies !== 'undefined' && Array.isArray(enemies) ? enemies.length : 0;
+
+        // Piko observes changes between visits instead of selecting a random quip every time.
+        if (wave !== null && lastObservedWave !== null && wave > lastObservedWave) {
+            lastObservedWave = wave;
+            return chooseLine(wave >= 10 ? lang.bigWave : lang.newWave);
+        }
+        if (wave !== null) lastObservedWave = wave;
+        if (hpRatio < 0.38) {
+            lastObservedHpRatio = hpRatio;
+            return chooseLine(english ? ['Tower health is critical. A defense upgrade could buy us breathing room.', 'Commander, survival comes before style. Reinforce the tower.'] : [
+                'Komutan, kule kritik seviyede. Savunma yükseltmesi bize nefes aldırabilir.',
+                'Şu an stil değil hayatta kalma önceliği. Kuleyi güçlendirelim.',
+                ...lang.idle.slice(0, 2)
+            ]);
+        }
+        if (lastObservedHpRatio !== null && hpRatio - lastObservedHpRatio > 0.18) {
+            lastObservedHpRatio = hpRatio;
+            return chooseLine(english ? ['Nice recovery. The tower looks much healthier now.', 'That repair bought us some breathing room. Good call.'] : ['Toparladık! Kule artık daha iyi durumda. Güzel.', 'Bu iyileşme bize nefes aldırdı. İyi hamle.']);
+        }
+        lastObservedHpRatio = hpRatio;
+
+        if (activeGame && gold !== null && lastObservedGold !== null && gold < lastObservedGold - 1) {
+            const spent = lastObservedGold - gold;
+            lastObservedGold = gold;
+            if (spent >= 10) return chooseLine(english ? ['I saw the gold drop. Investment or impulse purchase? Time will tell.', 'Coins spent, power hopefully gained. Let us see the return.'] : ['Altının azaldığını gördüm. Yatırım mı, anlık heves mi? Birazdan anlarız.', 'Altın gitti; umarım karşılığında güç geldi. Getiriye bakalım.']);
+        }
+        if (gold !== null) lastObservedGold = gold;
+
+        if (hpRatio < 0.7 && Math.random() < 0.7) {
+            return chooseLine(english ? ['The tower has taken some hits. Consider defense or healing before the next wave.', 'We are not in crisis yet, but a little reinforcement would be sensible.'] : ['Kule biraz darbe aldı. Sonraki dalgadan önce savunma veya iyileştirmeyi düşün.', 'Henüz kriz değil ama biraz güçlendirmek akıllıca olabilir.']);
+        }
+        if (enemiesAlive >= 8) return chooseLine(lang.busy);
+        if (activeGame && gold !== null && gold < 40 && Math.random() < 0.65) return chooseLine(lang.lowGold);
+
+        if (activeGame && gold !== null && gold >= 60 && typeof UPGRADE_DEFS !== 'undefined') {
+            const affordable = Object.keys(UPGRADE_DEFS).filter(key => {
                 const button = document.getElementById('upg-btn-' + key);
                 return button && !button.disabled;
             });
-            if (affordableUpgrade && Math.random() < 0.58) {
-                const def = UPGRADE_DEFS[affordableUpgrade];
+            if (affordable.length && Math.random() < 0.62) {
+                const key = affordable[Math.floor(Math.random() * affordable.length)];
+                const def = UPGRADE_DEFS[key];
                 const name = def ? (typeof localizeGameContent === 'function' ? localizeGameContent(def.name) : def.name) : '';
-                return english
-                    ? 'You have some gold to invest. Check the upgrade panel when you get a moment.'
-                    : 'Altın birikmiş, komutan. ' + (name ? name + ' yükseltmesine' : 'bir yükseltmeye') + ' göz atmak iyi olabilir.';
+                const advice = english
+                    ? 'You can afford ' + (name || 'an upgrade') + '. Check whether it solves your biggest problem right now.'
+                    : ' ' + (name || 'Bir yükseltme') + ' için paran yetiyor. Önce şu anki en büyük sorunu çözüyor mu, ona bak.';
+                return chooseLine([advice.trim(), ...lang.calm]);
             }
         }
-        if (typeof game !== 'undefined' && game && Number.isFinite(game.wave) && game.wave > 1 && Math.random() < 0.45) {
-            return chooseLine(english ? personality.en : personality.tr.wave);
-        }
-        const skinLines = personality.tr.skin[skin.id];
-        if (skinLines && Math.random() < 0.58) {
+        const skinLines = pikoThoughts[english ? 'en' : 'tr'].idle;
+        const skinSpecific = pikoThoughts[english ? 'en' : 'tr'].idle;
+        const knownSkinLines = personality.tr.skin[skin.id];
+        if (knownSkinLines && Math.random() < 0.5) {
             if (english) return chooseLine([skin.def.name + ' looks pretty good, commander. ' + (skin.def.emoji || '✨'), 'I have thoughts about ' + skin.def.name + '. Mostly positive.']);
-            return chooseLine(skinLines);
+            return chooseLine(knownSkinLines);
         }
-        return chooseLine(english ? personality.en : personality.tr.idle);
+        if (wave !== null && wave > 1 && Math.random() < 0.32) return chooseLine(lang.calm);
+        return chooseLine(skinLines.length ? skinLines : skinSpecific);
     }
+
+    function reactToEvent(type, detail) {
+        const english = isEnglish();
+        const lang = english ? pikoThoughts.en : pikoThoughts.tr;
+        let lines = lang.idle;
+        if (type === 'upgrade') {
+            const key = detail && detail.key;
+            const attackKeys = ['damage', 'attackSpeed', 'critChance', 'critMult', 'multishot', 'bounce', 'knockback', 'range'];
+            const defenseKeys = ['maxHp', 'hpRegen', 'armor', 'thorns', 'shield', 'lifesteal'];
+            const economyKeys = ['goldBonus', 'waveGold', 'crystalChance', 'interest'];
+            lines = attackKeys.includes(key) ? lang.attack : defenseKeys.includes(key) ? lang.defense : economyKeys.includes(key) ? lang.economy : lang.upgrade;
+            if (detail && detail.name) lines = [english ? 'Upgrade confirmed: ' + detail.name + '. Let us see the payoff.' : 'Yükseltme onaylandı: ' + detail.name + '. Şimdi etkisini görelim.', ...lines];
+        } else if (type === 'wave') lines = lang.newWave;
+        else if (type === 'danger') lines = lang.lowGold;
+        showLine(chooseLine(lines));
+    }
+    window.pikoReactEvent = reactToEvent;
     function showLine(line) {
         syncMascot();
         bubble.textContent = line;
