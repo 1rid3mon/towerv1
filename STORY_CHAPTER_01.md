@@ -1,7 +1,7 @@
 # Chapter 01 — Kayıp Sinyal
 ## Mission outline and production brief
 
-This outline turns the pacing rules into a playable chapter plan. Mission 01 and the first pass of Mission 02 are implemented on the draft branch; the remaining missions are design briefs, not completed gameplay.
+This outline turns the pacing rules into a playable chapter plan. Mission 01 and the first passes of Missions 02–03 are implemented on the draft branch. Mission 02 is a patrol-plus-scan encounter; Mission 03 is a short investigation with a saved evidence choice. Missions 04–09 remain design briefs, not completed gameplay.
 
 ### Central mystery
 
