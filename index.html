@@ -476,7 +476,19 @@
         @media(max-width:480px){#battle-moment{top:max(96px,calc(env(safe-area-inset-top) + 88px));width:calc(100vw - 20px)}#battle-moment .battle-frame{padding:11px 13px 10px}#battle-moment .battle-kicker{font-size:9px}#battle-moment .battle-subtitle{font-size:10px}#battle-sfx-toggle{top:auto;bottom:max(82px,calc(env(safe-area-inset-bottom) + 76px));right:8px;padding:7px 8px}}
         @media(max-width:900px) and (orientation:landscape) and (max-height:500px){#battle-moment{top:50px;width:min(440px,calc(100vw - 24px))}#battle-moment .battle-frame{padding:8px 12px}#battle-moment .battle-title{font-size:20px}#battle-moment .battle-rewards{margin-top:5px}#battle-sfx-toggle{top:44px;bottom:auto}}
         @media(prefers-reduced-motion:reduce){#battle-moment,#battle-moment.is-visible{transition:none;transform:translate(-50%,0)}}
-</style>
+
+        /* V2.3: boss identity tint; visual only, no simulation changes. */
+        #battle-moment[data-kind="boss"][data-boss-type="tank_boss"] .battle-frame{border-color:rgba(251,191,36,.5);border-left-color:#fbbf24;background:linear-gradient(112deg,rgba(36,25,10,.98),rgba(44,35,23,.96) 60%,rgba(20,22,31,.98))}
+        #battle-moment[data-kind="boss"][data-boss-type="tank_boss"] .battle-kicker{color:#fcd34d}
+        #battle-moment[data-kind="boss"][data-boss-type="ranged_boss"] .battle-frame{border-color:rgba(244,114,182,.48);border-left-color:#f472b6;background:linear-gradient(112deg,rgba(38,15,31,.98),rgba(42,24,42,.96) 60%,rgba(20,22,31,.98))}
+        #battle-moment[data-kind="boss"][data-boss-type="ranged_boss"] .battle-kicker{color:#f9a8d4}
+        #battle-moment[data-kind="boss"][data-boss-type="speed_boss"] .battle-frame{border-color:rgba(248,113,113,.52);border-left-color:#ef4444}
+        #battle-moment[data-kind="boss"][data-boss-type="frost_boss"] .battle-frame{border-color:rgba(125,211,252,.52);border-left-color:#7dd3fc;background:linear-gradient(112deg,rgba(9,30,44,.98),rgba(18,39,55,.96) 60%,rgba(14,22,34,.98))}
+        #battle-moment[data-kind="boss"][data-boss-type="frost_boss"] .battle-kicker{color:#bae6fd}
+        #battle-moment[data-kind="boss"][data-boss-type="leviathan"] .battle-frame{border-color:rgba(196,181,253,.5);border-left-color:#a78bfa;background:linear-gradient(112deg,rgba(26,20,44,.98),rgba(32,28,53,.96) 60%,rgba(14,22,34,.98))}
+        #battle-moment[data-kind="boss"][data-boss-type="leviathan"] .battle-kicker{color:#c4b5fd}
+
+    </style>
 </head>
 <body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-pc color-pastel" id="main-body">
 
