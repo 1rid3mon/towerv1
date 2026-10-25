@@ -16,19 +16,19 @@ The companion is a real physical unit; the hologram is not its current form. The
 **Story beat:** the maintenance unit wakes when the core recognizes it. The blue echo flickers, saying only fragments about memory, violet light, and towers.  
 **Pacing note:** this is the current prototype encounter. Keep the first playable section focused; don't add multiple mechanics before the player understands the core loop.
 
-### Mission 02 — Echoes in the Hull
+### Mission 02 — First Contact
 **Target:** 5–7 minutes  
-**Player goal:** inspect three signal traces in a nearby sector while avoiding a small hostile patrol.  
-**Primary interaction:** simple scan/inspect, taught with one clear prompt.  
+**Player goal:** stop a short hostile patrol, then inspect three signal traces in the nearby sector.  
+**Primary interaction:** one brief combat encounter followed by a simple scan/inspect interaction.  
 **Payoff:** one trace contains a timestamp from before the station's recorded shutdown. The companion recognizes the sound but cannot explain it.  
-**Pacing note:** investigation first; combat is a short interruption, not another full wave marathon.
+**Pacing note:** combat is a short interruption, not another full wave marathon.
 
-### Mission 03 — First Contact
+### Mission 03 — Source of the Signal
 **Target:** 3–4 minutes  
-**Player goal:** hold a damaged access corridor long enough for the companion to restore a door relay.  
-**Known tools:** combat and the scan clue from Mission 02.  
-**Change:** one enemy has a readable telegraph that teaches target prioritization. No new currency or upgrade tree.  
-**Payoff:** the hostile signal reacts to the companion rather than the commander.
+**Player goal:** choose whether to inspect the antenna data or the black-box recording.  
+**Primary interaction:** a short, non-combat investigation with a saved evidence choice.  
+**Payoff:** the antenna log suggests the signal is looping from inside the station; the black-box log contains a voiceprint recorded before shutdown. Mission 05 dialogue reflects the selected evidence.  
+**Pacing note:** a quiet investigative beat gives the player breathing room after the first combat.
 
 ### Mission 04 — A Quiet Circuit
 **Target:** 3–4 minutes  
