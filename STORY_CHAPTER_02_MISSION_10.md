@@ -1,7 +1,7 @@
 # Story Mode — Mission 10 Production Spec
 ## The Door Below / Aşağıdaki Kapı
 
-**Status:** implementation-ready design spec; not yet implemented in the game.
+**Status:** first playable implementation added on the feature branch; manual browser/mobile QA and regression checks are still pending.
 **Chapter:** 02 — Beneath the Signal
 **Target first-play duration:** 10–14 minutes (design target; not measured)
 **Core purpose:** introduce the cyan pulse as a limited, deliberate tool; end with the first impossible proof that the companion has administrator-level access it should not possess.
