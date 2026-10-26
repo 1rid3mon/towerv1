@@ -56,6 +56,27 @@ function distToSegment(px, py, x1, y1, x2, y2) {
     return Math.hypot(px - projX, py - projY);
 }
 
+// Return only the nearest in-range enemies needed for the current multishot count.
+// This avoids allocating and sorting every in-range enemy on every tower fire tick.
+function getNearestEnemiesInRange(enemyList, centerX, centerY, range, limit) {
+    const maxTargets = Math.min(enemyList.length, Math.max(0, Math.ceil(Number(limit) || 0)));
+    if (maxTargets === 0) return [];
+
+    const nearest = [];
+    for (const enemy of enemyList) {
+        const dist = Math.hypot(enemy.x - centerX, enemy.y - centerY);
+        if (dist > range + (Number(enemy.radius) || 0)) continue;
+
+        const candidate = { enemy, dist };
+        let insertAt = nearest.findIndex(item => dist < item.dist);
+        if (insertAt < 0) insertAt = nearest.length;
+        if (insertAt >= maxTargets) continue;
+        nearest.splice(insertAt, 0, candidate);
+        if (nearest.length > maxTargets) nearest.pop();
+    }
+    return nearest;
+}
+
 function spawnCargoDrone() {
     if (cargoDrones.length > 0 || !canvas.width || !canvas.height) return;
 
@@ -518,13 +539,13 @@ function updateGame(dt) {
 
     const range = getTowerRange();
     if (tower.freezeTimer <= 0 && tower.fireCooldown <= 0 && enemies.length > 0) {
-        const inRange = enemies.map(e => ({ enemy: e, dist: Math.hypot(e.x - tower.x, e.y - tower.y) }))
-            .filter(item => item.dist <= range + item.enemy.radius).sort((a, b) => a.dist - b.dist);
+        const multishot = getEffectiveMultishot();
+        const inRange = getNearestEnemiesInRange(enemies, tower.x, tower.y, range, multishot);
         if (inRange.length > 0) {
-            const targetsCount = Math.min(inRange.length, getEffectiveMultishot());
+            const targetsCount = Math.min(inRange.length, multishot);
             tower.fireCooldown = 1 / getTowerFireRate(); tower.recoil = 4;
             tower.angle = Math.atan2(inRange[0].enemy.y - tower.y, inRange[0].enemy.x - tower.x);
-            for (let i = 0; i < targetsCount; i++) fireTowerProjectile(tower.x, tower.y, inRange[i].enemy, i, getEffectiveMultishot());
+            for (let i = 0; i < targetsCount; i++) fireTowerProjectile(tower.x, tower.y, inRange[i].enemy, i, multishot);
         }
     }
 
