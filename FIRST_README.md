@@ -380,3 +380,9 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - Test durumu: [ ] GitHub Actions syntax ve Security Lab / Firestore Emulator testleri bu commit sonrasında çalışmalı.
 - Kod incelemesinde ayrıca not edildi: hikâye görevleri 10–15 için gerçek tarayıcı/mobil QA bekliyor; 16–18 tasarım aşamasında; arkadaş sistemi henüz doğrulanmış değil; hikâye bulut senkronizasyonu ve canlı Firestore kuralları ayrıca doğrulanmalı; liderlik tablosu istemci tarafından bildirildiğinden sunucu otoritesi yok.
 - Güvenlik sınırı: istemci anti-hile gölge kaydı değiştirilmiş istemciye karşı sunucu otoritesi değildir; hileye dayanıklı liderlik/ekonomi için güvenilir backend doğrulaması hâlâ eksik.
+
+
+### 2026-10-26 — Hedef seçimi regresyon testinde düzeltme
+
+- İlk PR #51 CI koşusunda JavaScript syntax kontrolü geçti; Emulator test adımında yeni hedef seçimi testi, VM'e verilen test kaynağındaki kaçışlı satır sonu nedeniyle `Invalid or unexpected token` hatası verdi. Bu bir oyun motoru hatası olarak kanıtlanmadı; test harness kaynak birleştirmesi hatalıydı.
+- Test kaynağındaki satır sonu düzeltildi. Yeni CI koşusu bekleniyor; henüz başarılı sayılmamalı.
