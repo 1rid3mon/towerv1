@@ -310,3 +310,18 @@ test('completed Story Mode session is cleaned before the Endless unlock check, w
   assert.ok(cleanup >= 0 && unlockGate > cleanup, 'completed story replay must restore Endless state before checking the Endless wave requirement');
   assert.match(body, /if \(\!window\.__storyBattle\.completed\) return;/);
 });
+
+
+test('optimized target selection preserves nearest-first order, range edge, and target cap', () => {
+  const helper = extractFunction(engineSource, 'function getNearestEnemiesInRange(', 'function spawnCargoDrone()');
+  const sandbox = {};
+  vm.runInNewContext(helper + '\nglobalThis.select = getNearestEnemiesInRange;', sandbox);
+  const near = { id: 'near', x: 3, y: 4, radius: 1 };
+  const middle = { id: 'middle', x: 20, y: 0, radius: 2 };
+  const edgeByRadius = { id: 'edge', x: 31, y: 0, radius: 2 };
+  const outside = { id: 'outside', x: 40, y: 0, radius: 1 };
+  const selected = sandbox.select([outside, edgeByRadius, middle, near], 0, 0, 30, 2);
+  assert.deepEqual(Array.from(selected, item => item.enemy.id), ['near', 'middle']);
+  assert.deepEqual(Array.from(sandbox.select([edgeByRadius, middle, near], 0, 0, 30, 3), item => item.enemy.id), ['near', 'middle', 'edge']);
+  assert.deepEqual(Array.from(sandbox.select([near], 0, 0, 30, 0)), []);
+});
