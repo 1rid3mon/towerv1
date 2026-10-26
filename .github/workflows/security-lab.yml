@@ -6,6 +6,7 @@ on:
       - "security-lab/**"
       - ".github/workflows/security-lab.yml"
       - "ui.js"
+      - "story.js"
       - "index.html"
       - "engine.js"
       - "render.js"
@@ -50,6 +51,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check ui.js
+          node --check story.js
           node --check engine.js
           node --check render.js
           node --check data.js

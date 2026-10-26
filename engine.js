@@ -77,6 +77,26 @@ function getNearestEnemiesInRange(enemyList, centerX, centerY, range, limit) {
     return nearest;
 }
 
+// Select the nearest K targets without sorting/copying the entire enemy list.
+// Stable insertion preserves the previous Array.sort nearest-first ordering for equal distances.
+function getNearestEnemiesByDistance(enemyList, centerX, centerY, limit) {
+    const maxTargets = Math.min(enemyList.length, Math.max(0, Math.trunc(Number(limit) || 0)));
+    if (maxTargets === 0) return [];
+
+    const nearest = [];
+    for (const enemy of enemyList) {
+        const dx = enemy.x - centerX;
+        const dy = enemy.y - centerY;
+        const distanceSquared = dx * dx + dy * dy;
+        let insertAt = nearest.findIndex(item => distanceSquared < item.distanceSquared);
+        if (insertAt < 0) insertAt = nearest.length;
+        if (insertAt >= maxTargets) continue;
+        nearest.splice(insertAt, 0, { enemy, distanceSquared });
+        if (nearest.length > maxTargets) nearest.pop();
+    }
+    return nearest.map(item => item.enemy);
+}
+
 function spawnCargoDrone() {
     if (cargoDrones.length > 0 || !canvas.width || !canvas.height) return;
 
@@ -894,7 +914,7 @@ function updateCompanions(simDt) {
             }
         } else if (key === 'plasmaSatellite' && enemies.length > 0) {
             const chainCount = def.chainCounts[idx];
-            const sorted = [...enemies].sort((a, b) => Math.hypot(a.x - st.x, a.y - st.y) - Math.hypot(b.x - st.x, b.y - st.y)).slice(0, chainCount);
+            const sorted = getNearestEnemiesByDistance(enemies, st.x, st.y, chainCount);
             if (sorted.length > 0 && Math.hypot(sorted[0].x - st.x, sorted[0].y - st.y) <= 280) {
                 st.cooldown = Math.max(1.2, 1.9 - star * 0.12);
                 let prevX = st.x, prevY = st.y;
@@ -991,7 +1011,28 @@ function damageTower(rawDamage, attacker) {
 
 function completeWave() {
     if (window.__storyBattle && window.__storyBattle.active) {
-        if (typeof finishStoryBattleEncounter === 'function') finishStoryBattleEncounter();
+        if (typeof finishStoryBattleEncounter !== 'function') {
+            // Never fall through into Endless rewards when Story's controller failed to load.
+            isPaused = true;
+            const message = 'Hikâye görev sistemi yüklenemedi. Oyunu yenileyip tekrar dene.';
+            if (typeof console !== 'undefined' && typeof console.error === 'function') {
+                console.error('[Story Mode] finishStoryBattleEncounter is unavailable; Endless rewards were blocked.');
+            }
+            if (typeof showToast === 'function') showToast(message);
+            return;
+        }
+        try {
+            finishStoryBattleEncounter();
+        } catch (error) {
+            // Surface Story completion failures instead of leaving the player at a silent/blank state.
+            isPaused = true;
+            if (typeof console !== 'undefined' && typeof console.error === 'function') {
+                console.error('[Story Mode] Mission completion failed; Endless rewards were blocked.', error);
+            }
+            if (typeof showToast === 'function') {
+                showToast('Hikâye görevi bitirilemedi. İlerlemen korunuyor; oyunu yenileyip tekrar dene.');
+            }
+        }
         return;
     }
     const completedWaveNumber = game.wave;

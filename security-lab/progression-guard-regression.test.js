@@ -340,3 +340,59 @@ test('Story dialogue stays compact and mission completion always offers a visibl
   assert.match(storySource, /session\.completed = true; showStoryMissionResult\(\);/);
   assert.match(storySource, /if \(resultOverlay\) \{ resultOverlay\.hidden = true;/);
 });
+
+
+test('plasma satellite target selection matches stable nearest-first slicing without sorting all enemies', () => {
+  const helper = extractFunction(engineSource, 'function getNearestEnemiesByDistance(', 'function spawnCargoDrone()');
+  const sandbox = {};
+  vm.runInNewContext(helper + '\nglobalThis.select = getNearestEnemiesByDistance;', sandbox);
+  const enemies = [
+    { id: 'far', x: 90, y: 0 }, { id: 'near', x: 3, y: 4 },
+    { id: 'tie-first', x: 0, y: 5 }, { id: 'tie-second', x: 0, y: -5 },
+    { id: 'middle', x: 20, y: 0 }
+  ];
+  for (const limit of [0, 1, 2, 3, 5, 8]) {
+    const expected = enemies.slice().sort((a, b) =>
+      Math.hypot(a.x, a.y) - Math.hypot(b.x, b.y)
+    ).slice(0, limit).map(enemy => enemy.id);
+    assert.deepEqual(Array.from(sandbox.select(enemies, 0, 0, limit), enemy => enemy.id), expected);
+  }
+  assert.match(engineSource, /getNearestEnemiesByDistance\(enemies, st\.x, st\.y, chainCount\)/);
+  assert.doesNotMatch(engineSource, /const sorted = \[\.\.\.enemies\]\.sort/);
+});
+
+test('Story wave completion fails closed if the Story controller did not load', () => {
+  const body = extractFunction(engineSource, 'function completeWave()', 'function triggerTowerDefeat()');
+  const sandbox = {
+    window: { __storyBattle: { active: true } },
+    isPaused: false,
+    game: { wave: 7, gold: 123, crystals: 9 },
+    showToast(message) { sandbox.toast = message; },
+    console: { error(message) { sandbox.error = message; } }
+  };
+  vm.runInNewContext(body + '\ncompleteWave();', sandbox);
+  assert.equal(sandbox.isPaused, true);
+  assert.equal(sandbox.game.gold, 123);
+  assert.equal(sandbox.game.crystals, 9);
+  assert.match(sandbox.toast, /Hikâye görev sistemi yüklenemedi/);
+  assert.match(sandbox.error, /Endless rewards were blocked/);
+});
+
+
+test('Story completion exceptions pause safely instead of escaping the engine loop', () => {
+  const body = extractFunction(engineSource, 'function completeWave()', 'function triggerTowerDefeat()');
+  let toast = '';
+  let logged = '';
+  const runner = new Function('window', 'isPaused', 'showToast', 'console', 'finishStoryBattleEncounter',
+    body + '\ncompleteWave(); return isPaused;');
+  const paused = runner(
+    { __storyBattle: { active: true } },
+    false,
+    message => { toast = message; },
+    { error: message => { logged = message; } },
+    () => { throw new Error('synthetic Story completion failure'); }
+  );
+  assert.equal(paused, true);
+  assert.match(toast, /Hikâye görevi bitirilemedi/);
+  assert.match(logged, /Mission completion failed/);
+});
