@@ -246,3 +246,20 @@ test('HTML element IDs are unique so friend-system handlers update the intended 
   }
   assert.deepEqual(duplicates, [], 'duplicate IDs can route getElementById updates to stale UI');
 });
+
+
+test('Piko is rendered as an original full-body SVG companion, not an emoji placeholder', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const start = html.indexOf('<svg id="game-mascot-face"');
+  const end = html.indexOf('</svg>', start);
+  assert.ok(start >= 0 && end > start, 'Piko SVG should exist');
+  const svg = html.slice(start, end);
+  assert.match(svg, /viewBox="0 0 96 96"/);
+  assert.match(svg, /piko-body/);
+  assert.match(svg, /piko-core/);
+  assert.match(svg, /piko-eye/);
+  assert.match(svg, /piko-aura/);
+  assert.match(svg, /astral mekanik uzay yoldaşı/);
+  assert.match(html, /width: 76px; height: 76px/);
+  assert.match(html, /width: 64px; height: 64px/);
+});
