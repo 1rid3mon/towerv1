@@ -4005,6 +4005,7 @@ const STORY_UI_COPY = {
  return:['← ANA MENÜ','← MAIN MENU'], chapter:['BÖLÜM 01 · KAYIP SİNYAL','CHAPTER 01 · LOST SIGNAL'],
  heading:['Kayıp Sinyal','Lost Signal'],
  lead:['Uzak bir istasyon sessizliğe gömüldü. Son sinyal, savunma çekirdeğinin içinden geliyor.','A remote station has fallen silent. Its last signal is coming from inside the defense core.'],
+ campaignsub:['İstasyonun gizemini adım adım çöz.','Unravel the station’s mystery, one mission at a time.'],
  mission1tag:['GÖREV 01','MISSION 01'], mission1title:['Savunmayı etkinleştir','Activate the defense'],
  mission1desc:['Kule çekirdeğini çevrimiçi duruma getir ve istasyonun savunma protokolünü öğren.','Bring the tower core online and learn the station’s defense protocol.'],
  mission2tag:['GÖREV 02','MISSION 02'], mission2title:['İlk temas','First contact'],
