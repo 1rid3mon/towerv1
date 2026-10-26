@@ -299,3 +299,16 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] **ÜRETİM KURALLARI:** Bu değişiklik yalnızca repo içindeki `security-lab/firestore.rules` adayını etkiler; Firebase Console kuralları otomatik değişmez. Üretime geçmeden önce gerçek kurallara kontrollü biçimde uygulanmalı.
 - [ ] **DEPLOY:** Branch main'e merge edilmedi; Vercel dağıtımı doğrulanmadı.
 - **Sonraki adım:** CI sonucu kontrol edilecek; başarısızsa düzeltilecek. Ardından hesap değişimi/yerel ilerleme geçişi ve hikâye bulut senkronizasyonu için uç durum testleri eklenecek. Ses efektleri kodda mevcut olsa da iOS/Android ses davranışı hâlâ gerçek cihazda dinlenerek test edilmeli.
+
+
+---
+
+## İş günlüğü — 2026-10-26: Piko tam gövdeli maskota dönüştürüldü
+
+- [x] `index.html`: Piko'nun 64×64 yüz ağırlıklı çizimi, 96×96 viewBox kullanan özgün tam gövdeli astral robot SVG'siyle değiştirildi.
+- [x] Yeni çizimde anten, yüz/ışıklı gözler, gövde zırhı, hareketli kollar, küçük ayaklar, yan iticiler, enerji çekirdeği ve yıldız kıvılcımları bulunuyor.
+- [x] Mevcut Piko kimliği ve animasyon kancaları (`piko-aura`, `piko-eye`, `piko-core`, `piko-sigil`) korundu; harici görsel veya emoji kullanılmıyor.
+- [x] Yüzen maskot masaüstünde 76×76, küçük ekranlarda 64×64 olacak şekilde büyütüldü.
+- [x] `security-lab/progression-guard-regression.test.js`: Piko SVG yapısı, animasyon sınıfları ve responsive ölçüler için regresyon testi eklendi.
+- [ ] **CI BEKLENİYOR:** Yeni testin ve JavaScript syntax/Firestore testlerinin son koşusu: [GitHub Actions](https://github.com/1rid3mon/towerv1/actions/runs/40279300466). Sonuç kontrol edilmeden testlerin geçtiği söylenmemeli.
+- [ ] **GÖRSEL / CİHAZ TESTİ:** SVG gerçek tarayıcıda ve iOS/Android ekranlarında henüz gözle kontrol edilmedi. Canlı siteye dağıtım doğrulanmadı.
