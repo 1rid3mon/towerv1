@@ -1011,17 +1011,27 @@ function damageTower(rawDamage, attacker) {
 
 function completeWave() {
     if (window.__storyBattle && window.__storyBattle.active) {
-        if (typeof finishStoryBattleEncounter === 'function') {
-            finishStoryBattleEncounter();
-        } else {
+        if (typeof finishStoryBattleEncounter !== 'function') {
             // Never fall through into Endless rewards when Story's controller failed to load.
-            // A visible pause is safer than silently completing the wrong mode's wave.
             isPaused = true;
             const message = 'Hikâye görev sistemi yüklenemedi. Oyunu yenileyip tekrar dene.';
             if (typeof console !== 'undefined' && typeof console.error === 'function') {
                 console.error('[Story Mode] finishStoryBattleEncounter is unavailable; Endless rewards were blocked.');
             }
             if (typeof showToast === 'function') showToast(message);
+            return;
+        }
+        try {
+            finishStoryBattleEncounter();
+        } catch (error) {
+            // Surface Story completion failures instead of leaving the player at a silent/blank state.
+            isPaused = true;
+            if (typeof console !== 'undefined' && typeof console.error === 'function') {
+                console.error('[Story Mode] Mission completion failed; Endless rewards were blocked.', error);
+            }
+            if (typeof showToast === 'function') {
+                showToast('Hikâye görevi bitirilemedi. İlerlemen korunuyor; oyunu yenileyip tekrar dene.');
+            }
         }
         return;
     }
