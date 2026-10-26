@@ -421,4 +421,5 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - Hikâye görev panosuna 15 görev üzerinden gerçek kayıt bayraklarını okuyan bir ilerleme çubuğu ve tamamlanan görev sayacı eklendi; yeni kayıt veya ilerleme uydurulmaz.
 - Görev kartları görsel olarak ayrıştırıldı: sıradaki açılmış görev, tamamlanan görevler ve kilitli görevler. Bu katman yalnızca mevcut görev durumunu okur; kilit kurallarını değiştirmez.
 - Mobilde ilerleme başlığı sıkışmasın diye responsive yerleşim ve azaltılmış hareket tercihi korundu.
-- Bu değişiklikler henüz PR olarak açılmadı veya main'e alınmadı; sözdizimi ve otomatik test sonuçları bekleniyor. Canlı Vercel dağıtımı hâlâ rate-limit engeline takılabilir.
+- PR #53 açıldı; main'e henüz alınmadı. GitHub Actions içinde JavaScript sözdizimi kontrolü geçti; Firestore Emulator testi sürüyor.
+- Vercel, PR #53 başlığına ait commit için "Deployment has completed" durumunu bildirdi; canlı oyunun gerçek cihazda görsel/oynanış QA'sı hâlâ yapılmadı.
