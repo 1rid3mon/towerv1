@@ -267,3 +267,35 @@ test('Piko is rendered as an original full-body SVG companion, not an emoji plac
   assert.match(html, /width: 76px; height: 76px/);
   assert.match(html, /width: 64px; height: 64px/);
 });
+
+
+test('story mode bypasses the Endless anti-cheat shadow while preserving it for exit', () => {
+  const antiCheatStart = engineSource.indexOf('// 🛡️ ANTI-CHEAT: GÖLGE KASA VE BELLEK KORUMASI');
+  assert.notEqual(antiCheatStart, -1);
+  const intervalStart = engineSource.indexOf('setInterval(() => {', antiCheatStart);
+  const storyGuard = engineSource.indexOf("document.body?.dataset?.gameMode === 'story' || window.__storyBattle?.active", intervalStart);
+  const shadowInit = engineSource.indexOf('if (!shadow) { syncShadow(); return; }', intervalStart);
+  assert.ok(storyGuard > intervalStart && storyGuard < shadowInit, 'story guard must run before shadow initialization or rollback checks');
+});
+
+test('story mode hard-isolates multishot, economy, and companion multipliers', () => {
+  const sandbox = {
+    document: { body: { dataset: { gameMode: 'story' } } },
+    game: {
+      upgrades: { multishot: 0, goldBonus: 0, crystalChance: 0 },
+      equippedItems: ['legendary_bow', 'gold_relic'],
+      prestigeUpgrades: { permGold: 99, companionBoost: 99 },
+      lootboxBonuses: { extraGoldPct: 999 },
+      wave: 100, holdWave: false
+    },
+    ITEM_DATABASE: {
+      legendary_bow: { type: 'multishot_buff', val: 5 },
+      gold_relic: { type: 'gold', val: 5 }
+    }
+  };
+  const multishot = extractFunction(dataSource, 'function getEffectiveMultishot()', 'function getBulkUpgradeInfo');
+  const gold = extractFunction(dataSource, 'function getGoldMultiplier()', 'function getWaveBonusPreview');
+  const companion = extractFunction(dataSource, 'function getCompanionBoost()', 'function calculatePendingSouls');
+  vm.runInNewContext(multishot + '\n' + gold + '\n' + companion + '\nglobalThis.result = [getEffectiveMultishot(), getGoldMultiplier(), getCompanionBoost()];', sandbox);
+  assert.deepEqual(Array.from(sandbox.result), [1, 1, 1]);
+});
