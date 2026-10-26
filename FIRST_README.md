@@ -386,3 +386,20 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 
 - İlk PR #51 CI koşusunda JavaScript syntax kontrolü geçti; Emulator test adımında yeni hedef seçimi testi, VM'e verilen test kaynağındaki kaçışlı satır sonu nedeniyle `Invalid or unexpected token` hatası verdi. Bu bir oyun motoru hatası olarak kanıtlanmadı; test harness kaynak birleştirmesi hatalıydı.
 - Test kaynağındaki satır sonu düzeltildi. Yeni CI koşusu bekleniyor; henüz başarılı sayılmamalı.
+
+
+## İş günlüğü — 2026-10-26: Hikâye düzeltmeleri main'de, hedef seçimi optimize edildi, sürüm denetimi
+
+- [x] PR #49 birleştirildi; merge commit: `e2f9042c1037f4a8fba3833d2de9bd8c61134467`. Hikâye modu sırasında Sonsuz Mod anti-hile gölge geri yüklemesi atlanıyor; çoklu atış, altın ve yoldaş çarpanları hikâye için ayrılıyor. `startStoryMission()` tamamlanmış eski oturumu temizleyip kilit kontrolünden önce Sonsuz Mod snapshot'ını geri yüklüyor.
+- [x] PR #49 main CI: [run 40283554364](https://github.com/1rid3mon/towerv1/actions/runs/40283554364) başarılı.
+- [x] PR #51 birleştirildi; merge commit: `f545a2fa81f3a845533b7e79615f1de05e6020b1`. `engine.js` kule hedef seçimi artık tüm düşman listesini her atışta `map/filter/sort` etmek yerine gereken en yakın hedefleri sınırlı listede seçiyor; oyun dengesi ve kayıt şeması değiştirilmedi.
+- [x] PR #51 CI: [run 40283820537](https://github.com/1rid3mon/towerv1/actions/runs/40283820537) başarılı; JavaScript syntax kontrolü geçti; regresyon/Firestore Emulator suite **136/136 geçti, 0 başarısız**.
+- [ ] **CANLI DAĞITIM BLOKERİ:** PR #51 merge commit'inin Vercel kontrolü `failure` döndürüyor: `build-rate-limit`. Bu yüzden yeni optimizasyonun canlı `towerv1-murex.vercel.app` adresinde bulunduğu doğrulanmadı. Vercel limiti kalktıktan sonra deployment yeniden kontrol edilmeli.
+- [ ] **PERFORMANS ÖLÇÜMÜ:** Hedef seçimi algoritmasındaki iş/ara dizi azaltımı kod düzeyinde yapıldı; FPS, frame-time ve bellek kazancı gerçek iOS/Android/masaüstü cihazlarda ölçülmedi. Daha geniş Canvas/render optimizasyonu benchmark olmadan yapılmamalı.
+- [ ] **AÇIK PR #50:** Sahipsiz/eski yerel hikâye kaydının yeni Firebase hesabına otomatik yüklenmesini engelleyen hesap izolasyonu PR'ı ayrı duruyor: https://github.com/1rid3mon/towerv1/pull/50. Bu değişiklik main'e alınmadı; sonrasında main tabanına göre tekrar incelenip CI/merge yapılmalı.
+- [ ] **HİKÂYE MODU QA:** PR #49'ın yükseltme izolasyonu için otomatik testler var; ancak yüksek Sonsuz Mod can/hasar/eşya/yoldaş değerleriyle gerçek tarayıcı testi, görev tamamlandıktan sonra “Tekrar Oyna”, görevden çıkış ve Sonsuz Mod kayıtlarının korunduğu henüz elle doğrulanmadı.
+- [ ] **ARKADAŞ SİSTEMİ:** UI/fonksiyonlar mevcut olsa da iki gerçek hesapla istek → kabul/ret → listeleme → arkadaşlıktan çıkarma uçtan uca doğrulaması eksik. Firestore Emulator test kapsamı ve gerçek Firebase kuralları ayrıca kontrol edilmeli.
+- [ ] **FIREBASE ÜRETİM KURALLARI:** `security-lab/firestore.rules` test/aday dosyasıdır; Firebase Console'daki canlı kuralların bununla aynı olduğu doğrulanmış değildir. Liderlik tablosu skorları istemciden bildiriliyor; hileye dayanıklı rekabet için sunucu tarafı doğrulama/backend eksik.
+- [ ] **HİKÂYE İÇERİĞİ:** `STORY_CHAPTER_02.md` durumuna göre Görev 10–15 ilk oynanabilir sürümde; gerçek tarayıcı/mobil QA bekliyor. Görev 16–18 henüz tasarım aşamasında.
+- [ ] **CİHAZ QA:** Mobil portre/yatay, masaüstü, dil değişimi, ses ve Canvas performansı gerçek cihazlarda test edilmedi. Bu kontrol listesi oyunun tamamının otomatik olarak test edildiği anlamına gelmez.
+- **Sonuç:** PR #49 ve PR #51 main'e alındı, otomatik regresyon suite 136/136 geçti. Canlı dağıtım ve manuel oynanış hâlâ doğrulanmalı; “oyun tamamen optimize edildi” veya “her şey tamam” iddiası için yeterli kanıt yok.
