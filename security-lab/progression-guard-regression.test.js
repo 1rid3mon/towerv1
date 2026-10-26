@@ -222,7 +222,7 @@ test('unsupported Story Mode phases cannot fall through and falsely complete mis
     'function scanStorySignal()'
   );
   const guard = body.indexOf('if (![1, 2].includes(session.mission)) return;');
-  const genericCompletion = body.indexOf('session.completed = true; isPaused = true; enemies = []; projectiles = [];');
+  const genericCompletion = body.indexOf('session.completed = true; showStoryMissionResult(); isPaused = true; enemies = []; projectiles = [];');
   assert.ok(guard >= 0 && genericCompletion > guard,
     'only mission 1/2 may use the generic completion branch');
   assert.match(body, /if \(session\.mission === 1\)[\s\S]*?else \{[\s\S]*?mission2Complete: true/);
