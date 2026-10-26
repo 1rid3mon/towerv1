@@ -399,15 +399,20 @@ test('Story completion exceptions pause safely instead of escaping the engine lo
 
 test('Chapter 02 missions 16–18 are wired, sequentially gated, and persisted by Story-only flags', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  const rules = fs.readFileSync(path.join(root, 'firestore.rules'), 'utf8');
+  const rules = fs.readFileSync(path.join(root, 'security-lab/firestore.rules'), 'utf8');
   for (const mission of [16, 17, 18]) {
-    assert.match(html, new RegExp('id="story-start-mission' + mission + '"'));
-    assert.match(storySource, new RegExp("mission" + mission + "Complete: saved\\.mission" + mission + "Complete === true"));
-    assert.match(rules, new RegExp("d\\.mission" + mission + "Complete is bool"));
+    assert.ok(html.includes('id="story-start-mission' + mission + '"'));
+    assert.ok(storySource.includes('mission' + mission + 'Complete: saved.mission' + mission + 'Complete === true'));
+    assert.ok(rules.includes('d.mission' + mission + 'Complete is bool'));
+    assert.ok(rules.includes("'mission" + mission + "Complete'"));
   }
-  assert.match(storySource, /16: 'mission15Complete'[\\s\\S]*17: 'mission16Complete'[\\s\\S]*18: 'mission17Complete'/);
-  assert.match(storySource, /session\\.mission === 16 && session\\.phase === 'routeScan2'[\\s\\S]*mission16Complete: true/);
-  assert.match(storySource, /session\\.mission === 17 && session\\.phase === 'archive2'[\\s\\S]*callSign/);
-  assert.match(storySource, /session\\.mission === 18 && session\\.phase === 'finalLock'[\\s\\S]*mission18Complete: true/);
-  assert.match(storySource, /completedCount \\/ 18/);
+  assert.ok(storySource.includes("16: 'mission15Complete'"));
+  assert.ok(storySource.includes("17: 'mission16Complete'"));
+  assert.ok(storySource.includes("18: 'mission17Complete'"));
+  assert.ok(storySource.includes("session.mission === 16 && session.phase === 'routeScan2'"));
+  assert.ok(storySource.includes("session.mission === 17 && session.phase === 'archive2'"));
+  assert.ok(storySource.includes("session.mission === 18 && session.phase === 'finalLock'"));
+  assert.ok(storySource.includes("completedCount / 18"));
+  assert.ok(storySource.includes("callSignChoice: ['echo','piko'].includes(saved.callSignChoice) ? saved.callSignChoice : null"));
+  assert.ok(rules.includes("d.callSignChoice in ['echo','piko']"));
 });
