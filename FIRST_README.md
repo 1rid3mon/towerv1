@@ -423,3 +423,15 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - Mobilde ilerleme başlığı sıkışmasın diye responsive yerleşim ve azaltılmış hareket tercihi korundu.
 - PR #53 main'e alındı (merge commit: `878355fdabeed8b75c1a007ecbccd806e3c13068`). GitHub Actions `40285400823` başarılı tamamlandı; JavaScript sözdizimi ve Firestore Emulator testleri geçti.
 - PR dalındaki önceki commit için Vercel dağıtımı tamamlandı; sonraki commit'te Vercel yeniden `build-rate-limit` hatası verdi. Son main commit'in canlı dağıtımı doğrulanmış değil; gerçek cihazda görsel/oynanış QA'sı hâlâ bekliyor.
+
+
+## 2026-10-27 — Story / Endless bağımlılık haritası ve ilk kod ayrımı
+
+- [x] `STORY_DEPENDENCY_MAP.md` eklendi. Story controller, ortak savaş motoru, çizim katmanı, oyun verisi, kayıtlar, HTML ID'leri ve riskli geçişler dosya bazında haritalandı.
+- [x] Hikâye ilerlemesi, görev panosu, intro/diyalog, görev oturumu ve görev eylemlerini içeren yaklaşık 1.233 satırlık controller bloğu `ui.js` içinden `story.js` dosyasına taşındı.
+- [x] `index.html` içinde `story.js`, `ui.js` sonrasında; ortak `render.js` ve `engine.js` öncesinde yükleniyor. Ortak savaş motoru veya Piko SVG'si kopyalanmadı.
+- [x] Story güvenlik/regresyon testleri, taşınan Story fonksiyonlarını artık `story.js` kaynağından okuyor.
+- [ ] **Doğrulama bekliyor:** CI/syntax/regresyon testleri henüz bu kayıtta başarılı olarak işaretlenmedi.
+- [ ] **Açık kapsam:** Story HTML/CSS hâlâ `index.html` içinde. Ayrı `story.html` oluşturulmadı; bunu motor, Firebase, sayfa geçişi ve Android WebView bağımlılıkları doğrulanmadan kopyalamayacağız.
+- [ ] **Manuel test bekliyor:** Sonsuz → ana menü → Hikâye → görev → çıkış → Sonsuz; kayıt sahibi değişimi; mobil portre/yatay ve Android geri tuşu.
+- [ ] Bu değişiklik yalnızca `experiment/story-mode-separation-draft` dalındadır; `main` ve canlı site değiştirilmedi.
