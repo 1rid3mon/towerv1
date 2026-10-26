@@ -4341,7 +4341,7 @@ function startStoryMission(missionNumber = 1) {
     document.body.dataset.gameMode = 'story';
     game = getDefaultState();
     game.wave = 1; game.highestWave = 1; game.gold = 180;
-    game.waveKills = 0; game.waveTargetKills = missionNumber === 1 ? 8 : (missionNumber === 5 ? 8 : (missionNumber === 7 ? 8 : (missionNumber === 9 ? 10 : (missionNumber === 10 ? 6 : (missionNumber === 11 ? 8 : (missionNumber === 12 ? 6 : (missionNumber === 13 ? 7 : (missionNumber === 14 ? 12 : 5)))))))); game.holdWave = false;
+    game.waveKills = 0; game.waveTargetKills = missionNumber === 1 ? 8 : (missionNumber === 5 ? 8 : (missionNumber === 7 ? 8 : (missionNumber === 9 ? 10 : (missionNumber === 10 ? 6 : (missionNumber === 11 ? 8 : (missionNumber === 12 ? 6 : (missionNumber === 13 ? 7 : (missionNumber === 14 ? 12 : (missionNumber === 15 ? 6 : 5))))))))); game.holdWave = false;
     // Story missions use a deterministic loadout, never the endless-mode save's upgrades/items.
     game.upgrades.damage = 3; game.upgrades.attackSpeed = 2; game.upgrades.range = 3;
     game.upgrades.critChance = 0; game.upgrades.critMult = 1; game.upgrades.multishot = 0;
@@ -4393,7 +4393,8 @@ function startStoryMission(missionNumber = 1) {
         11: ['PİKO','PIKO','Aşağıdaki ağ istasyondan eski. Lütfen bunun normal olduğunu söyle; ben söyleyemiyorum.','The network below predates the station. Please tell me that is normal; I cannot.'],
         12: ['PİKO','PIKO','Arşivde benim için bir kayıt var. Garip olan, kaydın tarihinin benim çekirdeğimden daha eski olması değil… içindeki sesin benim sesim olmaması.','There is a record for me in the archive. The strange part is not that it predates my core… it is that the voice inside is not mine.'],
         13: ['PİKO','PIKO','İnsan kaydındaki ses benim ses izimle eşleşiyor. Ama anılarımda o insan yok. Hangimize inanmalıyım?','The human recording matches my voiceprint. But that person is not in my memories. Which account should I believe?'],
-        14: ['PİKO','PIKO','Sinyal çekirdeğin içinden geliyor. Ne olursa olsun bu kez gerçeği birlikte bulacağız.','The signal is coming from inside the core. Whatever happens, we will find the truth together this time.']
+        14: ['PİKO','PIKO','Sinyal çekirdeğin içinden geliyor. Ne olursa olsun bu kez gerçeği birlikte bulacağız.','The signal is coming from inside the core. Whatever happens, we will find the truth together this time.'],
+        15: ['PİKO','PIKO','Sinyal darbesi hâlâ içimde yankılanıyor. Önce sistemi dengelemeliyiz; sonra sana neyi kaybettiğimi anlatacağım.','The pulse is still echoing inside me. We need to stabilize the systems first; then I will tell you what I lost.']
     };
     const openingLine = commsByMission[missionNumber];
     if (openingLine) setStoryComms(...openingLine);
