@@ -267,3 +267,46 @@ test('Piko is rendered as an original full-body SVG companion, not an emoji plac
   assert.match(html, /width: 76px; height: 76px/);
   assert.match(html, /width: 64px; height: 64px/);
 });
+
+
+test('story mode bypasses the Endless anti-cheat shadow while preserving it for exit', () => {
+  const antiCheatStart = engineSource.indexOf('// 🛡️ ANTI-CHEAT: GÖLGE KASA VE BELLEK KORUMASI');
+  assert.notEqual(antiCheatStart, -1);
+  const intervalStart = engineSource.indexOf('setInterval(() => {', antiCheatStart);
+  const storyGuard = engineSource.indexOf("document.body?.dataset?.gameMode === 'story' || window.__storyBattle?.active", intervalStart);
+  const shadowInit = engineSource.indexOf('if (!shadow) { syncShadow(); return; }', intervalStart);
+  assert.ok(storyGuard > intervalStart && storyGuard < shadowInit, 'story guard must run before shadow initialization or rollback checks');
+});
+
+test('story mode hard-isolates multishot, economy, and companion multipliers', () => {
+  const sandbox = {
+    document: { body: { dataset: { gameMode: 'story' } } },
+    game: {
+      upgrades: { multishot: 0, goldBonus: 0, crystalChance: 0 },
+      equippedItems: ['legendary_bow', 'gold_relic'],
+      prestigeUpgrades: { permGold: 99, companionBoost: 99 },
+      lootboxBonuses: { extraGoldPct: 999 },
+      wave: 100, holdWave: false
+    },
+    ITEM_DATABASE: {
+      legendary_bow: { type: 'multishot_buff', val: 5 },
+      gold_relic: { type: 'gold', val: 5 }
+    }
+  };
+  const multishot = extractFunction(dataSource, 'function getEffectiveMultishot()', 'function getBulkUpgradeInfo');
+  const gold = extractFunction(dataSource, 'function getGoldMultiplier()', 'function getWaveBonusPreview');
+  const companion = extractFunction(dataSource, 'function getCompanionBoost()', 'function calculatePendingSouls');
+  vm.runInNewContext(multishot + '\n' + gold + '\n' + companion + '\nglobalThis.result = [getEffectiveMultishot(), getGoldMultiplier(), getCompanionBoost()];', sandbox);
+  assert.deepEqual(Array.from(sandbox.result), [1, 1, 1]);
+});
+
+
+test('completed Story Mode session is cleaned before the Endless unlock check, while unfinished missions remain active', () => {
+  const start = uiSource.indexOf('function startStoryMission(');
+  const end = uiSource.indexOf('function finishStoryBattleEncounter()', start);
+  const body = uiSource.slice(start, end);
+  const cleanup = body.indexOf('exitStoryBattle(false);');
+  const unlockGate = body.indexOf('if (!updateStoryUnlockUI())');
+  assert.ok(cleanup >= 0 && unlockGate > cleanup, 'completed story replay must restore Endless state before checking the Endless wave requirement');
+  assert.match(body, /if \(\!window\.__storyBattle\.completed\) return;/);
+});

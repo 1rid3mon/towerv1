@@ -1335,6 +1335,10 @@ window.onload = function () {
 
     setInterval(() => {
         if (typeof game === 'undefined') return;
+        // Story missions intentionally use a temporary sandbox state. Do not let the Endless
+        // Mode anti-cheat shadow restore Endless upgrades/companions into the active mission.
+        // Keep the Endless shadow untouched so the original state is still trusted after exit.
+        if (document.body?.dataset?.gameMode === 'story' || window.__storyBattle?.active) return;
         if (!shadow) { syncShadow(); return; }
 
         // Reject non-finite/corrupt progression values before comparing deltas; NaN makes
