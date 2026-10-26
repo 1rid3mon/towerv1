@@ -131,8 +131,9 @@ function validStoryProgress(overrides = {}) {
     mission7Complete: false, mission8Complete: false, mission9Complete: false,
     mission10Complete: false, mission11Complete: false, mission12Complete: false,
     mission13Complete: false, mission14Complete: false, mission15Complete: false,
+    mission16Complete: false, mission17Complete: false, mission18Complete: false,
     voiceChoice: null, pulseTutorialComplete: false, companionForm: "basic",
-    repairChoiceCount: 0, routeChoice: null, powerChoice: null, updatedAt: Date.now(),
+    repairChoiceCount: 0, routeChoice: null, powerChoice: null, callSignChoice: null, updatedAt: Date.now(),
     ...overrides
   };
 }
@@ -145,6 +146,17 @@ test("story progress owner can create a valid cloud save", async () => {
 test("story progress accepts the new Mission 15 completion flag", async () => {
   const alice = testEnv.authenticatedContext("alice").firestore();
   await assertSucceeds(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({ mission14Complete: true, mission15Complete: true, chapter: 2 })));
+});
+
+test("story progress accepts Chapter 02 missions 16–18 and the persisted call-sign choice", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  await assertSucceeds(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({
+    mission15Complete: true, mission16Complete: true, mission17Complete: true,
+    mission18Complete: true, callSignChoice: "echo", chapter: 2
+  })));
+  await assertFails(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({
+    mission16Complete: true, callSignChoice: "admin"
+  })));
 });
 
 test("story progress cannot be read or changed by another account", async () => {
