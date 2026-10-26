@@ -423,3 +423,53 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - Mobilde ilerleme başlığı sıkışmasın diye responsive yerleşim ve azaltılmış hareket tercihi korundu.
 - PR #53 main'e alındı (merge commit: `878355fdabeed8b75c1a007ecbccd806e3c13068`). GitHub Actions `40285400823` başarılı tamamlandı; JavaScript sözdizimi ve Firestore Emulator testleri geçti.
 - PR dalındaki önceki commit için Vercel dağıtımı tamamlandı; sonraki commit'te Vercel yeniden `build-rate-limit` hatası verdi. Son main commit'in canlı dağıtımı doğrulanmış değil; gerçek cihazda görsel/oynanış QA'sı hâlâ bekliyor.
+
+
+---
+
+## Mimari karar kaydı — 2026-10-27: Hikâye modu sınırı ve Android'e hazırlık
+
+**Durum: KARAR / İNCELEME PLANI — henüz kod refactor'u yapılmadı.**
+
+### Hedef
+Hikâye modundaki bugların azaltılması, Sonsuz Mod ile ilerleme/oturum durumunun birbirine karışmaması ve ileride hikâyenin ayrı bir `story.html` giriş noktası olarak sunulabilmesi. Android paketleme (muhtemelen WebView tabanlı) düşünülerek mobil portre/yatay düzen, Firebase'in tek sefer başlatılması, göreli dosya yolları ve Android geri tuşu davranışı ayrıca ele alınmalı.
+
+### Mimari yön
+- **İki ayrı HTML dosyası masada kalacak.** Nihai hedef gerekirse `index.html` (Sonsuz Mod/ana giriş) ve `story.html` (Hikâye Modu girişi) olabilir.
+- **Şimdilik HTML/engine/render kopyalanmayacak.** İki kopya oyun mantığı, düzeltmeler ve performans optimizasyonları arasında ayrışma riski yaratır.
+- İlk aşamada ortak çekirdek (`engine.js`, `render.js`, `data.js` içinden gerçekten ortak olan parçalar) korunur; hikâye kontrol akışı ve hikâyeye özel durum açık sınırlarla ayrılır.
+- Olası hedef dosya ayrımı: `story.js` (hikâye akışı/oturum), ileride gerekirse `story-data.js` (görev metni ve tanımları), `story-render.js` (yalnızca hikâyeye özel çizim). Bu dosyalar ancak bağımlılık denetimi ve testler hazır olduğunda çıkarılacak.
+- `story.html` oluşturma kararı, hikâyeye özel DOM/CSS ve script bağımlılıkları ayrıştırılabildiği, tek girişteki davranışlar regresyon testleriyle güvenceye alındığı zaman verilecek.
+
+### Mevcut bulgular
+- `index.html` şu anda tüm ana oyun arayüzünü ve hikâye arayüzünün bir kısmını aynı DOM içinde barındırıyor.
+- Script yükleme sırası `data.js` → `ui.js` → `render.js` → `engine.js`; bu yüzden `ui.js` içindeki fonksiyonların hangi global/DOM öğelerine çalışma anında bağlı olduğu denetlenmeden topluca taşınmamalı.
+- Hikâye ilerlemesi için `STORY_PROGRESS_KEY` ve `STORY_PROGRESS_OWNER_KEY` gibi ayrı anahtarlar var; ancak ayrı kayıt anahtarı tek başına savaş durumu, yükseltmeler, yoldaşlar, zamanlayıcılar ve global UI durumunun izole olduğunu kanıtlamaz.
+- PR #50 (`fix/story-cloud-owner-isolation`) hâlâ açık ve merge edilmemiş görünüyor. Hesaplar arası kayıt izolasyonu ile ilgili bu değişiklik, mimari refactor öncesi ayrıca incelenmeli; canlı hesaplarla manuel test yapılmadan doğrulanmış sayılmamalı.
+- PR #54 Cataclysm boss alarmı ayrı bir özellik dalında. Bu mimari işin parçası değil; kendi CI ve manuel boss testleri tamamlanmadan merge/canlı diye varsayılmamalı.
+
+### Uygulama sırası — küçük ve geri alınabilir adımlar
+1. **Bağımlılık haritası:** Hikâye fonksiyonlarını, DOM ID'lerini, global state değişkenlerini, timer/listener'ları, save/load ve Firebase çağrılarını listele.
+2. **Karakterizasyon/regresyon testleri:** Hikâyeye giriş, görev başlatma, kazanma/kaybetme, tekrar deneme, çıkış ve Sonsuz Mod'a dönüş; her geçişte altın/yükseltme/yoldaş/çoklu atış/oyun döngüsü durumunun beklenen şekilde temizlenmesi veya korunması.
+3. **Oturum sınırı:** Hikâye ve Sonsuz Mod için açık mode/session context oluştur; modu değiştirirken timer/listener ve aktif savaş durumu temizliğini merkezi hale getir.
+4. **Controller çıkarımı:** Önce hikâye akışı ve görev mantığını `story.js` içine taşı; davranışı değiştirme, yalnızca bağımlılıkları açık hale getir. `ui.js` içindeki global fonksiyonlara/DOM'a olan örtük bağımlılıkları azalt.
+5. **DOM/CSS ve çizim ayrımı:** Hikâyeye özel markup ve stilleri belirle; ortak render fonksiyonlarını kopyalama. Gerekirse `story-render.js` çıkar.
+6. **İki HTML için karar kapısı:** Aynı ortak modülleri yükleyen `story.html` prototipi oluştur; Firebase'in iki kere initialize edilmediğini, göreli asset yollarını, auth akışını, geri tuşunu ve mobil portre/yatay yerleşimi doğrula. Sonra mevcut `index.html` akışının regresyonlarını test et.
+7. **Android paketleme:** Web sürümündeki iki giriş noktasının paket içinde nasıl açılacağına karar ver; uygulama tek WebView ise girişler arası navigation, state temizliği ve Android back davranışı ayrıca test edilecek.
+
+### Kabul kriterleri
+- Hikâye ve Sonsuz Mod birbirlerinin yükseltme/ekipman/yoldaş/ekonomi durumunu yanlışlıkla devralmıyor.
+- Görev kazanma/kaybetme/tekrar deneme/çıkışta aktif timer, listener ve savaş oturumu sızıntısı yok.
+- Hikâye bulut kaydı hesaplar arasında karışmıyor; mevcut kullanıcı kayıtları kaybolmuyor.
+- Desktop, mobil portre ve mobil yatay akışları test ediliyor.
+- `index.html` ve olası `story.html` aynı ortak çekirdeği kullanıyor; engine/render kodu gereksiz yere kopyalanmıyor.
+- Her aşamada JS syntax + ilgili regresyon testleri + GitHub Actions çalışıyor. Canlı deploy ve gerçek cihaz testi ayrı ayrı raporlanıyor.
+
+### Bu kaydın durumu
+- [x] İki ayrı HTML fikri mimari seçenek olarak korundu.
+- [x] Önce ortak çekirdeği koruyup story controller/state sınırını ayırma yönü belirlendi.
+- [ ] Bağımlılık haritası tamamlanmadı.
+- [ ] Refactor başlamadı.
+- [ ] Testler ve gerçek cihaz QA yapılmadı.
+- [ ] `story.html` oluşturulmadı.
+- **Sonraki iş:** Hikâye fonksiyonları ile DOM/global state bağımlılıklarını sistematik biçimde haritala; bu incelemeden önce büyük çaplı kod taşıma yapma.
