@@ -21,7 +21,7 @@ Bu yüzden ilk güvenli ayrım, ortak savaş motorunu veya Piko SVG'sini kopyala
 | `data.js` | Ortak yükseltme/eşya verisi; `body.dataset.gameMode === 'story'` iken ekipman bonusunu sıfırlayan koruma | Mod bağlamı kaybolursa Endless ekipmanı Story savaşına sızabilir |
 | `security-lab/progression-guard-regression.test.js` ve ilgili testler | Kaynak metninden Story guard/fonksiyonlarını çıkarıp kontrol eden regresyon testleri | Fonksiyon başka dosyaya taşınırsa test kaynak dosyası ve test kapsamı da güncellenmeli |
 
-## Story controller sınırları (mevcut `ui.js`)
+## Story controller sınırları (ayrıştırma sonrası `story.js`)
 
 - **Mod geçişi:** `enterGameMode('endless')`, `returnToMainMenu()`; `openStoryMode()`, `closeStoryMode()`.
 - **İlerleme/kayıt:** `STORY_PROGRESS_KEY`, `STORY_PROGRESS_OWNER_KEY`, `getStoryProgress()`, `saveStoryProgress()`, `pushStoryProgressToCloud()`, `pullStoryProgressFromCloud()`, `getValidatedStoryProgress()`.
@@ -31,7 +31,7 @@ Bu yüzden ilk güvenli ayrım, ortak savaş motorunu veya Piko SVG'sini kopyala
 
 ## Durum ve bağımlılık sözleşmesi
 
-Story controller şu ortak global alanlarla çalışıyor veya onlara çağrı yapıyor: `game`, `tower`, `enemies`, `projectiles`, `particles`, `floatingTexts`, `rings`, `cargoDrones`, `spawnTimer`, `playTimeAccum`, `waveFrostSpawns`, `cargoSpawnTimer`, `gameSpeed`, `isPaused`, `isDefeated`, `defeatTimer`; ayrıca `resizeCanvas`, `updateHUD`, `refreshUpgradeButtonsState`, `updateHoldWaveButton`, `saveGame`, `showToast`, Firebase/auth alanları ve HTML ID'leri.
+Ayrıştırılan `story.js` controller'ı şu ortak global alanlarla çalışıyor veya onlara çağrı yapıyor: `game`, `tower`, `enemies`, `projectiles`, `particles`, `floatingTexts`, `rings`, `cargoDrones`, `spawnTimer`, `playTimeAccum`, `waveFrostSpawns`, `cargoSpawnTimer`, `gameSpeed`, `isPaused`, `isDefeated`, `defeatTimer`; ayrıca `resizeCanvas`, `updateHUD`, `refreshUpgradeButtonsState`, `updateHoldWaveButton`, `saveGame`, `showToast`, Firebase/auth alanları ve HTML ID'leri.
 
 Görev başlatırken Endless runtime durumunun snapshot'ı alınır, Story sandbox durumu kurulur ve `document.body.dataset.gameMode = 'story'` yapılır. Çıkışta snapshot geri yüklenir. Bu kritik sınır mevcut davranışın parçasıdır; yeniden yazılmamalı, taşınırken aynen korunup regresyon testleriyle doğrulanmalıdır.
 
@@ -46,7 +46,7 @@ Görev başlatırken Endless runtime durumunun snapshot'ı alınır, Story sandb
 ## Sıralı ayrıştırma planı
 
 1. Bu haritayı ve ayrıştırma öncesi yedeği koru.
-2. Story controller bloğunu (ilerleme, görev akışı, Story UI eylemleri) `story.js` dosyasına taşı; `ui.js` içindeki Endless/auth/ortak Piko ve ana menü kodunu yerinde bırak.
+2. Story controller bloğu `story.js` dosyasına taşındı; `ui.js` içinde Endless/auth/ortak Piko ve ana menü kodu kaldı. Bu sınır sonraki değişikliklerde korunmalı.
 3. `index.html` içinde `story.js` dosyasını `ui.js` sonrasında, `render.js` ve `engine.js` öncesinde yükle; böylece global fonksiyonlar DOMContentLoaded öncesinde tanımlı olur ve ortak motor tek kalır.
 4. Testlerin `ui.js` varsayımlarını güncelle; fonksiyon gövdelerinin `story.js` içinden test edilmesini sağla. JavaScript syntax ve mevcut regresyon/Firestore testlerini çalıştır.
 5. Sonraki ayrı aşamada Story CSS/HTML'ini modül sınırına göre ayırmayı ve `story.html` prototipini değerlendirmeyi ancak runtime bağımlılıkları çözüldükten sonra yap.
