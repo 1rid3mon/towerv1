@@ -624,6 +624,13 @@ function startStoryMission(missionNumber = 1) {
     else if (missionNumber === 15) showToast(storyLanguage() === 'en' ? 'Mission 15 · Stabilize Piko after the pulse feedback. The missing memory may not return.' : 'Görev 15 · Sinyal geri beslemesinden sonra Piko’yu dengele. Kayıp anı geri dönmeyebilir.');
 }
 function finishStoryBattleEncounter() {
+    const session = window.__storyBattle;
+    if (!session || !session.active || session.completed) return;
+    const en = storyLanguage() === 'en';
+    const setStatus = text => { const el = document.getElementById('story-battle-status'); if (el) el.textContent = text; };
+    const setAction = (id, hidden, label) => { const el = document.getElementById(id); if (el) { el.hidden = hidden; if (label) el.textContent = label; } };
+    const setExit = label => { const el = document.getElementById('story-battle-exit'); if (el) el.textContent = label; };
+
 
     if (session.mission === 16 && session.phase === 'combat') {
         session.phase = 'routeScan1'; isPaused = true; enemies = []; projectiles = [];
@@ -704,15 +711,6 @@ function finishStoryBattleEncounter() {
         setAction('story-chapter2-action', true); setExit(en ? 'RETURN TO CHAPTER BOARD' : 'GÖREV PANOSUNA DÖN');
         showToast(en ? 'Chapter 02 complete. The purple signal has answered.' : '2. bölüm tamamlandı. Mor sinyal yanıt verdi.'); return;
     }
-
-
-    const session = window.__storyBattle;
-    if (!session || !session.active || session.completed) return;
-    const en = storyLanguage() === 'en';
-    const setStatus = text => { const el = document.getElementById('story-battle-status'); if (el) el.textContent = text; };
-    const setAction = (id, hidden, label) => { const el = document.getElementById(id); if (el) { el.hidden = hidden; if (label) el.textContent = label; } };
-    const setExit = label => { const el = document.getElementById('story-battle-exit'); if (el) el.textContent = label; };
-
     if (session.mission === 4 && session.phase === 'powerChoice') return;
 
     if (session.mission === 12 && session.phase === 'combat') {
