@@ -3989,6 +3989,7 @@ function returnToMainMenu() {
 // Story progress is deliberately isolated from the existing Endless save.
 const STORY_PROGRESS_KEY = 'towerDefenseStoryProgressV1';
 const STORY_PROGRESS_OWNER_KEY = 'towerDefenseStoryProgressOwnerV1';
+const STORY_PROGRESS_UNCLAIMED_KEY = 'towerDefenseStoryProgressUnclaimedV1';
 const STORY_DIALOGUES = [
  {speaker:{tr:'İSTASYON YAPAY ZEKÂSI',en:'STATION AI'},text:{tr:'Komutan, istasyona ulaştık. Yaşam belirtisi yok. Bütün sistemler biz yaklaşınca kapandı; sanki gelişimizi bekliyorlardı.',en:'Commander, we have reached the station. No life signs. Every system shut down as we approached—as if they were waiting for us.'}},
  {speaker:{tr:'MAVİ HOLOGRAM',en:'BLUE HOLOGRAM'},text:{tr:'Bağlantı… kuruldu. Sonunda geldiniz, komutan.',en:'Connection… established. You finally made it, Commander.'}},
@@ -4108,7 +4109,13 @@ async function pullStoryProgressFromCloud(silent = true) {
         const snapshot = await ref.get();
         const localOwner = localStorage.getItem(STORY_PROGRESS_OWNER_KEY);
         const belongsToAnotherAccount = !!localOwner && localOwner !== currentUser.uid;
-        const local = belongsToAnotherAccount ? null : getStoryProgress();
+        // A local save without an owner marker is legacy/guest data, not proof that it belongs
+        // to the account that just signed in. Preserve it separately; never silently upload it.
+        const unownedLocal = !localOwner ? getStoryProgress() : null;
+        if (unownedLocal && unownedLocal.updatedAt > 0) {
+            try { localStorage.setItem(STORY_PROGRESS_UNCLAIMED_KEY, JSON.stringify(unownedLocal)); } catch (_) {}
+        }
+        const local = localOwner === currentUser.uid ? getStoryProgress() : null;
         if (!snapshot.exists) {
             if (local && local.updatedAt > 0) {
                 await pushStoryProgressToCloud(true);
