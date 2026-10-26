@@ -6,6 +6,7 @@ const vm = require('node:vm');
 
 const root = path.join(__dirname, '..');
 const uiSource = fs.readFileSync(path.join(root, 'ui.js'), 'utf8');
+const storySource = fs.readFileSync(path.join(root, 'story.js'), 'utf8');
 const engineSource = fs.readFileSync(path.join(root, 'engine.js'), 'utf8');
 const dataSource = fs.readFileSync(path.join(root, 'data.js'), 'utf8');
 
@@ -160,7 +161,7 @@ test('leaderboard clearly labels scores as client-reported until server verifica
 
 test('Story Mode mission handler enforces the previous-mission prerequisite even when called directly', () => {
   const body = extractFunction(
-    uiSource,
+    storySource,
     'function storyMissionPrerequisiteMet(missionNumber, progress)',
     'function startStoryMission'
   );
@@ -202,7 +203,7 @@ test('Story Mode mission handler enforces the previous-mission prerequisite even
       `mission ${mission} must not unlock from a false completion flag`
     );
   }
-  assert.match(uiSource, /if \(!storyMissionPrerequisiteMet\(missionNumber, progress\)\)/);
+  assert.match(storySource, /if \(!storyMissionPrerequisiteMet\(missionNumber, progress\)\)/);
 });
 
 
@@ -216,7 +217,7 @@ test('routine HUD refresh is throttled while explicit event updates remain avail
 
 test('unsupported Story Mode phases cannot fall through and falsely complete mission 2', () => {
   const body = extractFunction(
-    uiSource,
+    storySource,
     'function finishStoryBattleEncounter()',
     'function scanStorySignal()'
   );
@@ -228,14 +229,14 @@ test('unsupported Story Mode phases cannot fall through and falsely complete mis
 });
 
 test('mission 13, 14 and 15 each have exactly one initial objective label branch', () => {
-  const start = uiSource.indexOf('function startStoryMission(');
-  const end = uiSource.indexOf('function finishStoryBattleEncounter()', start);
+  const start = storySource.indexOf('function startStoryMission(');
+  const end = storySource.indexOf('function finishStoryBattleEncounter()', start);
   const body = uiSource.slice(start, end);
   assert.equal((body.match(/else if \(missionNumber === 13\) status\.textContent/g) || []).length, 1);
   assert.equal((body.match(/else if \(missionNumber === 14\) status\.textContent/g) || []).length, 1);
   assert.equal((body.match(/else if \(missionNumber === 15\) status\.textContent/g) || []).length, 1);
   assert.match(body, /mission15-repair-action/);
-  assert.match(uiSource, /function repairStoryMission15System\(\)/);
+  assert.match(storySource, /function repairStoryMission15System\(\)/);
 });
 
 
@@ -302,8 +303,8 @@ test('story mode hard-isolates multishot, economy, and companion multipliers', (
 
 
 test('completed Story Mode session is cleaned before the Endless unlock check, while unfinished missions remain active', () => {
-  const start = uiSource.indexOf('function startStoryMission(');
-  const end = uiSource.indexOf('function finishStoryBattleEncounter()', start);
+  const start = storySource.indexOf('function startStoryMission(');
+  const end = storySource.indexOf('function finishStoryBattleEncounter()', start);
   const body = uiSource.slice(start, end);
   const cleanup = body.indexOf('exitStoryBattle(false);');
   const unlockGate = body.indexOf('if (!updateStoryUnlockUI())');
