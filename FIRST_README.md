@@ -312,3 +312,18 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [x] `security-lab/progression-guard-regression.test.js`: Piko SVG yapısı, animasyon sınıfları ve responsive ölçüler için regresyon testi eklendi.
 - [ ] **CI BEKLENİYOR:** Yeni testin ve JavaScript syntax/Firestore testlerinin son koşusu: [GitHub Actions](https://github.com/1rid3mon/towerv1/actions/runs/40279300466). Sonuç kontrol edilmeden testlerin geçtiği söylenmemeli.
 - [ ] **GÖRSEL / CİHAZ TESTİ:** SVG gerçek tarayıcıda ve iOS/Android ekranlarında henüz gözle kontrol edilmedi. Canlı siteye dağıtım doğrulanmadı.
+
+
+---
+
+## İş günlüğü — 2026-10-26: Geliştirme branch'i main'e aktarıldı
+
+- [x] `feature/story-chapter2-mission11` branch'indeki değişiklikleri içeren bir merge commit'i oluşturuldu: `132e8ba3dcb4be87a29bf255586374b40945c9b1`.
+- [x] `main` ref'i eski SHA `94be85a5914808bb780ee909f9bca23b801d9b97` üzerinden kontrollü biçimde güncellendi.
+- [x] Aktarılan içerik; hikâye ilerlemesi bulut senkronizasyonu, aday Firestore kuralları ve Emulator testleri, hikâye ilerleme korumaları, HUD güncelleme sınırı, arkadaş merkezi HTML düzeltmesi, Piko boss/sandık tepkileri, tam gövdeli SVG maskot ve bu devir dosyasındaki kayıtları kapsıyor.
+- [x] GitHub Actions run `40279300466` tamamlandı ve başarılı sonuçlandı: JavaScript syntax adımı ve Firestore Emulator test işi geçti.
+- [x] Yeni main commit'i için GitHub birleşik commit durumu kontrol edildi; Vercel kontrolü `success` ve bir deployment URL'si döndürüyor.
+- [ ] **CANLI SÜRÜMÜ GÖRSEL OLARAK DOĞRULAMA BEKLİYOR:** Vercel check başarılı görünse de oyunu tarayıcıda açıp Piko, hikâye akışı ve mobil düzeni elle doğrulamadım.
+- [ ] **ÜRETİM FIREBASE KURALLARI:** Repo içindeki `security-lab/firestore.rules` dosyası canlı Firebase Console kurallarını otomatik güncellemez; üretime uygulandığı varsayılmamalı.
+- Sonuç: **MAIN'E AKTARILDI.** Branch'teki içerik merge commit ağacına taşındı. Çakışan dosyalar için ağacın feature branch sürümleri seçildi; main'deki dört commit'in geçmişi merge parent olarak korunuyor.
+- Sıradaki adım: Vercel deployment URL'sini açıp gerçek sayfa yüklemesini kontrol et; ardından masaüstü, mobil portre/yatay, hikâye ilerleme senkronizasyonu ve Piko tepkilerini elle test et.
