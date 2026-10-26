@@ -4338,7 +4338,7 @@ function updateStoryMissionBoard() {
         if (!progress['mission' + missionNumber + 'Complete']) { nextMission = missionNumber; break; }
     }
     document.querySelectorAll('[id^="story-start-mission"]').forEach(button => {
-        const match = button.id.match(/^story-start-mission(\\d+)$/);
+        const match = button.id.match(/^story-start-mission(\d+)$/);
         if (!match) return;
         const missionNumber = Number(match[1]);
         const card = button.closest('.story-mission');
