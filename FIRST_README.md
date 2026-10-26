@@ -435,3 +435,13 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] **Açık kapsam:** Story HTML/CSS hâlâ `index.html` içinde. Ayrı `story.html` oluşturulmadı; bunu motor, Firebase, sayfa geçişi ve Android WebView bağımlılıkları doğrulanmadan kopyalamayacağız.
 - [ ] **Manuel test bekliyor:** Sonsuz → ana menü → Hikâye → görev → çıkış → Sonsuz; kayıt sahibi değişimi; mobil portre/yatay ve Android geri tuşu.
 - [ ] Bu değişiklik yalnızca `experiment/story-mode-separation-draft` dalındadır; `main` ve canlı site değiştirilmedi.
+
+
+## 2026-10-27 — Story dialogue compactness and mission completion screen
+
+- [x] Intro dialogue layout made more compact: hologram stays on the left and the dialogue uses a narrower side panel on wider screens; mobile stacks the hologram above the bubble.
+- [x] Dialogue text is capped to a viewport-relative height and scrolls internally when long, so it cannot stretch the whole screen.
+- [x] Added a dedicated mission-complete overlay with a clear “Görev panosuna dön” action, intended to replace the ambiguous blank/black-looking post-mission state.
+- [x] Completion state is surfaced from Story mission completion paths and the overlay is hidden on new mission start / exiting the mission.
+- [x] Added regression coverage for the compact dialogue CSS and visible completion return path.
+- [ ] **Validation pending:** latest CI run is still in progress. Manual browser and Android WebView checks remain required; no live deploy was made.
