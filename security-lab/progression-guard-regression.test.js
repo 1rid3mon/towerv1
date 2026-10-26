@@ -231,7 +231,7 @@ test('unsupported Story Mode phases cannot fall through and falsely complete mis
 test('mission 13, 14 and 15 each have exactly one initial objective label branch', () => {
   const start = storySource.indexOf('function startStoryMission(');
   const end = storySource.indexOf('function finishStoryBattleEncounter()', start);
-  const body = uiSource.slice(start, end);
+  const body = storySource.slice(start, end);
   assert.equal((body.match(/else if \(missionNumber === 13\) status\.textContent/g) || []).length, 1);
   assert.equal((body.match(/else if \(missionNumber === 14\) status\.textContent/g) || []).length, 1);
   assert.equal((body.match(/else if \(missionNumber === 15\) status\.textContent/g) || []).length, 1);
@@ -305,7 +305,7 @@ test('story mode hard-isolates multishot, economy, and companion multipliers', (
 test('completed Story Mode session is cleaned before the Endless unlock check, while unfinished missions remain active', () => {
   const start = storySource.indexOf('function startStoryMission(');
   const end = storySource.indexOf('function finishStoryBattleEncounter()', start);
-  const body = uiSource.slice(start, end);
+  const body = storySource.slice(start, end);
   const cleanup = body.indexOf('exitStoryBattle(false);');
   const unlockGate = body.indexOf('if (!updateStoryUnlockUI())');
   assert.ok(cleanup >= 0 && unlockGate > cleanup, 'completed story replay must restore Endless state before checking the Endless wave requirement');
