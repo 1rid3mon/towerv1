@@ -129,8 +129,8 @@ service cloud.firestore {
   match /storyProgress/{userId} {
    function validStoryProgress() {
     let d = request.resource.data;
-    return d.keys().hasOnly(['introSeen','chapter','mission1Complete','mission2Complete','mission3Complete','mission4Complete','mission5Complete','mission6Complete','mission7Complete','mission8Complete','mission9Complete','mission10Complete','mission11Complete','mission12Complete','mission13Complete','mission14Complete','mission15Complete','voiceChoice','pulseTutorialComplete','companionForm','repairChoiceCount','routeChoice','powerChoice','updatedAt'])
-     && d.keys().hasAll(['introSeen','chapter','mission1Complete','mission2Complete','mission3Complete','mission4Complete','mission5Complete','mission6Complete','mission7Complete','mission8Complete','mission9Complete','mission10Complete','mission11Complete','mission12Complete','mission13Complete','mission14Complete','mission15Complete','voiceChoice','pulseTutorialComplete','companionForm','repairChoiceCount','routeChoice','powerChoice','updatedAt'])
+    return d.keys().hasOnly(['introSeen','chapter','mission1Complete','mission2Complete','mission3Complete','mission4Complete','mission5Complete','mission6Complete','mission7Complete','mission8Complete','mission9Complete','mission10Complete','mission11Complete','mission12Complete','mission13Complete','mission14Complete','mission15Complete','mission16Complete','mission17Complete','mission18Complete','voiceChoice','pulseTutorialComplete','companionForm','repairChoiceCount','routeChoice','powerChoice','callSignChoice','updatedAt'])
+     && d.keys().hasAll(['introSeen','chapter','mission1Complete','mission2Complete','mission3Complete','mission4Complete','mission5Complete','mission6Complete','mission7Complete','mission8Complete','mission9Complete','mission10Complete','mission11Complete','mission12Complete','mission13Complete','mission14Complete','mission15Complete','mission16Complete','mission17Complete','mission18Complete','voiceChoice','pulseTutorialComplete','companionForm','repairChoiceCount','routeChoice','powerChoice','callSignChoice','updatedAt'])
      && d.introSeen is bool
      && validNum(d.chapter,1,2)
      && d.mission1Complete is bool && d.mission2Complete is bool
@@ -140,12 +140,14 @@ service cloud.firestore {
      && d.mission9Complete is bool && d.mission10Complete is bool
      && d.mission11Complete is bool && d.mission12Complete is bool
      && d.mission13Complete is bool && d.mission14Complete is bool && d.mission15Complete is bool
+     && d.mission16Complete is bool && d.mission17Complete is bool && d.mission18Complete is bool
      && (d.voiceChoice == null || d.voiceChoice in ['human','station'])
      && d.pulseTutorialComplete is bool
      && d.companionForm in ['basic','cyan']
      && validNum(d.repairChoiceCount,0,3)
      && (d.routeChoice == null || d.routeChoice in ['array','blackbox'])
      && (d.powerChoice == null || d.powerChoice in ['shield','weapon'])
+     && (d.callSignChoice == null || d.callSignChoice in ['echo','piko'])
      && d.updatedAt is number;
    }
    allow read: if isOwner(userId);

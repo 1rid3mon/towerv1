@@ -55,6 +55,9 @@ const STORY_UI_COPY = {
  mission13tag:['GÖREV 13','MISSION 13'], mission13title:['İnsan sesi','The Human Voice'], mission13desc:['Piko’nun ses izinin insan kaydıyla eşleşmesini araştır ve çelişen iki kayıttan birine güven.','Investigate why Piko’s voiceprint matches a human recording and choose which conflicting record to trust.'],
  mission14tag:['GÖREV 14','MISSION 14'], mission14title:['Çekirdeğin ötesi','Beyond the Core'], mission14desc:['İstasyon savunmasını aş, çekirdek kilitlerini sırayla çöz ve Piko’ya ulaşan sinyalin kaynağını bul.','Break through the station defense, unlock the core seals, and trace the signal reaching Piko.'],
  mission15tag:['GÖREV 15','MISSION 15'], mission15title:['Dinlemenin bedeli','The Cost of Listening'], mission15desc:['Sinyal darbesinin Piko’da bıraktığı hasarı gider; kaybolan anıyı saklamadığına tanık ol.','Repair the feedback damage caused by the pulse and witness Piko admit the memory it lost.'],
+ mission16tag:['GÖREV 16','MISSION 16'], mission16title:['Sahte çıkış','The False Exit'], mission16desc:['Aynı odaya dönen yolu çöz ve alt ağın döngüsünü kır.','Trace the looping route and break the lower network’s cycle.'],
+ mission17tag:['GÖREV 17','MISSION 17'], mission17title:['Arşivdeki isim','The Name in the Archive'], mission17desc:['Çelişen kayıtları incele ve Piko’nun kendi çağrı adını seçmesine izin ver.','Inspect conflicting records and let Piko choose its own call sign.'],
+ mission18tag:['GÖREV 18','MISSION 18'], mission18title:['Kilit seni tanıyor','The Lock That Knows You'], mission18desc:['Üç savunma aşamasını tamamla ve komutanın geçmişine açılan kilidi çöz.','Complete three defense stages and open the lock tied to the commander’s past.'],
  pulseMission10Action:['SİNYAL DARBESİ','SIGNAL PULSE'],
  reconnectAction:['BAĞLANTIYI YENİDEN KUR','RECONNECT TO COMPANION'], awakenAction:['YOLDAŞI UYANDIR','AWAKEN COMPANION'], pulseAction:['SİNYAL DARBESİNİ DENE','TEST SIGNAL PULSE'],
 
@@ -68,10 +71,10 @@ let storyDialogueIndex = 0;
 let storyMissionViewOpen = false;
 
 function getStoryProgress() {
-    const defaults = { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false, mission3Complete: false, mission4Complete: false, mission5Complete: false, mission6Complete: false, mission7Complete: false, mission8Complete: false, mission9Complete: false, mission10Complete: false, mission11Complete: false, mission12Complete: false, mission13Complete: false, mission14Complete: false, mission15Complete: false, voiceChoice: null, pulseTutorialComplete: false, companionForm: 'basic', repairChoiceCount: 0, routeChoice: null, powerChoice: null, updatedAt: 0 };
+    const defaults = { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false, mission3Complete: false, mission4Complete: false, mission5Complete: false, mission6Complete: false, mission7Complete: false, mission8Complete: false, mission9Complete: false, mission10Complete: false, mission11Complete: false, mission12Complete: false, mission13Complete: false, mission14Complete: false, mission15Complete: false, mission16Complete: false, mission17Complete: false, mission18Complete: false, voiceChoice: null, pulseTutorialComplete: false, companionForm: 'basic', repairChoiceCount: 0, routeChoice: null, powerChoice: null, callSignChoice: null, updatedAt: 0 };
     try {
         const saved = JSON.parse(localStorage.getItem(STORY_PROGRESS_KEY) || '{}');
-        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Math.min(2, Number(saved.chapter) || 1)), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true, mission3Complete: saved.mission3Complete === true, mission4Complete: saved.mission4Complete === true, mission5Complete: saved.mission5Complete === true, mission6Complete: saved.mission6Complete === true, mission7Complete: saved.mission7Complete === true, mission8Complete: saved.mission8Complete === true, mission9Complete: saved.mission9Complete === true, mission10Complete: saved.mission10Complete === true, mission11Complete: saved.mission11Complete === true, mission12Complete: saved.mission12Complete === true, mission13Complete: saved.mission13Complete === true, mission14Complete: saved.mission14Complete === true, mission15Complete: saved.mission15Complete === true, voiceChoice: ['human','station'].includes(saved.voiceChoice) ? saved.voiceChoice : null, pulseTutorialComplete: saved.pulseTutorialComplete === true, companionForm: saved.companionForm === 'cyan' ? 'cyan' : 'basic', repairChoiceCount: Math.max(0, Math.min(3, Number(saved.repairChoiceCount) || 0)), routeChoice: ['array','blackbox'].includes(saved.routeChoice) ? saved.routeChoice : null, powerChoice: ['shield','weapon'].includes(saved.powerChoice) ? saved.powerChoice : null, updatedAt: Math.max(0, Number(saved.updatedAt) || 0) };
+        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Math.min(2, Number(saved.chapter) || 1)), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true, mission3Complete: saved.mission3Complete === true, mission4Complete: saved.mission4Complete === true, mission5Complete: saved.mission5Complete === true, mission6Complete: saved.mission6Complete === true, mission7Complete: saved.mission7Complete === true, mission8Complete: saved.mission8Complete === true, mission9Complete: saved.mission9Complete === true, mission10Complete: saved.mission10Complete === true, mission11Complete: saved.mission11Complete === true, mission12Complete: saved.mission12Complete === true, mission13Complete: saved.mission13Complete === true, mission14Complete: saved.mission14Complete === true, mission15Complete: saved.mission15Complete === true, mission16Complete: saved.mission16Complete === true, mission17Complete: saved.mission17Complete === true, mission18Complete: saved.mission18Complete === true, voiceChoice: ['human','station'].includes(saved.voiceChoice) ? saved.voiceChoice : null, pulseTutorialComplete: saved.pulseTutorialComplete === true, companionForm: saved.companionForm === 'cyan' ? 'cyan' : 'basic', repairChoiceCount: Math.max(0, Math.min(3, Number(saved.repairChoiceCount) || 0)), routeChoice: ['array','blackbox'].includes(saved.routeChoice) ? saved.routeChoice : null, powerChoice: ['shield','weapon'].includes(saved.powerChoice) ? saved.powerChoice : null, callSignChoice: ['echo','piko'].includes(saved.callSignChoice) ? saved.callSignChoice : null, updatedAt: Math.max(0, Number(saved.updatedAt) || 0) };
     } catch (_) { return defaults; }
 }
 let storyCloudSaveTimer = null;
@@ -352,23 +355,32 @@ function updateStoryMissionBoard() {
     const s15 = document.getElementById('story-mission-15-status');
     if (m15) { m15.disabled = !progress.mission14Complete; m15.textContent = progress.mission15Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'STABILIZE PIKO →' : 'PİKO’YU DENGELE →'); }
     if (s15) { s15.classList.toggle('is-locked', !progress.mission14Complete && !progress.mission15Complete); s15.textContent = progress.mission15Complete ? (en ? 'MEMORY LOSS ACKNOWLEDGED' : 'KAYIP ANI KABUL EDİLDİ') : (progress.mission14Complete ? (en ? 'CHAPTER 02 · PLAYABLE' : '2. BÖLÜM · OYNANABİLİR') : (en ? 'LOCKED · COMPLETE MISSION 14' : 'KİLİTLİ · 14. GÖREVİ TAMAMLA')); }
+    const m16 = document.getElementById('story-start-mission16'); const s16 = document.getElementById('story-mission-16-status');
+    if (m16) { m16.disabled = !progress.mission15Complete; m16.textContent = progress.mission16Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'TRACE THE LOOP →' : 'DÖNGÜYÜ İZLE →'); }
+    if (s16) { s16.classList.toggle('is-locked', !progress.mission15Complete && !progress.mission16Complete); s16.textContent = progress.mission16Complete ? (en ? 'LOOP DISRUPTED' : 'DÖNGÜ KIRILDI') : (progress.mission15Complete ? (en ? 'CHAPTER 02 · PLAYABLE' : '2. BÖLÜM · OYNANABİLİR') : (en ? 'LOCKED · COMPLETE MISSION 15' : 'KİLİTLİ · 15. GÖREVİ TAMAMLA')); }
+    const m17 = document.getElementById('story-start-mission17'); const s17 = document.getElementById('story-mission-17-status');
+    if (m17) { m17.disabled = !progress.mission16Complete; m17.textContent = progress.mission17Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'OPEN THE ARCHIVE →' : 'ARŞİVİ AÇ →'); }
+    if (s17) { s17.classList.toggle('is-locked', !progress.mission16Complete && !progress.mission17Complete); s17.textContent = progress.mission17Complete ? (en ? 'CALL SIGN CHOSEN' : 'ÇAĞRI ADI SEÇİLDİ') : (progress.mission16Complete ? (en ? 'CHAPTER 02 · PLAYABLE' : '2. BÖLÜM · OYNANABİLİR') : (en ? 'LOCKED · COMPLETE MISSION 16' : 'KİLİTLİ · 16. GÖREVİ TAMAMLA')); }
+    const m18 = document.getElementById('story-start-mission18'); const s18 = document.getElementById('story-mission-18-status');
+    if (m18) { m18.disabled = !progress.mission17Complete; m18.textContent = progress.mission18Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'OPEN THE LOCK →' : 'KİLİDİ AÇ →'); }
+    if (s18) { s18.classList.toggle('is-locked', !progress.mission17Complete && !progress.mission18Complete); s18.textContent = progress.mission18Complete ? (en ? 'CHAPTER 02 COMPLETE' : '2. BÖLÜM TAMAMLANDI') : (progress.mission17Complete ? (en ? 'CHAPTER 02 · FINALE' : '2. BÖLÜM · FİNAL') : (en ? 'LOCKED · COMPLETE MISSION 17' : 'KİLİTLİ · 17. GÖREVİ TAMAMLA')); }
     document.querySelectorAll('.story-mission-status.is-locked').forEach(node => {
-        if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status','story-mission-6-status','story-mission-7-status','story-mission-8-status','story-mission-9-status','story-mission-10-status','story-mission-11-status','story-mission-12-status','story-mission-13-status','story-mission-14-status','story-mission-15-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
+        if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status','story-mission-6-status','story-mission-7-status','story-mission-8-status','story-mission-9-status','story-mission-10-status','story-mission-11-status','story-mission-12-status','story-mission-13-status','story-mission-14-status','story-mission-15-status','story-mission-16-status','story-mission-17-status','story-mission-18-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
     });
 
     // Campaign progress is presentation-only: it reads story flags and never mutates saves.
-    const completedCount = Array.from({ length: 15 }, (_, index) => Boolean(progress['mission' + (index + 1) + 'Complete'])).filter(Boolean).length;
+    const completedCount = Array.from({ length: 18 }, (_, index) => Boolean(progress['mission' + (index + 1) + 'Complete'])).filter(Boolean).length;
     const progressLabel = document.getElementById('story-campaign-progress-label');
     const progressCount = document.getElementById('story-campaign-progress-count');
     const progressFill = document.getElementById('story-campaign-progress-fill');
     const progressTrack = document.getElementById('story-campaign-progress-track');
     if (progressLabel) progressLabel.textContent = en ? 'CAMPAIGN SYNCHRONIZED' : 'HİKÂYE İLERLEMESİ';
-    if (progressCount) progressCount.textContent = en ? (completedCount + ' / 15 MISSIONS') : (completedCount + ' / 15 GÖREV');
-    if (progressFill) progressFill.style.width = ((completedCount / 15) * 100) + '%';
+    if (progressCount) progressCount.textContent = en ? (completedCount + ' / 18 MISSIONS') : (completedCount + ' / 18 GÖREV');
+    if (progressFill) progressFill.style.width = ((completedCount / 18) * 100) + '%';
     if (progressTrack) progressTrack.setAttribute('aria-valuenow', String(completedCount));
 
     let nextMission = 0;
-    for (let missionNumber = 1; missionNumber <= 15; missionNumber++) {
+    for (let missionNumber = 1; missionNumber <= 18; missionNumber++) {
         if (!progress['mission' + missionNumber + 'Complete']) { nextMission = missionNumber; break; }
     }
     document.querySelectorAll('[id^="story-start-mission"]').forEach(button => {
@@ -409,14 +421,17 @@ function storyMissionPrerequisiteMet(missionNumber, progress) {
         12: 'mission11Complete',
         13: 'mission12Complete',
         14: 'mission13Complete',
-        15: 'mission14Complete'
+        15: 'mission14Complete',
+        16: 'mission15Complete',
+        17: 'mission16Complete',
+        18: 'mission17Complete'
     };
     const requiredProgressFlag = prerequisiteByMission[missionNumber];
     return !requiredProgressFlag || progress[requiredProgressFlag] === true;
 }
 function startStoryMission(missionNumber = 1) {
     const progress = getStoryProgress();
-    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].includes(missionNumber)) return;
+    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].includes(missionNumber)) return;
     // Enforce mission order in the handler as well as the disabled UI buttons.
     // This prevents direct calls from bypassing the chapter's narrative gates.
     if (!storyMissionPrerequisiteMet(missionNumber, progress)) {
@@ -456,7 +471,7 @@ function startStoryMission(missionNumber = 1) {
     document.body.dataset.gameMode = 'story';
     game = getDefaultState();
     game.wave = 1; game.highestWave = 1; game.gold = 180;
-    game.waveKills = 0; game.waveTargetKills = missionNumber === 1 ? 8 : (missionNumber === 5 ? 8 : (missionNumber === 7 ? 8 : (missionNumber === 9 ? 10 : (missionNumber === 10 ? 6 : (missionNumber === 11 ? 8 : (missionNumber === 12 ? 6 : (missionNumber === 13 ? 7 : (missionNumber === 14 ? 12 : (missionNumber === 15 ? 6 : 5))))))))); game.holdWave = false;
+    game.waveKills = 0; game.waveTargetKills = missionNumber === 1 ? 8 : (missionNumber === 5 ? 8 : (missionNumber === 7 ? 8 : (missionNumber === 9 ? 10 : (missionNumber === 10 ? 6 : (missionNumber === 11 ? 8 : (missionNumber === 12 ? 6 : (missionNumber === 13 ? 7 : (missionNumber === 14 ? 12 : (missionNumber === 18 ? 8 : (missionNumber === 17 ? 6 : (missionNumber === 16 ? 8 : (missionNumber === 15 ? 6 : 5)))))))))))); game.holdWave = false;
     // Story missions use a deterministic loadout, never the endless-mode save's upgrades/items.
     game.upgrades.damage = 3; game.upgrades.attackSpeed = 2; game.upgrades.range = 3;
     game.upgrades.critChance = 0; game.upgrades.critMult = 1; game.upgrades.multishot = 0;
@@ -509,7 +524,10 @@ function startStoryMission(missionNumber = 1) {
         12: ['PİKO','PIKO','Arşivde benim için bir kayıt var. Garip olan, kaydın tarihinin benim çekirdeğimden daha eski olması değil… içindeki sesin benim sesim olmaması.','There is a record for me in the archive. The strange part is not that it predates my core… it is that the voice inside is not mine.'],
         13: ['PİKO','PIKO','İnsan kaydındaki ses benim ses izimle eşleşiyor. Ama anılarımda o insan yok. Hangimize inanmalıyım?','The human recording matches my voiceprint. But that person is not in my memories. Which account should I believe?'],
         14: ['PİKO','PIKO','Sinyal çekirdeğin içinden geliyor. Ne olursa olsun bu kez gerçeği birlikte bulacağız.','The signal is coming from inside the core. Whatever happens, we will find the truth together this time.'],
-        15: ['PİKO','PIKO','Sinyal darbesi hâlâ içimde yankılanıyor. Önce sistemi dengelemeliyiz; sonra sana neyi kaybettiğimi anlatacağım.','The pulse is still echoing inside me. We need to stabilize the systems first; then I will tell you what I lost.']
+        15: ['PİKO','PIKO','Sinyal darbesi hâlâ içimde yankılanıyor. Önce sistemi dengelemeliyiz; sonra sana neyi kaybettiğimi anlatacağım.','The pulse is still echoing inside me. We need to stabilize the systems first; then I will tell you what I lost.'],
+        16: ['PİKO','PIKO','Bu koridorun sonunu hatırlıyorum. Ama her dönüşte aynı yere geliyoruz. Bir iz bırak; döngünün bizi nereden geri sardığını bulalım.','I remember the end of this corridor. But every turn brings us back here. Leave a trace so we can find where the loop resets.'],
+        17: ['PİKO','PIKO','Arşivde bana ait bir kayıt var. İki dosya aynı anıyı anlatıyor ama birinde ben hiç var olmamışım. Bu kez adımı kendim seçmek istiyorum.','The archive has a record about me. Two files describe the same memory, but one says I never existed. This time, I want to choose my own name.'],
+        18: ['BİLİNMEYEN KAYNAK','UNKNOWN SOURCE','Komutan. Bu kilit senin imzanı tanıyor. İstasyon inşa edilmeden önce kim adına emir verdin?','Commander. This lock recognizes your signature. In whose name did you issue orders before the station was built.']
     };
     const openingLine = commsByMission[missionNumber];
     if (openingLine) setStoryComms(...openingLine);
@@ -542,6 +560,9 @@ function startStoryMission(missionNumber = 1) {
         else if (missionNumber === 13) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 7 hostiles, listen to two conflicting testimonies, and choose which record to trust.' : 'GÖREV: 7 düşmanı durdur, çelişen iki tanıklığı dinle ve hangi kayda güveneceğini seç.';
         else if (missionNumber === 14) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 12 hostiles, then disarm three core seals.' : 'GÖREV: 12 düşmanı durdur, ardından çekirdeğin üç kilidini aç.';
         else if (missionNumber === 15) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 6 hostiles, then repair three systems damaged by signal feedback.' : 'GÖREV: 6 düşmanı durdur, ardından sinyal geri beslemesinin bozduğu üç sistemi onar.';
+        else if (missionNumber === 16) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 8 hostiles, trace the loop, then survive a second defense.' : 'GÖREV: 8 düşmanı durdur, döngünün izini sür ve ikinci savunmadan sağ çık.';
+        else if (missionNumber === 17) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat the archive guards, inspect two records, then choose Piko’s call sign.' : 'GÖREV: Arşiv muhafızlarını durdur, iki kaydı incele ve Piko’nun çağrı adını seç.';
+        else if (missionNumber === 18) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Hold three defense stages and open the lock that recognizes the commander.' : 'GÖREV: Üç savunma aşamasını tamamla ve komutanı tanıyan kilidi aç.';
         else status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat the hostiles.' : 'GÖREV: Düşmanları durdur.';
     }
     const action = document.getElementById('story-scan-action');
@@ -566,6 +587,9 @@ function startStoryMission(missionNumber = 1) {
     const trustStation = document.getElementById('story-mission13-trust-station'); if (trustStation) trustStation.hidden = true;
     const coreSeal = document.getElementById('story-mission14-seal-action'); if (coreSeal) coreSeal.hidden = true;
     const mission15Repair = document.getElementById('story-mission15-repair-action'); if (mission15Repair) mission15Repair.hidden = true;
+    const chapter2Action = document.getElementById('story-chapter2-action'); if (chapter2Action) chapter2Action.hidden = true;
+    const chapter2Human = document.getElementById('story-chapter2-route-human'); if (chapter2Human) chapter2Human.hidden = true;
+    const chapter2Archive = document.getElementById('story-chapter2-route-archive'); if (chapter2Archive) chapter2Archive.hidden = true;
     const companionChip = document.getElementById('story-companion-chip');
     const companionIcon = document.getElementById('story-companion-icon');
     const companionState = document.getElementById('story-companion-state');
@@ -607,6 +631,86 @@ function finishStoryBattleEncounter() {
     const setAction = (id, hidden, label) => { const el = document.getElementById(id); if (el) { el.hidden = hidden; if (label) el.textContent = label; } };
     const setExit = label => { const el = document.getElementById('story-battle-exit'); if (el) el.textContent = label; };
 
+
+    if (session.mission === 16 && session.phase === 'combat') {
+        session.phase = 'routeScan1'; isPaused = true; enemies = []; projectiles = [];
+        setStatus(en ? 'LOOP TRACE · The corridor folds back into the same chamber. Scan the seam in the signal.' : 'DÖNGÜ İZİ · Koridor aynı odaya kıvrılıyor. Sinyaldeki kırılmayı tara.');
+        setStoryComms('PIKO','PIKO','Duvar değişti ama zemin izi aynı. Döngü mekânı değil, kayıt anını geri sarıyor olabilir.','The wall changed, but the floor marks did not. The loop may reset the recorded moment, not the room.');
+        setAction('story-chapter2-action', false, en ? 'TRACE LOOP SEAM' : 'DÖNGÜ İZİNİ TARA');
+        setExit(en ? 'ABORT MISSION' : 'GÖREVDEN ÇIK'); return;
+    }
+    if (session.mission === 16 && session.phase === 'routeScan1') {
+        session.phase = 'combat2';
+        startStoryChapter2CombatStage(10, 'İKİNCİ SAVUNMA · 10 düşmanı durdur. Bu kez döngü savunma dizilimini değiştiriyor.', 'SECOND DEFENSE · Defeat 10 hostiles. This time the loop changes the defense pattern.');
+        setStoryComms('KOMUTAN','COMMANDER','Döngü artık bizi değil, düşmanları yeniden konumlandırıyor. Piko, sinyal izini kaybetme.','The loop is repositioning the hostiles, not us. Piko, keep the signal trace alive.');
+        return;
+    }
+    if (session.mission === 16 && session.phase === 'combat2') {
+        session.phase = 'routeScan2'; isPaused = true; enemies = []; projectiles = [];
+        setStatus(en ? 'FALSE EXIT · The exit marker points inward. One last scan should expose the loop anchor.' : 'SAHTE ÇIKIŞ · Çıkış işareti içeriye dönüyor. Son bir tarama döngünün çıpasını açığa çıkarabilir.');
+        setStoryComms('PIKO','PIKO','Mavi yankı korkuyor. Bizi durdurmaya çalışmıyor; sanki bu kapının açılmasından korkuyor.','The blue echo is afraid. It is not trying to stop us; it seems afraid of what happens when this door opens.');
+        setAction('story-chapter2-action', false, en ? 'REVEAL LOOP ANCHOR' : 'DÖNGÜ ÇIPASINI AÇIĞA ÇIKAR'); return;
+    }
+    if (session.mission === 16 && session.phase === 'routeScan2') {
+        session.phase = 'complete'; session.completed = true; showStoryMissionResult(); isPaused = true;
+        saveStoryProgress({ introSeen: true, chapter: 2, mission15Complete: true, mission16Complete: true });
+        setStatus(en ? 'LOOP DISRUPTED · The anchor lies below the station core.' : 'DÖNGÜ KIRILDI · Çıpa istasyon çekirdeğinin altında.');
+        setStoryComms('UNKNOWN SOURCE','UNKNOWN SOURCE','Çıkış yoktu. Yalnızca sizi buraya getiren bir yol vardı.','There was no exit. Only a path designed to bring you here.');
+        setAction('story-chapter2-action', true); setExit(en ? 'RETURN TO CHAPTER BOARD' : 'GÖREV PANOSUNA DÖN');
+        showToast(en ? 'Mission 16 complete. The loop anchor is exposed.' : '16. görev tamamlandı. Döngü çıpası açığa çıkarıldı.'); return;
+    }
+    if (session.mission === 17 && session.phase === 'combat') {
+        session.phase = 'archive1'; isPaused = true; enemies = []; projectiles = [];
+        setStatus(en ? 'ARCHIVE ACCESS · Two records disagree about the companion’s origin.' : 'ARŞİV ERİŞİMİ · İki kayıt yoldaşın kökeni hakkında çelişiyor.');
+        setStoryComms('PIKO','PIKO','Bir kayıtta bakım birimiyim. Diğerinde ise bu istasyon kurulmadan önce bir komutanın yanındayım.','One file says I am a maintenance unit. The other places me beside a commander before this station existed.');
+        setAction('story-chapter2-action', false, en ? 'INSPECT ARCHIVE RECORD 1 / 2' : '1 / 2. ARŞİV KAYDINI İNCELE'); return;
+    }
+    if (session.mission === 17 && session.phase === 'archive1') {
+        session.phase = 'archive2';
+        setStatus(en ? 'RECORD 1 · The archive lists Piko as an unassigned prototype with no creation date.' : '1. KAYIT · Arşiv, Piko’yu üretim tarihi olmayan, atanmamış bir prototip olarak listeliyor.');
+        setStoryComms('STATION AI','STATION AI','Bu kayıt, mevcut personel dizininden önce oluşturulmuş. İmza doğrulanamıyor.','This record predates the current personnel directory. Its signature cannot be verified.');
+        setAction('story-chapter2-action', false, en ? 'INSPECT ARCHIVE RECORD 2 / 2' : '2 / 2. ARŞİV KAYDINI İNCELE'); return;
+    }
+    if (session.mission === 17 && session.phase === 'archive2') {
+        session.phase = 'callSign'; isPaused = true;
+        setStatus(en ? 'CALL SIGN · The archive has a designation, but Piko can choose what to carry forward.' : 'ÇAĞRI ADI · Arşivde bir unvan var; ama Piko geleceğe hangi adı taşıyacağını seçebilir.');
+        setStoryComms('PIKO','PIKO','Bana bir ad verdiler. Ama adımın ne anlama geleceğine ben karar vermek istiyorum.','They gave me a designation. But I want to decide what my name means.');
+        setAction('story-chapter2-action', true);
+        const human = document.getElementById('story-chapter2-route-human'); if (human) { human.hidden = false; human.textContent = en ? 'CHOOSE “ECHO”' : '“YANKI” ADINI SEÇ'; }
+        const archive = document.getElementById('story-chapter2-route-archive'); if (archive) { archive.hidden = false; archive.textContent = en ? 'KEEP “PIKO”' : '“PİKO” ADINI KORU'; } return;
+    }
+    if (session.mission === 18 && session.phase === 'combat') {
+        session.phase = 'relay1'; isPaused = true; enemies = []; projectiles = [];
+        setStatus(en ? 'LOCK DEFENSE · The first relay must be stabilized before the archive lock responds.' : 'KİLİT SAVUNMASI · Arşiv kilidi yanıt vermeden önce ilk röleyi sabitle.');
+        setStoryComms('PIKO','PIKO','Kilit beni değil, seni tanıyor. İlk röleye ulaşalım; sana nedenini söyleyeceğini umuyorum.','The lock recognizes you, not me. Let’s reach the first relay. I hope it will tell us why.');
+        setAction('story-chapter2-action', false, en ? 'STABILIZE RELAY 1' : '1. RÖLEYİ SABİTLE'); return;
+    }
+    if (session.mission === 18 && session.phase === 'relay1') {
+        session.phase = 'combat2'; startStoryChapter2CombatStage(9, 'İKİNCİ SAVUNMA · 9 düşmanı durdur ve ikinci röleyi koru.', 'SECOND DEFENSE · Defeat 9 hostiles and protect the second relay.'); return;
+    }
+    if (session.mission === 18 && session.phase === 'combat2') {
+        session.phase = 'relay2'; isPaused = true; enemies = []; projectiles = [];
+        setStatus(en ? 'RELAY 2 · A second signature matches the commander’s command key.' : '2. RÖLE · İkinci imza komutanın komut anahtarıyla eşleşiyor.');
+        setStoryComms('KOMUTAN','COMMANDER','Ben bu istasyona hiç gelmedim. Bu imza bana ait olamaz.','I have never been to this station. That signature cannot be mine.');
+        setAction('story-chapter2-action', false, en ? 'STABILIZE RELAY 2' : '2. RÖLEYİ SABİTLE'); return;
+    }
+    if (session.mission === 18 && session.phase === 'relay2') {
+        session.phase = 'combat3'; startStoryChapter2CombatStage(10, 'FİNAL SAVUNMASI · 10 düşmanı durdur ve kilit alanını koru.', 'FINAL DEFENSE · Defeat 10 hostiles and hold the lock chamber.'); return;
+    }
+    if (session.mission === 18 && session.phase === 'combat3') {
+        session.phase = 'finalLock'; isPaused = true; enemies = []; projectiles = [];
+        setStatus(en ? 'ARCHIVE LOCK · The lock opens for the commander alone.' : 'ARŞİV KİLİDİ · Kilit yalnızca komutan için açılıyor.');
+        setStoryComms('UNKNOWN SOURCE','UNKNOWN SOURCE','Bu sistemin ilk emrini, istasyon kurulmadan önce sen verdin.','You issued the first command to this system before the station was built.');
+        setAction('story-chapter2-action', false, en ? 'OPEN THE ARCHIVE LOCK' : 'ARŞİV KİLİDİNİ AÇ'); return;
+    }
+    if (session.mission === 18 && session.phase === 'finalLock') {
+        session.phase = 'complete'; session.completed = true; showStoryMissionResult(); isPaused = true;
+        saveStoryProgress({ introSeen: true, chapter: 2, mission17Complete: true, mission18Complete: true });
+        setStatus(en ? 'CHAPTER 02 COMPLETE · A distant purple signal answers Piko’s cyan pulse.' : '2. BÖLÜM TAMAMLANDI · Uzak bir mor sinyal, Piko’nun camgöbeği darbesine yanıt veriyor.');
+        setStoryComms('PIKO','PIKO','O sinyal bana cevap verdi. Ama bu kez peşimden gelmiyor… beni çağırıyor.','That signal answered me. But this time it is not following me… it is calling me.');
+        setAction('story-chapter2-action', true); setExit(en ? 'RETURN TO CHAPTER BOARD' : 'GÖREV PANOSUNA DÖN');
+        showToast(en ? 'Chapter 02 complete. The purple signal has answered.' : '2. bölüm tamamlandı. Mor sinyal yanıt verdi.'); return;
+    }
     if (session.mission === 4 && session.phase === 'powerChoice') return;
 
     if (session.mission === 12 && session.phase === 'combat') {
@@ -1085,6 +1189,47 @@ function testStoryPulse() {
     if (!session || !session.active || session.mission !== 9 || session.phase !== 'pulseTest' || session.completed) return;
     finishStoryBattleEncounter();
 }
+
+function startStoryChapter2CombatStage(targetKills, statusTr, statusEn) {
+    const session = window.__storyBattle;
+    if (!session || !session.active || session.completed) return;
+    enemies = []; projectiles = [];
+    game.wave = 1; game.highestWave = 1; game.waveKills = 0; game.waveTargetKills = targetKills; game.holdWave = false;
+    spawnTimer = 0; cargoSpawnTimer = 999999; isDefeated = false; defeatTimer = 0; gameSpeed = 1; isPaused = false;
+    const action = document.getElementById('story-chapter2-action'); if (action) action.hidden = true;
+    const human = document.getElementById('story-chapter2-route-human'); if (human) human.hidden = true;
+    const archive = document.getElementById('story-chapter2-route-archive'); if (archive) archive.hidden = true;
+    const status = document.getElementById('story-battle-status'); if (status) status.textContent = storyLanguage() === 'en' ? statusEn : statusTr;
+    if (typeof updateHUD === 'function') updateHUD();
+}
+function continueStoryChapter2Mission() {
+    const session = window.__storyBattle;
+    if (!session || !session.active || session.completed || isPaused !== true) return;
+    if (session.mission === 16 && ['routeScan1','routeScan2'].includes(session.phase)) return finishStoryBattleEncounter();
+    if (session.mission === 17 && ['archive1','archive2'].includes(session.phase)) return finishStoryBattleEncounter();
+    if (session.mission === 18 && ['relay1','relay2','finalLock'].includes(session.phase)) return finishStoryBattleEncounter();
+}
+function chooseStoryChapter2CallSign(choice) {
+    const session = window.__storyBattle;
+    if (!session || !session.active || session.mission !== 17 || session.phase !== 'callSign' || session.completed || isPaused !== true) return;
+    if (!['echo','piko'].includes(choice)) return;
+    session.callSign = choice; session.phase = 'complete'; session.completed = true; showStoryMissionResult(); isPaused = true;
+    saveStoryProgress({ introSeen: true, chapter: 2, mission16Complete: true, mission17Complete: true, callSignChoice: choice });
+    const en = storyLanguage() === 'en';
+    const status = document.getElementById('story-battle-status');
+    if (status) status.textContent = choice === 'echo'
+        ? (en ? 'CALL SIGN CHOSEN · Piko chooses Echo for the archive mission.' : 'ÇAĞRI ADI SEÇİLDİ · Piko arşiv görevi için Yankı adını seçti.')
+        : (en ? 'CALL SIGN CHOSEN · Piko keeps its own name and refuses the archive designation.' : 'ÇAĞRI ADI SEÇİLDİ · Piko kendi adını korudu ve arşiv unvanını reddetti.');
+    setStoryComms('PIKO','PIKO',
+        choice === 'echo' ? 'Yankı. Kayıtlar beni ne olarak çağırırsa çağırsın, bu adı ben seçtim.' : 'Piko. Bu isim bana verilmiş olabilir, ama artık onu ben taşıyorum.',
+        choice === 'echo' ? 'Echo. Whatever the archive calls me, I chose this name.' : 'Piko. Maybe this name was given to me, but I carry it by choice now.');
+    const human = document.getElementById('story-chapter2-route-human'); if (human) human.hidden = true;
+    const archive = document.getElementById('story-chapter2-route-archive'); if (archive) archive.hidden = true;
+    const action = document.getElementById('story-chapter2-action'); if (action) action.hidden = true;
+    const exit = document.getElementById('story-battle-exit'); if (exit) exit.textContent = en ? 'RETURN TO CHAPTER BOARD' : 'GÖREV PANOSUNA DÖN';
+    showToast(en ? 'Mission 17 complete. Your call sign choice is saved in Story progress.' : '17. görev tamamlandı. Çağrı adı seçimin hikâye ilerlemesine kaydedildi.');
+}
+
 function repairStoryMission15System() {
     const session = window.__storyBattle;
     if (!session || !session.active || session.mission !== 15 || !['repairSystem1','repairSystem2','repairSystem3'].includes(session.phase) || session.completed) return;

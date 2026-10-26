@@ -445,3 +445,14 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [x] Completion state is surfaced from Story mission completion paths and the overlay is hidden on new mission start / exiting the mission.
 - [x] Added regression coverage for the compact dialogue CSS and visible completion return path.
 - [ ] **Validation pending:** latest CI run is still in progress. Manual browser and Android WebView checks remain required; no live deploy was made.
+
+
+## 2026-10-27 — Chapter 02 playable missions 16–18 (PR #58)
+
+- Added mission cards 16–18 and sequential prerequisites after mission 15.
+- Implemented Mission 16 loop trace with two defense stages, Mission 17 archive investigation with persisted Piko/Echo call-sign choice, and Mission 18 three-stage defense plus archive-lock finale.
+- Added bilingual status/dialogue and a chapter-complete state at 18/18.
+- Added mission16Complete–mission18Complete and callSignChoice to Story progress normalization, Firestore rules allowlist/required-field validation, and emulator fixtures/tests.
+- Uses existing Story battle sandbox; no second engine. Exit continues to restore the saved Endless snapshot.
+- PR: https://github.com/1rid3mon/towerv1/pull/58
+- Validation status: JavaScript syntax check has passed in CI. Firestore Emulator suite is being rerun after the progress-schema fixture and validation updates. Manual desktop/mobile/Android WebView playthrough is still required before production sign-off.
