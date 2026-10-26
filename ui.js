@@ -14,6 +14,8 @@ let battleCueLastAt = Object.create(null);
 let battleMomentHideTimer = null;
 let battleMomentBossTimer = null;
 let battleMomentClearTimer = null;
+let battleCataclysmTimer = null;
+let battleVictoryFlashTimer = null;
 let battleIntroWaveShown = null;
 
 function unlockBattleAudio() {
@@ -152,6 +154,29 @@ function renderBattleMoment(kind, data) {
     if (!root || !kicker || !title || !subtitle || !rewards) return;
 
     clearTimeout(battleMomentHideTimer);
+    const cataclysm = document.getElementById('boss-cataclysm');
+    clearTimeout(battleCataclysmTimer);
+    clearTimeout(battleVictoryFlashTimer);
+    document.body.classList.remove('boss-lockdown', 'boss-victory');
+    if (kind === 'boss' && cataclysm) {
+        const signal = document.getElementById('boss-cataclysm-name');
+        if (signal) signal.textContent = String(data.name || 'BİLİNMEYEN HEDEF').toUpperCase();
+        const alertLabel = document.getElementById('boss-cataclysm-kicker');
+        const alertFooter = document.getElementById('boss-cataclysm-footer');
+        if (alertLabel) alertLabel.textContent = '⚠ KRİTİK TEHDİT · SAVUNMA PROTOKOLÜ';
+        if (alertFooter) alertFooter.textContent = 'TÜM BİRİMLER · SAVAŞ POZİSYONUNA';
+        document.body.classList.add('boss-lockdown');
+        battleCataclysmTimer = setTimeout(() => document.body.classList.remove('boss-lockdown'), 2400);
+    } else if (kind === 'bossKill' && cataclysm) {
+        const signal = document.getElementById('boss-cataclysm-name');
+        const alertLabel = document.getElementById('boss-cataclysm-kicker');
+        const alertFooter = document.getElementById('boss-cataclysm-footer');
+        if (signal) signal.textContent = 'HEDEF YOK EDİLDİ';
+        if (alertLabel) alertLabel.textContent = '✓ TEHDİT ORTADAN KALDIRILDI';
+        if (alertFooter) alertFooter.textContent = 'SAVUNMA HATTI AYAKTA · DEVAM ET KOMUTAN';
+        document.body.classList.add('boss-victory');
+        battleVictoryFlashTimer = setTimeout(() => document.body.classList.remove('boss-victory'), 950);
+    }
     root.dataset.kind = kind;
     root.dataset.bossType = kind === 'boss' ? String(data.subtype || 'default') : '';
     rewards.replaceChildren();

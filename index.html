@@ -387,6 +387,27 @@
             .premium-card { transition: none !important; }
         }
 
+        /* Cataclysm alert: a brief full-screen threat lockdown, presentation only. */
+        #boss-cataclysm{position:fixed;inset:0;z-index:44;pointer-events:none;opacity:0;visibility:hidden;overflow:hidden;transition:opacity .18s ease,visibility .18s ease}
+        #boss-cataclysm .cataclysm-vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 42%,rgba(127,12,26,.13) 72%,rgba(239,38,57,.35) 100%);box-shadow:inset 0 0 0 0 rgba(248,70,85,0)}
+        #boss-cataclysm .cataclysm-scan{position:absolute;inset:-100% 0;background:repeating-linear-gradient(0deg,transparent 0 5px,rgba(255,95,110,.055) 6px 7px);transform:translateY(-12%);opacity:.45}
+        #boss-cataclysm .cataclysm-top{position:absolute;top:max(12px,env(safe-area-inset-top));left:50%;transform:translate(-50%,-12px);width:min(620px,calc(100vw - 28px));padding:8px 14px 9px;text-align:center;border:1px solid rgba(251,113,133,.62);border-top:3px solid #fb405b;background:linear-gradient(90deg,rgba(42,8,18,.94),rgba(100,12,29,.94),rgba(42,8,18,.94));box-shadow:0 0 28px rgba(239,38,57,.2);color:#ffe4e8;font:800 10px/1.2 'Inter',sans-serif;letter-spacing:.24em;text-shadow:0 0 12px rgba(255,75,100,.4);transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+        #boss-cataclysm .cataclysm-name{display:block;margin-top:4px;color:#fff;font:700 clamp(20px,4vw,32px)/.98 'Rajdhani',sans-serif;letter-spacing:.09em;text-shadow:0 0 18px rgba(255,64,88,.5)}
+        #boss-cataclysm .cataclysm-bottom{position:absolute;bottom:max(12px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);color:rgba(255,188,197,.8);font:700 9px/1.2 'Inter',sans-serif;letter-spacing:.3em;white-space:nowrap;text-shadow:0 0 10px rgba(239,38,57,.4)}
+        body.boss-lockdown #boss-cataclysm{opacity:1;visibility:visible}
+        body.boss-lockdown #boss-cataclysm .cataclysm-vignette{animation:cataclysmPulse .48s steps(2,end) 3}
+        body.boss-lockdown #boss-cataclysm .cataclysm-scan{animation:cataclysmScan 1.2s linear 1}
+        body.boss-lockdown #boss-cataclysm .cataclysm-top{transform:translate(-50%,0)}
+        body.boss-victory #boss-cataclysm{opacity:1;visibility:visible}
+        body.boss-victory #boss-cataclysm .cataclysm-vignette{background:radial-gradient(ellipse at center,transparent 45%,rgba(20,184,166,.12) 76%,rgba(45,212,191,.22) 100%);animation:cataclysmVictory .95s ease-out both}
+        body.boss-victory #boss-cataclysm .cataclysm-top{border-color:rgba(94,234,212,.65);border-top-color:#5eead4;background:linear-gradient(90deg,rgba(5,34,34,.94),rgba(8,83,76,.94),rgba(5,34,34,.94));color:#ccfbf1;transform:translate(-50%,0)}
+        body.boss-victory #boss-cataclysm .cataclysm-name{color:#99f6e4;text-shadow:0 0 18px rgba(45,212,191,.5)}
+        body.boss-victory #boss-cataclysm .cataclysm-bottom{color:rgba(153,246,228,.85)}
+        @keyframes cataclysmPulse{0%,100%{box-shadow:inset 0 0 0 0 rgba(248,70,85,0)}50%{box-shadow:inset 0 0 0 5px rgba(248,70,85,.34)}}
+        @keyframes cataclysmScan{0%{transform:translateY(-12%);opacity:0}20%{opacity:.55}100%{transform:translateY(12%);opacity:0}}
+        @keyframes cataclysmVictory{0%{opacity:1}100%{opacity:.25}}
+        @media(prefers-reduced-motion:reduce){#boss-cataclysm,#boss-cataclysm *{animation:none!important;transition:none!important}#boss-cataclysm .cataclysm-top{transform:translate(-50%,0)}}
+        @media(max-width:480px){#boss-cataclysm .cataclysm-top{top:max(8px,env(safe-area-inset-top));padding:7px 8px;letter-spacing:.16em}#boss-cataclysm .cataclysm-name{font-size:23px}#boss-cataclysm .cataclysm-bottom{font-size:8px;letter-spacing:.18em}}
         /* V2.3 Battle Presentation: original wave, boss and reward callouts */
         #battle-moment{position:fixed;z-index:45;top:clamp(76px,13vh,132px);left:50%;width:min(520px,calc(100vw - 28px));transform:translate(-50%,-10px) scale(.985);opacity:0;pointer-events:none;transition:opacity .24s ease,transform .3s cubic-bezier(.2,.8,.2,1)}
         #battle-moment.is-visible{opacity:1;transform:translate(-50%,0) scale(1)}
@@ -1694,6 +1715,13 @@
             <path d="M14 62l2 4 4 1-4 2-2 4-2-4-4-2 4-1zM80 28l1.7 3.2 3.3 1.1-3.3 1.1L80 37l-1.7-3.6-3.3-1.1 3.3-1.1z" fill="#a5f3fc" opacity=".9"/>
         </svg>
     </button>
+
+    <div id="boss-cataclysm" aria-hidden="true">
+        <div class="cataclysm-vignette"></div>
+        <div class="cataclysm-scan"></div>
+        <div class="cataclysm-top"><span id="boss-cataclysm-kicker">⚠ KRİTİK TEHDİT · SAVUNMA PROTOKOLÜ</span> <span id="boss-cataclysm-name" class="cataclysm-name">BOSS SİNYALİ</span></div>
+        <div id="boss-cataclysm-footer" class="cataclysm-bottom">TÜM BİRİMLER · SAVAŞ POZİSYONUNA</div>
+    </div>
 
     <!-- V2.3: battle moments are presentation-only and do not affect rewards or simulation. -->
     <section id="battle-moment" data-kind="wave" aria-live="polite" aria-atomic="true">

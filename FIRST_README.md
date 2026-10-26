@@ -423,3 +423,11 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - Mobilde ilerleme başlığı sıkışmasın diye responsive yerleşim ve azaltılmış hareket tercihi korundu.
 - PR #53 main'e alındı (merge commit: `878355fdabeed8b75c1a007ecbccd806e3c13068`). GitHub Actions `40285400823` başarılı tamamlandı; JavaScript sözdizimi ve Firestore Emulator testleri geçti.
 - PR dalındaki önceki commit için Vercel dağıtımı tamamlandı; sonraki commit'te Vercel yeniden `build-rate-limit` hatası verdi. Son main commit'in canlı dağıtımı doğrulanmış değil; gerçek cihazda görsel/oynanış QA'sı hâlâ bekliyor.
+
+
+### 2026-10-26 — Boss Cataclysm ekran alarmı (feature branch)
+- [x] Boss ortaya çıktığında kısa süreli tam ekran kırmızı tehdit çerçevesi, tarama çizgisi ve boss adına özel alarm bandı eklendi.
+- [x] Boss imha edildiğinde aynı görsel katman zafer rengine dönüyor; efekt yalnızca sunum katmanı ve oyun ekonomisi/simülasyonuna dokunmuyor.
+- [x] Mobil safe-area ve reduced-motion desteği eklendi.
+- [ ] **TEST EDİLMEDİ:** Tarayıcıda gerçek boss spawn/kill, mobil portre/yatay, ekran okuyucu ve düşük performanslı cihaz kontrolü.
+- [ ] GitHub Actions ve Vercel dağıtım durumu PR açıldıktan sonra doğrulanmalı.
