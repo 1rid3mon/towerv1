@@ -326,3 +326,17 @@ test('optimized target selection preserves nearest-first order, range edge, and 
   assert.deepEqual(Array.from(sandbox.select([edgeByRadius, middle, near], 0, 0, 30, 3), item => item.enemy.id), ['near', 'middle', 'edge']);
   assert.deepEqual(Array.from(sandbox.select([near], 0, 0, 30, 0)), []);
 });
+
+
+test('Story dialogue stays compact and mission completion always offers a visible return path', () => {
+  const indexSource = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const storySource = fs.readFileSync(path.join(root, 'story.js'), 'utf8');
+  assert.match(indexSource, /\.story-stage\{grid-template-columns:minmax\(76px,112px\) minmax\(0,1fr\)/);
+  assert.match(indexSource, /\.story-dialogue-copy\{[^}]*max-height:32vh[^}]*overflow-y:auto/s);
+  assert.match(indexSource, /id="story-mission-result" hidden/);
+  assert.match(indexSource, /onclick="exitStoryBattle\(false\)">GÖREV PANOSUNA DÖN/);
+  assert.match(storySource, /function showStoryMissionResult\(\)/);
+  assert.match(storySource, /overlay\.hidden = false/);
+  assert.match(storySource, /session\.completed = true; showStoryMissionResult\(\);/);
+  assert.match(storySource, /if \(resultOverlay\) \{ resultOverlay\.hidden = true;/);
+});
