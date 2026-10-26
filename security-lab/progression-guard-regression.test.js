@@ -6,6 +6,7 @@ const vm = require('node:vm');
 
 const root = path.join(__dirname, '..');
 const uiSource = fs.readFileSync(path.join(root, 'ui.js'), 'utf8');
+const storySource = fs.readFileSync(path.join(root, 'story.js'), 'utf8');
 const engineSource = fs.readFileSync(path.join(root, 'engine.js'), 'utf8');
 const dataSource = fs.readFileSync(path.join(root, 'data.js'), 'utf8');
 
@@ -160,7 +161,7 @@ test('leaderboard clearly labels scores as client-reported until server verifica
 
 test('Story Mode mission handler enforces the previous-mission prerequisite even when called directly', () => {
   const body = extractFunction(
-    uiSource,
+    storySource,
     'function storyMissionPrerequisiteMet(missionNumber, progress)',
     'function startStoryMission'
   );
@@ -202,7 +203,7 @@ test('Story Mode mission handler enforces the previous-mission prerequisite even
       `mission ${mission} must not unlock from a false completion flag`
     );
   }
-  assert.match(uiSource, /if \(!storyMissionPrerequisiteMet\(missionNumber, progress\)\)/);
+  assert.match(storySource, /if \(!storyMissionPrerequisiteMet\(missionNumber, progress\)\)/);
 });
 
 
@@ -216,26 +217,26 @@ test('routine HUD refresh is throttled while explicit event updates remain avail
 
 test('unsupported Story Mode phases cannot fall through and falsely complete mission 2', () => {
   const body = extractFunction(
-    uiSource,
+    storySource,
     'function finishStoryBattleEncounter()',
     'function scanStorySignal()'
   );
   const guard = body.indexOf('if (![1, 2].includes(session.mission)) return;');
-  const genericCompletion = body.indexOf('session.completed = true; isPaused = true; enemies = []; projectiles = [];');
+  const genericCompletion = body.indexOf('session.completed = true; showStoryMissionResult(); isPaused = true; enemies = []; projectiles = [];');
   assert.ok(guard >= 0 && genericCompletion > guard,
     'only mission 1/2 may use the generic completion branch');
   assert.match(body, /if \(session\.mission === 1\)[\s\S]*?else \{[\s\S]*?mission2Complete: true/);
 });
 
 test('mission 13, 14 and 15 each have exactly one initial objective label branch', () => {
-  const start = uiSource.indexOf('function startStoryMission(');
-  const end = uiSource.indexOf('function finishStoryBattleEncounter()', start);
-  const body = uiSource.slice(start, end);
+  const start = storySource.indexOf('function startStoryMission(');
+  const end = storySource.indexOf('function finishStoryBattleEncounter()', start);
+  const body = storySource.slice(start, end);
   assert.equal((body.match(/else if \(missionNumber === 13\) status\.textContent/g) || []).length, 1);
   assert.equal((body.match(/else if \(missionNumber === 14\) status\.textContent/g) || []).length, 1);
   assert.equal((body.match(/else if \(missionNumber === 15\) status\.textContent/g) || []).length, 1);
   assert.match(body, /mission15-repair-action/);
-  assert.match(uiSource, /function repairStoryMission15System\(\)/);
+  assert.match(storySource, /function repairStoryMission15System\(\)/);
 });
 
 
@@ -302,9 +303,9 @@ test('story mode hard-isolates multishot, economy, and companion multipliers', (
 
 
 test('completed Story Mode session is cleaned before the Endless unlock check, while unfinished missions remain active', () => {
-  const start = uiSource.indexOf('function startStoryMission(');
-  const end = uiSource.indexOf('function finishStoryBattleEncounter()', start);
-  const body = uiSource.slice(start, end);
+  const start = storySource.indexOf('function startStoryMission(');
+  const end = storySource.indexOf('function finishStoryBattleEncounter()', start);
+  const body = storySource.slice(start, end);
   const cleanup = body.indexOf('exitStoryBattle(false);');
   const unlockGate = body.indexOf('if (!updateStoryUnlockUI())');
   assert.ok(cleanup >= 0 && unlockGate > cleanup, 'completed story replay must restore Endless state before checking the Endless wave requirement');
@@ -324,4 +325,18 @@ test('optimized target selection preserves nearest-first order, range edge, and 
   assert.deepEqual(Array.from(selected, item => item.enemy.id), ['near', 'middle']);
   assert.deepEqual(Array.from(sandbox.select([edgeByRadius, middle, near], 0, 0, 30, 3), item => item.enemy.id), ['near', 'middle', 'edge']);
   assert.deepEqual(Array.from(sandbox.select([near], 0, 0, 30, 0)), []);
+});
+
+
+test('Story dialogue stays compact and mission completion always offers a visible return path', () => {
+  const indexSource = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const storySource = fs.readFileSync(path.join(root, 'story.js'), 'utf8');
+  assert.match(indexSource, /\.story-stage\{grid-template-columns:minmax\(76px,112px\) minmax\(0,1fr\)/);
+  assert.match(indexSource, /\.story-dialogue-copy\{[^}]*max-height:32vh[^}]*overflow-y:auto/s);
+  assert.match(indexSource, /id="story-mission-result" hidden/);
+  assert.match(indexSource, /onclick="exitStoryBattle\(false\)">GÖREV PANOSUNA DÖN/);
+  assert.match(storySource, /function showStoryMissionResult\(\)/);
+  assert.match(storySource, /overlay\.hidden = false/);
+  assert.match(storySource, /session\.completed = true; showStoryMissionResult\(\);/);
+  assert.match(storySource, /if \(resultOverlay\) \{ resultOverlay\.hidden = true;/);
 });

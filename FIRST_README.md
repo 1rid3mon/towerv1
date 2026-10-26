@@ -423,3 +423,25 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - Mobilde ilerleme başlığı sıkışmasın diye responsive yerleşim ve azaltılmış hareket tercihi korundu.
 - PR #53 main'e alındı (merge commit: `878355fdabeed8b75c1a007ecbccd806e3c13068`). GitHub Actions `40285400823` başarılı tamamlandı; JavaScript sözdizimi ve Firestore Emulator testleri geçti.
 - PR dalındaki önceki commit için Vercel dağıtımı tamamlandı; sonraki commit'te Vercel yeniden `build-rate-limit` hatası verdi. Son main commit'in canlı dağıtımı doğrulanmış değil; gerçek cihazda görsel/oynanış QA'sı hâlâ bekliyor.
+
+
+## 2026-10-27 — Story / Endless bağımlılık haritası ve ilk kod ayrımı
+
+- [x] `STORY_DEPENDENCY_MAP.md` eklendi. Story controller, ortak savaş motoru, çizim katmanı, oyun verisi, kayıtlar, HTML ID'leri ve riskli geçişler dosya bazında haritalandı.
+- [x] Hikâye ilerlemesi, görev panosu, intro/diyalog, görev oturumu ve görev eylemlerini içeren yaklaşık 1.233 satırlık controller bloğu `ui.js` içinden `story.js` dosyasına taşındı.
+- [x] `index.html` içinde `story.js`, `ui.js` sonrasında; ortak `render.js` ve `engine.js` öncesinde yükleniyor. Ortak savaş motoru veya Piko SVG'si kopyalanmadı.
+- [x] Story güvenlik/regresyon testleri, taşınan Story fonksiyonlarını artık `story.js` kaynağından okuyor.
+- [x] CI doğrulandı: JavaScript syntax kontrolü başarılı; Firestore Emulator / güvenlik regresyon testleri **136/136 geçti, 0 başarısız**. GitHub Actions: [run 40402470463](https://github.com/1rid3mon/towerv1/actions/runs/40402470463).
+- [ ] **Açık kapsam:** Story HTML/CSS hâlâ `index.html` içinde. Ayrı `story.html` oluşturulmadı; bunu motor, Firebase, sayfa geçişi ve Android WebView bağımlılıkları doğrulanmadan kopyalamayacağız.
+- [ ] **Manuel test bekliyor:** Sonsuz → ana menü → Hikâye → görev → çıkış → Sonsuz; kayıt sahibi değişimi; mobil portre/yatay ve Android geri tuşu.
+- [ ] Bu değişiklik yalnızca `experiment/story-mode-separation-draft` dalındadır; `main` ve canlı site değiştirilmedi.
+
+
+## 2026-10-27 — Story dialogue compactness and mission completion screen
+
+- [x] Intro dialogue layout made more compact: hologram stays on the left and the dialogue uses a narrower side panel on wider screens; mobile stacks the hologram above the bubble.
+- [x] Dialogue text is capped to a viewport-relative height and scrolls internally when long, so it cannot stretch the whole screen.
+- [x] Added a dedicated mission-complete overlay with a clear “Görev panosuna dön” action, intended to replace the ambiguous blank/black-looking post-mission state.
+- [x] Completion state is surfaced from Story mission completion paths and the overlay is hidden on new mission start / exiting the mission.
+- [x] Added regression coverage for the compact dialogue CSS and visible completion return path.
+- [ ] **Validation pending:** latest CI run is still in progress. Manual browser and Android WebView checks remain required; no live deploy was made.

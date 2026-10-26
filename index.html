@@ -664,6 +664,36 @@
 @media(prefers-reduced-motion:reduce){#story-campaign-progress-fill,.story-mission{transition:none}.story-hologram{animation:none}.story-shell,#story-mode-screen.is-open .story-shell,.story-hero,.story-stage .story-hologram-wrap,.story-stage .story-dialogue{animation:none;opacity:1;transform:none}.story-hero,.story-primary,.story-dialogue{transition:none}}
 
 
+/* Compact narrative layout: hologram on the left, readable dialogue in a side panel. */
+.story-stage{grid-template-columns:minmax(76px,112px) minmax(0,1fr);gap:clamp(10px,2vw,18px);align-items:center;margin-top:18px}
+.story-hologram-wrap{min-height:104px}
+.story-hologram{width:clamp(76px,10vw,104px);font-size:34px}
+.story-dialogue{min-height:0;padding:clamp(13px,2vw,20px);border-radius:18px 18px 18px 5px}
+.story-dialogue-copy{font-size:clamp(14px,1.55vw,17px);line-height:1.58;margin:10px 0 14px;min-height:3.2em;max-height:32vh;overflow-y:auto;overscroll-behavior:contain}
+.story-dialogue:before{left:-7px;width:13px;height:13px}
+.story-controls{flex-wrap:wrap}
+#story-mission-result{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(2,6,23,.74);backdrop-filter:blur(8px)}
+#story-mission-result[hidden]{display:none!important}
+.story-mission-result-card{width:min(440px,100%);padding:clamp(20px,4vw,30px);border:1px solid rgba(103,232,249,.42);border-radius:22px;background:linear-gradient(145deg,rgba(8,47,73,.98),rgba(15,23,42,.99) 65%,rgba(49,46,129,.95));box-shadow:0 24px 80px rgba(0,0,0,.48),0 0 40px rgba(34,211,238,.09);text-align:center}
+.story-mission-result-mark{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 14px;border:1px solid rgba(110,231,183,.5);border-radius:50%;background:rgba(16,185,129,.12);color:#6ee7b7;font-size:26px}
+#story-mission-result-title{font-size:clamp(19px,4vw,27px);font-weight:900;letter-spacing:.04em;color:#ecfeff}
+#story-mission-result-copy{margin:10px 0 20px;color:#cbd5e1;font-size:14px;line-height:1.6}
+#story-mission-result-action{width:100%;min-height:46px}
+@media(max-width:560px){
+ .story-stage{grid-template-columns:1fr;gap:4px;margin-top:14px}
+ .story-hologram-wrap{min-height:72px}
+ .story-hologram{width:70px}
+ .story-dialogue{padding:13px;border-radius:16px}
+ .story-dialogue-copy{font-size:14px;line-height:1.55;max-height:28dvh;margin:9px 0 12px}
+ .story-controls{align-items:flex-start}
+ .story-progress{align-self:center}
+}
+@media(min-width:900px){
+ #story-mode-screen.is-open{align-items:flex-start}
+ .story-shell{margin:auto}
+ .story-hero{padding:clamp(18px,2.5vw,28px)}
+}
+
 /* First playable story encounter: HUD stays compact over the existing combat canvas. */
 .story-mission-status{margin-top:12px;color:#67e8f9;font-size:10px;font-weight:800;letter-spacing:.1em}
 .story-mission-status.is-locked{color:#94a3b8}
@@ -822,6 +852,15 @@
    <span class="story-companion-signal" aria-hidden="true"></span>
   </div>
   <button type="button" id="story-battle-exit" onclick="exitStoryBattle(false)">GÖREVDEN ÇIK</button>
+ </div>
+</div>
+
+<div id="story-mission-result" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="story-mission-result-title">
+ <div class="story-mission-result-card">
+  <div class="story-mission-result-mark" aria-hidden="true">✓</div>
+  <h2 id="story-mission-result-title">GÖREV TAMAMLANDI</h2>
+  <p id="story-mission-result-copy">İlerlemen kaydedildi. Hazır olduğunda görev panosuna dönebilirsin.</p>
+  <button type="button" id="story-mission-result-action" class="story-primary" onclick="exitStoryBattle(false)">GÖREV PANOSUNA DÖN</button>
  </div>
 </div>
 
@@ -1711,6 +1750,7 @@
     <!-- OYUN DOSYALARI -->
 <script src="data.js"></script>
 <script src="ui.js"></script>
+<script src="story.js"></script>
 <script src="render.js"></script>
 <script src="engine.js"></script>
 
