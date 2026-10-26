@@ -4119,7 +4119,8 @@ async function pullStoryProgressFromCloud(silent = true) {
         if (!snapshot.exists) {
             if (local && local.updatedAt > 0) {
                 await pushStoryProgressToCloud(true);
-            } else if (belongsToAnotherAccount) {
+            } else if (belongsToAnotherAccount || !localOwner) {
+                // Do not bind another account's or an unowned legacy save to this UID.
                 localStorage.removeItem(STORY_PROGRESS_KEY);
                 localStorage.setItem(STORY_PROGRESS_OWNER_KEY, currentUser.uid);
                 updateStoryMissionBoard();
