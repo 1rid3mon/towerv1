@@ -315,7 +315,7 @@ test('completed Story Mode session is cleaned before the Endless unlock check, w
 test('optimized target selection preserves nearest-first order, range edge, and target cap', () => {
   const helper = extractFunction(engineSource, 'function getNearestEnemiesInRange(', 'function spawnCargoDrone()');
   const sandbox = {};
-  vm.runInNewContext(helper + '\\nglobalThis.select = getNearestEnemiesInRange;', sandbox);
+  vm.runInNewContext(helper + '\nglobalThis.select = getNearestEnemiesInRange;', sandbox);
   const near = { id: 'near', x: 3, y: 4, radius: 1 };
   const middle = { id: 'middle', x: 20, y: 0, radius: 2 };
   const edgeByRadius = { id: 'edge', x: 31, y: 0, radius: 2 };
