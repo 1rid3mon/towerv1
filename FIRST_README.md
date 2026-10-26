@@ -431,7 +431,7 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [x] Hikâye ilerlemesi, görev panosu, intro/diyalog, görev oturumu ve görev eylemlerini içeren yaklaşık 1.233 satırlık controller bloğu `ui.js` içinden `story.js` dosyasına taşındı.
 - [x] `index.html` içinde `story.js`, `ui.js` sonrasında; ortak `render.js` ve `engine.js` öncesinde yükleniyor. Ortak savaş motoru veya Piko SVG'si kopyalanmadı.
 - [x] Story güvenlik/regresyon testleri, taşınan Story fonksiyonlarını artık `story.js` kaynağından okuyor.
-- [ ] **Doğrulama bekliyor:** CI/syntax/regresyon testleri henüz bu kayıtta başarılı olarak işaretlenmedi.
+- [x] CI doğrulandı: JavaScript syntax kontrolü başarılı; Firestore Emulator / güvenlik regresyon testleri **136/136 geçti, 0 başarısız**. GitHub Actions: [run 40402470463](https://github.com/1rid3mon/towerv1/actions/runs/40402470463).
 - [ ] **Açık kapsam:** Story HTML/CSS hâlâ `index.html` içinde. Ayrı `story.html` oluşturulmadı; bunu motor, Firebase, sayfa geçişi ve Android WebView bağımlılıkları doğrulanmadan kopyalamayacağız.
 - [ ] **Manuel test bekliyor:** Sonsuz → ana menü → Hikâye → görev → çıkış → Sonsuz; kayıt sahibi değişimi; mobil portre/yatay ve Android geri tuşu.
 - [ ] Bu değişiklik yalnızca `experiment/story-mode-separation-draft` dalındadır; `main` ve canlı site değiştirilmedi.
