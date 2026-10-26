@@ -4005,6 +4005,7 @@ const STORY_UI_COPY = {
  return:['← ANA MENÜ','← MAIN MENU'], chapter:['BÖLÜM 01 · KAYIP SİNYAL','CHAPTER 01 · LOST SIGNAL'],
  heading:['Kayıp Sinyal','Lost Signal'],
  lead:['Uzak bir istasyon sessizliğe gömüldü. Son sinyal, savunma çekirdeğinin içinden geliyor.','A remote station has fallen silent. Its last signal is coming from inside the defense core.'],
+ campaignsub:['İstasyonun gizemini adım adım çöz.','Unravel the station’s mystery, one mission at a time.'],
  mission1tag:['GÖREV 01','MISSION 01'], mission1title:['Savunmayı etkinleştir','Activate the defense'],
  mission1desc:['Kule çekirdeğini çevrimiçi duruma getir ve istasyonun savunma protokolünü öğren.','Bring the tower core online and learn the station’s defense protocol.'],
  mission2tag:['GÖREV 02','MISSION 02'], mission2title:['İlk temas','First contact'],
@@ -4320,6 +4321,36 @@ function updateStoryMissionBoard() {
     if (s15) { s15.classList.toggle('is-locked', !progress.mission14Complete && !progress.mission15Complete); s15.textContent = progress.mission15Complete ? (en ? 'MEMORY LOSS ACKNOWLEDGED' : 'KAYIP ANI KABUL EDİLDİ') : (progress.mission14Complete ? (en ? 'CHAPTER 02 · PLAYABLE' : '2. BÖLÜM · OYNANABİLİR') : (en ? 'LOCKED · COMPLETE MISSION 14' : 'KİLİTLİ · 14. GÖREVİ TAMAMLA')); }
     document.querySelectorAll('.story-mission-status.is-locked').forEach(node => {
         if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status','story-mission-6-status','story-mission-7-status','story-mission-8-status','story-mission-9-status','story-mission-10-status','story-mission-11-status','story-mission-12-status','story-mission-13-status','story-mission-14-status','story-mission-15-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
+    });
+
+    // Campaign progress is presentation-only: it reads story flags and never mutates saves.
+    const completedCount = Array.from({ length: 15 }, (_, index) => Boolean(progress['mission' + (index + 1) + 'Complete'])).filter(Boolean).length;
+    const progressLabel = document.getElementById('story-campaign-progress-label');
+    const progressCount = document.getElementById('story-campaign-progress-count');
+    const progressFill = document.getElementById('story-campaign-progress-fill');
+    const progressTrack = document.getElementById('story-campaign-progress-track');
+    if (progressLabel) progressLabel.textContent = en ? 'CAMPAIGN SYNCHRONIZED' : 'HİKÂYE İLERLEMESİ';
+    if (progressCount) progressCount.textContent = en ? (completedCount + ' / 15 MISSIONS') : (completedCount + ' / 15 GÖREV');
+    if (progressFill) progressFill.style.width = ((completedCount / 15) * 100) + '%';
+    if (progressTrack) progressTrack.setAttribute('aria-valuenow', String(completedCount));
+
+    let nextMission = 0;
+    for (let missionNumber = 1; missionNumber <= 15; missionNumber++) {
+        if (!progress['mission' + missionNumber + 'Complete']) { nextMission = missionNumber; break; }
+    }
+    document.querySelectorAll('[id^="story-start-mission"]').forEach(button => {
+        const match = button.id.match(/^story-start-mission(\d+)$/);
+        if (!match) return;
+        const missionNumber = Number(match[1]);
+        const card = button.closest('.story-mission');
+        if (!card) return;
+        const complete = Boolean(progress['mission' + missionNumber + 'Complete']);
+        card.classList.toggle('is-complete', complete);
+        card.classList.toggle('is-current', !complete && missionNumber === nextMission && !button.disabled);
+        card.classList.toggle('is-locked-card', button.disabled && !complete);
+        if (complete) card.setAttribute('data-mission-state', en ? 'COMPLETE' : 'TAMAM');
+        else if (!button.disabled) card.setAttribute('data-mission-state', en ? 'AVAILABLE' : 'HAZIR');
+        else card.removeAttribute('data-mission-state');
     });
 }
 function setStoryComms(speakerTr, speakerEn, textTr, textEn) {

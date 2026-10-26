@@ -413,3 +413,13 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - Metinler karakter karakter yazılıyor; devam tuşuna ilk basış mevcut repliği tamamlıyor, ikinci basış sonraki repliğe geçiyor. Atla ve ekranı kapat akışları yazım zamanlayıcısını temizliyor.
 - Mobilde balonun dar ekranda taşmaması ve azaltılmış hareket tercihi için mevcut responsive düzen korunup iyileştirildi.
 - Henüz: tarayıcıda gerçek oynanış / iOS / Android görsel QA yapılmadı. Bu dal main'e alınmış veya canlıya dağıtılmış sayılmaz; CI ve Vercel kontrolü bekleniyor.
+
+
+## İş günlüğü — 2026-10-26: Hikâye görev panosu / ilerleme hissi
+
+- Yeni dal: `story/mission-board-progression-ui` (main'den oluşturuldu).
+- Hikâye görev panosuna 15 görev üzerinden gerçek kayıt bayraklarını okuyan bir ilerleme çubuğu ve tamamlanan görev sayacı eklendi; yeni kayıt veya ilerleme uydurulmaz.
+- Görev kartları görsel olarak ayrıştırıldı: sıradaki açılmış görev, tamamlanan görevler ve kilitli görevler. Bu katman yalnızca mevcut görev durumunu okur; kilit kurallarını değiştirmez.
+- Mobilde ilerleme başlığı sıkışmasın diye responsive yerleşim ve azaltılmış hareket tercihi korundu.
+- PR #53 açıldı; main'e henüz alınmadı. GitHub Actions içinde JavaScript sözdizimi kontrolü geçti; Firestore Emulator testi sürüyor.
+- Vercel, PR #53 başlığına ait commit için "Deployment has completed" durumunu bildirdi; canlı oyunun gerçek cihazda görsel/oynanış QA'sı hâlâ yapılmadı.

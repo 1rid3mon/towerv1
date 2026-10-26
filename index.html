@@ -630,16 +630,38 @@
 .story-progress{font-size:11px;color:#94a3b8}
 .story-primary{border:1px solid rgba(103,232,249,.4);border-radius:12px;padding:11px 16px;background:linear-gradient(110deg,rgba(8,145,178,.3),rgba(37,99,235,.25));color:#cffafe;font-weight:800;font-size:12px}
 .story-primary:focus-visible,.story-exit:focus-visible{outline:2px solid #67e8f9;outline-offset:3px}
-.story-mission-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}
-.story-mission{border:1px solid rgba(148,163,184,.2);background:rgba(15,23,42,.7);border-radius:16px;padding:16px;min-width:0}
+.story-campaign-progress{margin-top:22px;padding:17px 18px;border:1px solid rgba(103,232,249,.2);border-radius:18px;background:linear-gradient(120deg,rgba(8,47,73,.56),rgba(15,23,42,.78) 62%,rgba(49,46,129,.18));box-shadow:inset 0 1px rgba(255,255,255,.035)}
+.story-campaign-progress-top{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.story-campaign-progress-top>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.story-campaign-eyebrow{font-size:10px;font-weight:900;letter-spacing:.16em;color:#a5f3fc}
+.story-campaign-subtitle{font-size:12px;line-height:1.45;color:#94a3b8}
+#story-campaign-progress-count{flex:0 0 auto;font-size:11px;font-variant-numeric:tabular-nums;letter-spacing:.08em;color:#e0f2fe}
+.story-campaign-progress-track{height:6px;margin-top:14px;overflow:hidden;border-radius:999px;background:rgba(148,163,184,.16)}
+#story-campaign-progress-fill{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#22d3ee,#818cf8);box-shadow:0 0 18px rgba(34,211,238,.42);transition:width .45s cubic-bezier(.2,.75,.25,1)}
+.story-mission-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.story-mission{position:relative;overflow:hidden;border:1px solid rgba(148,163,184,.2);background:linear-gradient(145deg,rgba(15,23,42,.84),rgba(2,6,23,.78));border-radius:16px;padding:16px;min-width:0;transition:transform .2s ease,border-color .2s ease,background .2s ease,opacity .2s ease;box-shadow:inset 0 1px rgba(255,255,255,.025)}
+.story-mission:before{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,transparent,rgba(103,232,249,.45),transparent);opacity:0;transition:opacity .2s ease}
+.story-mission.is-current{border-color:rgba(103,232,249,.56);background:linear-gradient(145deg,rgba(8,47,73,.58),rgba(15,23,42,.92));box-shadow:0 0 0 1px rgba(34,211,238,.08),0 12px 32px rgba(8,145,178,.08)}
+.story-mission.is-current:before{opacity:1}
+.story-mission.is-complete{border-color:rgba(52,211,153,.27)}
+.story-mission.is-complete .story-mission-number{color:#6ee7b7}
+.story-mission.is-locked-card{background:rgba(2,6,23,.46);border-color:rgba(71,85,105,.22)}
+.story-mission.is-locked-card .story-mission-number{color:#64748b}
+.story-mission:not(.is-locked-card):hover{transform:translateY(-2px);border-color:rgba(103,232,249,.45)}
+.story-mission .story-deploy{position:relative}
+.story-mission.is-current .story-deploy{border-color:rgba(103,232,249,.68);background:linear-gradient(110deg,rgba(8,145,178,.38),rgba(79,70,229,.3))}
+.story-mission.is-locked-card .story-deploy{opacity:.56;filter:saturate(.6)}
+.story-mission[data-mission-state]:after{content:attr(data-mission-state);position:absolute;right:12px;top:12px;font-size:8px;line-height:1;font-weight:900;letter-spacing:.1em;color:#6ee7b7}
+.story-mission.is-current[data-mission-state]:after{color:#67e8f9}
+.story-mission.is-locked-card:after{content:"";}
 .story-mission-number{font-size:10px;letter-spacing:.14em;color:#67e8f9;font-weight:800}
 .story-mission h3{font-size:14px;font-weight:800;margin:8px 0;color:#f1f5f9}
 .story-mission p{font-size:12px;line-height:1.6;color:#94a3b8;margin:0}
 .story-note{margin-top:16px;color:#64748b;font-size:11px;line-height:1.5}
 .story-complete{display:none;margin-top:18px;padding:16px;border:1px solid rgba(103,232,249,.22);background:rgba(8,145,178,.08);border-radius:16px}
 .story-complete.is-visible{display:block}
-@media(max-width:560px){.story-topline{margin-bottom:12px}.story-stage{grid-template-columns:1fr;gap:6px}.story-hologram-wrap{min-height:105px}.story-hologram{width:92px}.story-dialogue{min-height:unset}.story-mission-grid{grid-template-columns:1fr}.story-mission{padding:13px}.story-hero{border-radius:18px}}
-@media(prefers-reduced-motion:reduce){.story-hologram{animation:none}.story-shell,#story-mode-screen.is-open .story-shell,.story-hero,.story-stage .story-hologram-wrap,.story-stage .story-dialogue{animation:none;opacity:1;transform:none}.story-hero,.story-primary,.story-dialogue{transition:none}}
+@media(max-width:560px){.story-campaign-progress{padding:14px;border-radius:15px}.story-campaign-progress-top{align-items:flex-start;gap:10px}#story-campaign-progress-count{font-size:10px;white-space:nowrap}.story-campaign-subtitle{max-width:230px}.story-mission-grid{margin-top:12px}.story-mission:not(.is-locked-card):hover{transform:none}.story-topline{margin-bottom:12px}.story-stage{grid-template-columns:1fr;gap:6px}.story-hologram-wrap{min-height:105px}.story-hologram{width:92px}.story-dialogue{min-height:unset}.story-mission-grid{grid-template-columns:1fr}.story-mission{padding:13px}.story-hero{border-radius:18px}}
+@media(prefers-reduced-motion:reduce){#story-campaign-progress-fill,.story-mission{transition:none}.story-hologram{animation:none}.story-shell,#story-mode-screen.is-open .story-shell,.story-hero,.story-stage .story-hologram-wrap,.story-stage .story-dialogue{animation:none;opacity:1;transform:none}.story-hero,.story-primary,.story-dialogue{transition:none}}
 
 
 /* First playable story encounter: HUD stays compact over the existing combat canvas. */
@@ -732,6 +754,10 @@
     </div>
    </div>
    <div id="story-mission-view" hidden>
+    <div class="story-campaign-progress" aria-label="Story campaign progress">
+     <div class="story-campaign-progress-top"><div><span class="story-campaign-eyebrow" id="story-campaign-progress-label">HİKÂYE İLERLEMESİ</span><span class="story-campaign-subtitle" data-story-ui="campaignsub">İstasyonun gizemini adım adım çöz.</span></div><strong id="story-campaign-progress-count">0 / 15 GÖREV</strong></div>
+     <div class="story-campaign-progress-track" id="story-campaign-progress-track" role="progressbar" aria-label="Completed story missions" aria-valuemin="0" aria-valuemax="15" aria-valuenow="0"><span id="story-campaign-progress-fill"></span></div>
+    </div>
     <div class="story-mission-grid">
      <article class="story-mission"><div class="story-mission-number" data-story-ui="mission1tag">GÖREV 01</div><h3 data-story-ui="mission1title">Savunmayı etkinleştir</h3><p data-story-ui="mission1desc">Kule çekirdeğini çevrimiçi duruma getir ve istasyonun savunma protokolünü öğren.</p><div class="story-mission-status" id="story-mission-1-status">OYNANABİLİR GÖREV</div><button type="button" class="story-primary story-deploy" id="story-start-mission1" onclick="startStoryMission(1)">GÖREVE BAŞLA →</button></article>
      <article class="story-mission"><div class="story-mission-number" data-story-ui="mission2tag">GÖREV 02</div><h3 data-story-ui="mission2title">İlk temas</h3><p data-story-ui="mission2desc">Devriye saldırısını durdur, ardından üç sinyal izini tara.</p><div class="story-mission-status is-locked" id="story-mission-2-status">KİLİTLİ · 1. GÖREVİ TAMAMLA</div><button type="button" class="story-primary story-deploy" id="story-start-mission2" onclick="startStoryMission(2)" disabled>GÖREVE BAŞLA →</button></article>
