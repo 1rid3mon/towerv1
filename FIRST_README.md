@@ -369,3 +369,14 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - Test durumu: [ ] Bu ek değişiklikten sonraki GitHub Actions koşusu tamamlanmalı. Önceki koşu `40282002446` başarılıydı; yeni commit için bu sonuç kanıt sayılmaz.
 - Canlı doğrulama: [ ] Yüksek Sonsuz Mod can/hasar/ekonomi/eşya/yoldaş ilerlemesiyle Hikâye görevi başlat; değerleri doğrula; görevi tamamla; “Tekrar Oyna”yı kullan; görevden çıkıp Sonsuz Moda dönerek önceki kayıtların korunduğunu doğrula.
 - Ana dala birleştirme ve canlı dağıtım: HAYIR / henüz doğrulanmadı.
+
+
+## İş günlüğü — 2026-10-26: Oyun performansı denetimi ve hedef seçimi optimizasyonu
+
+- Denetimde `engine.js` kule ateş ederken her ateşleme anında tüm düşmanlar için yeni bir `map` dizisi oluşturuyor, `filter` çalıştırıyor ve bütün uygun hedefleri `sort` ediyordu. Bu iş, sadece en yakın birkaç düşman vurulacak olsa bile tekrarlanıyordu.
+- Optimizasyon: `getNearestEnemiesInRange()` eklendi. Artık yalnızca gereken en yakın hedef sayısı sıralı küçük bir listede tutuluyor; tüm düşman listesini her ateşlemede sıralamak ve ara dizileri oluşturmak gerekmiyor. Multishot değeri ateşleme başına bir kez hesaplanıyor.
+- Beklenen etki: Özellikle düşman sayısı ve çoklu atış yükseldikçe daha az geçici nesne/array üretimi ve daha az sıralama işi. Gerçek cihazda FPS ölçümü henüz yapılmadı; performans kazancı sayısal olarak doğrulanmış değildir.
+- Regresyon testi: en yakın hedef sırası, hedef sayısı sınırı, menzil + düşman yarıçapı sınırı ve sıfır hedef sınırı için test eklendi.
+- Test durumu: [ ] GitHub Actions syntax ve Security Lab / Firestore Emulator testleri bu commit sonrasında çalışmalı.
+- Kod incelemesinde ayrıca not edildi: hikâye görevleri 10–15 için gerçek tarayıcı/mobil QA bekliyor; 16–18 tasarım aşamasında; arkadaş sistemi henüz doğrulanmış değil; hikâye bulut senkronizasyonu ve canlı Firestore kuralları ayrıca doğrulanmalı; liderlik tablosu istemci tarafından bildirildiğinden sunucu otoritesi yok.
+- Güvenlik sınırı: istemci anti-hile gölge kaydı değiştirilmiş istemciye karşı sunucu otoritesi değildir; hileye dayanıklı liderlik/ekonomi için güvenilir backend doğrulaması hâlâ eksik.
