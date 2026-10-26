@@ -403,3 +403,13 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] **HİKÂYE İÇERİĞİ:** `STORY_CHAPTER_02.md` durumuna göre Görev 10–15 ilk oynanabilir sürümde; gerçek tarayıcı/mobil QA bekliyor. Görev 16–18 henüz tasarım aşamasında.
 - [ ] **CİHAZ QA:** Mobil portre/yatay, masaüstü, dil değişimi, ses ve Canvas performansı gerçek cihazlarda test edilmedi. Bu kontrol listesi oyunun tamamının otomatik olarak test edildiği anlamına gelmez.
 - **Sonuç:** PR #49 ve PR #51 main'e alındı, otomatik regresyon suite 136/136 geçti. Canlı dağıtım ve manuel oynanış hâlâ doğrulanmalı; “oyun tamamen optimize edildi” veya “her şey tamam” iddiası için yeterli kanıt yok.
+
+
+## İş günlüğü — 2026-10-26: Hikâye giriş ve diyalog sunumu (yarışma dikey dilimi)
+
+- Ayrı bir çalışma dalı açıldı: `story/dialogue-cinematic-presentation`; değişiklikler doğrudan `main` üzerine yazılmadı.
+- Hikâye ekranına kısa bir giriş hareketi ve sahne/karakter ortaya çıkış animasyonu eklendi; `prefers-reduced-motion` kullanan oyuncular için hareketler kapatılıyor.
+- Giriş diyalog paneli artık konuşma balonu biçiminde: kuyruk, karaktere göre renk tonu (istasyon / hologram / komutan), isim etiketi ve portre sembolü değişimi.
+- Metinler karakter karakter yazılıyor; devam tuşuna ilk basış mevcut repliği tamamlıyor, ikinci basış sonraki repliğe geçiyor. Atla ve ekranı kapat akışları yazım zamanlayıcısını temizliyor.
+- Mobilde balonun dar ekranda taşmaması ve azaltılmış hareket tercihi için mevcut responsive düzen korunup iyileştirildi.
+- Henüz: tarayıcıda gerçek oynanış / iOS / Android görsel QA yapılmadı. Bu dal main'e alınmış veya canlıya dağıtılmış sayılmaz; CI ve Vercel kontrolü bekleniyor.

@@ -4152,7 +4152,21 @@ function applyStoryUiLanguage() {
     if (next) next.textContent = storyCopy(STORY_UI_COPY[storyMissionViewOpen ? 'start' : 'continue']);
     updateStoryMissionBoard();
 }
+let storyTypingTimer = null;
+let storyTypingFullText = '';
+function finishStoryTyping() {
+    if (storyTypingTimer !== null) {
+        clearInterval(storyTypingTimer);
+        storyTypingTimer = null;
+    }
+    const copy = document.getElementById('story-dialogue-copy');
+    if (copy) copy.textContent = storyTypingFullText;
+}
 function showStoryDialogue() {
+    if (storyTypingTimer !== null) {
+        clearInterval(storyTypingTimer);
+        storyTypingTimer = null;
+    }
     const line = STORY_DIALOGUES[storyDialogueIndex];
     if (!line) return;
     const en = storyLanguage() === 'en';
@@ -4160,11 +4174,40 @@ function showStoryDialogue() {
     const copy = document.getElementById('story-dialogue-copy');
     const progress = document.getElementById('story-progress');
     const next = document.getElementById('story-next');
-    if (speaker) speaker.textContent = line.speaker[en ? 'en' : 'tr'];
-    if (copy) copy.textContent = line.text[en ? 'en' : 'tr'];
+    const bubble = document.getElementById('story-dialogue-bubble');
+    const avatar = document.getElementById('story-avatar-glyph');
+    const speakerText = line.speaker[en ? 'en' : 'tr'];
+    storyTypingFullText = line.text[en ? 'en' : 'tr'];
+    const isHologram = /HOLOGRAM|HOLOGRAMI|BLUE HOLOGRAM/.test(speakerText.toUpperCase());
+    const isCommander = /KOMUTAN|COMMANDER/.test(speakerText.toUpperCase());
+    const speakerKind = isHologram ? 'hologram' : (isCommander ? 'commander' : 'station');
+    if (speaker) speaker.textContent = speakerText;
+    if (bubble) bubble.dataset.speaker = speakerKind;
+    if (avatar) avatar.textContent = isHologram ? '◈' : (isCommander ? '⌁' : '✦');
+    if (copy) {
+        copy.textContent = '';
+        copy.setAttribute('aria-label', storyTypingFullText);
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            copy.textContent = storyTypingFullText;
+        } else {
+            let charIndex = 0;
+            storyTypingTimer = setInterval(() => {
+                if (!copy.isConnected) { clearInterval(storyTypingTimer); storyTypingTimer = null; return; }
+                charIndex = Math.min(storyTypingFullText.length, charIndex + 2);
+                copy.textContent = storyTypingFullText.slice(0, charIndex);
+                if (charIndex >= storyTypingFullText.length) {
+                    clearInterval(storyTypingTimer);
+                    storyTypingTimer = null;
+                }
+            }, 18);
+        }
+    }
     if (progress) progress.textContent = String(storyDialogueIndex + 1).padStart(2, '0') + ' / ' + String(STORY_DIALOGUES.length).padStart(2, '0');
-    if (next) next.textContent = storyDialogueIndex === STORY_DIALOGUES.length - 1
-        ? storyCopy(STORY_UI_COPY.start) : storyCopy(STORY_UI_COPY.continue);
+    if (next) {
+        next.textContent = storyDialogueIndex === STORY_DIALOGUES.length - 1
+            ? storyCopy(STORY_UI_COPY.start) : storyCopy(STORY_UI_COPY.continue);
+        next.setAttribute('aria-label', en ? 'Continue dialogue' : 'Diyaloğu ilerlet');
+    }
 }
 function showStoryMissionBriefing() {
     storyMissionViewOpen = true;
@@ -5090,6 +5133,7 @@ function openStoryMode() {
     if (!screen) return;
     if (menu) menu.classList.add('menu-hidden');
     if (typeof isPaused !== 'undefined') isPaused = true;
+    finishStoryTyping();
     storyMissionViewOpen = false;
     storyDialogueIndex = 0;
     const dialogue = document.getElementById('story-dialogue-view');
@@ -5107,6 +5151,8 @@ function openStoryMode() {
 }
 function advanceStoryDialogue() {
     if (storyMissionViewOpen) return;
+    // First tap reveals the rest of the current line; the next tap advances.
+    if (storyTypingTimer !== null) { finishStoryTyping(); return; }
     if (storyDialogueIndex < STORY_DIALOGUES.length - 1) {
         storyDialogueIndex++;
         showStoryDialogue();
@@ -5115,9 +5161,11 @@ function advanceStoryDialogue() {
     showStoryMissionBriefing();
 }
 function skipStoryIntro() {
+    finishStoryTyping();
     showStoryMissionBriefing();
 }
 function closeStoryMode() {
+    finishStoryTyping();
     const screen = document.getElementById('story-mode-screen');
     const menu = document.getElementById('mode-main-menu');
     if (screen) { screen.classList.remove('is-open'); screen.setAttribute('aria-hidden', 'true'); }
@@ -5134,7 +5182,7 @@ document.addEventListener('keydown', event => {
     const screen = document.getElementById('story-mode-screen');
     if (!screen || !screen.classList.contains('is-open')) return;
     if (event.key === 'Escape') { closeStoryMode(); return; }
-    if (event.key === 'Enter' && !event.repeat && !storyMissionViewOpen) advanceStoryDialogue();
+    if (event.key === 'Enter' && !event.repeat && !storyMissionViewOpen) { event.preventDefault(); advanceStoryDialogue(); }
 });
 
 
