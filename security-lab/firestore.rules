@@ -85,6 +85,73 @@ service cloud.firestore {
     && request.resource.data.updatedAt is number;
    allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
   }
+  match /friendRequests/{requestId} {
+   function validFriendRequest() {
+    let d = request.resource.data;
+    return d.keys().hasOnly(['fromUid','toUid','fromUsername','toUsername','status','createdAt','updatedAt'])
+     && d.fromUid is string && d.toUid is string
+     && d.fromUid != d.toUid
+     && requestId == d.fromUid + '_' + d.toUid
+     && d.fromUsername is string && d.fromUsername.matches('^[a-z0-9_.-]{3,18}$')
+     && d.toUsername is string && d.toUsername.matches('^[a-z0-9_.-]{3,18}$')
+     && d.status == 'pending'
+     && d.createdAt == request.time && d.updatedAt == request.time
+     && exists(/databases/$(database)/documents/usernameRegistry/$(d.toUsername))
+     && get(/databases/$(database)/documents/usernameRegistry/$(d.toUsername)).data.uid == d.toUid
+     && exists(/databases/$(database)/documents/usernameRegistry/$(d.fromUsername))
+     && get(/databases/$(database)/documents/usernameRegistry/$(d.fromUsername)).data.uid == d.fromUid;
+   }
+   allow read: if request.auth != null
+    && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
+   allow create: if request.auth != null
+    && request.resource.data.fromUid == request.auth.uid
+    && validFriendRequest()
+    && (!exists(/databases/$(database)/documents/friendRequests/$(request.resource.data.toUid + '_' + request.resource.data.fromUid))
+      || get(/databases/$(database)/documents/friendRequests/$(request.resource.data.toUid + '_' + request.resource.data.fromUid)).data.status == 'rejected');
+   allow update: if request.auth != null
+    && request.resource.data.fromUid == resource.data.fromUid
+    && request.resource.data.toUid == resource.data.toUid
+    && request.resource.data.fromUsername == resource.data.fromUsername
+    && request.resource.data.toUsername == resource.data.toUsername
+    && request.resource.data.updatedAt == request.time
+    && request.resource.data.keys().hasOnly(['fromUid','toUid','fromUsername','toUsername','status','createdAt','updatedAt'])
+    && ((resource.data.toUid == request.auth.uid
+      && resource.data.status == 'pending'
+      && request.resource.data.createdAt == resource.data.createdAt
+      && request.resource.data.status in ['accepted','rejected'])
+     || (resource.data.fromUid == request.auth.uid
+      && resource.data.status == 'rejected'
+      && request.resource.data.status == 'pending'
+      && request.resource.data.createdAt == request.time));
+   allow delete: if request.auth != null
+    && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
+  }
+  match /storyProgress/{userId} {
+   function validStoryProgress() {
+    let d = request.resource.data;
+    return d.keys().hasOnly(['introSeen','chapter','mission1Complete','mission2Complete','mission3Complete','mission4Complete','mission5Complete','mission6Complete','mission7Complete','mission8Complete','mission9Complete','mission10Complete','mission11Complete','mission12Complete','mission13Complete','mission14Complete','voiceChoice','pulseTutorialComplete','companionForm','repairChoiceCount','routeChoice','powerChoice','updatedAt'])
+     && d.keys().hasAll(['introSeen','chapter','mission1Complete','mission2Complete','mission3Complete','mission4Complete','mission5Complete','mission6Complete','mission7Complete','mission8Complete','mission9Complete','mission10Complete','mission11Complete','mission12Complete','mission13Complete','mission14Complete','voiceChoice','pulseTutorialComplete','companionForm','repairChoiceCount','routeChoice','powerChoice','updatedAt'])
+     && d.introSeen is bool
+     && validNum(d.chapter,1,2)
+     && d.mission1Complete is bool && d.mission2Complete is bool
+     && d.mission3Complete is bool && d.mission4Complete is bool
+     && d.mission5Complete is bool && d.mission6Complete is bool
+     && d.mission7Complete is bool && d.mission8Complete is bool
+     && d.mission9Complete is bool && d.mission10Complete is bool
+     && d.mission11Complete is bool && d.mission12Complete is bool
+     && d.mission13Complete is bool && d.mission14Complete is bool
+     && (d.voiceChoice == null || d.voiceChoice in ['human','station'])
+     && d.pulseTutorialComplete is bool
+     && d.companionForm in ['basic','cyan']
+     && validNum(d.repairChoiceCount,0,3)
+     && (d.routeChoice == null || d.routeChoice in ['array','blackbox'])
+     && (d.powerChoice == null || d.powerChoice in ['shield','weapon'])
+     && d.updatedAt is number;
+   }
+   allow read: if isOwner(userId);
+   allow create, update: if isOwner(userId) && validStoryProgress();
+   allow delete: if isOwner(userId);
+  }
   match /users/{userId}{
    allow read: if isOwner(userId);
    allow create,update: if isOwner(userId)&&validUserDoc();

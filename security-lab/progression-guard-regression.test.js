@@ -178,7 +178,12 @@ test('Story Mode mission handler enforces the previous-mission prerequisite even
     6: 'mission5Complete',
     7: 'mission6Complete',
     8: 'mission7Complete',
-    9: 'mission8Complete'
+    9: 'mission8Complete',
+    10: 'mission9Complete',
+    11: 'mission10Complete',
+    12: 'mission11Complete',
+    13: 'mission12Complete',
+    14: 'mission13Complete'
   };
 
   assert.equal(sandbox.storyMissionPrerequisiteMet(1, {}), true);
@@ -197,4 +202,64 @@ test('Story Mode mission handler enforces the previous-mission prerequisite even
     );
   }
   assert.match(uiSource, /if \(!storyMissionPrerequisiteMet\(missionNumber, progress\)\)/);
+});
+
+
+test('routine HUD refresh is throttled while explicit event updates remain available', () => {
+  assert.match(engineSource, /let hudUpdateAccum = 0;/);
+  assert.match(engineSource, /hudUpdateAccum \+= dt;/);
+  assert.match(engineSource, /if \(hudUpdateAccum >= 0\.1\)[\s\S]{0,100}updateHUD\(\);/);
+  assert.match(uiSource, /function updateHUD\(\)/);
+});
+
+
+test('unsupported Story Mode phases cannot fall through and falsely complete mission 2', () => {
+  const body = extractFunction(
+    uiSource,
+    'function finishStoryBattleEncounter()',
+    'function scanStorySignal()'
+  );
+  const guard = body.indexOf('if (![1, 2].includes(session.mission)) return;');
+  const genericCompletion = body.indexOf('session.completed = true; isPaused = true; enemies = []; projectiles = [];');
+  assert.ok(guard >= 0 && genericCompletion > guard,
+    'only mission 1/2 may use the generic completion branch');
+  assert.match(body, /if \(session\.mission === 1\)[\s\S]*?else \{[\s\S]*?mission2Complete: true/);
+});
+
+test('mission 13 and 14 each have exactly one initial objective label branch', () => {
+  const start = uiSource.indexOf('function startStoryMission(');
+  const end = uiSource.indexOf('function finishStoryBattleEncounter()', start);
+  const body = uiSource.slice(start, end);
+  assert.equal((body.match(/else if \(missionNumber === 13\) status\.textContent/g) || []).length, 1);
+  assert.equal((body.match(/else if \(missionNumber === 14\) status\.textContent/g) || []).length, 1);
+});
+
+
+test('HTML element IDs are unique so friend-system handlers update the intended UI', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const ids = [...html.matchAll(/\\bid=["']([^"']+)["']/g)].map(match => match[1]);
+  const seen = new Set();
+  const duplicates = [];
+  for (const id of ids) {
+    if (seen.has(id)) duplicates.push(id);
+    seen.add(id);
+  }
+  assert.deepEqual(duplicates, [], 'duplicate IDs can route getElementById updates to stale UI');
+});
+
+
+test('Piko is rendered as an original full-body SVG companion, not an emoji placeholder', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const start = html.indexOf('<svg id="game-mascot-face"');
+  const end = html.indexOf('</svg>', start);
+  assert.ok(start >= 0 && end > start, 'Piko SVG should exist');
+  const svg = html.slice(start, end);
+  assert.match(svg, /viewBox="0 0 96 96"/);
+  assert.match(svg, /piko-body/);
+  assert.match(svg, /piko-core/);
+  assert.match(svg, /piko-eye/);
+  assert.match(svg, /piko-aura/);
+  assert.match(svg, /astral mekanik uzay yoldaşı/);
+  assert.match(html, /width: 76px; height: 76px/);
+  assert.match(html, /width: 64px; height: 64px/);
 });

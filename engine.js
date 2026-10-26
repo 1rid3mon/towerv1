@@ -27,6 +27,9 @@ initStars();
 
 let spawnTimer = 0;
 let playTimeAccum = 0;
+// HUD values change far less often than the canvas; cap routine DOM refreshes at 10 Hz.
+// Event handlers still call updateHUD() directly for immediate feedback.
+let hudUpdateAccum = 0;
 let waveFrostSpawns = 0;
 let cargoSpawnTimer = 45 + Math.random() * 15;
 
@@ -279,6 +282,9 @@ function spawnEnemy(isBoss = false) {
         }
         if (typeof showBattleMoment === 'function') {
             showBattleMoment('boss', { name, wave: w, subtype: chosenBoss });
+            if (typeof window !== 'undefined' && typeof window.pikoReactEvent === 'function') {
+                window.pikoReactEvent('boss', { name, wave: w, subtype: chosenBoss });
+            }
         }
     } else {
         const roll = Math.random();
@@ -753,7 +759,14 @@ function updateGame(dt) {
 
     for (let i = lightningBeams.length - 1; i >= 0; i--) { lightningBeams[i].life -= simDt; if (lightningBeams[i].life <= 0) lightningBeams.splice(i, 1); }
     for (let i = floatingTexts.length - 1; i >= 0; i--) { const ft = floatingTexts[i]; ft.y += ft.vy * simDt; ft.alpha -= simDt * 1.1; if (ft.alpha <= 0) floatingTexts.splice(i, 1); }
-    updateHUD();
+
+    // Avoid rewriting dozens of HUD nodes every animation frame (usually ~60 times/sec).
+    // 100 ms keeps health, wave progress and counters responsive while reducing DOM work.
+    hudUpdateAccum += dt;
+    if (hudUpdateAccum >= 0.1) {
+        hudUpdateAccum %= 0.1;
+        updateHUD();
+    }
 }
 
 function fireTowerProjectile(startX, startY, target, barrelIdx = 0, totalBarrels = 1) {
@@ -786,6 +799,7 @@ function fireTowerProjectile(startX, startY, target, barrelIdx = 0, totalBarrels
         radius: isCrit ? 5 : 4.0, color: projColor, damage: dmg, isCrit,
         bouncesLeft: game.upgrades.bounce, hitList: [], life: 2.0, fromEnemy: false
     });
+    if (typeof playBattleCue === 'function') playBattleCue('shot');
 }
 
 function updateCompanions(simDt) {
@@ -884,6 +898,7 @@ function getClosestEnemy(x, y, maxDist) {
 function dealDamageToEnemy(enemy, amount, isCrit = false, color = '#ffffff', applyLS = false) {
     if (!enemies.includes(enemy)) return;
     enemy.hp -= amount; enemy.hitFlash = 1;
+    if (typeof playBattleCue === 'function') playBattleCue(isCrit ? 'critical' : 'impact');
     addFloatingText(enemy.x, enemy.y, formatNumber(amount) + (isCrit ? '!' : ''), color, isCrit ? 14 : 11);
 
     if (applyLS) { const ls = getTowerLifesteal(); if (ls > 0 && tower.hp < tower.maxHp) tower.hp = Math.min(tower.maxHp, tower.hp + amount * ls); }
@@ -907,6 +922,9 @@ function killEnemy(enemy) {
         showToast(`${enemy.name || 'Boss'} İmha Edildi! +${formatNumber(c)} Kristal!`);
         if (typeof showBattleMoment === 'function') {
             showBattleMoment('bossKill', { name: enemy.name || 'Boss', gold: goldEarned, crystals: c });
+            if (typeof window !== 'undefined' && typeof window.pikoReactEvent === 'function') {
+                window.pikoReactEvent('bossKill', { name: enemy.name || 'Boss', gold: goldEarned, crystals: c });
+            }
         }
     } else if (Math.random() * 100 < crystalChance) {
         const cAmt = Math.max(1, Math.round(crystalMult));
@@ -946,7 +964,7 @@ function damageTower(rawDamage, attacker) {
 
     let rem = reduced;
     if (tower.shield > 0) { if (tower.shield >= rem) { tower.shield -= rem; rem = 0; } else { rem -= tower.shield; tower.shield = 0; } }
-    if (rem > 0) { tower.hp -= rem; createParticles(tower.x, tower.y, '#ef4444', 5, 50); }
+    if (rem > 0) { tower.hp -= rem; createParticles(tower.x, tower.y, '#ef4444', 5, 50); if (typeof playBattleCue === 'function') playBattleCue('towerHit'); }
     if (tower.hp <= 0) { tower.hp = 0; triggerTowerDefeat(); }
 }
 

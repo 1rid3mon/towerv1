@@ -492,7 +492,7 @@
         /* Piko: original astral-mechanical companion; inline SVG keeps it crisp and asset-free. */
         #game-mascot {
             position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: max(104px, calc(env(safe-area-inset-bottom) + 88px));
-            z-index: 80; width: 66px; height: 66px; display: grid; place-items: center;
+            z-index: 80; width: 76px; height: 76px; display: grid; place-items: center;
             padding: 3px; border: 1px solid rgba(103,232,249,.48); border-radius: 22px 22px 25px 25px;
             background: radial-gradient(circle at 50% 18%, rgba(34,211,238,.18), rgba(8,15,35,.98) 68%);
             box-shadow: 0 5px 22px rgba(34,211,238,.2), inset 0 0 15px rgba(96,165,250,.13);
@@ -525,7 +525,7 @@
         @keyframes piko-core { 0%,100% { opacity:.7; filter:drop-shadow(0 0 2px #22d3ee); } 50% { opacity:1; filter:drop-shadow(0 0 7px #67e8f9); } }
         @keyframes piko-sigil { to { transform:rotate(-360deg); } }
         @media (prefers-reduced-motion: reduce) { #game-mascot, #game-mascot.mascot-react, #game-mascot-face * { animation: none !important; } }
-        @media (max-width: 480px) { #game-mascot { width: 54px; height: 54px; } #game-mascot-bubble { bottom: max(164px, calc(env(safe-area-inset-bottom) + 148px)); } }
+        @media (max-width: 480px) { #game-mascot { width: 64px; height: 64px; } #game-mascot-bubble { bottom: max(164px, calc(env(safe-area-inset-bottom) + 148px)); } }
 
     
         /* Main mode selection overlay */
@@ -1234,6 +1234,27 @@
                         Sıralama değerleri şu an oyuncu istemcisinden gönderilir; sunucu tarafından doğrulanmaz. Bu nedenle hileye dayanıklı veya ödüllü rekabet için güvenilir skor sayılmaz.
                     </div>
 
+                    <!-- GERÇEK ARKADAŞ SİSTEMİ: Firestore friendRequests + usernameRegistry -->
+                    <section id="friends-center" class="mt-4 rounded-2xl border border-sky-500/25 bg-slate-900/80 p-3 sm:p-4 space-y-3" aria-labelledby="friends-center-title">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div><h3 id="friends-center-title" class="font-tech text-lg font-bold text-sky-200"><i class="fa-solid fa-user-group mr-1"></i> ARKADAŞ MERKEZİ</h3><p class="text-[10px] sm:text-xs text-slate-400">Kullanıcı adıyla bul, istek gönder ve arkadaşlarını yönet.</p></div>
+                            <span id="friends-count" class="rounded-full border border-sky-400/20 bg-sky-950/50 px-2.5 py-1 text-[10px] text-sky-200">Hesap gerekli</span>
+                        </div>
+                        <form id="friends-add-form" class="flex flex-col sm:flex-row gap-2" onsubmit="event.preventDefault(); sendFriendRequest();">
+                            <label for="friends-add-username" class="sr-only">Arkadaşının kullanıcı adı</label>
+                            <input id="friends-add-username" name="friendUsername" autocomplete="off" autocapitalize="none" maxlength="32" placeholder="Kullanıcı adı (örn. komutan_07)" class="min-w-0 flex-1 rounded-xl border border-white/10 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-sky-400" />
+                            <button id="friends-add-button" type="submit" class="rounded-xl bg-sky-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-sky-500 disabled:opacity-50">İstek Gönder</button>
+                        </form>
+                        <div id="friends-notice" role="status" aria-live="polite" class="hidden text-xs rounded-lg px-2.5 py-2"></div>
+                        <div class="grid grid-cols-1 xl:grid-cols-2 gap-3">
+                            <div class="min-w-0 rounded-xl border border-white/5 bg-slate-950/40 p-2.5"><h4 class="mb-2 text-xs font-bold text-white"><i class="fa-solid fa-users mr-1 text-sky-300"></i> Arkadaşların</h4><div id="friends-list" class="space-y-2 max-h-56 overflow-y-auto"><div class="py-3 text-center text-xs text-slate-400">Yükleniyor…</div></div></div>
+                            <div class="min-w-0 space-y-3">
+                                <div class="rounded-xl border border-white/5 bg-slate-950/40 p-2.5"><h4 class="mb-2 text-xs font-bold text-white">Gelen İstekler</h4><div id="friends-incoming" class="space-y-2"><div class="text-xs text-slate-500">Giriş yapınca isteklerin burada görünür.</div></div></div>
+                                <div class="rounded-xl border border-white/5 bg-slate-950/40 p-2.5"><h4 class="mb-2 text-xs font-bold text-white">Gönderilen İstekler</h4><div id="friends-outgoing" class="space-y-2"><div class="text-xs text-slate-500">Gönderdiğin istekler burada görünür.</div></div></div>
+                            </div>
+                        </div>
+                    </section>
+
                     <!-- Oyuncu Listesi -->
                     <div id="leaderboard-list" class="space-y-2 max-h-[380px] overflow-y-auto pr-1"></div>
                 </div>
@@ -1581,25 +1602,44 @@
     <!-- Interactive cosmetic companion; draggable and independent from the game simulation. -->
     <div id="game-mascot-bubble" role="status" aria-live="polite"></div>
     <button id="game-mascot" type="button" aria-label="Piko — konuşmak için dokun" title="Piko · Astral mekanik yoldaş">
-        <svg id="game-mascot-face" viewBox="0 0 64 64" role="img" aria-label="Piko, gizemli mekanik uzay yoldaşı" xmlns="http://www.w3.org/2000/svg">
+        <svg id="game-mascot-face" viewBox="0 0 96 96" role="img" aria-label="Piko, sevimli astral mekanik uzay yoldaşı" xmlns="http://www.w3.org/2000/svg">
             <defs>
-                <linearGradient id="piko-shell" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e2e8f0"/><stop offset=".42" stop-color="#64748b"/><stop offset="1" stop-color="#1e293b"/></linearGradient>
-                <linearGradient id="piko-glass" x1="0" y1="0" x2="0.8" y2="1"><stop offset="0" stop-color="#0c2948"/><stop offset="1" stop-color="#020617"/></linearGradient>
-                <radialGradient id="piko-energy"><stop offset="0" stop-color="#cffafe"/><stop offset=".4" stop-color="#22d3ee"/><stop offset="1" stop-color="#2563eb" stop-opacity=".2"/></radialGradient>
+                <linearGradient id="piko-shell" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1f5f9"/><stop offset=".42" stop-color="#94a3b8"/><stop offset="1" stop-color="#334155"/></linearGradient>
+                <linearGradient id="piko-glass" x1="0" y1="0" x2=".8" y2="1"><stop offset="0" stop-color="#164e63"/><stop offset=".55" stop-color="#082f49"/><stop offset="1" stop-color="#020617"/></linearGradient>
+                <linearGradient id="piko-body" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#64748b"/><stop offset="1" stop-color="#1e293b"/></linearGradient>
+                <radialGradient id="piko-energy"><stop offset="0" stop-color="#ecfeff"/><stop offset=".38" stop-color="#67e8f9"/><stop offset="1" stop-color="#0891b2" stop-opacity=".2"/></radialGradient>
+                <linearGradient id="piko-fin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a5f3fc"/><stop offset="1" stop-color="#0284c7"/></linearGradient>
             </defs>
-            <g class="piko-aura" fill="none" stroke="#22d3ee" stroke-width=".8" opacity=".7"><ellipse cx="32" cy="31" rx="27" ry="11" stroke-dasharray="2 4"/><path d="M8 29l4-3m40 9 4 3"/></g>
-            <path d="M15 17L21 7l7 6 8-3 8 6 6 3-2 25-8 7-18-2-8-10z" fill="url(#piko-shell)" stroke="#cbd5e1" stroke-width="1.1"/>
-            <path d="M19 20l4-8 5 4 8-3 7 5 4 4-3 18-6 7-15-2-5-7z" fill="#334155" stroke="#94a3b8" stroke-width=".8"/>
-            <path d="M17 22Q31 13 47 22l-1 17Q32 49 18 39z" fill="url(#piko-glass)" stroke="#38bdf8" stroke-width="1.2"/>
-            <path d="M20 23Q31 18 43 23" fill="none" stroke="#e0f2fe" stroke-opacity=".55" stroke-width="1"/>
-            <g class="piko-eye" fill="#67e8f9"><ellipse cx="26" cy="30" rx="3.1" ry="4.1"/><ellipse cx="38" cy="30" rx="3.1" ry="4.1"/></g>
-            <path d="M27 37q5 4 10 0" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round"/>
-            <path d="M13 25l-5-4 2-8 7 5m34 8 5-5-2-8-7 5" fill="#1e293b" stroke="#38bdf8" stroke-width="1.4"/>
-            <path d="M10 14l3 5m38-5-3 5" stroke="#a5f3fc" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M24 45l-2 7 7-2m11-5 2 7-7-2" fill="#475569" stroke="#94a3b8" stroke-width="1"/>
-            <circle class="piko-core" cx="32" cy="47" r="4.1" fill="url(#piko-energy)" stroke="#67e8f9" stroke-width=".9"/>
-            <path class="piko-sigil" d="M32 44l1.2 2.1 2.4.4-1.7 1.6.4 2.4-2.3-1.1-2.2 1.1.4-2.4-1.8-1.6 2.4-.4z" fill="#e0f2fe"/>
-            <path d="M24 55l-4 3m20-3 4 3" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/>
+            <g class="piko-aura" fill="none" stroke="#22d3ee" stroke-width="1" opacity=".72"><ellipse cx="48" cy="48" rx="43" ry="18" stroke-dasharray="2 5"/><ellipse cx="48" cy="48" rx="34" ry="42" stroke-dasharray="1 7" opacity=".55"/><path d="M7 43l5-4m72 18 5-4"/></g>
+            <!-- Small hovering boots and articulated legs -->
+            <path d="M37 70l-2 8-8 4q-2 2 1 4h17l3-7m11-9 2 8 8 4q2 2-1 4H51l-3-7" fill="#334155" stroke="#94a3b8" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M30 83h12m13 0h12" stroke="#67e8f9" stroke-width="2" stroke-linecap="round"/>
+            <path d="M32 56q-7 3-8 12l5 5 10-7m17-10q7 3 8 12l-5 5-10-7" fill="url(#piko-body)" stroke="#94a3b8" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M26 65l-5 3 2 7 7 1m40-11 5 3-2 7-7 1" fill="#475569" stroke="#38bdf8" stroke-width="1.5" stroke-linejoin="round"/>
+            <!-- Compact chest armor and glowing power core -->
+            <path d="M34 52q14-7 28 0l-2 17q-12 9-24 0z" fill="url(#piko-body)" stroke="#cbd5e1" stroke-width="1.5"/>
+            <path d="M39 56q9-4 18 0l-1 8q-8 5-16 0z" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+            <circle class="piko-core" cx="48" cy="60" r="5.2" fill="url(#piko-energy)" stroke="#a5f3fc" stroke-width="1"/>
+            <path class="piko-sigil" d="M48 56.5l1.5 2.5 2.8.5-2 1.9.5 2.8-2.8-1.3-2.5 1.3.5-2.8-2.1-1.9 2.9-.5z" fill="#ecfeff"/>
+            <!-- Side thrusters -->
+            <path d="M31 50l-8-3-2 9 8 5m36-11 8-3 2 9-8 5" fill="#1e293b" stroke="#38bdf8" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M24 55l4 2m44-2-4 2" stroke="#a5f3fc" stroke-width="2" stroke-linecap="round"/>
+            <!-- Head shell, antenna and side fins -->
+            <path d="M42 20l-1-7 7-6 7 6-1 7" fill="url(#piko-shell)" stroke="#cbd5e1" stroke-width="1.7" stroke-linejoin="round"/>
+            <circle cx="48" cy="9" r="3.5" fill="#0891b2" stroke="#a5f3fc" stroke-width="1.3"/>
+            <path d="M31 27l-9-7-5 5 4 13 8 3m36-14 9-7 5 5-4 13-8 3" fill="url(#piko-fin)" stroke="#bae6fd" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M21 28l5 5m49-5-5 5" stroke="#ecfeff" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M29 23l5-9 8 4 6-3 6 3 8-4 5 9 2 19-6 12q-15 10-30 0l-6-12z" fill="url(#piko-shell)" stroke="#e2e8f0" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M33 25l4-5 6 3 5-2 5 2 6-3 4 5 2 16-5 8q-12 7-24 0l-5-8z" fill="#334155" stroke="#94a3b8" stroke-width="1.1" stroke-linejoin="round"/>
+            <path d="M30 29q18-13 36 0l-2 16q-16 13-32 0z" fill="url(#piko-glass)" stroke="#38bdf8" stroke-width="1.5"/>
+            <path d="M34 29q14-7 28 0" fill="none" stroke="#e0f2fe" stroke-opacity=".65" stroke-width="1.3" stroke-linecap="round"/>
+            <g class="piko-eye" fill="#a5f3fc"><ellipse cx="40" cy="36" rx="3.6" ry="4.8"/><ellipse cx="56" cy="36" rx="3.6" ry="4.8"/></g>
+            <circle cx="40" cy="35" r="1.1" fill="#fff"/><circle cx="56" cy="35" r="1.1" fill="#fff"/>
+            <path d="M41 44q7 5 14 0" fill="none" stroke="#67e8f9" stroke-width="2" stroke-linecap="round"/>
+            <path d="M35 49l-3 4m29-4 3 4" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/>
+            <!-- Tiny cheek lights and hover sparks -->
+            <circle cx="33" cy="41" r="1.5" fill="#fb7185" opacity=".85"/><circle cx="63" cy="41" r="1.5" fill="#fb7185" opacity=".85"/>
+            <path d="M14 62l2 4 4 1-4 2-2 4-2-4-4-2 4-1zM80 28l1.7 3.2 3.3 1.1-3.3 1.1L80 37l-1.7-3.6-3.3-1.1 3.3-1.1z" fill="#a5f3fc" opacity=".9"/>
         </svg>
     </button>
 

@@ -3,11 +3,14 @@
 // ==========================================
 
 
-/* V2.3: small, original battle callouts and synthesized cues.
-   This layer is deliberately cosmetic: it never changes game state or reward amounts. */
+/* V2.7: original synthesized sci-fi SFX. Audio is cosmetic and never changes gameplay. */
 let battleSfxEnabled = true;
 let battleAudioUnlocked = false;
 let battleAudioContext = null;
+let battleMasterGain = null;
+let battleCompressor = null;
+let battleNoiseBuffer = null;
+let battleCueLastAt = Object.create(null);
 let battleMomentHideTimer = null;
 let battleMomentBossTimer = null;
 let battleMomentClearTimer = null;
@@ -16,57 +19,111 @@ let battleIntroWaveShown = null;
 function unlockBattleAudio() {
     battleAudioUnlocked = true;
     const AudioClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioClass || battleAudioContext) {
-        if (battleAudioContext && battleAudioContext.state === 'suspended') battleAudioContext.resume().catch(() => {});
+    if (!AudioClass) return;
+    if (battleAudioContext) {
+        if (battleAudioContext.state === 'suspended') battleAudioContext.resume().catch(() => {});
         return;
     }
     try {
         battleAudioContext = new AudioClass();
+        battleMasterGain = battleAudioContext.createGain();
+        battleMasterGain.gain.value = 0.62;
+        battleCompressor = battleAudioContext.createDynamicsCompressor();
+        battleCompressor.threshold.value = -18;
+        battleCompressor.knee.value = 16;
+        battleCompressor.ratio.value = 4;
+        battleCompressor.attack.value = 0.004;
+        battleCompressor.release.value = 0.18;
+        battleMasterGain.connect(battleCompressor);
+        battleCompressor.connect(battleAudioContext.destination);
+        battleNoiseBuffer = battleAudioContext.createBuffer(1, Math.floor(battleAudioContext.sampleRate * 0.45), battleAudioContext.sampleRate);
+        const samples = battleNoiseBuffer.getChannelData(0);
+        for (let i = 0; i < samples.length; i++) samples[i] = (Math.random() * 2 - 1) * (1 - i / samples.length * 0.35);
         if (battleAudioContext.state === 'suspended') battleAudioContext.resume().catch(() => {});
     } catch (error) {
         battleAudioContext = null;
+        battleMasterGain = null;
+        battleCompressor = null;
+        battleNoiseBuffer = null;
     }
 }
 document.addEventListener('pointerdown', unlockBattleAudio, { once: true, passive: true });
 
+function playBattleNoise(at, duration, peak, frequency) {
+    const audio = battleAudioContext;
+    if (!audio || !battleMasterGain || !battleNoiseBuffer) return;
+    const source = audio.createBufferSource();
+    const filter = audio.createBiquadFilter();
+    const gain = audio.createGain();
+    source.buffer = battleNoiseBuffer;
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(frequency, at);
+    filter.Q.value = 0.7;
+    gain.gain.setValueAtTime(0.0001, at);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), at + Math.min(0.012, duration * 0.22));
+    gain.gain.exponentialRampToValueAtTime(0.0001, at + duration);
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(battleMasterGain);
+    source.start(at);
+    source.stop(at + duration + 0.015);
+    source.onended = () => { try { source.disconnect(); filter.disconnect(); gain.disconnect(); } catch (error) {} };
+}
+
 function playBattleCue(kind) {
-    if (!battleSfxEnabled || !battleAudioUnlocked || !battleAudioContext) return;
+    if (!battleSfxEnabled || !battleAudioUnlocked || !battleAudioContext || !battleMasterGain) return;
     const audio = battleAudioContext;
     if (audio.state === 'suspended') audio.resume().catch(() => {});
+    const now = audio.currentTime;
+    const cooldowns = { shot: 0.075, impact: 0.055, critical: 0.085, ui: 0.035, towerHit: 0.18 };
+    const cooldown = cooldowns[kind] || 0;
+    if (cooldown && now - (battleCueLastAt[kind] || -Infinity) < cooldown) return;
+    battleCueLastAt[kind] = now;
     const patterns = {
-        wave: [{ f: 392, t: 'sine', d: .12, at: 0, v: .045 }, { f: 587.33, t: 'triangle', d: .2, at: .09, v: .035 }],
-        critical: [{ f: 196, t: 'square', d: .16, at: 0, v: .022 }, { f: 293.66, t: 'triangle', d: .19, at: .13, v: .038 }, { f: 440, t: 'sine', d: .24, at: .31, v: .032 }],
-        reward: [{ f: 659.25, t: 'sine', d: .13, at: 0, v: .027 }, { f: 880, t: 'triangle', d: .16, at: .12, v: .032 }, { f: 1174.66, t: 'sine', d: .25, at: .25, v: .027 }],
-        clear: [{ f: 523.25, t: 'triangle', d: .16, at: 0, v: .04 }, { f: 659.25, t: 'sine', d: .18, at: .1, v: .04 }, { f: 783.99, t: 'sine', d: .28, at: .2, v: .035 }],
-        boss: [{ f: 92.5, t: 'sawtooth', d: .42, at: 0, v: .055 }, { f: 138.59, t: 'triangle', d: .36, at: .16, v: .045 }, { f: 207.65, t: 'sine', d: .26, at: .32, v: .03 }],
-        bossKill: [{ f: 392, t: 'triangle', d: .14, at: 0, v: .04 }, { f: 523.25, t: 'sine', d: .18, at: .1, v: .045 }, { f: 783.99, t: 'triangle', d: .32, at: .2, v: .04 }, { f: 1046.5, t: 'sine', d: .25, at: .32, v: .025 }]
+        wave: [{ f: 392, t: 'sine', d: .14, at: 0, v: .035 }, { f: 587.33, t: 'triangle', d: .23, at: .085, v: .03 }, { f: 783.99, t: 'sine', d: .28, at: .17, v: .018 }],
+        critical: [{ f: 196, t: 'square', d: .16, at: 0, v: .018 }, { f: 293.66, t: 'triangle', d: .19, at: .13, v: .032 }, { f: 440, t: 'sine', d: .24, at: .31, v: .028 }],
+        reward: [{ f: 659.25, t: 'sine', d: .13, at: 0, v: .025 }, { f: 880, t: 'triangle', d: .16, at: .12, v: .029 }, { f: 1174.66, t: 'sine', d: .25, at: .25, v: .024 }],
+        clear: [{ f: 523.25, t: 'triangle', d: .16, at: 0, v: .032 }, { f: 659.25, t: 'sine', d: .18, at: .1, v: .032 }, { f: 783.99, t: 'sine', d: .28, at: .2, v: .027 }],
+        boss: [{ f: 92.5, t: 'sawtooth', d: .42, at: 0, v: .034 }, { f: 138.59, t: 'triangle', d: .36, at: .16, v: .03 }, { f: 207.65, t: 'sine', d: .26, at: .32, v: .023 }],
+        bossKill: [{ f: 392, t: 'triangle', d: .14, at: 0, v: .032 }, { f: 523.25, t: 'sine', d: .18, at: .1, v: .034 }, { f: 783.99, t: 'triangle', d: .32, at: .2, v: .03 }, { f: 1046.5, t: 'sine', d: .25, at: .32, v: .02 }],
+        shot: [{ f: 760, t: 'triangle', d: .045, at: 0, v: .012 }, { f: 310, t: 'sine', d: .065, at: .008, v: .009 }],
+        impact: [{ f: 175, t: 'triangle', d: .075, at: 0, v: .013 }, { f: 92, t: 'sine', d: .085, at: .012, v: .008 }],
+        towerHit: [{ f: 110, t: 'sawtooth', d: .19, at: 0, v: .025 }, { f: 73.4, t: 'sine', d: .22, at: .035, v: .027 }],
+        upgrade: [{ f: 440, t: 'sine', d: .12, at: 0, v: .026 }, { f: 659.25, t: 'triangle', d: .15, at: .075, v: .028 }, { f: 880, t: 'sine', d: .2, at: .15, v: .024 }],
+        ui: [{ f: 620, t: 'sine', d: .035, at: 0, v: .007 }],
+        lootbox: [{ f: 330, t: 'triangle', d: .12, at: 0, v: .022 }, { f: 494, t: 'sine', d: .13, at: .08, v: .024 }, { f: 740, t: 'triangle', d: .19, at: .17, v: .027 }, { f: 988, t: 'sine', d: .23, at: .26, v: .02 }]
     };
     const notes = patterns[kind];
     if (!notes) return;
     try {
-        const now = audio.currentTime;
         notes.forEach(note => {
             const osc = audio.createOscillator();
             const gain = audio.createGain();
             const start = now + note.at;
-            const end = start + note.d;
+            const finish = start + note.d;
             osc.type = note.t;
             osc.frequency.setValueAtTime(note.f, start);
-            if (kind === 'boss') osc.frequency.exponentialRampToValueAtTime(Math.max(35, note.f * .72), end);
-            gain.gain.setValueAtTime(.0001, start);
-            gain.gain.exponentialRampToValueAtTime(note.v, start + Math.min(.035, note.d * .25));
-            gain.gain.exponentialRampToValueAtTime(.0001, end);
+            if (kind === 'boss') osc.frequency.exponentialRampToValueAtTime(Math.max(35, note.f * .72), finish);
+            if (kind === 'shot') osc.frequency.exponentialRampToValueAtTime(Math.max(80, note.f * .58), finish);
+            gain.gain.setValueAtTime(0.0001, start);
+            gain.gain.exponentialRampToValueAtTime(note.v, start + Math.min(.018, note.d * .28));
+            gain.gain.exponentialRampToValueAtTime(0.0001, finish);
             osc.connect(gain);
-            gain.connect(audio.destination);
+            gain.connect(battleMasterGain);
             osc.start(start);
-            osc.stop(end + .02);
+            osc.stop(finish + .02);
             osc.onended = () => { try { osc.disconnect(); gain.disconnect(); } catch (error) {} };
         });
+        if (kind === 'shot') playBattleNoise(now, .055, .006, 2800);
+        else if (kind === 'impact') playBattleNoise(now, .085, .012, 1250);
+        else if (kind === 'towerHit') playBattleNoise(now, .19, .022, 520);
+        else if (kind === 'boss') playBattleNoise(now, .34, .018, 260);
+        else if (kind === 'bossKill') playBattleNoise(now, .18, .009, 1800);
+        else if (kind === 'lootbox') playBattleNoise(now + .12, .16, .006, 3200);
     } catch (error) {
-        // Sound is optional; a browser audio limitation must never interrupt gameplay.
+        // Sound is optional; browser audio limitations must never interrupt gameplay.
     }
 }
-
 function toggleBattleSfx() {
     battleSfxEnabled = !battleSfxEnabled;
     const button = document.getElementById('battle-sfx-toggle');
@@ -1085,6 +1142,13 @@ function openLootbox(count) {
     if (refundCrystals > 0) game.crystals += refundCrystals;
     buildInventoryUI(); updateHUD(); saveGame(true);
     startLootboxModalAnimation('item', count, droppedEntries, refundCrystals);
+    if (typeof window.pikoReactEvent === 'function') {
+        const bestRarity = droppedEntries.reduce((best, entry) => {
+            const rank = { rare: 0, super_rare: 1, epic: 2, mythic: 3, legendary: 4 };
+            return (rank[entry.data?.rarity] || 0) > (rank[best] || 0) ? entry.data?.rarity : best;
+        }, 'rare');
+        window.pikoReactEvent('lootbox', { kind: 'item', count, rarity: bestRarity });
+    }
 }
 
 function openSkinBox(count) {
@@ -1128,6 +1192,13 @@ function openSkinBox(count) {
     if (refundCrystals > 0) game.crystals += refundCrystals;
     buildInventoryUI(); updateHUD(); saveGame(true);
     startLootboxModalAnimation('skin', count, droppedEntries, refundCrystals);
+    if (typeof window.pikoReactEvent === 'function') {
+        const bestRarity = droppedEntries.reduce((best, entry) => {
+            const rank = { rare: 0, super_rare: 1, epic: 2, mythic: 3, legendary: 4 };
+            return (rank[entry.data?.rarity] || 0) > (rank[best] || 0) ? entry.data?.rarity : best;
+        }, 'rare');
+        window.pikoReactEvent('lootbox', { kind: 'tower-skin', count, rarity: bestRarity });
+    }
 }
 
 function openCompanionSkinBox(count) {
@@ -1171,6 +1242,13 @@ function openCompanionSkinBox(count) {
     if (refundCrystals > 0) game.crystals += refundCrystals;
     buildInventoryUI(); buildCompanionsUI(); updateHUD(); saveGame(true);
     startLootboxModalAnimation('compskin', count, droppedEntries, refundCrystals);
+    if (typeof window.pikoReactEvent === 'function') {
+        const bestRarity = droppedEntries.reduce((best, entry) => {
+            const rank = { rare: 0, super_rare: 1, epic: 2, mythic: 3, legendary: 4 };
+            return (rank[entry.data?.rarity] || 0) > (rank[best] || 0) ? entry.data?.rarity : best;
+        }, 'rare');
+        window.pikoReactEvent('lootbox', { kind: 'companion-skin', count, rarity: bestRarity });
+    }
 }
 
 function startLootboxModalAnimation(boxType, count, entries, refundCrystals) {
@@ -1663,7 +1741,7 @@ function switchTab(tab) {
     if (tab === 'prestige') buildPrestigeUI();
     if (tab === 'casino' && activeMiniGame === 'roulette') drawRouletteWheel();
     if (tab === 'casino' && activeMiniGame === 'quantum') drawQuantumBar();
-    if (tab === 'leaderboard') refreshLeaderboard(false);
+    if (tab === 'leaderboard') { refreshLeaderboard(false); renderFriends(); }
 }
 
 function toggleGameSpeed() { gameSpeed = gameSpeed === 1 ? 2 : (gameSpeed === 2 ? 3 : 1); setElText('ui-speed', `${gameSpeed}x`); }
@@ -1951,12 +2029,16 @@ function initAuthAndCloudSystem() {
                 if (user) {
                     const cleanName = user.displayName || (user.email ? user.email.split('@')[0] : 'Komutan');
                     currentUser = { uid: user.uid, username: cleanName, email: user.email || '', isCloud: true };
+                    clearTimeout(storyCloudSaveTimer);
                     updateAccountHeaderUI();
                     await forceCloudPull(true);
+                    await pullStoryProgressFromCloud(true);
                     await pushScoreToLeaderboard();
+                    await renderFriends();
                 } else {
                     currentUser = null;
                     updateAccountHeaderUI();
+                    renderFriends();
                 }
             });
             return;
@@ -2393,6 +2475,7 @@ async function deleteMyAccount() {
     try {
         if (isFirebaseReady && fbDb) {
             await fbDb.collection('leaderboard').doc(uid).delete();
+            await fbDb.collection('storyProgress').doc(uid).delete();
             await fbDb.collection('users').doc(uid).delete();
         }
     } catch (e) {
@@ -2415,6 +2498,8 @@ async function deleteMyAccount() {
 
     currentUser = null;
     localStorage.removeItem(LOCAL_CURRENT_USER_KEY);
+    localStorage.removeItem(STORY_PROGRESS_KEY);
+    localStorage.removeItem(STORY_PROGRESS_OWNER_KEY);
     updateAccountHeaderUI();
     refreshLeaderboard(false);
     showToast('🗑️ Hesap ve oyun verileri silindi. Bazı güvenlik kayıtları ayrı tutulabilir.');
@@ -2915,6 +3000,165 @@ function setLeaderboardSort(sortType) {
 
 // Reduce needless rejected Firestore writes; server-side rules remain the actual enforcement.
 const leaderboardCloudWriteAttempts = new Map();
+
+
+const FRIEND_REQUESTS_COLLECTION = 'friendRequests';
+let friendSystemBusy = false;
+
+function friendEsc(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function friendSystemReady() {
+    return !!(isFirebaseReady && fbDb && currentUser && currentUser.isCloud && currentUser.uid);
+}
+function renderFriendNotice(message, isError = false) {
+    const el = document.getElementById('friends-notice');
+    if (!el) return;
+    el.textContent = message || '';
+    el.className = 'text-xs rounded-lg px-2.5 py-2 ' + (isError ? 'bg-rose-950/50 text-rose-200 border border-rose-500/30' : 'bg-sky-950/40 text-sky-200 border border-sky-500/20');
+    if (!message) el.classList.add('hidden'); else el.classList.remove('hidden');
+}
+async function sendFriendRequest() {
+    if (friendSystemBusy) return;
+    if (!friendSystemReady()) { renderFriendNotice('Arkadaş eklemek için Firebase hesabınla giriş yapmalısın.', true); return; }
+    const input = document.getElementById('friends-add-username');
+    const wanted = normalizeUsernameKey(input ? input.value : '');
+    const mine = normalizeUsernameKey(currentUser.username);
+    if (wanted.length < 3 || wanted.length > 18) { renderFriendNotice('Kullanıcı adı 3–18 karakter olmalı.', true); return; }
+    if (wanted === mine) { renderFriendNotice('Kendini arkadaş ekleyemezsin 😄', true); return; }
+    friendSystemBusy = true;
+    const btn = document.getElementById('friends-add-button');
+    if (btn) { btn.disabled = true; btn.textContent = 'Gönderiliyor…'; }
+    try {
+        const targetRef = fbDb.collection('usernameRegistry').doc(wanted);
+        const requestId = currentUser.uid + '_' + wanted;
+        const requestRef = fbDb.collection(FRIEND_REQUESTS_COLLECTION).doc(requestId);
+        const reverseRef = fbDb.collection(FRIEND_REQUESTS_COLLECTION).doc('username_' + wanted + '_to_' + mine);
+        const targetSnap = await targetRef.get();
+        if (!targetSnap.exists) throw new Error('Bu kullanıcı adı bulunamadı. Arkadaşının hesabıyla en az bir kez giriş yapmış olması gerekiyor.');
+        const target = targetSnap.data();
+        if (!target.uid || target.uid === currentUser.uid) throw new Error('Bu kullanıcıyı ekleyemezsin.');
+        const fromKey = normalizeUsernameKey(currentUser.username);
+        const senderRegistry = await fbDb.collection('usernameRegistry').doc(fromKey).get();
+        if (!senderRegistry.exists || senderRegistry.data().uid !== currentUser.uid) throw new Error('Kullanıcı adı doğrulanamadı. Yeniden giriş yapmayı dene.');
+        const outgoingId = currentUser.uid + '_' + target.uid;
+        const incomingId = target.uid + '_' + currentUser.uid;
+        const outgoingRef = fbDb.collection(FRIEND_REQUESTS_COLLECTION).doc(outgoingId);
+        const incomingRef = fbDb.collection(FRIEND_REQUESTS_COLLECTION).doc(incomingId);
+        await fbDb.runTransaction(async tx => {
+            const [existing, reverse] = await Promise.all([tx.get(outgoingRef), tx.get(incomingRef)]);
+            if (existing.exists) {
+                const status = existing.data().status;
+                if (status === 'accepted') throw new Error('Zaten arkadaşsınız.');
+                if (status === 'pending') throw new Error('Bu kişiye zaten istek gönderdin.');
+                if (status === 'rejected') {
+                    tx.update(outgoingRef, {
+                        status: 'pending',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    return;
+                }
+            }
+            if (reverse.exists && reverse.data().status === 'accepted') throw new Error('Zaten arkadaşsınız.');
+            if (reverse.exists && reverse.data().status === 'pending') throw new Error('Bu kişi sana zaten istek göndermiş. Gelen isteklerden kabul edebilirsin.');
+            tx.set(outgoingRef, {
+                fromUid: currentUser.uid, toUid: target.uid,
+                fromUsername: fromKey, toUsername: wanted,
+                status: 'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        });
+        if (input) input.value = '';
+        renderFriendNotice('İstek gönderildi! ' + target.username + ' kabul edince arkadaş listenizde görünecek.');
+        await renderFriends();
+    } catch (err) {
+        renderFriendNotice(err && err.message ? err.message : 'İstek gönderilemedi. Bağlantını ve Firestore kurallarını kontrol et.', true);
+    } finally {
+        friendSystemBusy = false;
+        if (btn) { btn.disabled = false; btn.textContent = 'İstek Gönder'; }
+    }
+}
+async function respondToFriendRequest(requestId, accept) {
+    if (!friendSystemReady()) { renderFriendNotice('Arkadaş sistemi için bulut hesabıyla giriş yap.', true); return; }
+    try {
+        const ref = fbDb.collection(FRIEND_REQUESTS_COLLECTION).doc(requestId);
+        await fbDb.runTransaction(async tx => {
+            const snap = await tx.get(ref);
+            if (!snap.exists) throw new Error('İstek artık mevcut değil.');
+            const data = snap.data();
+            if (data.toUid !== currentUser.uid || data.status !== 'pending') throw new Error('Bu isteğe yanıt verme yetkin yok.');
+            tx.update(ref, { status: accept ? 'accepted' : 'rejected', updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        });
+        renderFriendNotice(accept ? 'Arkadaşlık kuruldu! 🎉' : 'İstek reddedildi.');
+        await renderFriends();
+    } catch (err) {
+        renderFriendNotice(err && err.message ? err.message : 'İstek güncellenemedi.', true);
+    }
+}
+async function removeFriend(requestId) {
+    if (!friendSystemReady()) return;
+    try {
+        const ref = fbDb.collection(FRIEND_REQUESTS_COLLECTION).doc(requestId);
+        const snap = await ref.get();
+        if (!snap.exists) return renderFriends();
+        const d = snap.data();
+        if (d.fromUid !== currentUser.uid && d.toUid !== currentUser.uid) throw new Error('Bu kaydı yönetme yetkin yok.');
+        if (d.status === 'pending' && d.fromUid !== currentUser.uid) throw new Error('Gelen isteği buradan iptal edemezsin; kabul veya reddet.');
+        if (!['accepted','pending'].includes(d.status)) throw new Error('Bu kayıt artık aktif değil.');
+        await ref.delete();
+        renderFriendNotice(d.status === 'pending' ? 'Arkadaşlık isteği iptal edildi.' : 'Arkadaş listenden kaldırıldı.');
+        await renderFriends();
+    } catch (err) {
+        renderFriendNotice(err && err.message ? err.message : 'Arkadaş kaldırılamadı.', true);
+    }
+}
+async function renderFriends() {
+    const list = document.getElementById('friends-list');
+    const incomingEl = document.getElementById('friends-incoming');
+    const outgoingEl = document.getElementById('friends-outgoing');
+    const countEl = document.getElementById('friends-count');
+    if (!list || !incomingEl || !outgoingEl) return;
+    if (!friendSystemReady()) {
+        list.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">Arkadaşlarını görmek ve istek göndermek için bulut hesabınla giriş yap.</div>';
+        incomingEl.innerHTML = '<div class="text-xs text-slate-500">Giriş yapınca isteklerin burada görünür.</div>';
+        outgoingEl.innerHTML = '<div class="text-xs text-slate-500">Gönderdiğin istekler burada görünür.</div>';
+        if (countEl) countEl.textContent = 'Hesap gerekli';
+        return;
+    }
+    list.innerHTML = '<div class="text-xs text-slate-400 py-3 text-center">Arkadaşlar yükleniyor…</div>';
+    try {
+        const col = fbDb.collection(FRIEND_REQUESTS_COLLECTION);
+        const [incomingSnap, outgoingSnap] = await Promise.all([
+            col.where('toUid', '==', currentUser.uid).get(),
+            col.where('fromUid', '==', currentUser.uid).get()
+        ]);
+        const incoming = [], outgoing = [], friends = [];
+        incomingSnap.forEach(doc => { const d = doc.data(); d._id = doc.id; if (d.status === 'pending') incoming.push(d); else if (d.status === 'accepted') friends.push(d); });
+        outgoingSnap.forEach(doc => { const d = doc.data(); d._id = doc.id; if (d.status === 'pending') outgoing.push(d); else if (d.status === 'accepted') friends.push(d); });
+        const byUid = new Map();
+        friends.forEach(d => { const otherUid = d.fromUid === currentUser.uid ? d.toUid : d.fromUid; const otherName = d.fromUid === currentUser.uid ? d.toUsername : d.fromUsername; byUid.set(otherUid, {uid:otherUid, username:otherName, requestId:d._id}); });
+        if (countEl) countEl.textContent = byUid.size + ' arkadaş';
+        list.innerHTML = byUid.size ? Array.from(byUid.values()).sort((a,b)=>a.username.localeCompare(b.username)).map(f =>
+            '<div class="flex items-center gap-2 rounded-xl bg-slate-950/70 border border-sky-500/20 p-2.5">' +
+            '<div class="w-9 h-9 shrink-0 rounded-lg bg-sky-500/15 border border-sky-400/30 flex items-center justify-center text-sky-300"><i class="fa-solid fa-user-astronaut"></i></div>' +
+            '<div class="min-w-0 flex-1"><div class="text-sm font-bold text-white truncate">'+friendEsc(f.username)+'</div><div class="text-[10px] text-slate-400">Arkadaşın · Komutan</div></div>' +
+            '<button onclick="removeFriend(\''+friendEsc(f.requestId)+'\')" class="shrink-0 rounded-lg border border-rose-500/20 px-2 py-1.5 text-[10px] text-rose-300 hover:bg-rose-950/40">Kaldır</button></div>'
+        ).join('') : '<div class="text-xs text-slate-400 text-center py-4">Henüz arkadaşın yok. Yukarıdan kullanıcı adıyla istek gönder!</div>';
+        incomingEl.innerHTML = incoming.length ? incoming.map(d =>
+            '<div class="flex items-center gap-2 rounded-lg bg-slate-950/70 p-2"><div class="min-w-0 flex-1"><div class="text-xs font-bold text-white">'+friendEsc(d.fromUsername)+'</div><div class="text-[10px] text-slate-500">Sana arkadaşlık isteği gönderdi</div></div><button onclick="respondToFriendRequest(\''+friendEsc(d._id)+'\',true)" class="rounded-lg bg-emerald-600 px-2 py-1.5 text-[10px] font-bold text-white">Kabul</button><button onclick="respondToFriendRequest(\''+friendEsc(d._id)+'\',false)" class="rounded-lg bg-slate-800 px-2 py-1.5 text-[10px] text-slate-300">Reddet</button></div>'
+        ).join('') : '<div class="text-xs text-slate-500">Bekleyen gelen istek yok.</div>';
+        outgoingEl.innerHTML = outgoing.length ? outgoing.map(d =>
+            '<div class="flex items-center gap-2 rounded-lg bg-slate-950/70 p-2"><div class="min-w-0 flex-1"><div class="text-xs font-bold text-white">'+friendEsc(d.toUsername)+'</div><div class="text-[10px] text-amber-300">Yanıt bekleniyor…</div></div><button onclick="removeFriend(\''+friendEsc(d._id)+'\')" class="rounded-lg bg-slate-800 px-2 py-1.5 text-[10px] text-slate-300">İptal</button></div>'
+        ).join('') : '<div class="text-xs text-slate-500">Bekleyen gönderilmiş istek yok.</div>';
+    } catch (err) {
+        list.innerHTML = '<div class="text-xs text-rose-300 text-center py-3">Arkadaş listesi yüklenemedi. Firestore kuralları güncel mi?</div>';
+        incomingEl.innerHTML = '';
+        outgoingEl.innerHTML = '';
+        if (countEl) countEl.textContent = 'Bağlantı hatası';
+        console.error('[Friends] load failed:', err);
+    }
+}
 
 async function pushScoreToLeaderboard() {
     if (typeof game === 'undefined') return;
@@ -3461,12 +3705,50 @@ document.addEventListener('DOMContentLoaded', () => {
         const lang = english ? pikoThoughts.en : pikoThoughts.tr;
         let lines = lang.idle;
         if (type === 'upgrade') {
+            if (typeof playBattleCue === 'function') playBattleCue('upgrade');
             const key = detail && detail.key;
             const attackKeys = ['damage', 'attackSpeed', 'critChance', 'critMult', 'multishot', 'bounce', 'knockback', 'range'];
             const defenseKeys = ['maxHp', 'hpRegen', 'armor', 'thorns', 'shield', 'lifesteal'];
             const economyKeys = ['goldBonus', 'waveGold', 'crystalChance', 'interest'];
             lines = attackKeys.includes(key) ? lang.attack : defenseKeys.includes(key) ? lang.defense : economyKeys.includes(key) ? lang.economy : lang.upgrade;
             if (detail && detail.name) lines = [english ? 'Upgrade confirmed: ' + detail.name + '. Let us see the payoff.' : 'Yükseltme onaylandı: ' + detail.name + '. Şimdi etkisini görelim.', ...lines];
+        } else if (type === 'lootbox') {
+            if (typeof playBattleCue === 'function') playBattleCue('lootbox');
+            const rarity = detail && detail.rarity;
+            const kind = detail && detail.kind;
+            const count = detail && Number.isInteger(detail.count) ? detail.count : 1;
+            const itemName = kind === 'tower-skin' ? (english ? 'tower skin' : 'kule skini')
+                : kind === 'companion-skin' ? (english ? 'companion skin' : 'yoldaş skini')
+                : (english ? 'equipment' : 'eşya');
+            if (rarity === 'legendary' || rarity === 'mythic') {
+                lines = english
+                    ? ['Whoa—' + rarity + ' signal detected! That ' + itemName + ' is not ordinary loot, commander.', 'My scanners just lit up. A ' + rarity + ' find! Please tell me you saw that too.']
+                    : ['Dur bir saniye—' + rarity + ' sinyali algıladım! Bu ' + itemName + ' sıradan bir ganimet değil komutan.', 'Tarayıcılarım parladı. ' + rarity + ' ganimet! Lütfen bunu sen de gördün.'];
+            } else if (rarity === 'epic' || rarity === 'super_rare') {
+                lines = english
+                    ? ['A promising signal in that ' + itemName + ' crate. Not bad, commander.', 'I logged the ' + rarity + ' result. The crate was worth opening.']
+                    : ['Bu ' + itemName + ' sandığında umut verici bir sinyal var. Fena değil komutan.', rarity + ' sonucu kaydettim. Sandığı açmaya değdi.'];
+            } else {
+                lines = english
+                    ? [count > 1 ? 'Multiple crates opened. I counted every result—someone has to stay organized.' : 'Crate opened. I am checking the contents now.', 'I logged the new drop. Let us see how it fits the build.']
+                    : [count > 1 ? 'Birden fazla sandık açıldı. Her sonucu saydım; düzeni korumak birinin işi.' : 'Sandık açıldı. İçindekileri tarıyorum.', 'Yeni ganimeti kaydettim. Bakalım dizilimimize nasıl uyacak.'];
+            }
+        } else if (type === 'boss') {
+            const bossName = detail && detail.name;
+            const wave = detail && Number.isFinite(Number(detail.wave)) ? Number(detail.wave) : null;
+            lines = english
+                ? ['Boss signature detected. Stay sharp, commander—I will track its movements.', 'That is no ordinary enemy. I am boosting threat scans; keep your defenses ready.']
+                : ['Boss sinyali algılandı. Dikkatli ol komutan, hareketlerini takip edeceğim.', 'Bu sıradan bir düşman değil. Tehdit taramasını artırıyorum; savunmayı hazır tut.'];
+            if (bossName) lines.unshift(english ? bossName + ' has entered the field. This could get interesting.' : bossName + ' sahaya çıktı. Bu iş ilginçleşecek.');
+            if (wave !== null && wave % 5 === 0) lines.unshift(english ? 'Milestone wave ' + wave + '—and a boss to match. Let us make it count.' : wave + '. dönüm dalgası ve karşımızda bir boss. Bu fırsatı değerlendirelim.');
+        } else if (type === 'bossKill') {
+            const bossName = detail && detail.name;
+            const crystals = detail && Number.isFinite(Number(detail.crystals)) ? Math.max(0, Math.round(Number(detail.crystals))) : 0;
+            lines = english
+                ? ['Boss neutralized. That is one less nightmare between us and the next wave.', 'Excellent work, commander. Threat removed; I am already scanning for the next one.']
+                : ['Boss etkisiz hâle getirildi. Bir sonraki dalgaya kadar bir kabus eksildi.', 'Harika iş komutan. Tehdit temizlendi; şimdiden sıradakini tarıyorum.'];
+            if (bossName) lines.unshift(english ? bossName + ' is down. I am saving that result to my highlight reel.' : bossName + ' düştü. Bu sonucu en iyi anlar kaydıma ekliyorum.');
+            if (crystals > 0) lines.unshift(english ? 'Threat cleared. I counted ' + crystals + ' crystals in the reward.' : 'Tehdit temizlendi. Ödülde ' + crystals + ' kristal saydım.');
         } else if (type === 'wave') lines = lang.newWave;
         else if (type === 'danger') lines = lang.lowGold;
         showLine(chooseLine(lines));
@@ -3706,6 +3988,7 @@ function returnToMainMenu() {
 
 // Story progress is deliberately isolated from the existing Endless save.
 const STORY_PROGRESS_KEY = 'towerDefenseStoryProgressV1';
+const STORY_PROGRESS_OWNER_KEY = 'towerDefenseStoryProgressOwnerV1';
 const STORY_DIALOGUES = [
  {speaker:{tr:'İSTASYON YAPAY ZEKÂSI',en:'STATION AI'},text:{tr:'Komutan, istasyona ulaştık. Yaşam belirtisi yok. Bütün sistemler biz yaklaşınca kapandı; sanki gelişimizi bekliyorlardı.',en:'Commander, we have reached the station. No life signs. Every system shut down as we approached—as if they were waiting for us.'}},
  {speaker:{tr:'MAVİ HOLOGRAM',en:'BLUE HOLOGRAM'},text:{tr:'Bağlantı… kuruldu. Sonunda geldiniz, komutan.',en:'Connection… established. You finally made it, Commander.'}},
@@ -3767,13 +4050,90 @@ let storyDialogueIndex = 0;
 let storyMissionViewOpen = false;
 
 function getStoryProgress() {
+    const defaults = { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false, mission3Complete: false, mission4Complete: false, mission5Complete: false, mission6Complete: false, mission7Complete: false, mission8Complete: false, mission9Complete: false, mission10Complete: false, mission11Complete: false, mission12Complete: false, mission13Complete: false, mission14Complete: false, voiceChoice: null, pulseTutorialComplete: false, companionForm: 'basic', repairChoiceCount: 0, routeChoice: null, powerChoice: null, updatedAt: 0 };
     try {
         const saved = JSON.parse(localStorage.getItem(STORY_PROGRESS_KEY) || '{}');
-        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Number(saved.chapter) || 1), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true, mission3Complete: saved.mission3Complete === true, mission4Complete: saved.mission4Complete === true, mission5Complete: saved.mission5Complete === true, mission6Complete: saved.mission6Complete === true, mission7Complete: saved.mission7Complete === true, mission8Complete: saved.mission8Complete === true, mission9Complete: saved.mission9Complete === true, mission10Complete: saved.mission10Complete === true, mission11Complete: saved.mission11Complete === true, mission12Complete: saved.mission12Complete === true, mission13Complete: saved.mission13Complete === true, mission14Complete: saved.mission14Complete === true, voiceChoice: ['human','station'].includes(saved.voiceChoice) ? saved.voiceChoice : null, pulseTutorialComplete: saved.pulseTutorialComplete === true, companionForm: saved.companionForm === 'cyan' ? 'cyan' : 'basic', repairChoiceCount: Math.max(0, Math.min(3, Number(saved.repairChoiceCount) || 0)), routeChoice: ['array','blackbox'].includes(saved.routeChoice) ? saved.routeChoice : null, powerChoice: ['shield','weapon'].includes(saved.powerChoice) ? saved.powerChoice : null };
-    } catch (_) { return { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false, mission3Complete: false, mission4Complete: false, mission5Complete: false, mission6Complete: false, mission7Complete: false, mission8Complete: false, mission9Complete: false, mission10Complete: false, mission11Complete: false, mission12Complete: false, mission13Complete: false, mission14Complete: false, voiceChoice: null, pulseTutorialComplete: false, companionForm: 'basic', repairChoiceCount: 0, routeChoice: null, powerChoice: null }; }
+        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Math.min(2, Number(saved.chapter) || 1)), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true, mission3Complete: saved.mission3Complete === true, mission4Complete: saved.mission4Complete === true, mission5Complete: saved.mission5Complete === true, mission6Complete: saved.mission6Complete === true, mission7Complete: saved.mission7Complete === true, mission8Complete: saved.mission8Complete === true, mission9Complete: saved.mission9Complete === true, mission10Complete: saved.mission10Complete === true, mission11Complete: saved.mission11Complete === true, mission12Complete: saved.mission12Complete === true, mission13Complete: saved.mission13Complete === true, mission14Complete: saved.mission14Complete === true, voiceChoice: ['human','station'].includes(saved.voiceChoice) ? saved.voiceChoice : null, pulseTutorialComplete: saved.pulseTutorialComplete === true, companionForm: saved.companionForm === 'cyan' ? 'cyan' : 'basic', repairChoiceCount: Math.max(0, Math.min(3, Number(saved.repairChoiceCount) || 0)), routeChoice: ['array','blackbox'].includes(saved.routeChoice) ? saved.routeChoice : null, powerChoice: ['shield','weapon'].includes(saved.powerChoice) ? saved.powerChoice : null, updatedAt: Math.max(0, Number(saved.updatedAt) || 0) };
+    } catch (_) { return defaults; }
 }
+let storyCloudSaveTimer = null;
 function saveStoryProgress(patch) {
-    try { localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify({ ...getStoryProgress(), ...patch, updatedAt: Date.now() })); } catch (_) {}
+    try {
+        const next = { ...getStoryProgress(), ...patch, updatedAt: Date.now() };
+        localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(next));
+        if (currentUser && currentUser.isCloud && isFirebaseReady && fbDb) {
+            clearTimeout(storyCloudSaveTimer);
+            storyCloudSaveTimer = setTimeout(() => pushStoryProgressToCloud(true), 1200);
+        }
+    } catch (_) {}
+}
+function getValidatedStoryProgress(source) {
+    let previous = null;
+    try {
+        previous = localStorage.getItem(STORY_PROGRESS_KEY);
+        localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(source || {}));
+        const normalized = getStoryProgress();
+        if (previous === null) localStorage.removeItem(STORY_PROGRESS_KEY);
+        else localStorage.setItem(STORY_PROGRESS_KEY, previous);
+        return normalized;
+    } catch (_) {
+        try {
+            if (previous === null) localStorage.removeItem(STORY_PROGRESS_KEY);
+            else localStorage.setItem(STORY_PROGRESS_KEY, previous);
+        } catch (_) {}
+        return getStoryProgress();
+    }
+}
+async function pushStoryProgressToCloud(silent = true) {
+    if (!currentUser || !currentUser.isCloud || !isFirebaseReady || !fbDb) return false;
+    try {
+        const progress = getStoryProgress();
+        const payload = { ...progress, updatedAt: Math.max(Date.now(), progress.updatedAt || 0) };
+        await fbDb.collection('storyProgress').doc(currentUser.uid).set(payload);
+        localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(payload));
+        localStorage.setItem(STORY_PROGRESS_OWNER_KEY, currentUser.uid);
+        if (!silent) showToast('☁️ Hikâye ilerlemen buluta kaydedildi.');
+        return true;
+    } catch (err) {
+        console.error('[Story Cloud Save] failed:', err && err.code ? err.code : 'unknown', err);
+        if (!silent) showToast('❌ Hikâye buluta kaydedilemedi; bu cihazdaki yerel kayıt korundu.');
+        return false;
+    }
+}
+async function pullStoryProgressFromCloud(silent = true) {
+    if (!currentUser || !currentUser.isCloud || !isFirebaseReady || !fbDb) return false;
+    try {
+        const ref = fbDb.collection('storyProgress').doc(currentUser.uid);
+        const snapshot = await ref.get();
+        const localOwner = localStorage.getItem(STORY_PROGRESS_OWNER_KEY);
+        const belongsToAnotherAccount = !!localOwner && localOwner !== currentUser.uid;
+        const local = belongsToAnotherAccount ? null : getStoryProgress();
+        if (!snapshot.exists) {
+            if (local && local.updatedAt > 0) {
+                await pushStoryProgressToCloud(true);
+            } else if (belongsToAnotherAccount) {
+                localStorage.removeItem(STORY_PROGRESS_KEY);
+                localStorage.setItem(STORY_PROGRESS_OWNER_KEY, currentUser.uid);
+                updateStoryMissionBoard();
+            } else {
+                localStorage.setItem(STORY_PROGRESS_OWNER_KEY, currentUser.uid);
+            }
+            return false;
+        }
+        const remote = getValidatedStoryProgress(snapshot.data());
+        if (local && local.updatedAt > remote.updatedAt && local.updatedAt > 0) {
+            await pushStoryProgressToCloud(true);
+        } else {
+            localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(remote));
+            localStorage.setItem(STORY_PROGRESS_OWNER_KEY, currentUser.uid);
+            updateStoryMissionBoard();
+        }
+        return true;
+    } catch (err) {
+        console.error('[Story Cloud Pull] failed:', err && err.code ? err.code : 'unknown', err);
+        if (!silent) showToast('❌ Hikâye bulut kaydı alınamadı; yerel ilerlemen korunuyor.');
+        return false;
+    }
 }
 function storyLanguage() { return getGameLanguage() === 'en' ? 'en' : 'tr'; }
 function storyCopy(pair) { return pair[storyLanguage() === 'en' ? 1 : 0]; }
@@ -4059,8 +4419,6 @@ function startStoryMission(missionNumber = 1) {
         else if (missionNumber === 12) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 6 hostiles, then inspect three conflicting archive records.' : 'GÖREV: 6 düşmanı durdur, ardından birbiriyle çelişen üç arşiv kaydını incele.';
         else if (missionNumber === 13) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 7 hostiles, listen to two conflicting testimonies, and choose which record to trust.' : 'GÖREV: 7 düşmanı durdur, çelişen iki tanıklığı dinle ve hangi kayda güveneceğini seç.';
         else if (missionNumber === 14) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 12 hostiles, then disarm three core seals.' : 'GÖREV: 12 düşmanı durdur, ardından çekirdeğin üç kilidini aç.';
-        else if (missionNumber === 13) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 7 hostiles, listen to two records, and decide which testimony to trust.' : 'GÖREV: 7 düşmanı durdur, iki kaydı dinle ve hangi tanıklığa güveneceğine karar ver.';
-        else if (missionNumber === 14) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 12 hostiles, then disarm three core seals.' : 'GÖREV: 12 düşmanı durdur, ardından çekirdeğin üç kilidini devre dışı bırak.';
         else status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat the hostiles.' : 'GÖREV: Düşmanları durdur.';
     }
     const action = document.getElementById('story-scan-action');
@@ -4455,6 +4813,10 @@ function finishStoryBattleEncounter() {
         showToast(en ? 'Patrol cleared. Follow the companion’s scan markers.' : 'Devriye temizlendi. Yoldaşın tarama işaretlerini takip et.');
         return;
     }
+
+    // Only missions 1 and 2 use the generic combat/scan completion path below.
+    // Unknown or out-of-order phases must never fall through and falsely award mission 2.
+    if (![1, 2].includes(session.mission)) return;
 
     session.completed = true; isPaused = true; enemies = []; projectiles = [];
     if (session.mission === 1) {

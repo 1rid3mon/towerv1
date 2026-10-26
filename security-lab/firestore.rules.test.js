@@ -123,6 +123,46 @@ test("owner can write a bounded user document", async () => {
   }));
 });
 
+function validStoryProgress(overrides = {}) {
+  return {
+    introSeen: false, chapter: 1,
+    mission1Complete: false, mission2Complete: false, mission3Complete: false,
+    mission4Complete: false, mission5Complete: false, mission6Complete: false,
+    mission7Complete: false, mission8Complete: false, mission9Complete: false,
+    mission10Complete: false, mission11Complete: false, mission12Complete: false,
+    mission13Complete: false, mission14Complete: false,
+    voiceChoice: null, pulseTutorialComplete: false, companionForm: "basic",
+    repairChoiceCount: 0, routeChoice: null, powerChoice: null, updatedAt: Date.now(),
+    ...overrides
+  };
+}
+
+test("story progress owner can create a valid cloud save", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  await assertSucceeds(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({ mission1Complete: true })));
+});
+
+test("story progress cannot be read or changed by another account", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  await assertSucceeds(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress()));
+  await assertFails(getDoc(doc(bob, "storyProgress/alice")));
+  await assertFails(setDoc(doc(bob, "storyProgress/alice"), validStoryProgress({ mission14Complete: true })));
+});
+
+test("story progress rejects malformed choices, extra fields, and invalid mission flags", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  await assertFails(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({ voiceChoice: "admin" })));
+  await assertFails(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({ mission14Complete: "true" })));
+  await assertFails(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({ injected: "unexpected" })));
+});
+
+test("unauthenticated users cannot read or write story progress", async () => {
+  const db = testEnv.unauthenticatedContext().firestore();
+  await assertFails(getDoc(doc(db, "storyProgress/alice")));
+  await assertFails(setDoc(doc(db, "storyProgress/alice"), validStoryProgress()));
+});
+
 test("one user cannot write another user's save", async () => {
   const db = testEnv.authenticatedContext("alice").firestore();
   await assertFails(setDoc(doc(db, "users/bob"), {
@@ -344,4 +384,124 @@ test("leaderboard and rate-limit documents cannot be deleted by another user", a
   await assertSucceeds(writeBoard(alice));
   await assertFails(deleteDoc(doc(bob, "leaderboard/alice")));
   await assertFails(deleteDoc(doc(bob, "leaderboardRateLimits/alice")));
+});
+
+test("friend requests can be sent and accepted only by the recipient", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  await testEnv.withSecurityRulesDisabled(async context => {
+    const admin = context.firestore();
+    await setDoc(doc(admin, "usernameRegistry/alice"), { uid: "alice", username: "alice", updatedAt: Date.now() });
+    await setDoc(doc(admin, "usernameRegistry/bob"), { uid: "bob", username: "bob", updatedAt: Date.now() });
+  });
+  const request = {
+    fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob",
+    status: "pending", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  };
+  await assertSucceeds(setDoc(doc(alice, "friendRequests/alice_bob"), request));
+  await assertSucceeds(getDoc(doc(bob, "friendRequests/alice_bob")));
+  await assertFails(getDoc(doc(testEnv.authenticatedContext("mallory").firestore(), "friendRequests/alice_bob")));
+  await assertFails(setDoc(doc(bob, "friendRequests/bob_alice"), {
+    fromUid: "bob", toUid: "alice", fromUsername: "bob", toUsername: "alice",
+    status: "pending", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  }));
+  const { updateDoc } = require("firebase/firestore");
+  await assertFails(updateDoc(doc(alice, "friendRequests/alice_bob"), {
+    status: "accepted", updatedAt: serverTimestamp()
+  }));
+  await assertSucceeds(updateDoc(doc(bob, "friendRequests/alice_bob"), {
+    status: "accepted", updatedAt: serverTimestamp()
+  }));
+});
+
+
+test("friend requests can only be created by the sender and read by participants", async () => {
+  await testEnv.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await setDoc(doc(db, "usernameRegistry/alice"), { uid: "alice", username: "alice", updatedAt: Date.now() });
+    await setDoc(doc(db, "usernameRegistry/bob"), { uid: "bob", username: "bob", updatedAt: Date.now() });
+  });
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  const mallory = testEnv.authenticatedContext("mallory").firestore();
+  const request = {
+    fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob",
+    status: "pending", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  };
+  await assertSucceeds(setDoc(doc(alice, "friendRequests/alice_bob"), request));
+  await assertSucceeds(getDoc(doc(bob, "friendRequests/alice_bob")));
+  await assertFails(getDoc(doc(mallory, "friendRequests/alice_bob")));
+  await assertFails(setDoc(doc(mallory, "friendRequests/mallory_bob"), {
+    ...request, fromUid: "mallory", fromUsername: "mallory"
+  }));
+});
+
+test("friend requests reject forged identities and unauthorized status changes", async () => {
+  await testEnv.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await setDoc(doc(db, "usernameRegistry/alice"), { uid: "alice", username: "alice", updatedAt: Date.now() });
+    await setDoc(doc(db, "usernameRegistry/bob"), { uid: "bob", username: "bob", updatedAt: Date.now() });
+  });
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  await assertFails(setDoc(doc(alice, "friendRequests/alice_bob"), {
+    fromUid: "alice", toUid: "bob", fromUsername: "mallory", toUsername: "bob",
+    status: "pending", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  }));
+  await assertSucceeds(setDoc(doc(alice, "friendRequests/alice_bob"), {
+    fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob",
+    status: "pending", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  }));
+  await assertFails(setDoc(doc(alice, "friendRequests/alice_bob"), {
+    fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob",
+    status: "accepted", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  }));
+  // A valid recipient response preserves the original creation timestamp; only updatedAt changes.
+  const originalRequest = await getDoc(doc(alice, "friendRequests/alice_bob"));
+  const originalCreatedAt = originalRequest.data().createdAt;
+  await assertSucceeds(setDoc(doc(bob, "friendRequests/alice_bob"), {
+    fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob",
+    status: "accepted", createdAt: originalCreatedAt, updatedAt: serverTimestamp()
+  }));
+});
+
+
+test("friend requests reject self-requests, duplicate pending requests, and reverse pending requests", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  await testEnv.withSecurityRulesDisabled(async context => {
+    const admin = context.firestore();
+    await setDoc(doc(admin, "usernameRegistry/alice"), { uid: "alice", username: "alice", updatedAt: Date.now() });
+    await setDoc(doc(admin, "usernameRegistry/bob"), { uid: "bob", username: "bob", updatedAt: Date.now() });
+  });
+  const request = {
+    fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob",
+    status: "pending", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  };
+  await assertFails(setDoc(doc(alice, "friendRequests/alice_alice"), {
+    ...request, toUid: "alice", toUsername: "alice"
+  }));
+  await assertSucceeds(setDoc(doc(alice, "friendRequests/alice_bob"), request));
+  await assertFails(setDoc(doc(alice, "friendRequests/alice_bob"), request));
+  await assertFails(setDoc(doc(bob, "friendRequests/bob_alice"), {
+    fromUid: "bob", toUid: "alice", fromUsername: "bob", toUsername: "alice",
+    status: "pending", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  }));
+});
+
+test("either participant can remove an accepted friendship, but outsiders cannot", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const bob = testEnv.authenticatedContext("bob").firestore();
+  const mallory = testEnv.authenticatedContext("mallory").firestore();
+  await testEnv.withSecurityRulesDisabled(async context => {
+    const admin = context.firestore();
+    await setDoc(doc(admin, "usernameRegistry/alice"), { uid: "alice", username: "alice", updatedAt: Date.now() });
+    await setDoc(doc(admin, "usernameRegistry/bob"), { uid: "bob", username: "bob", updatedAt: Date.now() });
+    await setDoc(doc(admin, "friendRequests/alice_bob"), {
+      fromUid: "alice", toUid: "bob", fromUsername: "alice", toUsername: "bob",
+      status: "accepted", createdAt: new Date(), updatedAt: new Date()
+    });
+  });
+  await assertFails(deleteDoc(doc(mallory, "friendRequests/alice_bob")));
+  await assertSucceeds(deleteDoc(doc(bob, "friendRequests/alice_bob")));
 });
