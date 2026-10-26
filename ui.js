@@ -4322,7 +4322,13 @@ function startStoryMission(missionNumber = 1) {
         showToast(storyLanguage() === 'en' ? 'Clear 25 waves in Endless Mode first.' : 'Önce Sonsuz Mod’da 25 dalgayı tamamlamalısın.');
         return;
     }
-    if (window.__storyBattle.active) return;
+    // A completed encounter can leave a live session object until the board-return action
+    // runs. If the player hits replay during that transition, restore the Endless snapshot
+    // first instead of silently ignoring the replay click. Never auto-abort an unfinished mission.
+    if (window.__storyBattle?.active) {
+        if (!window.__storyBattle.completed) return;
+        exitStoryBattle(false);
+    }
     const session = {
         active: true, completed: false, companionSynced: false, mission: missionNumber, phase: missionNumber === 3 ? 'investigate' : (missionNumber === 4 ? 'powerChoice' : (missionNumber === 6 ? 'repair' : (missionNumber === 8 ? 'memory' : 'combat'))), scans: 0, repairs: 0, memories: 0, routeChoice: null,
         snapshot: {
