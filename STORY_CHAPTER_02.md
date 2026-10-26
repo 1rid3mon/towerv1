@@ -1,7 +1,7 @@
 # Chapter 02 — Beneath the Signal
 ## Narrative and gameplay outline
 
-**Status:** Missions 10–15 have first-pass playable implementations in the current mainline; manual browser/mobile QA and save-isolation regression checks are pending. Missions 16–18 remain design-stage.
+**Status:** Missions 10–14 are present in main; Mission 15 has a first-pass playable implementation on feature/story-mission15-memory-cost. Manual browser/mobile QA and save-isolation regression checks are pending. Missions 16–18 remain design-stage.
 
 ## Purpose
 
