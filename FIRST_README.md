@@ -358,3 +358,14 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - **Düzeltme:** `engine.js` anti-cheat aralığı hikâye modu/aktif hikâye oturumu sırasında erken çıkıyor; Sonsuz modun güvenilir gölge kaydı değiştirilmeden korunuyor. `data.js` içinde hikâye modunda çoklu atış yalnızca görev yerel yükseltmesine dayanıyor, altın çarpanı ve yoldaş güç çarpanı 1x ile sınırlandırılıyor.
 - **Test:** `security-lab/progression-guard-regression.test.js` içine anti-cheat atlama sırası ve çoklu atış/ekonomi/yoldaş çarpanlarının hikâyede izole edilmesi için regresyon testleri eklendi.
 - **Durum:** Kod değişiklikleri PR dalında; otomatik CI ve canlı oyunda görev başlat/bitir + Sonsuz moda dönüş testi bekleniyor. Firebase kuralları veya kullanıcı kayıtları değiştirilmedi.
+
+
+## İş günlüğü — 2026-10-26: Hikâye yükseltme izolasyonu ve tekrar oynama koruması
+
+- Kullanıcı, can/hasar/ekonomi/yoldaş güçlendirmelerinin Sonsuz Moddan Hikâye Moduna sızdığını ve “Tekrar Oyna” akışının çalışmadığını bildirdi.
+- `fix/story-upgrade-isolation` dalındaki mevcut çözüm; görev başında yeni `getDefaultState()` kurulmasını, yükseltme/envanter/prestij/ganimet değerlerinin hikâye için sıfırlanmasını, ekipman bonuslarının ve kalıcı hasar/altın/yoldaş çarpanlarının hikâyede devre dışı kalmasını ve anti-hile gölge geri yüklemesinin hikâye savaşına müdahale etmemesini içeriyor.
+- Ek düzeltme: tamamlanmış bir karşılaşma oturumu hâlâ etkin görünüyorsa, tekrar başlatma tıklaması artık tamamlanmış oturumun Sonsuz Mod snapshot'ını geri yükleyip yeni görevi başlatabilir. Tamamlanmamış görevler otomatik kapatılmaz.
+- Regresyon testi: tamamlanmış oturumun temizlenmesi ve bitmemiş görevin korunması için kaynak testi eklendi.
+- Test durumu: [ ] Bu ek değişiklikten sonraki GitHub Actions koşusu tamamlanmalı. Önceki koşu `40282002446` başarılıydı; yeni commit için bu sonuç kanıt sayılmaz.
+- Canlı doğrulama: [ ] Yüksek Sonsuz Mod can/hasar/ekonomi/eşya/yoldaş ilerlemesiyle Hikâye görevi başlat; değerleri doğrula; görevi tamamla; “Tekrar Oyna”yı kullan; görevden çıkıp Sonsuz Moda dönerek önceki kayıtların korunduğunu doğrula.
+- Ana dala birleştirme ve canlı dağıtım: HAYIR / henüz doğrulanmadı.
