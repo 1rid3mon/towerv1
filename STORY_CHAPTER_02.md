@@ -1,7 +1,7 @@
 # Chapter 02 — Beneath the Signal
 ## Narrative and gameplay outline
 
-**Status:** Missions 10–15 have first-pass playable implementations in main. Manual browser/mobile QA and save-isolation regression checks are pending. Missions 16–18 remain design-stage.
+**Status:** Missions 10–18 now have first-pass playable implementations proposed in PR #58. Chapter 02 mission 16–18 code, sequential gates, Story-only progress fields, and Firestore validation are included in that PR; CI and manual browser/mobile QA remain release gates. Do not call the chapter production-verified until the full playthrough passes.
 
 ## Purpose
 
@@ -112,6 +112,10 @@ Chapter 02 ends with the lower archive opening and a distant purple signal answe
 ## Mission 10 production package
 
 Mission 10 now has a first playable implementation on the feature branch, with its bilingual dialogue, phase flow, pulse tutorial, replay/exit behavior, and acceptance tests documented in [Story Chapter 02 — Mission 10 Production Spec](STORY_CHAPTER_02_MISSION_10.md). Manual browser/mobile QA and save-isolation regression checks remain required before calling it production-ready. Mission 11’s exploration design is documented in [Mission 11 Design Spec](STORY_CHAPTER_02_MISSION_11.md); its gameplay code is not implemented yet.
+
+## Missions 16–18 implementation note
+
+The current implementation adds two combat stages and route scans for Mission 16, archive record inspection plus a persisted call-sign choice for Mission 17, and three defense stages plus the commander-lock finale for Mission 18. Mission 18 ends on the distant purple signal without changing Piko's cyan form. Story progress remains separate from Endless currency, upgrades, inventory, and leaderboard. The work is under review in [PR #58](https://github.com/1rid3mon/towerv1/pull/58); automated validation and manual desktop/mobile playthrough are still required.
 
 ## Production gates
 
