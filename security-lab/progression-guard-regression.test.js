@@ -267,3 +267,13 @@ test('Piko is rendered as an original full-body SVG companion, not an emoji plac
   assert.match(html, /width: 76px; height: 76px/);
   assert.match(html, /width: 64px; height: 64px/);
 });
+
+
+test('unowned legacy story progress is preserved separately and never treated as the signed-in account save', () => {
+  const uiSource = fs.readFileSync(path.join(root, 'ui.js'), 'utf8');
+  assert.match(uiSource, /const STORY_PROGRESS_UNCLAIMED_KEY = 'towerDefenseStoryProgressUnclaimedV1';/);
+  assert.match(uiSource, /const unownedLocal = !localOwner \? getStoryProgress\(\) : null;/);
+  assert.match(uiSource, /localStorage\.setItem\(STORY_PROGRESS_UNCLAIMED_KEY, JSON\.stringify\(unownedLocal\)\)/);
+  assert.match(uiSource, /const local = localOwner === currentUser\.uid \? getStoryProgress\(\) : null;/);
+  assert.match(uiSource, /if \(local && local\.updatedAt > remote\.updatedAt && local\.updatedAt > 0\)/);
+});
