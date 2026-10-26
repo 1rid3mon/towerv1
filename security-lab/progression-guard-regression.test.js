@@ -377,3 +377,22 @@ test('Story wave completion fails closed if the Story controller did not load', 
   assert.match(sandbox.toast, /Hikâye görev sistemi yüklenemedi/);
   assert.match(sandbox.error, /Endless rewards were blocked/);
 });
+
+
+test('Story completion exceptions pause safely instead of escaping the engine loop', () => {
+  const body = extractFunction(engineSource, 'function completeWave()', 'function triggerTowerDefeat()');
+  let toast = '';
+  let logged = '';
+  const runner = new Function('window', 'isPaused', 'showToast', 'console', 'finishStoryBattleEncounter',
+    body + '\\ncompleteWave(); return isPaused;');
+  const paused = runner(
+    { __storyBattle: { active: true } },
+    false,
+    message => { toast = message; },
+    { error: message => { logged = message; } },
+    () => { throw new Error('synthetic Story completion failure'); }
+  );
+  assert.equal(paused, true);
+  assert.match(toast, /Hikâye görevi bitirilemedi/);
+  assert.match(logged, /Mission completion failed/);
+});
