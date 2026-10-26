@@ -299,3 +299,11 @@ test('story mode hard-isolates multishot, economy, and companion multipliers', (
   vm.runInNewContext(multishot + '\n' + gold + '\n' + companion + '\nglobalThis.result = [getEffectiveMultishot(), getGoldMultiplier(), getCompanionBoost()];', sandbox);
   assert.deepEqual(Array.from(sandbox.result), [1, 1, 1]);
 });
+
+
+test('completed Story Mode session can be cleaned up before replay without aborting an unfinished mission', () => {
+  const start = uiSource.indexOf('function startStoryMission(');
+  const end = uiSource.indexOf('function finishStoryBattleEncounter()', start);
+  const body = uiSource.slice(start, end);
+  assert.match(body, /if \(window\.__storyBattle\?\.active\) \{[\s\S]*?if \(!window\.__storyBattle\.completed\) return;[\s\S]*?exitStoryBattle\(false\);[\s\S]*?const session = \{/);
+});
