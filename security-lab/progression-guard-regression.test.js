@@ -396,3 +396,18 @@ test('Story completion exceptions pause safely instead of escaping the engine lo
   assert.match(toast, /Hikâye görevi bitirilemedi/);
   assert.match(logged, /Mission completion failed/);
 });
+
+test('Chapter 02 missions 16–18 are wired, sequentially gated, and persisted by Story-only flags', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const rules = fs.readFileSync(path.join(root, 'firestore.rules'), 'utf8');
+  for (const mission of [16, 17, 18]) {
+    assert.match(html, new RegExp('id="story-start-mission' + mission + '"'));
+    assert.match(storySource, new RegExp("mission" + mission + "Complete: saved\\.mission" + mission + "Complete === true"));
+    assert.match(rules, new RegExp("d\\.mission" + mission + "Complete is bool"));
+  }
+  assert.match(storySource, /16: 'mission15Complete'[\\s\\S]*17: 'mission16Complete'[\\s\\S]*18: 'mission17Complete'/);
+  assert.match(storySource, /session\\.mission === 16 && session\\.phase === 'routeScan2'[\\s\\S]*mission16Complete: true/);
+  assert.match(storySource, /session\\.mission === 17 && session\\.phase === 'archive2'[\\s\\S]*callSign/);
+  assert.match(storySource, /session\\.mission === 18 && session\\.phase === 'finalLock'[\\s\\S]*mission18Complete: true/);
+  assert.match(storySource, /completedCount \\/ 18/);
+});
