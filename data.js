@@ -257,6 +257,10 @@ function getItemStatBonus(type) {
 }
 
 function getEffectiveMultishot() {
+    // Story mode only uses its mission-local upgrade level; Endless equipment cannot add barrels.
+    if (typeof document !== 'undefined' && document.body?.dataset?.gameMode === 'story') {
+        return 1 + Math.max(0, Number(game.upgrades?.multishot) || 0);
+    }
     let base = 1 + game.upgrades.multishot;
     const equipped = new Set(Array.isArray(game.equippedItems) ? game.equippedItems : []);
     for (const itemId of equipped) {
@@ -376,6 +380,8 @@ function getWaveBaseGold(w = game.wave) {
 }
 
 function getGoldMultiplier() {
+    // Story rewards must never inherit Endless economy, prestige, lootbox, or item bonuses.
+    if (typeof document !== 'undefined' && document.body?.dataset?.gameMode === 'story') return 1;
     const lvl = game.upgrades.goldBonus || 0;
     const upgMult = (1 + lvl * 0.06) * Math.pow(1.06, Math.floor(lvl / 10));
     return upgMult * (1 + getItemStatBonus('gold')) * (1 + game.prestigeUpgrades.permGold * 0.20) * (1 + (game.lootboxBonuses.extraGoldPct || 0) / 100) * (game.holdWave ? 0.35 : 1.0);
@@ -394,7 +400,10 @@ function getCrystalDropMult(lvl = (game.upgrades.crystalChance || 0)) {
     return (1 + Math.floor(game.wave / 20) * 0.35) * (1 + lvl * 0.08);
 }
 
-function getCompanionBoost() { return (1 + game.prestigeUpgrades.companionBoost * 0.25) * (1 + Math.floor(game.wave / 25) * 0.10); }
+function getCompanionBoost() {
+    if (typeof document !== 'undefined' && document.body?.dataset?.gameMode === 'story') return 1;
+    return (1 + game.prestigeUpgrades.companionBoost * 0.25) * (1 + Math.floor(game.wave / 25) * 0.10);
+}
 
 function calculatePendingSouls() {
     if (game.wave < getMinPrestigeWave()) return 0;
