@@ -581,7 +581,13 @@
 #mode-story-button.story-locked{opacity:.88}
 #mode-story-button.story-locked .mode-menu-icon{filter:grayscale(.35)}
 #story-mode-screen{position:fixed;inset:0;z-index:90;display:none;overflow-y:auto;overscroll-behavior:contain;background:radial-gradient(ellipse at 50% 0%,rgba(8,145,178,.18),transparent 52%),linear-gradient(150deg,#030712 0%,#071426 52%,#020617 100%);color:#e2e8f0;padding:max(16px,env(safe-area-inset-top)) 14px max(18px,env(safe-area-inset-bottom));}
-#story-mode-screen.is-open{display:flex;align-items:center;justify-content:center}
+#story-mode-screen.is-open{display:flex;align-items:center;justify-content:center;animation:story-screen-in .42s ease both}
+.story-shell{width:min(100%,880px);margin:auto;position:relative;opacity:0;transform:translateY(18px) scale(.985)}
+#story-mode-screen.is-open .story-shell{animation:story-shell-in .58s cubic-bezier(.2,.75,.25,1) .04s both}
+@keyframes story-screen-in{from{background-color:rgba(2,6,23,0)}to{background-color:rgba(2,6,23,1)}}
+@keyframes story-shell-in{to{opacity:1;transform:translateY(0) scale(1)}}
+.story-hero{animation:story-hero-glow 5s ease-in-out infinite alternate}
+@keyframes story-hero-glow{from{box-shadow:0 24px 70px rgba(0,0,0,.28),0 0 0 rgba(34,211,238,0)}to{box-shadow:0 24px 80px rgba(0,0,0,.36),0 0 38px rgba(34,211,238,.07)}}
 .story-shell{width:min(100%,880px);margin:auto;position:relative}
 .story-topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;font:700 11px/1.4 Inter,sans-serif;letter-spacing:.2em;color:#67e8f9}
 .story-exit{border:1px solid rgba(148,163,184,.28);border-radius:12px;padding:9px 12px;background:rgba(15,23,42,.75);color:#cbd5e1;font-size:12px}
@@ -597,12 +603,30 @@
 .story-hologram{width:clamp(92px,16vw,132px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;position:relative;color:#a5f3fc;font-size:42px;background:radial-gradient(circle,rgba(34,211,238,.26),rgba(8,145,178,.08) 52%,transparent 70%);filter:drop-shadow(0 0 18px rgba(34,211,238,.4));animation:story-float 3.4s ease-in-out infinite}
 .story-hologram:before,.story-hologram:after{content:"";position:absolute;inset:7%;border:1px solid rgba(103,232,249,.48);border-radius:50%;transform:rotateX(68deg) rotate(-18deg)}
 .story-hologram:after{inset:0;border-color:rgba(103,232,249,.2);transform:rotateX(68deg) rotate(38deg)}
-.story-hologram span{position:relative;z-index:1;text-shadow:0 0 22px rgba(34,211,238,.9)}
+.story-hologram span{position:relative;z-index:1;text-shadow:0 0 22px rgba(34,211,238,.9);transition:color .25s,text-shadow .25s}
 @keyframes story-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
-.story-dialogue{border:1px solid rgba(103,232,249,.2);background:rgba(2,6,23,.48);border-radius:18px;padding:clamp(16px,3vw,24px);min-height:190px;display:flex;flex-direction:column}
-.story-speaker{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#67e8f9;font-weight:800}
-.story-dialogue-copy{font-size:clamp(15px,2.2vw,19px);line-height:1.75;color:#e2e8f0;margin:12px 0 20px;white-space:pre-line}
+.story-dialogue{position:relative;border:1px solid rgba(103,232,249,.34);background:linear-gradient(145deg,rgba(8,47,73,.8),rgba(2,6,23,.94) 72%);border-radius:24px 24px 24px 7px;padding:clamp(17px,3vw,26px);min-height:205px;display:flex;flex-direction:column;box-shadow:0 16px 38px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.035);backdrop-filter:blur(14px);transition:border-color .25s,background .25s}
+.story-dialogue:before{content:"";position:absolute;left:-9px;bottom:24px;width:17px;height:17px;background:#082b42;border-left:1px solid rgba(103,232,249,.34);border-bottom:1px solid rgba(103,232,249,.34);transform:rotate(45deg);border-radius:2px}
+.story-dialogue[data-speaker="hologram"]{border-color:rgba(196,181,253,.5);background:linear-gradient(145deg,rgba(49,46,129,.48),rgba(2,6,23,.95) 76%)}
+.story-dialogue[data-speaker="hologram"]:before{background:#191b48;border-color:rgba(196,181,253,.5)}
+.story-dialogue[data-speaker="commander"]{border-color:rgba(251,191,36,.4);background:linear-gradient(145deg,rgba(120,53,15,.25),rgba(2,6,23,.95) 76%)}
+.story-dialogue[data-speaker="commander"]:before{background:#28170e;border-color:rgba(251,191,36,.4)}
+.story-speaker{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;max-width:100%;border:1px solid rgba(103,232,249,.22);border-radius:999px;padding:6px 10px;background:rgba(8,145,178,.1);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#a5f3fc;font-weight:900}
+.story-dialogue[data-speaker="hologram"] .story-speaker{color:#ddd6fe;border-color:rgba(196,181,253,.3);background:rgba(124,58,237,.13)}
+.story-dialogue[data-speaker="commander"] .story-speaker{color:#fde68a;border-color:rgba(251,191,36,.25);background:rgba(180,83,9,.12)}
+.story-dialogue-copy{font-size:clamp(15px,2.2vw,19px);font-weight:500;letter-spacing:.005em;line-height:1.75;color:#f1f5f9;margin:15px 0 22px;white-space:pre-line;min-height:4.8em;text-wrap:pretty}
 .story-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto}
+.story-progress{font-variant-numeric:tabular-nums;letter-spacing:.12em}
+.story-primary{box-shadow:0 5px 16px rgba(8,145,178,.08);transition:transform .16s ease,border-color .16s ease,background .16s ease}
+.story-primary:not(:disabled):active{transform:translateY(1px) scale(.985)}
+.story-primary:not(:disabled):hover{border-color:rgba(103,232,249,.7);background:linear-gradient(110deg,rgba(8,145,178,.4),rgba(37,99,235,.32))}
+.story-hologram{transition:filter .3s}
+.story-stage:has(.story-dialogue[data-speaker="hologram"]) .story-hologram{color:#c4b5fd;filter:drop-shadow(0 0 22px rgba(167,139,250,.55))}
+.story-stage:has(.story-dialogue[data-speaker="commander"]) .story-hologram{color:#fcd34d;filter:drop-shadow(0 0 22px rgba(251,191,36,.4))}
+.story-stage .story-hologram-wrap{animation:story-avatar-arrive .45s ease both}
+.story-stage .story-dialogue{animation:story-bubble-arrive .35s cubic-bezier(.2,.8,.2,1) both}
+@keyframes story-avatar-arrive{from{opacity:0;transform:translateX(-10px) scale(.94)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes story-bubble-arrive{from{opacity:0;transform:translateY(7px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
 .story-progress{font-size:11px;color:#94a3b8}
 .story-primary{border:1px solid rgba(103,232,249,.4);border-radius:12px;padding:11px 16px;background:linear-gradient(110deg,rgba(8,145,178,.3),rgba(37,99,235,.25));color:#cffafe;font-weight:800;font-size:12px}
 .story-primary:focus-visible,.story-exit:focus-visible{outline:2px solid #67e8f9;outline-offset:3px}
@@ -615,7 +639,7 @@
 .story-complete{display:none;margin-top:18px;padding:16px;border:1px solid rgba(103,232,249,.22);background:rgba(8,145,178,.08);border-radius:16px}
 .story-complete.is-visible{display:block}
 @media(max-width:560px){.story-topline{margin-bottom:12px}.story-stage{grid-template-columns:1fr;gap:6px}.story-hologram-wrap{min-height:105px}.story-hologram{width:92px}.story-dialogue{min-height:unset}.story-mission-grid{grid-template-columns:1fr}.story-mission{padding:13px}.story-hero{border-radius:18px}}
-@media(prefers-reduced-motion:reduce){.story-hologram{animation:none}}
+@media(prefers-reduced-motion:reduce){.story-hologram{animation:none}.story-shell,#story-mode-screen.is-open .story-shell,.story-hero,.story-stage .story-hologram-wrap,.story-stage .story-dialogue{animation:none;opacity:1;transform:none}.story-hero,.story-primary,.story-dialogue{transition:none}}
 
 
 /* First playable story encounter: HUD stays compact over the existing combat canvas. */
@@ -699,8 +723,8 @@
    <p class="story-lead" data-story-ui="lead">Uzak bir istasyon sessizliğe gömüldü. Son sinyal, savunma çekirdeğinin içinden geliyor.</p>
    <div id="story-dialogue-view">
     <div class="story-stage">
-     <div class="story-hologram-wrap" aria-hidden="true"><div class="story-hologram"><span>✦</span></div></div>
-     <div class="story-dialogue" aria-live="polite" aria-atomic="true">
+     <div class="story-hologram-wrap" aria-hidden="true"><div class="story-hologram"><span id="story-avatar-glyph">✦</span></div></div>
+     <div class="story-dialogue" id="story-dialogue-bubble" data-speaker="station" aria-live="polite" aria-atomic="true">
       <div class="story-speaker" id="story-speaker">İSTASYON YAPAY ZEKÂSI</div>
       <p class="story-dialogue-copy" id="story-dialogue-copy">Bağlantı kuruluyor…</p>
       <div class="story-controls"><span class="story-progress" id="story-progress">01 / 05</span><div style="display:flex;gap:8px;align-items:center"><button type="button" class="story-exit" id="story-skip" onclick="skipStoryIntro()">ATLA</button><button type="button" class="story-primary" id="story-next" onclick="advanceStoryDialogue()">DEVAM ET →</button></div></div>
