@@ -171,6 +171,23 @@ function applyStoryUiLanguage() {
 }
 let storyTypingTimer = null;
 let storyTypingFullText = '';
+function showStoryMissionResult() {
+    const session = window.__storyBattle;
+    const overlay = document.getElementById('story-mission-result');
+    const title = document.getElementById('story-mission-result-title');
+    const copy = document.getElementById('story-mission-result-copy');
+    const action = document.getElementById('story-mission-result-action');
+    if (!overlay || !session || !session.active || !session.completed) return;
+    const en = storyLanguage() === 'en';
+    if (title) title.textContent = en ? ('MISSION ' + String(session.mission).padStart(2, '0') + ' COMPLETE') : (String(session.mission).padStart(2, '0') + '. GÖREV TAMAMLANDI');
+    if (copy) copy.textContent = en
+        ? 'Your progress has been saved. Return to the chapter board when you are ready.'
+        : 'İlerlemen kaydedildi. Hazır olduğunda görev panosuna dönebilirsin.';
+    if (action) action.textContent = en ? 'RETURN TO CHAPTER BOARD' : 'GÖREV PANOSUNA DÖN';
+    overlay.hidden = false;
+    overlay.setAttribute('aria-hidden', 'false');
+}
+
 function finishStoryTyping() {
     if (storyTypingTimer !== null) {
         clearInterval(storyTypingTimer);
@@ -433,6 +450,8 @@ function startStoryMission(missionNumber = 1) {
         }
     };
     window.__storyBattle = session;
+    const resultOverlay = document.getElementById('story-mission-result');
+    if (resultOverlay) { resultOverlay.hidden = true; resultOverlay.setAttribute('aria-hidden', 'true'); }
     // Set the mode before deriving HP, shield, and damage so Endless bonuses cannot leak into this mission.
     document.body.dataset.gameMode = 'story';
     game = getDefaultState();
@@ -613,7 +632,7 @@ function finishStoryBattleEncounter() {
         return;
     }
     if (session.mission === 12 && session.phase === 'archive3') {
-        session.phase = 'complete'; session.completed = true; isPaused = true;
+        session.phase = 'complete'; session.completed = true; showStoryMissionResult(); isPaused = true;
         saveStoryProgress({ introSeen: true, chapter: 2, mission11Complete: true, mission12Complete: true });
         setStatus(en ? 'CONTRADICTION CONFIRMED · The final file contains tomorrow’s date and Piko’s distress signal.' : 'ÇELİŞKİ DOĞRULANDI · Son dosyada yarının tarihi ve Piko’nun yardım sinyali var.');
         setStoryComms('BİLİNMEYEN KAYNAK','UNKNOWN SOURCE','Piko’yu bize kim gönderdi?','Who sent Piko to us?');
@@ -676,7 +695,7 @@ function finishStoryBattleEncounter() {
             setStoryComms('PIKO','PIKO','Hatırlamaya çalışıyorum… sesini duyuyorum ama yüzünü değil. Devam edelim.','I am trying to remember… I can hear the voice, but not the face. Keep going.');
             setAction('story-mission15-repair-action', false, nextLabel); return;
         }
-        session.phase = 'complete'; session.completed = true; isPaused = true;
+        session.phase = 'complete'; session.completed = true; showStoryMissionResult(); isPaused = true;
         saveStoryProgress({ introSeen: true, chapter: 2, mission14Complete: true, mission15Complete: true });
         setStatus(en ? 'SYSTEMS STABLE · Piko has told you what the pulse cost. The missing memory remains missing.' : 'SİSTEMLER KARARLI · Piko, sinyal darbesinin bedelini sana anlattı. Kayıp anı hâlâ geri gelmedi.');
         setStoryComms('PIKO','PIKO','Bir anıyı kaybettim. Hangisi olduğunu bilmiyorum. Bunu senden saklayabilirdim… ama güven, sadece doğru cevapları vermek değil. Bazen neyi bilmediğini söylemektir.','I lost a memory. I do not know which one. I could have hidden that from you… but trust is not just giving the right answers. Sometimes it means admitting what you do not know.');
@@ -684,7 +703,7 @@ function finishStoryBattleEncounter() {
         showToast(en ? 'Mission 15 complete. Piko’s memory loss is now part of Story Mode progress.' : '15. görev tamamlandı. Piko’nun hafıza kaybı hikâye kaydına işlendi.'); return;
     }
     if (session.mission === 14 && session.phase === 'coreSeal3') {
-        session.phase = 'complete'; session.completed = true; isPaused = true;
+        session.phase = 'complete'; session.completed = true; showStoryMissionResult(); isPaused = true;
         saveStoryProgress({ introSeen: true, chapter: 2, mission13Complete: true, mission14Complete: true });
         setStatus(en ? 'SIGNAL SOURCE LOCATED · A reply comes from beyond the station.' : 'SİNYAL KAYNAĞI BULUNDU · İstasyonun ötesinden yanıt geliyor.');
         setStoryComms('UNKNOWN SOURCE','UNKNOWN SOURCE','Piko’yu geri getirmeyin. Henüz hazır değil.','Do not bring Piko back. It is not ready yet.');
@@ -715,7 +734,7 @@ function finishStoryBattleEncounter() {
         return;
     }
     if (session.mission === 11 && session.phase === 'relayNode3') {
-        session.phase = 'complete'; session.completed = true; isPaused = true;
+        session.phase = 'complete'; session.completed = true; showStoryMissionResult(); isPaused = true;
         saveStoryProgress({ introSeen: true, chapter: 2, mission10Complete: true, mission11Complete: true, companionForm: 'cyan' });
         setStatus(en ? 'LOWER NETWORK MAPPED · A final signal answers from far beyond the station.' : 'ALT AĞ HARİTALANDI · Son bir sinyal istasyonun çok ötesinden cevap veriyor.');
         setStoryComms('BİLİNMEYEN SİNYAL','UNKNOWN SIGNAL','PİKO…','PIKO…');
@@ -758,7 +777,7 @@ function finishStoryBattleEncounter() {
             setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Düzeltme: yönetici erişimi doğrulandı.','Correction: administrator access verified.');
             window.setTimeout(() => {
                 if (window.__storyBattle !== session || !session.active || session.phase !== 'adminVerified') return;
-                session.phase = 'complete'; session.completed = true;
+                session.phase = 'complete'; session.completed = true; showStoryMissionResult();
                 setStatus(en ? 'LIFT STABLE · DESCENT ACCESS GRANTED.' : 'ASANSÖR SABİT · ALT KAT ERİŞİMİ AÇILDI.');
                 setStoryComms('KOMUTAN','COMMANDER','Sistemde kaydın yok. Nasıl yönetici olabilirsin?','You have no identity record in this system. How can you be an administrator?');
                 window.setTimeout(() => {
@@ -774,7 +793,7 @@ function finishStoryBattleEncounter() {
     }
 
     if (session.mission === 3 && session.phase === 'investigate') {
-        session.completed = true; isPaused = true;
+        session.completed = true; showStoryMissionResult(); isPaused = true;
         saveStoryProgress({ introSeen: true, chapter: 1, mission3Complete: true, routeChoice: session.routeChoice });
         if (session.routeChoice === 'array') {
             setStatus(en ? 'EVIDENCE RECOVERED · The antenna log shows the signal bouncing from inside the station.' : 'KANIT KURTARILDI · Anten kaydı, sinyalin istasyonun içinden yansıdığını gösteriyor.');
@@ -798,7 +817,7 @@ function finishStoryBattleEncounter() {
             showToast(en ? 'Connection restored (' + session.repairs + '/3).' : 'Bağlantı onarıldı (' + session.repairs + '/3).');
             return;
         }
-        session.completed = true;
+        session.completed = true; showStoryMissionResult();
         saveStoryProgress({ introSeen: true, chapter: 1, mission6Complete: true });
         setStatus(en ? 'MISSION COMPLETE · The companion emits a brief cyan flicker while repairing the last panel, then returns to its dim maintenance state.' : 'GÖREV TAMAMLANDI · Yoldaş son paneli onarırken kısa bir camgöbeği ışık yayıyor, ardından yeniden sönük bakım hâline dönüyor.');
         setStoryComms('PİKO','PIKO','Ben bunu yapmayı nereden biliyorum? Bu hareket… benden önce de varmış gibi.','How do I know how to do this? This movement feels like it existed before me.');
@@ -819,7 +838,7 @@ function finishStoryBattleEncounter() {
             showToast(en ? 'Memory clue recovered (' + session.memories + '/3).' : 'Hafıza ipucu bulundu (' + session.memories + '/3).');
             return;
         }
-        session.completed = true;
+        session.completed = true; showStoryMissionResult();
         saveStoryProgress({ introSeen: true, chapter: 1, mission8Complete: true });
         setStatus(en ? 'MISSION COMPLETE · The echo and the station log disagree. The violet silhouette remains unidentified.' : 'GÖREV TAMAMLANDI · Yankı ile istasyon kaydı çelişiyor. Mor siluetin kimliği hâlâ belirsiz.');
         setStoryComms('KOMUTAN','COMMANDER','O görüntü beni tanıyor olabilir. Ama onu tanıdığımı kanıtlayan hiçbir şey yok.','That image may know me. But nothing proves that I know it.');
@@ -852,7 +871,7 @@ function finishStoryBattleEncounter() {
         return;
     }
     if (session.mission === 9 && session.phase === 'pulseTest') {
-        session.completed = true; session.companionSynced = true; isPaused = true;
+        session.completed = true; showStoryMissionResult(); session.companionSynced = true; isPaused = true;
         saveStoryProgress({ introSeen: true, chapter: 1, mission9Complete: true, companionForm: 'cyan' });
         setStatus(en ? 'CHAPTER COMPLETE · The pulse answers. For one frame, the blue echo and the companion share the same silhouette—then the recording breaks again.' : 'BÖLÜM TAMAMLANDI · Darbe cevap veriyor. Bir anlığına mavi yankı ile yoldaş aynı silueti paylaşıyor; ardından kayıt yeniden bozuluyor.');
         setStoryComms('MAVİ YANKI','BLUE ECHO','Uyanma. Henüz değil. Eğer beni duyabiliyorsan… istasyonun altında ne olduğunu unutma.','Do not wake. Not yet. If you can hear me… do not forget what lies beneath the station.');
@@ -863,7 +882,7 @@ function finishStoryBattleEncounter() {
     }
 
     if (session.mission === 5 && session.phase === 'relay') {
-        session.completed = true; isPaused = true;
+        session.completed = true; showStoryMissionResult(); isPaused = true;
         saveStoryProgress({ introSeen: true, chapter: 1, mission5Complete: true });
         setStatus(en ? 'MISSION COMPLETE · The relay is silent. The recovered packet carries the same broken voice as the blue echo.' : 'GÖREV TAMAMLANDI · Röle sustu. Kurtarılan pakette mavi yankıyla aynı bozuk ses var.');
         setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Röle açığa çıktı. Paket, mavi yankıdaki ses örüntüsüyle eşleşiyor.','The relay is exposed. Its packet matches the voice pattern in the blue echo.');
@@ -873,7 +892,7 @@ function finishStoryBattleEncounter() {
         return;
     }
     if (session.mission === 7 && session.phase === 'amplifier') {
-        session.completed = true; isPaused = true;
+        session.completed = true; showStoryMissionResult(); isPaused = true;
         saveStoryProgress({ introSeen: true, chapter: 1, mission7Complete: true });
         setStatus(en ? 'MISSION COMPLETE · The signal loops from inside the station. The antenna was not receiving it—it was repeating it.' : 'GÖREV TAMAMLANDI · Sinyal istasyonun içinden döngüye giriyor. Anten onu almıyordu; tekrar yayıyordu.');
         setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Sinyal dışarıdan gelmiyor. Döngü, istasyonun içinden besleniyor.','The signal is not coming from outside. The loop is being fed from inside the station.');
@@ -947,7 +966,7 @@ function finishStoryBattleEncounter() {
     // Unknown or out-of-order phases must never fall through and falsely award mission 2.
     if (![1, 2].includes(session.mission)) return;
 
-    session.completed = true; isPaused = true; enemies = []; projectiles = [];
+    session.completed = true; showStoryMissionResult(); isPaused = true; enemies = []; projectiles = [];
     if (session.mission === 1) {
         session.companionSynced = true;
         saveStoryProgress({ introSeen: true, chapter: 1, mission1Complete: true });
@@ -1003,7 +1022,7 @@ function inspectStoryVoiceRecord() {
 function chooseStoryVoice(choice) {
     const session = window.__storyBattle;
     if (!session || !session.active || session.mission !== 13 || session.phase !== 'voiceChoice' || session.completed || isPaused !== true || session.choiceBusy || !['human','station'].includes(choice)) return;
-    session.choiceBusy = true; session.phase = 'complete'; session.completed = true;
+    session.choiceBusy = true; session.phase = 'complete'; session.completed = true; showStoryMissionResult();
     saveStoryProgress({ introSeen: true, chapter: 2, mission12Complete: true, mission13Complete: true, voiceChoice: choice });
     const en = storyLanguage() === 'en';
     const status = document.getElementById('story-battle-status');
@@ -1085,7 +1104,7 @@ function chooseStoryPowerPriority(choice) {
     const session = window.__storyBattle;
     if (!session || !session.active || session.mission !== 4 || session.phase !== 'powerChoice' || session.completed) return;
     if (choice !== 'shield' && choice !== 'weapon') return;
-    session.completed = true; isPaused = true;
+    session.completed = true; showStoryMissionResult(); isPaused = true;
     saveStoryProgress({ introSeen: true, chapter: 1, mission4Complete: true, powerChoice: choice });
     const status = document.getElementById('story-battle-status');
     if (status) status.textContent = choice === 'shield'
@@ -1119,6 +1138,8 @@ function exitStoryBattle(toMainMenu = false) {
     isDefeated = s.isDefeated; defeatTimer = s.defeatTimer;
     document.body.dataset.gameMode = s.gameMode;
     window.__storyBattle = { active: false, completed: session.completed };
+    const resultOverlay = document.getElementById('story-mission-result');
+    if (resultOverlay) { resultOverlay.hidden = true; resultOverlay.setAttribute('aria-hidden', 'true'); }
     const hud = document.getElementById('story-battle-hud');
     if (hud) { hud.hidden = true; hud.classList.remove('is-active'); }
     if (typeof updateHUD === 'function') updateHUD();
