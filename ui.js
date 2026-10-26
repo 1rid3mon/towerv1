@@ -4321,6 +4321,36 @@ function updateStoryMissionBoard() {
     document.querySelectorAll('.story-mission-status.is-locked').forEach(node => {
         if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status','story-mission-6-status','story-mission-7-status','story-mission-8-status','story-mission-9-status','story-mission-10-status','story-mission-11-status','story-mission-12-status','story-mission-13-status','story-mission-14-status','story-mission-15-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
     });
+
+    // Campaign progress is presentation-only: it reads story flags and never mutates saves.
+    const completedCount = Array.from({ length: 15 }, (_, index) => Boolean(progress['mission' + (index + 1) + 'Complete'])).filter(Boolean).length;
+    const progressLabel = document.getElementById('story-campaign-progress-label');
+    const progressCount = document.getElementById('story-campaign-progress-count');
+    const progressFill = document.getElementById('story-campaign-progress-fill');
+    const progressTrack = document.getElementById('story-campaign-progress-track');
+    if (progressLabel) progressLabel.textContent = en ? 'CAMPAIGN SYNCHRONIZED' : 'HİKÂYE İLERLEMESİ';
+    if (progressCount) progressCount.textContent = en ? (completedCount + ' / 15 MISSIONS') : (completedCount + ' / 15 GÖREV');
+    if (progressFill) progressFill.style.width = ((completedCount / 15) * 100) + '%';
+    if (progressTrack) progressTrack.setAttribute('aria-valuenow', String(completedCount));
+
+    let nextMission = 0;
+    for (let missionNumber = 1; missionNumber <= 15; missionNumber++) {
+        if (!progress['mission' + missionNumber + 'Complete']) { nextMission = missionNumber; break; }
+    }
+    document.querySelectorAll('[id^="story-start-mission"]').forEach(button => {
+        const match = button.id.match(/^story-start-mission(\\d+)$/);
+        if (!match) return;
+        const missionNumber = Number(match[1]);
+        const card = button.closest('.story-mission');
+        if (!card) return;
+        const complete = Boolean(progress['mission' + missionNumber + 'Complete']);
+        card.classList.toggle('is-complete', complete);
+        card.classList.toggle('is-current', !complete && missionNumber === nextMission && !button.disabled);
+        card.classList.toggle('is-locked-card', button.disabled && !complete);
+        if (complete) card.setAttribute('data-mission-state', en ? 'COMPLETE' : 'TAMAM');
+        else if (!button.disabled) card.setAttribute('data-mission-state', en ? 'AVAILABLE' : 'HAZIR');
+        else card.removeAttribute('data-mission-state');
+    });
 }
 function setStoryComms(speakerTr, speakerEn, textTr, textEn) {
     const speaker = document.getElementById('story-comms-speaker');
