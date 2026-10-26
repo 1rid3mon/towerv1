@@ -350,3 +350,11 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] **MANUEL OYUN TESTİ BEKLİYOR:** Gerçek tarayıcıda Görev 15'in tamamını oynamak; görevden çıkma/yeniden deneme; iPad/Android portre-yatay düzen; Türkçe/İngilizce; hikâye bulut kaydı hâlâ elle doğrulanmadı.
 - [ ] **ÜRETİM FIREBASE KURALLARI:** Aday kurallar yalnızca repo/emülatör testlerine güncellendi; Firebase Console'daki canlı kurallar otomatik değiştirilmedi.
 - Sonraki hikâye işi: Görev 16 “Sahte Çıkış”ın iki farklı savunma etabı ve döngü mekânı değişimiyle uygulanması. Görev 15'in elle oynanış testleri de sonraki QA turunda yapılmalı.
+
+
+## 2026-10-26 — Hikâye modu yükseltme izolasyonu düzeltmesi
+
+- **Bulgu:** Sonsuz mod için çalışan anti-cheat gölge-kayıt denetimi, hikâye görevlerinin geçici oyun durumunu da kontrol ediyordu. Görev başında temiz durum kurulunca gölge kayıt yükseltmeleri/yoldaş seviyelerini geri yazabiliyordu; bu da çoklu atış ve ekonomi yükseltmelerinin hikâyeye taşınmasına yol açabilecek kök nedendi.
+- **Düzeltme:** `engine.js` anti-cheat aralığı hikâye modu/aktif hikâye oturumu sırasında erken çıkıyor; Sonsuz modun güvenilir gölge kaydı değiştirilmeden korunuyor. `data.js` içinde hikâye modunda çoklu atış yalnızca görev yerel yükseltmesine dayanıyor, altın çarpanı ve yoldaş güç çarpanı 1x ile sınırlandırılıyor.
+- **Test:** `security-lab/progression-guard-regression.test.js` içine anti-cheat atlama sırası ve çoklu atış/ekonomi/yoldaş çarpanlarının hikâyede izole edilmesi için regresyon testleri eklendi.
+- **Durum:** Kod değişiklikleri PR dalında; otomatik CI ve canlı oyunda görev başlat/bitir + Sonsuz moda dönüş testi bekleniyor. Firebase kuralları veya kullanıcı kayıtları değiştirilmedi.
