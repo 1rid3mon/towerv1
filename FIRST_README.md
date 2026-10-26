@@ -339,3 +339,14 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] TEST BEKLİYOR: GitHub Actions CI sonucu, gerçek tarayıcı oynanışı, görevden çıkıp geri dönme, kayıt/yenileme, mobil portre/yatay ve dil değişimi henüz doğrulanmadı.
 - [ ] HENÜZ MAIN'E ALINMADI: Çalışma feature/story-mission15-memory-cost dalında; PR/merge yapılmadı.
 - Sıradaki hikâye adımı: Görev 16 “Sahte Çıkış” — aynı odaya dönen ama her dönüşte değişen iki savunma etabıyla döngü sinyalini göster; mavi yankının çelişkili uyarısını koru.
+
+
+## İş günlüğü — 2026-10-26: Görev 15 main'e alındı ve CI doğrulandı
+
+- [x] PR #48 başarıyla merge edildi: https://github.com/1rid3mon/towerv1/pull/48
+- [x] Merge commit: 1a40464426cf303bfe97439827b7ac6ddf2d7723.
+- [x] GitHub Actions Security Lab koşusu 40281119529 başarılı: JavaScript syntax kontrolü geçti; Firestore Emulator ve regresyon testleri 132/132 geçti, 0 başarısız.
+- [x] Vercel, merge commit için başarılı deployment kontrolü bildirdi: https://vercel.com/keremmert137-9933s-projects/towerv1/D5vWweMtfw3LDWMQhw9HqMqCuujC.
+- [ ] **MANUEL OYUN TESTİ BEKLİYOR:** Gerçek tarayıcıda Görev 15'in tamamını oynamak; görevden çıkma/yeniden deneme; iPad/Android portre-yatay düzen; Türkçe/İngilizce; hikâye bulut kaydı hâlâ elle doğrulanmadı.
+- [ ] **ÜRETİM FIREBASE KURALLARI:** Aday kurallar yalnızca repo/emülatör testlerine güncellendi; Firebase Console'daki canlı kurallar otomatik değiştirilmedi.
+- Sonraki hikâye işi: Görev 16 “Sahte Çıkış”ın iki farklı savunma etabı ve döngü mekânı değişimiyle uygulanması. Görev 15'in elle oynanış testleri de sonraki QA turunda yapılmalı.
