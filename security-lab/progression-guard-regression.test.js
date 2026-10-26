@@ -183,7 +183,8 @@ test('Story Mode mission handler enforces the previous-mission prerequisite even
     11: 'mission10Complete',
     12: 'mission11Complete',
     13: 'mission12Complete',
-    14: 'mission13Complete'
+    14: 'mission13Complete',
+    15: 'mission14Complete'
   };
 
   assert.equal(sandbox.storyMissionPrerequisiteMet(1, {}), true);
@@ -226,12 +227,15 @@ test('unsupported Story Mode phases cannot fall through and falsely complete mis
   assert.match(body, /if \(session\.mission === 1\)[\s\S]*?else \{[\s\S]*?mission2Complete: true/);
 });
 
-test('mission 13 and 14 each have exactly one initial objective label branch', () => {
+test('mission 13, 14 and 15 each have exactly one initial objective label branch', () => {
   const start = uiSource.indexOf('function startStoryMission(');
   const end = uiSource.indexOf('function finishStoryBattleEncounter()', start);
   const body = uiSource.slice(start, end);
   assert.equal((body.match(/else if \(missionNumber === 13\) status\.textContent/g) || []).length, 1);
   assert.equal((body.match(/else if \(missionNumber === 14\) status\.textContent/g) || []).length, 1);
+  assert.equal((body.match(/else if \(missionNumber === 15\) status\.textContent/g) || []).length, 1);
+  assert.match(body, /mission15-repair-action/);
+  assert.match(uiSource, /function repairStoryMission15System\(\)/);
 });
 
 

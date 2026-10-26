@@ -1,7 +1,7 @@
 # Chapter 02 — Beneath the Signal
 ## Narrative and gameplay outline
 
-**Status:** Mission 10 has a first playable implementation on the feature branch; manual browser/mobile QA and save-isolation regression checks are pending. Missions 11–18 remain design-stage.
+**Status:** Missions 10–14 are present in main; Mission 15 has a first-pass playable implementation on feature/story-mission15-memory-cost. Manual browser/mobile QA and save-isolation regression checks are pending. Missions 16–18 remain design-stage.
 
 ## Purpose
 
@@ -65,6 +65,13 @@ Chapter 02 follows the commander and the newly awakened companion below the stat
 **Gameplay:** short repair sequence under intermittent pressure; use the already-taught repair interaction rather than adding a separate minigame.  
 **Story beat:** the companion loses access to one recovered memory and chooses not to hide it from the commander. Trust grows because it tells the truth, not because the mystery is solved.  
 **Pacing:** a character-focused breather after the containment set piece.
+
+### Mission 15 — The Cost of Listening (first playable implementation)
+**Target:** 14–18 minutes (design target; not measured)  
+**Objective:** stabilize Piko after the cyan pulse causes feedback.  
+**Gameplay:** defeat a short group of hostiles, then repair three systems through large, labeled actions. The encounter reuses the established repair interaction pattern; no new minigame or currency is introduced.  
+**Story beat:** Piko admits that the pulse restored one memory briefly but made another inaccessible. Piko chooses to tell the commander instead of hiding the loss. The missing memory stays unresolved.  
+**Implementation guardrails:** progress is stored only in the Story Mode progress object; Mission 15 is locked until Mission 14 is complete; the repair action is phase-guarded; no Endless rewards are granted by the repair sequence. Manual save/retry and mobile testing remain required.
 
 ### Mission 16 — The False Exit
 **Target:** 16–20 minutes  

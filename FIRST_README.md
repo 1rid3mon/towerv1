@@ -327,3 +327,15 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] **ÜRETİM FIREBASE KURALLARI:** Repo içindeki `security-lab/firestore.rules` dosyası canlı Firebase Console kurallarını otomatik güncellemez; üretime uygulandığı varsayılmamalı.
 - Sonuç: **MAIN'E AKTARILDI.** Branch'teki içerik merge commit ağacına taşındı. Çakışan dosyalar için ağacın feature branch sürümleri seçildi; main'deki dört commit'in geçmişi merge parent olarak korunuyor.
 - Sıradaki adım: Vercel deployment URL'sini açıp gerçek sayfa yüklemesini kontrol et; ardından masaüstü, mobil portre/yatay, hikâye ilerleme senkronizasyonu ve Piko tepkilerini elle test et.
+
+
+## İş günlüğü — 2026-10-26: Hikâye Görevi 15 — Dinlemenin Bedeli
+
+- [x] ui.js: Mission 15 için görev kilidi (14. görev tamamlanmadan açılamaz), iki dilli amaç metni ve ayrı mission15Complete hikâye ilerleme bayrağı eklendi.
+- [x] index.html: Görev panosuna “Dinlemenin bedeli” kartı ve onarım eylemi eklendi; mevcut büyük, etiketli hikâye buton stili kullanılıyor.
+- [x] Oynanış akışı: kısa düşman karşılaşması sonrası üç sistemi sırayla onarma; Piko, sinyal geri beslemesinin bir anıyı kaybettirdiğini dürüstçe açıklıyor. Yeni para birimi/minigame yok; onarım sırasında kalıcı savaş ödülü verilmez.
+- [x] security-lab/progression-guard-regression.test.js: Görev 15’in önceki göreve bağlı kilidi, tek amaç dalı ve onarım handler’ı için regresyon kontrolleri eklendi.
+- [x] STORY_CHAPTER_02.md: Görev 15 üretim durumu ve anlatı amacı güncellendi.
+- [ ] TEST BEKLİYOR: GitHub Actions CI sonucu, gerçek tarayıcı oynanışı, görevden çıkıp geri dönme, kayıt/yenileme, mobil portre/yatay ve dil değişimi henüz doğrulanmadı.
+- [ ] HENÜZ MAIN'E ALINMADI: Çalışma feature/story-mission15-memory-cost dalında; PR/merge yapılmadı.
+- Sıradaki hikâye adımı: Görev 16 “Sahte Çıkış” — aynı odaya dönen ama her dönüşte değişen iki savunma etabıyla döngü sinyalini göster; mavi yankının çelişkili uyarısını koru.

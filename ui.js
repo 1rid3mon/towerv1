@@ -4037,6 +4037,7 @@ const STORY_UI_COPY = {
   mission12desc:['Piko’nun çekirdeğinden eski üç kaydı incele; son kayıt geleceğe ait olabilir.','Inspect three records older than Piko’s core; the final file may come from the future.'],
  mission13tag:['GÖREV 13','MISSION 13'], mission13title:['İnsan sesi','The Human Voice'], mission13desc:['Piko’nun ses izinin insan kaydıyla eşleşmesini araştır ve çelişen iki kayıttan birine güven.','Investigate why Piko’s voiceprint matches a human recording and choose which conflicting record to trust.'],
  mission14tag:['GÖREV 14','MISSION 14'], mission14title:['Çekirdeğin ötesi','Beyond the Core'], mission14desc:['İstasyon savunmasını aş, çekirdek kilitlerini sırayla çöz ve Piko’ya ulaşan sinyalin kaynağını bul.','Break through the station defense, unlock the core seals, and trace the signal reaching Piko.'],
+ mission15tag:['GÖREV 15','MISSION 15'], mission15title:['Dinlemenin bedeli','The Cost of Listening'], mission15desc:['Sinyal darbesinin Piko’da bıraktığı hasarı gider; kaybolan anıyı saklamadığına tanık ol.','Repair the feedback damage caused by the pulse and witness Piko admit the memory it lost.'],
  pulseMission10Action:['SİNYAL DARBESİ','SIGNAL PULSE'],
  reconnectAction:['BAĞLANTIYI YENİDEN KUR','RECONNECT TO COMPANION'], awakenAction:['YOLDAŞI UYANDIR','AWAKEN COMPANION'], pulseAction:['SİNYAL DARBESİNİ DENE','TEST SIGNAL PULSE'],
 
@@ -4050,10 +4051,10 @@ let storyDialogueIndex = 0;
 let storyMissionViewOpen = false;
 
 function getStoryProgress() {
-    const defaults = { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false, mission3Complete: false, mission4Complete: false, mission5Complete: false, mission6Complete: false, mission7Complete: false, mission8Complete: false, mission9Complete: false, mission10Complete: false, mission11Complete: false, mission12Complete: false, mission13Complete: false, mission14Complete: false, voiceChoice: null, pulseTutorialComplete: false, companionForm: 'basic', repairChoiceCount: 0, routeChoice: null, powerChoice: null, updatedAt: 0 };
+    const defaults = { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false, mission3Complete: false, mission4Complete: false, mission5Complete: false, mission6Complete: false, mission7Complete: false, mission8Complete: false, mission9Complete: false, mission10Complete: false, mission11Complete: false, mission12Complete: false, mission13Complete: false, mission14Complete: false, mission15Complete: false, voiceChoice: null, pulseTutorialComplete: false, companionForm: 'basic', repairChoiceCount: 0, routeChoice: null, powerChoice: null, updatedAt: 0 };
     try {
         const saved = JSON.parse(localStorage.getItem(STORY_PROGRESS_KEY) || '{}');
-        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Math.min(2, Number(saved.chapter) || 1)), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true, mission3Complete: saved.mission3Complete === true, mission4Complete: saved.mission4Complete === true, mission5Complete: saved.mission5Complete === true, mission6Complete: saved.mission6Complete === true, mission7Complete: saved.mission7Complete === true, mission8Complete: saved.mission8Complete === true, mission9Complete: saved.mission9Complete === true, mission10Complete: saved.mission10Complete === true, mission11Complete: saved.mission11Complete === true, mission12Complete: saved.mission12Complete === true, mission13Complete: saved.mission13Complete === true, mission14Complete: saved.mission14Complete === true, voiceChoice: ['human','station'].includes(saved.voiceChoice) ? saved.voiceChoice : null, pulseTutorialComplete: saved.pulseTutorialComplete === true, companionForm: saved.companionForm === 'cyan' ? 'cyan' : 'basic', repairChoiceCount: Math.max(0, Math.min(3, Number(saved.repairChoiceCount) || 0)), routeChoice: ['array','blackbox'].includes(saved.routeChoice) ? saved.routeChoice : null, powerChoice: ['shield','weapon'].includes(saved.powerChoice) ? saved.powerChoice : null, updatedAt: Math.max(0, Number(saved.updatedAt) || 0) };
+        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Math.min(2, Number(saved.chapter) || 1)), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true, mission3Complete: saved.mission3Complete === true, mission4Complete: saved.mission4Complete === true, mission5Complete: saved.mission5Complete === true, mission6Complete: saved.mission6Complete === true, mission7Complete: saved.mission7Complete === true, mission8Complete: saved.mission8Complete === true, mission9Complete: saved.mission9Complete === true, mission10Complete: saved.mission10Complete === true, mission11Complete: saved.mission11Complete === true, mission12Complete: saved.mission12Complete === true, mission13Complete: saved.mission13Complete === true, mission14Complete: saved.mission14Complete === true, mission15Complete: saved.mission15Complete === true, voiceChoice: ['human','station'].includes(saved.voiceChoice) ? saved.voiceChoice : null, pulseTutorialComplete: saved.pulseTutorialComplete === true, companionForm: saved.companionForm === 'cyan' ? 'cyan' : 'basic', repairChoiceCount: Math.max(0, Math.min(3, Number(saved.repairChoiceCount) || 0)), routeChoice: ['array','blackbox'].includes(saved.routeChoice) ? saved.routeChoice : null, powerChoice: ['shield','weapon'].includes(saved.powerChoice) ? saved.powerChoice : null, updatedAt: Math.max(0, Number(saved.updatedAt) || 0) };
     } catch (_) { return defaults; }
 }
 let storyCloudSaveTimer = null;
@@ -4270,8 +4271,12 @@ function updateStoryMissionBoard() {
     if (s13) { s13.classList.toggle('is-locked', !progress.mission12Complete && !progress.mission13Complete); s13.textContent = progress.mission13Complete ? (en ? 'VOICEPRINT DECISION RECORDED' : 'SES İZİ KARARI KAYDEDİLDİ') : (progress.mission12Complete ? (en ? 'CHAPTER 02 · PLAYABLE' : '2. BÖLÜM · OYNANABİLİR') : (en ? 'LOCKED · COMPLETE MISSION 12' : 'KİLİTLİ · 12. GÖREVİ TAMAMLA')); }
     if (m14) { m14.disabled = !progress.mission13Complete; m14.textContent = progress.mission14Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'BREACH THE CORE →' : 'ÇEKİRDEĞE İLERLE →'); }
     if (s14) { s14.classList.toggle('is-locked', !progress.mission13Complete && !progress.mission14Complete); s14.textContent = progress.mission14Complete ? (en ? 'CORE SIGNAL TRACED' : 'ÇEKİRDEK SİNYALİ İZLENDİ') : (progress.mission13Complete ? (en ? 'CHAPTER 02 · PLAYABLE' : '2. BÖLÜM · OYNANABİLİR') : (en ? 'LOCKED · COMPLETE MISSION 13' : 'KİLİTLİ · 13. GÖREVİ TAMAMLA')); }
+    const m15 = document.getElementById('story-start-mission15');
+    const s15 = document.getElementById('story-mission-15-status');
+    if (m15) { m15.disabled = !progress.mission14Complete; m15.textContent = progress.mission15Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'STABILIZE PIKO →' : 'PİKO’YU DENGELE →'); }
+    if (s15) { s15.classList.toggle('is-locked', !progress.mission14Complete && !progress.mission15Complete); s15.textContent = progress.mission15Complete ? (en ? 'MEMORY LOSS ACKNOWLEDGED' : 'KAYIP ANI KABUL EDİLDİ') : (progress.mission14Complete ? (en ? 'CHAPTER 02 · PLAYABLE' : '2. BÖLÜM · OYNANABİLİR') : (en ? 'LOCKED · COMPLETE MISSION 14' : 'KİLİTLİ · 14. GÖREVİ TAMAMLA')); }
     document.querySelectorAll('.story-mission-status.is-locked').forEach(node => {
-        if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status','story-mission-6-status','story-mission-7-status','story-mission-8-status','story-mission-9-status','story-mission-10-status','story-mission-11-status','story-mission-12-status','story-mission-13-status','story-mission-14-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
+        if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status','story-mission-6-status','story-mission-7-status','story-mission-8-status','story-mission-9-status','story-mission-10-status','story-mission-11-status','story-mission-12-status','story-mission-13-status','story-mission-14-status','story-mission-15-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
     });
 }
 function setStoryComms(speakerTr, speakerEn, textTr, textEn) {
@@ -4296,14 +4301,15 @@ function storyMissionPrerequisiteMet(missionNumber, progress) {
         11: 'mission10Complete',
         12: 'mission11Complete',
         13: 'mission12Complete',
-        14: 'mission13Complete'
+        14: 'mission13Complete',
+        15: 'mission14Complete'
     };
     const requiredProgressFlag = prerequisiteByMission[missionNumber];
     return !requiredProgressFlag || progress[requiredProgressFlag] === true;
 }
 function startStoryMission(missionNumber = 1) {
     const progress = getStoryProgress();
-    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].includes(missionNumber)) return;
+    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].includes(missionNumber)) return;
     // Enforce mission order in the handler as well as the disabled UI buttons.
     // This prevents direct calls from bypassing the chapter's narrative gates.
     if (!storyMissionPrerequisiteMet(missionNumber, progress)) {
@@ -4335,7 +4341,7 @@ function startStoryMission(missionNumber = 1) {
     document.body.dataset.gameMode = 'story';
     game = getDefaultState();
     game.wave = 1; game.highestWave = 1; game.gold = 180;
-    game.waveKills = 0; game.waveTargetKills = missionNumber === 1 ? 8 : (missionNumber === 5 ? 8 : (missionNumber === 7 ? 8 : (missionNumber === 9 ? 10 : (missionNumber === 10 ? 6 : (missionNumber === 11 ? 8 : (missionNumber === 12 ? 6 : (missionNumber === 13 ? 7 : (missionNumber === 14 ? 12 : 5)))))))); game.holdWave = false;
+    game.waveKills = 0; game.waveTargetKills = missionNumber === 1 ? 8 : (missionNumber === 5 ? 8 : (missionNumber === 7 ? 8 : (missionNumber === 9 ? 10 : (missionNumber === 10 ? 6 : (missionNumber === 11 ? 8 : (missionNumber === 12 ? 6 : (missionNumber === 13 ? 7 : (missionNumber === 14 ? 12 : (missionNumber === 15 ? 6 : 5))))))))); game.holdWave = false;
     // Story missions use a deterministic loadout, never the endless-mode save's upgrades/items.
     game.upgrades.damage = 3; game.upgrades.attackSpeed = 2; game.upgrades.range = 3;
     game.upgrades.critChance = 0; game.upgrades.critMult = 1; game.upgrades.multishot = 0;
@@ -4387,7 +4393,8 @@ function startStoryMission(missionNumber = 1) {
         11: ['PİKO','PIKO','Aşağıdaki ağ istasyondan eski. Lütfen bunun normal olduğunu söyle; ben söyleyemiyorum.','The network below predates the station. Please tell me that is normal; I cannot.'],
         12: ['PİKO','PIKO','Arşivde benim için bir kayıt var. Garip olan, kaydın tarihinin benim çekirdeğimden daha eski olması değil… içindeki sesin benim sesim olmaması.','There is a record for me in the archive. The strange part is not that it predates my core… it is that the voice inside is not mine.'],
         13: ['PİKO','PIKO','İnsan kaydındaki ses benim ses izimle eşleşiyor. Ama anılarımda o insan yok. Hangimize inanmalıyım?','The human recording matches my voiceprint. But that person is not in my memories. Which account should I believe?'],
-        14: ['PİKO','PIKO','Sinyal çekirdeğin içinden geliyor. Ne olursa olsun bu kez gerçeği birlikte bulacağız.','The signal is coming from inside the core. Whatever happens, we will find the truth together this time.']
+        14: ['PİKO','PIKO','Sinyal çekirdeğin içinden geliyor. Ne olursa olsun bu kez gerçeği birlikte bulacağız.','The signal is coming from inside the core. Whatever happens, we will find the truth together this time.'],
+        15: ['PİKO','PIKO','Sinyal darbesi hâlâ içimde yankılanıyor. Önce sistemi dengelemeliyiz; sonra sana neyi kaybettiğimi anlatacağım.','The pulse is still echoing inside me. We need to stabilize the systems first; then I will tell you what I lost.']
     };
     const openingLine = commsByMission[missionNumber];
     if (openingLine) setStoryComms(...openingLine);
@@ -4419,6 +4426,7 @@ function startStoryMission(missionNumber = 1) {
         else if (missionNumber === 12) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 6 hostiles, then inspect three conflicting archive records.' : 'GÖREV: 6 düşmanı durdur, ardından birbiriyle çelişen üç arşiv kaydını incele.';
         else if (missionNumber === 13) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 7 hostiles, listen to two conflicting testimonies, and choose which record to trust.' : 'GÖREV: 7 düşmanı durdur, çelişen iki tanıklığı dinle ve hangi kayda güveneceğini seç.';
         else if (missionNumber === 14) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 12 hostiles, then disarm three core seals.' : 'GÖREV: 12 düşmanı durdur, ardından çekirdeğin üç kilidini aç.';
+        else if (missionNumber === 15) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 6 hostiles, then repair three systems damaged by signal feedback.' : 'GÖREV: 6 düşmanı durdur, ardından sinyal geri beslemesinin bozduğu üç sistemi onar.';
         else status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat the hostiles.' : 'GÖREV: Düşmanları durdur.';
     }
     const action = document.getElementById('story-scan-action');
@@ -4442,6 +4450,7 @@ function startStoryMission(missionNumber = 1) {
     const trustHuman = document.getElementById('story-mission13-trust-human'); if (trustHuman) trustHuman.hidden = true;
     const trustStation = document.getElementById('story-mission13-trust-station'); if (trustStation) trustStation.hidden = true;
     const coreSeal = document.getElementById('story-mission14-seal-action'); if (coreSeal) coreSeal.hidden = true;
+    const mission15Repair = document.getElementById('story-mission15-repair-action'); if (mission15Repair) mission15Repair.hidden = true;
     const companionChip = document.getElementById('story-companion-chip');
     const companionIcon = document.getElementById('story-companion-icon');
     const companionState = document.getElementById('story-companion-state');
@@ -4473,6 +4482,7 @@ function startStoryMission(missionNumber = 1) {
     else if (missionNumber === 10) showToast(storyLanguage() === 'en' ? 'Mission 10 · The door is reacting to the companion. Calibrate the pulse, then reveal the hidden nodes.' : 'Görev 10 · Kapı yoldaşa tepki veriyor. Darbeyi ayarla, sonra gizli düğümleri açığa çıkar.');
     else if (missionNumber === 11) showToast(storyLanguage() === 'en' ? 'Mission 11 · The lower network is awake. Clear the way, then map its three relays.' : 'Görev 11 · Alt ağ uyandı. Önce yolu temizle, sonra üç röleyi haritala.');
     else if (missionNumber === 12) showToast(storyLanguage() === 'en' ? 'Mission 12 · Clear the archive guards, then inspect all three records.' : 'Görev 12 · Arşiv muhafızlarını durdur, ardından üç kaydı incele.');
+    else if (missionNumber === 15) showToast(storyLanguage() === 'en' ? 'Mission 15 · Stabilize Piko after the pulse feedback. The missing memory may not return.' : 'Görev 15 · Sinyal geri beslemesinden sonra Piko’yu dengele. Kayıp anı geri dönmeyebilir.');
 }
 function finishStoryBattleEncounter() {
     const session = window.__storyBattle;
@@ -4553,6 +4563,29 @@ function finishStoryBattleEncounter() {
         session.phase = 'coreSeal3'; setStatus(en ? 'SEAL 2 DISARMED · The voiceprint matches the impossible archive.' : '2. KİLİT AÇILDI · Ses izi imkânsız arşivle eşleşiyor.');
         setStoryComms('PIKO','PIKO','Bu ses arşivdeki insan. Neden beni adıyla çağırıyor?','That is the human from the archive. Why are they calling me by name?');
         setAction('story-mission14-seal-action', false, en ? 'DISARM FINAL SEAL' : 'SON KİLİDİ AÇ'); return;
+    }
+    if (session.mission === 15 && session.phase === 'combat') {
+        session.phase = 'repairSystem1'; isPaused = true; enemies = []; projectiles = [];
+        setStatus(en ? 'FEEDBACK DAMAGE · Three systems are unstable. Repair the first before Piko loses more signal integrity.' : 'GERİ BESLEME HASARI · Üç sistem kararsız. Piko daha fazla sinyal bütünlüğü kaybetmeden ilkini onar.');
+        setStoryComms('PIKO','PIKO','Sinyal bana bir anıyı geri verdi. Sonra başka bir şeyi aldı. İlk onarımı yapalım… sana söylemem gereken bir şey var.','The pulse gave me a memory for a moment. Then it took something else. Let’s repair the first system… there is something I need to tell you.');
+        setAction('story-mission15-repair-action', false, en ? 'REPAIR SYSTEM 1 / 3' : '1 / 3. SİSTEMİ ONAR');
+        setExit(en ? 'ABORT MISSION' : 'GÖREVDEN ÇIK'); return;
+    }
+    if (session.mission === 15 && ['repairSystem1','repairSystem2','repairSystem3'].includes(session.phase)) {
+        const repairIndex = Number(session.phase.slice(-1));
+        if (repairIndex < 3) {
+            session.phase = 'repairSystem' + (repairIndex + 1);
+            const nextLabel = en ? 'REPAIR SYSTEM ' + (repairIndex + 1) + ' / 3' : (repairIndex + 1) + ' / 3. SİSTEMİ ONAR';
+            setStatus(en ? 'SYSTEM ' + repairIndex + ' RESTORED · Feedback is falling, but one memory channel remains empty.' : repairIndex + '. SİSTEM ONARILDI · Geri besleme azalıyor ama bir hafıza kanalı boş kaldı.');
+            setStoryComms('PIKO','PIKO','Hatırlamaya çalışıyorum… sesini duyuyorum ama yüzünü değil. Devam edelim.','I am trying to remember… I can hear the voice, but not the face. Keep going.');
+            setAction('story-mission15-repair-action', false, nextLabel); return;
+        }
+        session.phase = 'complete'; session.completed = true; isPaused = true;
+        saveStoryProgress({ introSeen: true, chapter: 2, mission14Complete: true, mission15Complete: true });
+        setStatus(en ? 'SYSTEMS STABLE · Piko has told you what the pulse cost. The missing memory remains missing.' : 'SİSTEMLER KARARLI · Piko, sinyal darbesinin bedelini sana anlattı. Kayıp anı hâlâ geri gelmedi.');
+        setStoryComms('PIKO','PIKO','Bir anıyı kaybettim. Hangisi olduğunu bilmiyorum. Bunu senden saklayabilirdim… ama güven, sadece doğru cevapları vermek değil. Bazen neyi bilmediğini söylemektir.','I lost a memory. I do not know which one. I could have hidden that from you… but trust is not just giving the right answers. Sometimes it means admitting what you do not know.');
+        setAction('story-mission15-repair-action', true); setExit(en ? 'RETURN TO CHAPTER BOARD' : 'GÖREV PANOSUNA DÖN');
+        showToast(en ? 'Mission 15 complete. Piko’s memory loss is now part of Story Mode progress.' : '15. görev tamamlandı. Piko’nun hafıza kaybı hikâye kaydına işlendi.'); return;
     }
     if (session.mission === 14 && session.phase === 'coreSeal3') {
         session.phase = 'complete'; session.completed = true; isPaused = true;
@@ -4935,6 +4968,11 @@ function awakenStoryCompanion() {
 function testStoryPulse() {
     const session = window.__storyBattle;
     if (!session || !session.active || session.mission !== 9 || session.phase !== 'pulseTest' || session.completed) return;
+    finishStoryBattleEncounter();
+}
+function repairStoryMission15System() {
+    const session = window.__storyBattle;
+    if (!session || !session.active || session.mission !== 15 || !['repairSystem1','repairSystem2','repairSystem3'].includes(session.phase) || session.completed) return;
     finishStoryBattleEncounter();
 }
 function repairStoryConnection() {
