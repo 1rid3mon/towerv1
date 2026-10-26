@@ -345,7 +345,7 @@ test('Story dialogue stays compact and mission completion always offers a visibl
 test('plasma satellite target selection matches stable nearest-first slicing without sorting all enemies', () => {
   const helper = extractFunction(engineSource, 'function getNearestEnemiesByDistance(', 'function spawnCargoDrone()');
   const sandbox = {};
-  vm.runInNewContext(helper + '\\nglobalThis.select = getNearestEnemiesByDistance;', sandbox);
+  vm.runInNewContext(helper + '\nglobalThis.select = getNearestEnemiesByDistance;', sandbox);
   const enemies = [
     { id: 'far', x: 90, y: 0 }, { id: 'near', x: 3, y: 4 },
     { id: 'tie-first', x: 0, y: 5 }, { id: 'tie-second', x: 0, y: -5 },
@@ -358,7 +358,7 @@ test('plasma satellite target selection matches stable nearest-first slicing wit
     assert.deepEqual(Array.from(sandbox.select(enemies, 0, 0, limit), enemy => enemy.id), expected);
   }
   assert.match(engineSource, /getNearestEnemiesByDistance\(enemies, st\.x, st\.y, chainCount\)/);
-  assert.doesNotMatch(engineSource, /const sorted = \\[\.\.\.enemies\\]\\.sort/);
+  assert.doesNotMatch(engineSource, /const sorted = \[\.\.\.enemies\]\.sort/);
 });
 
 test('Story wave completion fails closed if the Story controller did not load', () => {
@@ -370,7 +370,7 @@ test('Story wave completion fails closed if the Story controller did not load', 
     showToast(message) { sandbox.toast = message; },
     console: { error(message) { sandbox.error = message; } }
   };
-  vm.runInNewContext(body + '\\ncompleteWave();', sandbox);
+  vm.runInNewContext(body + '\ncompleteWave();', sandbox);
   assert.equal(sandbox.isPaused, true);
   assert.equal(sandbox.game.gold, 123);
   assert.equal(sandbox.game.crystals, 9);
