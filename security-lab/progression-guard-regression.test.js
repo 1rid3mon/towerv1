@@ -275,5 +275,6 @@ test('unowned legacy story progress is preserved separately and never treated as
   assert.match(uiSource, /const unownedLocal = !localOwner \? getStoryProgress\(\) : null;/);
   assert.match(uiSource, /localStorage\.setItem\(STORY_PROGRESS_UNCLAIMED_KEY, JSON\.stringify\(unownedLocal\)\)/);
   assert.match(uiSource, /const local = localOwner === currentUser\.uid \? getStoryProgress\(\) : null;/);
+  assert.match(uiSource, /else if \(belongsToAnotherAccount \|\| !localOwner\)/);
   assert.match(uiSource, /if \(local && local\.updatedAt > remote\.updatedAt && local\.updatedAt > 0\)/);
 });
