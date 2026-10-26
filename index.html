@@ -492,7 +492,7 @@
         /* Piko: original astral-mechanical companion; inline SVG keeps it crisp and asset-free. */
         #game-mascot {
             position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: max(104px, calc(env(safe-area-inset-bottom) + 88px));
-            z-index: 80; width: 66px; height: 66px; display: grid; place-items: center;
+            z-index: 80; width: 76px; height: 76px; display: grid; place-items: center;
             padding: 3px; border: 1px solid rgba(103,232,249,.48); border-radius: 22px 22px 25px 25px;
             background: radial-gradient(circle at 50% 18%, rgba(34,211,238,.18), rgba(8,15,35,.98) 68%);
             box-shadow: 0 5px 22px rgba(34,211,238,.2), inset 0 0 15px rgba(96,165,250,.13);
@@ -525,7 +525,7 @@
         @keyframes piko-core { 0%,100% { opacity:.7; filter:drop-shadow(0 0 2px #22d3ee); } 50% { opacity:1; filter:drop-shadow(0 0 7px #67e8f9); } }
         @keyframes piko-sigil { to { transform:rotate(-360deg); } }
         @media (prefers-reduced-motion: reduce) { #game-mascot, #game-mascot.mascot-react, #game-mascot-face * { animation: none !important; } }
-        @media (max-width: 480px) { #game-mascot { width: 54px; height: 54px; } #game-mascot-bubble { bottom: max(164px, calc(env(safe-area-inset-bottom) + 148px)); } }
+        @media (max-width: 480px) { #game-mascot { width: 64px; height: 64px; } #game-mascot-bubble { bottom: max(164px, calc(env(safe-area-inset-bottom) + 148px)); } }
 
     
         /* Main mode selection overlay */
