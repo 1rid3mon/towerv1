@@ -301,9 +301,12 @@ test('story mode hard-isolates multishot, economy, and companion multipliers', (
 });
 
 
-test('completed Story Mode session can be cleaned up before replay without aborting an unfinished mission', () => {
+test('completed Story Mode session is cleaned before the Endless unlock check, while unfinished missions remain active', () => {
   const start = uiSource.indexOf('function startStoryMission(');
   const end = uiSource.indexOf('function finishStoryBattleEncounter()', start);
   const body = uiSource.slice(start, end);
-  assert.match(body, /if \(window\.__storyBattle\?\.active\) \{[\s\S]*?if \(!window\.__storyBattle\.completed\) return;[\s\S]*?exitStoryBattle\(false\);[\s\S]*?const session = \{/);
+  const cleanup = body.indexOf('exitStoryBattle(false);');
+  const unlockGate = body.indexOf('if (!updateStoryUnlockUI())');
+  assert.ok(cleanup >= 0 && unlockGate > cleanup, 'completed story replay must restore Endless state before checking the Endless wave requirement');
+  assert.match(body, /if \(\!window\.__storyBattle\.completed\) return;/);
 });
