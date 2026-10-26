@@ -350,3 +350,18 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] **MANUEL OYUN TESTİ BEKLİYOR:** Gerçek tarayıcıda Görev 15'in tamamını oynamak; görevden çıkma/yeniden deneme; iPad/Android portre-yatay düzen; Türkçe/İngilizce; hikâye bulut kaydı hâlâ elle doğrulanmadı.
 - [ ] **ÜRETİM FIREBASE KURALLARI:** Aday kurallar yalnızca repo/emülatör testlerine güncellendi; Firebase Console'daki canlı kurallar otomatik değiştirilmedi.
 - Sonraki hikâye işi: Görev 16 “Sahte Çıkış”ın iki farklı savunma etabı ve döngü mekânı değişimiyle uygulanması. Görev 15'in elle oynanış testleri de sonraki QA turunda yapılmalı.
+
+
+## İş günlüğü — 2026-10-26: Hikâye kaydında sahipsiz yerel veriyi hesaplar arasında taşımama
+
+- Değişen dosyalar: `ui.js`, `security-lab/progression-guard-regression.test.js`, `FIRST_README.md`.
+- Bulgu: Girişte `storyProgress/{uid}` belgesi henüz yoksa ve cihazdaki yerel hikâye kaydında sahip UID işareti de yoksa, eski/konuk kaydı yeni giriş yapan hesaba aitmiş gibi buluta gönderilebilirdi.
+- Düzeltme: Yerel kayıt yalnızca `STORY_PROGRESS_OWNER_KEY` oturum açan UID ile eşleşiyorsa o hesaba ait kabul ediliyor. Sahipsiz ama ilerleme içeren kayıt `towerDefenseStoryProgressUnclaimedV1` anahtarında ayrı korunuyor; yeni hesabın bulut kaydına otomatik aktarılmıyor. Var olan `storyProgress/{uid}` şeması ve Sonsuz Mod kaydı değiştirilmedi.
+- Regresyon: Sahipsiz kaydın ayrı saklanması ve kullanıcı UID'si eşleşmeden yerel verinin bulutla birleştirilmemesi için kaynak regresyon testi eklendi.
+- Testler: [ ] JavaScript syntax [ ] Security Lab / Firestore Emulator [ ] GitHub Actions — bu commit sonrası çalıştırılmalı.
+- Canlı cihaz testi: [ ] Hesap A → çıkış → hesap B; B'nin A ilerlemesini görmediği ve A'nın bulut kaydının korunduğu gerçek hesaplarla doğrulanmalı.
+- Üretim Firestore kuralları: Değiştirilmedi; `security-lab/firestore.rules` yalnızca aday kural dosyasıdır.
+- Main'e merge: HAYIR — `fix/story-cloud-owner-isolation` branch'inde.
+- Canlıya deploy: HAYIR / DOĞRULANMADI.
+- Kalan risk: Sahipsiz eski/konuk ilerlemesi otomatik olarak herhangi bir hesaba bağlanmaz; ileride güvenli bir açık “yerel hikâyeyi bu hesaba aktar” akışı tasarlanabilir. Hesaplar arası aynı anda senkronizasyon çakışmaları ayrıca test edilmeli.
+- Sıradaki adım: CI sonucunu kontrol et; ardından PR #49 ve bu dalın testlerini inceleyip, manuel hesap/device testi yapılmadan canlı doğrulama iddiasında bulunma.
