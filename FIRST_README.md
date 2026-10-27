@@ -469,3 +469,13 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] Masaüstü/mobil portre-yatay/Android WebView manuel QA hâlâ bekliyor. [ ] Görev 22–27 henüz uygulanmadı.
 - Main'e merge: HAYIR. Canlı deploy: DOĞRULANMADI.
 - Sıradaki adım: gerçek cihazda görev 19–21 oynanışını doğrula; ardından görev 22–24.
+
+
+## İş günlüğü — 2026-10-27: Bölüm 03 ilk dilimi main'e alındı
+
+- [x] PR #59 squash merge edildi: https://github.com/1rid3mon/towerv1/pull/59
+- Merge commit: `1002e1db4139d98d1dffbaa367e4bcde3c1d8eb0`.
+- [x] PR CI: JavaScript syntax ve Firestore Emulator dâhil **144/144 test geçti, 0 başarısız** (run 40475633736).
+- [x] Merge commit için Vercel kontrolü başarılı. Bu, cihaz üstünde oynanış testi yerine geçmez.
+- [ ] Gerçek masaüstü, mobil portre/yatay ve Android WebView oynanış kontrolü hâlâ yapılmalı.
+- [ ] Bölüm 03 görev 22–27 henüz uygulanmadı; sıradaki içerik görevi 22–24.
