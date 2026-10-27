@@ -86,6 +86,10 @@ The purple form is not an upgrade purchased from a menu. It is a choice the comp
 
 The first implementation adds sequential mission cards, bilingual objectives/dialogue, three new Story-only progress flags, and gameplay phases using the existing temporary Story battle sandbox. Mission 19 adds a combat-to-navigation scan transition; Mission 20 adds a combat-to-selective-pulse interaction; Mission 21 combines archive reconstruction, a short defense stage, and a final archive seal. The purple form remains locked; no new currency or Endless upgrades are introduced. This is a vertical slice, not a claim that all nine missions or the chapter's target duration are complete.
 
+## Second playable slice — Missions 22–24
+
+Bu dilim üç sıralı görev ekler: 22. görev mor sinyalin arkasındaki silueti tanımlar; 23. görev istasyon ve Piko kayıtlarında bulunmayan üçüncü sesi ayıklar; 24. görev frekans eşleme, 14 düşmanlı savunma ve son konuşma etkileşimini birleştirir. İlerleme Story-only bayrakları ve mevcut Firestore izin listesiyle kaydedilir; Endless ekonomisine/yükseltmelerine dokunulmaz. Yeni metinler Türkçe önceliklidir; İngilizce yerelleştirme toplu dil aşamasına bırakılır.
+
 ## Pacing estimate
 
 | Segment | Target time |
