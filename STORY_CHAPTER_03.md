@@ -1,7 +1,7 @@
 # Chapter 03 — The Shape of Memory
 ## Narrative and gameplay outline
 
-**Status:** design only. Chapter 03 is not implemented. It follows Chapter 01's first awakening and Chapter 02's descent beneath the station.
+**Status:** first playable slice implemented for Missions 19–21; Missions 22–27 remain design-only. It follows Chapter 01's first awakening and Chapter 02's descent beneath the station.
 
 ## Purpose
 
@@ -81,6 +81,10 @@ The purple form is not an upgrade purchased from a menu. It is a choice the comp
 **Gameplay:** a multi-stage climax combining the campaign's learned mechanics. At the critical moment, the companion chooses to transform into a tower-form anchor, creating a new defensive configuration for the final encounter.  
 **Story beat:** the companion remains conscious but can only communicate through short pulses and tower responses. The commander must protect the anchor while deciding which systems to keep online.  
 **Ending:** the archive survives, but one memory fragment is missing: the blue echo's final identity. The companion's tower form becomes a strategic option, not a permanent replacement for its mobile forms. The campaign closes its first major arc while leaving a deliberate mystery for future content.
+
+## First playable slice — Missions 19–21
+
+The first implementation adds sequential mission cards, bilingual objectives/dialogue, three new Story-only progress flags, and gameplay phases using the existing temporary Story battle sandbox. Mission 19 adds a combat-to-navigation scan transition; Mission 20 adds a combat-to-selective-pulse interaction; Mission 21 combines archive reconstruction, a short defense stage, and a final archive seal. The purple form remains locked; no new currency or Endless upgrades are introduced. This is a vertical slice, not a claim that all nine missions or the chapter's target duration are complete.
 
 ## Pacing estimate
 
