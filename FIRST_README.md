@@ -456,3 +456,16 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - Uses existing Story battle sandbox; no second engine. Exit continues to restore the saved Endless snapshot.
 - PR: https://github.com/1rid3mon/towerv1/pull/58
 - Validation status: JavaScript syntax check has passed in CI. Firestore Emulator suite is being rerun after the progress-schema fixture and validation updates. Manual desktop/mobile/Android WebView playthrough is still required before production sign-off.
+
+
+## İş günlüğü — 2026-10-27: Bölüm 03 ilk oynanabilir dilim (Görev 19–21)
+
+- Değişen dosyalar: `story.js`, `index.html`, `security-lab/firestore.rules`, `security-lab/firestore.rules.test.js`, `security-lab/progression-guard-regression.test.js`, `STORY_CHAPTER_03.md`, `FIRST_README.md`.
+- [x] Görev 19 İmkânsız Yörünge, 20 Sessiz Filo, 21 Kaybettiğimiz İsim; sıralı açılma ve 21 görevlik sayaç eklendi.
+- [x] Story battle sandbox içinde rota taraması, seçici sinyal darbesi, arşiv parçası ve kısa savunma fazları eklendi.
+- [x] Story ilerleme normalizasyonu, Firestore rules ve Emulator test fixture'ları mission19Complete–mission21Complete ile chapter 3 için güncellendi.
+- [x] Mor form ileriki görevlere saklandı; Endless ekonomi/yükseltme sistemine dokunulmadı.
+- [x] CI / JavaScript syntax / Firestore Emulator doğrulaması geçti: [GitHub Actions run 40475366436](https://github.com/1rid3mon/towerv1/actions/runs/40475366436), **144/144 test geçti**. Vercel check başarılı.
+- [ ] Masaüstü/mobil portre-yatay/Android WebView manuel QA hâlâ bekliyor. [ ] Görev 22–27 henüz uygulanmadı.
+- Main'e merge: HAYIR. Canlı deploy: DOĞRULANMADI.
+- Sıradaki adım: gerçek cihazda görev 19–21 oynanışını doğrula; ardından görev 22–24.

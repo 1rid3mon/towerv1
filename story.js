@@ -57,7 +57,7 @@ const STORY_UI_COPY = {
  mission15tag:['GÖREV 15','MISSION 15'], mission15title:['Dinlemenin bedeli','The Cost of Listening'], mission15desc:['Sinyal darbesinin Piko’da bıraktığı hasarı gider; kaybolan anıyı saklamadığına tanık ol.','Repair the feedback damage caused by the pulse and witness Piko admit the memory it lost.'],
  mission16tag:['GÖREV 16','MISSION 16'], mission16title:['Sahte çıkış','The False Exit'], mission16desc:['Aynı odaya dönen yolu çöz ve alt ağın döngüsünü kır.','Trace the looping route and break the lower network’s cycle.'],
  mission17tag:['GÖREV 17','MISSION 17'], mission17title:['Arşivdeki isim','The Name in the Archive'], mission17desc:['Çelişen kayıtları incele ve Piko’nun kendi çağrı adını seçmesine izin ver.','Inspect conflicting records and let Piko choose its own call sign.'],
- mission18tag:['GÖREV 18','MISSION 18'], mission18title:['Kilit seni tanıyor','The Lock That Knows You'], mission18desc:['Üç savunma aşamasını tamamla ve komutanın geçmişine açılan kilidi çöz.','Complete three defense stages and open the lock tied to the commander’s past.'],
+ mission18tag:['GÖREV 18','MISSION 18'], mission18title:['Kilit seni tanıyor','The Lock That Knows You'], mission18desc:['Üç savunma aşamasını tamamla ve komutanın geçmişine açılan kilidi çöz.','Complete three defense stages and open the lock tied to the commander’s past.'], chapter3heading:['BÖLÜM 03 · HAFIZANIN BİÇİMİ','CHAPTER 03 · THE SHAPE OF MEMORY'], chapter3desc:['Mor sinyalin çağırdığı yapıya yaklaş. Piko’nun kimliği, kendi seçtiği adın ötesine uzanıyor.','Approach the structure answering the violet signal. Piko’s identity reaches beyond the name it chose.'], mission19tag:['GÖREV 19','MISSION 19'], mission19title:['İmkânsız yörünge','The Impossible Orbit'], mission19desc:['Mor sinyali takip et ve aynı anda iki yerde görünen yapının rotasını çöz.','Follow the violet signal and chart a structure appearing in two places at once.'], mission20tag:['GÖREV 20','MISSION 20'], mission20title:['Sessiz filo','The Quiet Fleet'], mission20desc:['Kadim savunma platformlarını uyandırmadan alanı geç; darbeyi seçerek kullan.','Cross dormant defense platforms without waking the field; use the pulse selectively.'], mission21tag:['GÖREV 21','MISSION 21'], mission21title:['Kaybettiğimiz isim','The Name We Lost'], mission21desc:['Arşiv parçalarını birleştir ve Piko’nun rolüyle kimliği arasındaki farkı keşfet.','Rebuild the archive fragments and discover the difference between Piko’s role and identity.'],
  pulseMission10Action:['SİNYAL DARBESİ','SIGNAL PULSE'],
  reconnectAction:['BAĞLANTIYI YENİDEN KUR','RECONNECT TO COMPANION'], awakenAction:['YOLDAŞI UYANDIR','AWAKEN COMPANION'], pulseAction:['SİNYAL DARBESİNİ DENE','TEST SIGNAL PULSE'],
 
@@ -71,10 +71,10 @@ let storyDialogueIndex = 0;
 let storyMissionViewOpen = false;
 
 function getStoryProgress() {
-    const defaults = { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false, mission3Complete: false, mission4Complete: false, mission5Complete: false, mission6Complete: false, mission7Complete: false, mission8Complete: false, mission9Complete: false, mission10Complete: false, mission11Complete: false, mission12Complete: false, mission13Complete: false, mission14Complete: false, mission15Complete: false, mission16Complete: false, mission17Complete: false, mission18Complete: false, voiceChoice: null, pulseTutorialComplete: false, companionForm: 'basic', repairChoiceCount: 0, routeChoice: null, powerChoice: null, callSignChoice: null, updatedAt: 0 };
+    const defaults = { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false, mission3Complete: false, mission4Complete: false, mission5Complete: false, mission6Complete: false, mission7Complete: false, mission8Complete: false, mission9Complete: false, mission10Complete: false, mission11Complete: false, mission12Complete: false, mission13Complete: false, mission14Complete: false, mission15Complete: false, mission16Complete: false, mission17Complete: false, mission18Complete: false, mission19Complete: false, mission20Complete: false, mission21Complete: false, voiceChoice: null, pulseTutorialComplete: false, companionForm: 'basic', repairChoiceCount: 0, routeChoice: null, powerChoice: null, callSignChoice: null, updatedAt: 0 };
     try {
         const saved = JSON.parse(localStorage.getItem(STORY_PROGRESS_KEY) || '{}');
-        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Math.min(2, Number(saved.chapter) || 1)), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true, mission3Complete: saved.mission3Complete === true, mission4Complete: saved.mission4Complete === true, mission5Complete: saved.mission5Complete === true, mission6Complete: saved.mission6Complete === true, mission7Complete: saved.mission7Complete === true, mission8Complete: saved.mission8Complete === true, mission9Complete: saved.mission9Complete === true, mission10Complete: saved.mission10Complete === true, mission11Complete: saved.mission11Complete === true, mission12Complete: saved.mission12Complete === true, mission13Complete: saved.mission13Complete === true, mission14Complete: saved.mission14Complete === true, mission15Complete: saved.mission15Complete === true, mission16Complete: saved.mission16Complete === true, mission17Complete: saved.mission17Complete === true, mission18Complete: saved.mission18Complete === true, voiceChoice: ['human','station'].includes(saved.voiceChoice) ? saved.voiceChoice : null, pulseTutorialComplete: saved.pulseTutorialComplete === true, companionForm: saved.companionForm === 'cyan' ? 'cyan' : 'basic', repairChoiceCount: Math.max(0, Math.min(3, Number(saved.repairChoiceCount) || 0)), routeChoice: ['array','blackbox'].includes(saved.routeChoice) ? saved.routeChoice : null, powerChoice: ['shield','weapon'].includes(saved.powerChoice) ? saved.powerChoice : null, callSignChoice: ['echo','piko'].includes(saved.callSignChoice) ? saved.callSignChoice : null, updatedAt: Math.max(0, Number(saved.updatedAt) || 0) };
+        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Math.min(3, Number(saved.chapter) || 1)), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true, mission3Complete: saved.mission3Complete === true, mission4Complete: saved.mission4Complete === true, mission5Complete: saved.mission5Complete === true, mission6Complete: saved.mission6Complete === true, mission7Complete: saved.mission7Complete === true, mission8Complete: saved.mission8Complete === true, mission9Complete: saved.mission9Complete === true, mission10Complete: saved.mission10Complete === true, mission11Complete: saved.mission11Complete === true, mission12Complete: saved.mission12Complete === true, mission13Complete: saved.mission13Complete === true, mission14Complete: saved.mission14Complete === true, mission15Complete: saved.mission15Complete === true, mission16Complete: saved.mission16Complete === true, mission17Complete: saved.mission17Complete === true, mission18Complete: saved.mission18Complete === true, mission19Complete: saved.mission19Complete === true, mission20Complete: saved.mission20Complete === true, mission21Complete: saved.mission21Complete === true, voiceChoice: ['human','station'].includes(saved.voiceChoice) ? saved.voiceChoice : null, pulseTutorialComplete: saved.pulseTutorialComplete === true, companionForm: saved.companionForm === 'cyan' ? 'cyan' : 'basic', repairChoiceCount: Math.max(0, Math.min(3, Number(saved.repairChoiceCount) || 0)), routeChoice: ['array','blackbox'].includes(saved.routeChoice) ? saved.routeChoice : null, powerChoice: ['shield','weapon'].includes(saved.powerChoice) ? saved.powerChoice : null, callSignChoice: ['echo','piko'].includes(saved.callSignChoice) ? saved.callSignChoice : null, updatedAt: Math.max(0, Number(saved.updatedAt) || 0) };
     } catch (_) { return defaults; }
 }
 let storyCloudSaveTimer = null;
@@ -166,7 +166,7 @@ function applyStoryUiLanguage() {
     });
     const chapterLabel = document.getElementById('story-chapter-label');
     if (chapterLabel && window.__storyBattle && window.__storyBattle.active && window.__storyBattle.mission >= 10) {
-        chapterLabel.textContent = en ? 'CHAPTER 02 · BENEATH THE SIGNAL' : 'BÖLÜM 02 · SİNYALİN ALTINDA';
+        chapterLabel.textContent = window.__storyBattle.mission >= 19 ? (en ? 'CHAPTER 03 · THE SHAPE OF MEMORY' : 'BÖLÜM 03 · HAFIZANIN BİÇİMİ') : (en ? 'CHAPTER 02 · BENEATH THE SIGNAL' : 'BÖLÜM 02 · SİNYALİN ALTINDA');
     }
     const next = document.getElementById('story-next');
     if (next) next.textContent = storyCopy(STORY_UI_COPY[storyMissionViewOpen ? 'start' : 'continue']);
@@ -364,23 +364,28 @@ function updateStoryMissionBoard() {
     const m18 = document.getElementById('story-start-mission18'); const s18 = document.getElementById('story-mission-18-status');
     if (m18) { m18.disabled = !progress.mission17Complete; m18.textContent = progress.mission18Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'OPEN THE LOCK →' : 'KİLİDİ AÇ →'); }
     if (s18) { s18.classList.toggle('is-locked', !progress.mission17Complete && !progress.mission18Complete); s18.textContent = progress.mission18Complete ? (en ? 'CHAPTER 02 COMPLETE' : '2. BÖLÜM TAMAMLANDI') : (progress.mission17Complete ? (en ? 'CHAPTER 02 · FINALE' : '2. BÖLÜM · FİNAL') : (en ? 'LOCKED · COMPLETE MISSION 17' : 'KİLİTLİ · 17. GÖREVİ TAMAMLA')); }
+    for (const [n, prev, flag, enLabel, trLabel, enDone, trDone] of [[19,'mission18Complete','mission19Complete','CHART THE ORBIT →','YÖRÜNGEYİ ÇİZ →','ORBIT MAPPED','YÖRÜNGE HARİTALANDI'],[20,'mission19Complete','mission20Complete','CROSS THE FLEET →','FİLOYU GEÇ →','FLEET CROSSED','FİLO GEÇİLDİ'],[21,'mission20Complete','mission21Complete','REBUILD THE NAME →','İSMİ YENİDEN KUR →','IDENTITY RECOVERED','KİMLİK KURTARILDI']]) {
+        const b=document.getElementById('story-start-mission'+n), st=document.getElementById('story-mission-'+n+'-status'), done=progress[flag]===true, unlocked=progress[prev]===true;
+        if(b){b.disabled=!unlocked;b.textContent=done?(en?'REPLAY ↻':'TEKRAR OYNA ↻'):(en?enLabel:trLabel);}
+        if(st){st.classList.toggle('is-locked',!unlocked&&!done);st.textContent=done?(en?enDone:trDone):(unlocked?(en?'CHAPTER 03 · PLAYABLE':'3. BÖLÜM · OYNANABİLİR'):(en?'LOCKED · COMPLETE MISSION '+(n-1):'KİLİTLİ · '+(n-1)+'. GÖREVİ TAMAMLA'));}
+    }
     document.querySelectorAll('.story-mission-status.is-locked').forEach(node => {
-        if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status','story-mission-6-status','story-mission-7-status','story-mission-8-status','story-mission-9-status','story-mission-10-status','story-mission-11-status','story-mission-12-status','story-mission-13-status','story-mission-14-status','story-mission-15-status','story-mission-16-status','story-mission-17-status','story-mission-18-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
+        if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status','story-mission-6-status','story-mission-7-status','story-mission-8-status','story-mission-9-status','story-mission-10-status','story-mission-11-status','story-mission-12-status','story-mission-13-status','story-mission-14-status','story-mission-15-status','story-mission-16-status','story-mission-17-status','story-mission-18-status','story-mission-19-status','story-mission-20-status','story-mission-21-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
     });
 
     // Campaign progress is presentation-only: it reads story flags and never mutates saves.
-    const completedCount = Array.from({ length: 18 }, (_, index) => Boolean(progress['mission' + (index + 1) + 'Complete'])).filter(Boolean).length;
+    const completedCount = Array.from({ length: 21 }, (_, index) => Boolean(progress['mission' + (index + 1) + 'Complete'])).filter(Boolean).length;
     const progressLabel = document.getElementById('story-campaign-progress-label');
     const progressCount = document.getElementById('story-campaign-progress-count');
     const progressFill = document.getElementById('story-campaign-progress-fill');
     const progressTrack = document.getElementById('story-campaign-progress-track');
     if (progressLabel) progressLabel.textContent = en ? 'CAMPAIGN SYNCHRONIZED' : 'HİKÂYE İLERLEMESİ';
-    if (progressCount) progressCount.textContent = en ? (completedCount + ' / 18 MISSIONS') : (completedCount + ' / 18 GÖREV');
-    if (progressFill) progressFill.style.width = ((completedCount / 18) * 100) + '%';
+    if (progressCount) progressCount.textContent = en ? (completedCount + ' / 21 MISSIONS') : (completedCount + ' / 21 GÖREV');
+    if (progressFill) progressFill.style.width = ((completedCount / 21) * 100) + '%';
     if (progressTrack) progressTrack.setAttribute('aria-valuenow', String(completedCount));
 
     let nextMission = 0;
-    for (let missionNumber = 1; missionNumber <= 18; missionNumber++) {
+    for (let missionNumber = 1; missionNumber <= 21; missionNumber++) {
         if (!progress['mission' + missionNumber + 'Complete']) { nextMission = missionNumber; break; }
     }
     document.querySelectorAll('[id^="story-start-mission"]').forEach(button => {
@@ -424,14 +429,14 @@ function storyMissionPrerequisiteMet(missionNumber, progress) {
         15: 'mission14Complete',
         16: 'mission15Complete',
         17: 'mission16Complete',
-        18: 'mission17Complete'
+        18: 'mission17Complete', 19: 'mission18Complete', 20: 'mission19Complete', 21: 'mission20Complete'
     };
     const requiredProgressFlag = prerequisiteByMission[missionNumber];
     return !requiredProgressFlag || progress[requiredProgressFlag] === true;
 }
 function startStoryMission(missionNumber = 1) {
     const progress = getStoryProgress();
-    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].includes(missionNumber)) return;
+    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21].includes(missionNumber)) return;
     // Enforce mission order in the handler as well as the disabled UI buttons.
     // This prevents direct calls from bypassing the chapter's narrative gates.
     if (!storyMissionPrerequisiteMet(missionNumber, progress)) {
@@ -631,6 +636,52 @@ function finishStoryBattleEncounter() {
     const setAction = (id, hidden, label) => { const el = document.getElementById(id); if (el) { el.hidden = hidden; if (label) el.textContent = label; } };
     const setExit = label => { const el = document.getElementById('story-battle-exit'); if (el) el.textContent = label; };
 
+
+    if (session.mission === 19 && session.phase === 'combat') {
+        session.phase='navigationScan'; isPaused=true; enemies=[]; projectiles=[];
+        setStatus(en?'IMPOSSIBLE ORBIT · The structure appears in two positions at once. Scan the pulse-aligned route.':'İMKÂNSIZ YÖRÜNGE · Yapı aynı anda iki konumda görünüyor. Darbeyle eşleşen rotayı tara.');
+        setStoryComms('STATION AI','STATION AI','Classification failed: the object is not a ship, station, or natural body.','Sınıflandırma başarısız: nesne gemi, istasyon veya doğal bir gök cismi değil.');
+        setAction('story-chapter2-action',false,en?'SCAN THE PULSE-ALIGNED ROUTE':'DARBEYLE EŞLEŞEN ROTAYI TARA'); setExit(en?'ABORT MISSION':'GÖREVDEN ÇIK'); return;
+    }
+    if (session.mission === 19 && session.phase === 'navigationScan') {
+        session.completed=true; showStoryMissionResult(); isPaused=true; saveStoryProgress({introSeen:true,chapter:3,mission18Complete:true,mission19Complete:true});
+        setStatus(en?'ORBIT MAPPED · Two positions resolve into one structure, but its shadow arrives before its light.':'YÖRÜNGE HARİTALANDI · İki konum tek yapıya dönüşüyor; ancak gölgesi ışığından önce ulaşıyor.');
+        setStoryComms('PIKO','PIKO','Bu yer beni tanıyor. Ben ise onu hatırlamıyorum.','This place recognizes me. I do not remember it.');
+        setAction('story-chapter2-action',true); setExit(en?'RETURN TO CHAPTER BOARD':'GÖREV PANOSUNA DÖN'); return;
+    }
+    if (session.mission === 20 && session.phase === 'combat') {
+        session.phase='selectivePulse'; isPaused=true; enemies=[]; projectiles=[];
+        setStatus(en?'QUIET FLEET · The cyan pulse can silence one platform group. Do not wake the whole field.':'SESSİZ FİLO · Camgöbeği darbe bir platform grubunu susturabilir. Tüm alanı uyandırma.');
+        setStoryComms('PIKO','PIKO','Bu işaretler benim bakım dilime benziyor ama çok daha eski. Darbeyi seçerek kullanmalıyız.','These markings resemble my maintenance language, but they are much older. We must use the pulse selectively.');
+        setAction('story-chapter2-action',false,en?'DISABLE THE MARKED PLATFORM GROUP':'İŞARETLİ PLATFORM GRUBUNU SUSTUR'); setExit(en?'ABORT MISSION':'GÖREVDEN ÇIK'); return;
+    }
+    if (session.mission === 20 && session.phase === 'selectivePulse') {
+        session.completed=true; showStoryMissionResult(); isPaused=true; saveStoryProgress({introSeen:true,chapter:3,mission19Complete:true,mission20Complete:true});
+        setStatus(en?'FLEET CROSSED · One platform goes dark; the others remain dormant.':'FİLO GEÇİLDİ · Bir platform söndü; diğerleri uykuda kaldı.');
+        setStoryComms('COMMANDER','COMMANDER','Bu bir saldırı filosu değil. Birileri burayı uyandırmadan geçmeye çalışmış.','This is not an attack fleet. Someone tried to pass through without waking it.');
+        setAction('story-chapter2-action',true); setExit(en?'RETURN TO CHAPTER BOARD':'GÖREV PANOSUNA DÖN'); return;
+    }
+    if (session.mission === 21 && session.phase === 'combat') {
+        session.phase='fragmentScan'; isPaused=true; enemies=[]; projectiles=[];
+        setStatus(en?'NAME FRAGMENTS · Rebuild the missing project designation from the archive shards.':'İSİM PARÇALARI · Eksik proje tanımını arşiv parçalarından yeniden kur.');
+        setStoryComms('STATION AI','STATION AI','Three fragments recovered. The designation describes a shared role, not a personal identity.','Üç parça bulundu. Tanım bir kişisel kimliği değil, birden fazla birimin paylaştığı rolü anlatıyor.');
+        setAction('story-chapter2-action',false,en?'RECONSTRUCT ARCHIVE FRAGMENT':'ARŞİV PARÇASINI BİRLEŞTİR'); setExit(en?'ABORT MISSION':'GÖREVDEN ÇIK'); return;
+    }
+    if (session.mission === 21 && session.phase === 'fragmentScan') {
+        session.phase='combat2'; startStoryChapter2CombatStage(6,'ARŞİV SAVUNMASI · 6 düşmanı durdur ve son parçayı koru.','ARCHIVE DEFENSE · Defeat 6 hostiles and protect the final fragment.');
+        setStoryComms('PIKO','PIKO','Bu tanım bana ait değil. Başkaları da bu görevi taşımış olabilir. Benim adım yine benim seçimim.','This designation is not my name. Others may have carried this role. My call sign is still my choice.'); return;
+    }
+    if (session.mission === 21 && session.phase === 'combat2') {
+        session.phase='archiveRebuild'; isPaused=true; enemies=[]; projectiles=[];
+        setStatus(en?'IDENTITY RECOVERED · The archive offers a role; the companion keeps its chosen call sign.':'KİMLİK KURTARILDI · Arşiv bir rol sunuyor; yoldaş seçtiği çağrı adını koruyor.');
+        setAction('story-chapter2-action',false,en?'SEAL THE ARCHIVE RECORD':'ARŞİV KAYDINI KİLİTLE'); return;
+    }
+    if (session.mission === 21 && session.phase === 'archiveRebuild') {
+        session.completed=true; showStoryMissionResult(); isPaused=true; saveStoryProgress({introSeen:true,chapter:3,mission20Complete:true,mission21Complete:true});
+        setStatus(en?'CHAPTER 03 · IDENTITY RECOVERED. The designation is known; the blue echo remains unexplained.':'3. BÖLÜM · KİMLİK KURTARILDI. Tanım biliniyor; mavi yankı hâlâ açıklanamıyor.');
+        setStoryComms('PIKO','PIKO','Bana bir görev adı vermişler. Ama ben bir görevden ibaret değilim.','They gave me a role designation. But I am more than a role.');
+        setAction('story-chapter2-action',true); setExit(en?'RETURN TO CHAPTER BOARD':'GÖREV PANOSUNA DÖN'); return;
+    }
 
     if (session.mission === 16 && session.phase === 'combat') {
         session.phase = 'routeScan1'; isPaused = true; enemies = []; projectiles = [];
@@ -1205,6 +1256,9 @@ function startStoryChapter2CombatStage(targetKills, statusTr, statusEn) {
 function continueStoryChapter2Mission() {
     const session = window.__storyBattle;
     if (!session || !session.active || session.completed || isPaused !== true) return;
+    if (session.mission === 19 && session.phase === 'navigationScan') return finishStoryBattleEncounter();
+    if (session.mission === 20 && session.phase === 'selectivePulse') return finishStoryBattleEncounter();
+    if (session.mission === 21 && ['fragmentScan','archiveRebuild'].includes(session.phase)) return finishStoryBattleEncounter();
     if (session.mission === 16 && ['routeScan1','routeScan2'].includes(session.phase)) return finishStoryBattleEncounter();
     if (session.mission === 17 && ['archive1','archive2'].includes(session.phase)) return finishStoryBattleEncounter();
     if (session.mission === 18 && ['relay1','relay2','finalLock'].includes(session.phase)) return finishStoryBattleEncounter();
