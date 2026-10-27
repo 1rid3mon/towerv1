@@ -132,11 +132,18 @@ function validStoryProgress(overrides = {}) {
     mission10Complete: false, mission11Complete: false, mission12Complete: false,
     mission13Complete: false, mission14Complete: false, mission15Complete: false,
     mission16Complete: false, mission17Complete: false, mission18Complete: false,
+    mission19Complete: false, mission20Complete: false, mission21Complete: false,
     voiceChoice: null, pulseTutorialComplete: false, companionForm: "basic",
     repairChoiceCount: 0, routeChoice: null, powerChoice: null, callSignChoice: null, updatedAt: Date.now(),
     ...overrides
   };
 }
+
+test("story progress accepts Chapter 03 missions 19–21 and chapter 3", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  await assertSucceeds(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({ mission18Complete: true, mission19Complete: true, mission20Complete: true, mission21Complete: true, chapter: 3 })));
+  await assertFails(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({ chapter: 4 })));
+});
 
 test("story progress owner can create a valid cloud save", async () => {
   const alice = testEnv.authenticatedContext("alice").firestore();
