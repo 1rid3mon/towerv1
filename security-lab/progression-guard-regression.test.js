@@ -418,7 +418,7 @@ test('Chapter 02 missions 16–18 are wired, sequentially gated, and persisted b
   assert.ok(storySource.includes("session.mission === 16 && session.phase === 'routeScan2'"));
   assert.ok(storySource.includes("session.mission === 17 && session.phase === 'archive2'"));
   assert.ok(storySource.includes("session.mission === 18 && session.phase === 'finalLock'"));
-  assert.ok(storySource.includes("completedCount / 18"));
+  assert.ok(storySource.includes("completedCount / 21"));
   assert.ok(storySource.includes("callSignChoice: ['echo','piko'].includes(saved.callSignChoice) ? saved.callSignChoice : null"));
   assert.ok(rules.includes("d.callSignChoice in ['echo','piko']"));
 });
