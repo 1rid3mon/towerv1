@@ -397,6 +397,12 @@ test('Story completion exceptions pause safely instead of escaping the engine lo
   assert.match(logged, /Mission completion failed/);
 });
 
+test('Chapter 03 missions 19–21 are wired, sequentially gated, and persisted by Story-only flags', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8'); const rules = fs.readFileSync(path.join(root, 'security-lab/firestore.rules'), 'utf8');
+  for (const n of [19,20,21]) { assert.ok(html.includes('id="story-start-mission'+n+'"')); assert.ok(storySource.includes('mission'+n+'Complete: saved.mission'+n+'Complete === true')); assert.ok(rules.includes('d.mission'+n+'Complete is bool')); assert.ok(rules.includes("'mission"+n+"Complete'")); }
+  assert.ok(storySource.includes("19: 'mission18Complete'")); assert.ok(storySource.includes("20: 'mission19Complete'")); assert.ok(storySource.includes("21: 'mission20Complete'")); assert.ok(storySource.includes('completedCount / 21'));
+});
+
 test('Chapter 02 missions 16–18 are wired, sequentially gated, and persisted by Story-only flags', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const rules = fs.readFileSync(path.join(root, 'security-lab/firestore.rules'), 'utf8');
