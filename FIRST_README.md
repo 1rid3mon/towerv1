@@ -465,6 +465,7 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [x] Story battle sandbox içinde rota taraması, seçici sinyal darbesi, arşiv parçası ve kısa savunma fazları eklendi.
 - [x] Story ilerleme normalizasyonu, Firestore rules ve Emulator test fixture'ları mission19Complete–mission21Complete ile chapter 3 için güncellendi.
 - [x] Mor form ileriki görevlere saklandı; Endless ekonomi/yükseltme sistemine dokunulmadı.
-- [ ] CI ve Firestore Emulator sonuçları doğrulanmalı. [ ] Masaüstü/mobil/Android WebView manuel QA bekliyor. [ ] Görev 22–27 henüz uygulanmadı.
+- [x] CI / JavaScript syntax / Firestore Emulator doğrulaması geçti: [GitHub Actions run 40475366436](https://github.com/1rid3mon/towerv1/actions/runs/40475366436), **144/144 test geçti**. Vercel check başarılı.
+- [ ] Masaüstü/mobil portre-yatay/Android WebView manuel QA hâlâ bekliyor. [ ] Görev 22–27 henüz uygulanmadı.
 - Main'e merge: HAYIR. Canlı deploy: DOĞRULANMADI.
-- Sıradaki adım: CI sonuçlarını doğrula, gerekirse düzelt, ardından görev 22–24.
+- Sıradaki adım: gerçek cihazda görev 19–21 oynanışını doğrula; ardından görev 22–24.
