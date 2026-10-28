@@ -419,7 +419,7 @@ test('mode runtime owns the Story session lifecycle and rejects overlapping sess
 });
 
 test('Story and Endless engine hooks use the explicit mode runtime instead of an ad-hoc session global', () => {
-  assert.match(indexSourceForModeBoundary(), /<script src="mode-runtime\.js"><\\/script>/);
+  assert.ok(indexSourceForModeBoundary().includes('<script src="mode-runtime.js"></script>'));
   assert.doesNotMatch(storySource, /window\.__storyBattle/);
   assert.doesNotMatch(engineSource, /window\.__storyBattle/);
   assert.doesNotMatch(uiSource, /window\.__storyBattle/);
