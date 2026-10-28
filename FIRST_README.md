@@ -508,3 +508,11 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 
 - Follow-up hardening: the isolated runtime starts only after `loadGame()` has loaded the local save used by the unlock check. Firebase auth in the iframe may sync Story progress, but it skips `forceCloudPull(true)` so a delayed Endless cloud-save response cannot replace the active Story mission state.
 - Regression coverage now includes the iframe-only runtime flag, startup ordering, Endless cloud-pull suppression, and Story frame close-message validation.
+
+
+## 2026-10-28 — Isolation validation checkpoint
+
+- GitHub Actions run 40648360953 completed successfully: JavaScript syntax check passed and the security/progression + Firestore Emulator suite reported **150 tests passed, 0 failed**.
+- Vercel preview check for the refactor branch is successful. This is a preview/check result, not a production merge or proof of hands-on gameplay on a phone.
+- The Story simulation now executes in its own iframe JavaScript realm; delayed Endless cloud-save pulls are disabled in that realm, and the layout class is preserved across normal UI refreshes.
+- Remaining before merge: manual mission start/complete/abort/re-entry and mobile portrait/landscape verification. Keep PR #62 as draft until those interaction checks are completed.
