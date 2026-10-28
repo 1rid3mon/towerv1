@@ -1010,7 +1010,7 @@ function damageTower(rawDamage, attacker) {
 }
 
 function completeWave() {
-    if (window.__storyBattle && window.__storyBattle.active) {
+    if (GameModeRuntime.isStoryActive()) {
         if (typeof finishStoryBattleEncounter !== 'function') {
             // Never fall through into Endless rewards when Story's controller failed to load.
             isPaused = true;
@@ -1103,7 +1103,7 @@ function triggerTowerDefeat() {
 }
 
 function recoverFromDefeat() {
-    if (window.__storyBattle && window.__storyBattle.active) {
+    if (GameModeRuntime.isStoryActive()) {
         isDefeated = false;
         const overlay = document.getElementById('defeat-overlay');
         if (overlay) overlay.classList.add('hidden');
@@ -1400,7 +1400,7 @@ window.onload = function () {
         // Story missions intentionally use a temporary sandbox state. Do not let the Endless
         // Mode anti-cheat shadow restore Endless upgrades/companions into the active mission.
         // Keep the Endless shadow untouched so the original state is still trusted after exit.
-        if (document.body?.dataset?.gameMode === 'story' || window.__storyBattle?.active) return;
+        if (document.body?.dataset?.gameMode === 'story' || GameModeRuntime.isStoryActive()) return;
         if (!shadow) { syncShadow(); return; }
 
         // Reject non-finite/corrupt progression values before comparing deltas; NaN makes
