@@ -532,3 +532,9 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [x] `engine.js`: anti-cheat shadow-restore interval now checks whether `GameModeRuntime` exists before calling `isStoryActive()`, preventing a `ReferenceError` from stopping the interval when the runtime global is unavailable.
 - [ ] Validate JavaScript syntax and regression tests in GitHub Actions; verify on the live site after merge/deploy.
 - [ ] Story cloud persistence remains unverified against the live Firebase project until a real signed-in save is observed in `storyProgress/{uid}`.
+
+
+## 2026-10-28 — Isolated Story black-screen startup fix
+- [x] Parent Story launch carries its already-validated unlock decision into the isolated mission iframe.
+- [x] Prevents the child iframe from rejecting a valid launch because its independently loaded local/cloud save is stale.
+- [ ] Verify JavaScript syntax and CI; then test Story mission start, combat canvas, abort, and mission completion on the live deployment.
