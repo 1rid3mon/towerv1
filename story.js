@@ -676,6 +676,8 @@ function startStoryMission(missionNumber = 1) {
         if (companionIcon) companionIcon.textContent = '✦';
         if (companionState) companionState.textContent = storyLanguage() === 'en' ? 'CYAN FORM · SIGNAL STABLE' : 'CAMGÖBEĞİ FORM · SİNYAL KARARLI';
     }
+    const stabilize = document.getElementById('story-stabilize-action');
+    if (stabilize) stabilize.hidden = true;
     const exit = document.getElementById('story-battle-exit');
     if (exit) exit.textContent = storyLanguage() === 'en' ? 'ABORT MISSION' : 'GÖREVDEN ÇIK';
     if (typeof resizeCanvas === 'function') resizeCanvas();
@@ -695,6 +697,11 @@ function startStoryMission(missionNumber = 1) {
     else if (missionNumber === 11) showToast(storyLanguage() === 'en' ? 'Mission 11 · The lower network is awake. Clear the way, then map its three relays.' : 'Görev 11 · Alt ağ uyandı. Önce yolu temizle, sonra üç röleyi haritala.');
     else if (missionNumber === 12) showToast(storyLanguage() === 'en' ? 'Mission 12 · Clear the archive guards, then inspect all three records.' : 'Görev 12 · Arşiv muhafızlarını durdur, ardından üç kaydı incele.');
     else if (missionNumber === 15) showToast(storyLanguage() === 'en' ? 'Mission 15 · Stabilize Piko after the pulse feedback. The missing memory may not return.' : 'Görev 15 · Sinyal geri beslemesinden sonra Piko’yu dengele. Kayıp anı geri dönmeyebilir.');
+}
+function toggleStoryUpgradePanel() {
+    if (typeof toggleUpgradeDrawer === 'function') {
+        toggleUpgradeDrawer();
+    }
 }
 function finishStoryBattleEncounter() {
     const session = GameModeRuntime.storySession;
@@ -1185,6 +1192,23 @@ function finishStoryBattleEncounter() {
         return;
     }
 
+    // Mission 01 must not complete the moment the last hostile falls. Give the player
+    // a deliberate core-stabilization action, and keep the upgrade panel available during combat.
+    if (session.mission === 1 && session.phase === 'combat') {
+        session.phase = 'stabilize';
+        isPaused = true;
+        enemies = [];
+        projectiles = [];
+        setStatus(en ? 'CORE STABLE · Confirm the stabilization to secure the station.' : 'ÇEKİRDEK KARARLI · İstasyonu güvene almak için sabitlemeyi onayla.');
+        setAction('story-stabilize-action', false, en ? 'STABILIZE CORE · COMPLETE MISSION' : 'ÇEKİRDEĞİ SABİTLE · GÖREVİ TAMAMLA');
+        setStoryComms('STATION AI','STATION AI','The hostiles are down. Confirm the core lock, Commander.','Düşmanlar durduruldu. Çekirdek kilidini onayla, komutan.');
+        showToast(en ? 'Hostiles cleared. Stabilize the core to finish the mission.' : 'Düşmanlar durduruldu. Görevi bitirmek için çekirdeği sabitle.');
+        return;
+    }
+    if (session.mission === 1 && session.phase === 'stabilize') {
+        setAction('story-stabilize-action', true);
+    }
+
     // Only missions 1 and 2 use the generic combat/scan completion path below.
     // Unknown or out-of-order phases must never fall through and falsely award mission 2.
     if (![1, 2].includes(session.mission)) return;
@@ -1530,7 +1554,7 @@ function initializeIsolatedStoryRuntime() {
         html, body { width:100%; height:100%; overflow:hidden!important; background:#020617!important; }
         body.isolated-story-runtime > header { display:none!important; }
         #mode-main-menu, #story-mode-screen, #hud-top-bar, #hud-quick-stats,
-        #hud-bottom-controls, #upgrade-drawer, #inventory-drawer, #battle-moment,
+        #hud-bottom-controls, #inventory-drawer, #battle-moment,
         #battle-sfx-toggle, #game-mascot, #game-mascot-bubble,
         #theme-modal, #settings-modal, #roulette-modal, #daily-missions-modal,
         #achievements-modal, #update-notes-modal { display:none!important; }
