@@ -2031,6 +2031,12 @@ function initAuthAndCloudSystem() {
                     currentUser = { uid: user.uid, username: cleanName, email: user.email || '', isCloud: true };
                     clearTimeout(storyCloudSaveTimer);
                     updateAccountHeaderUI();
+                    // The isolated Story realm may sync Story progression, but must never apply
+                    // an Endless cloud save over its active mission simulation.
+                    if (GameModeRuntime.isIsolatedStoryRuntime()) {
+                        await pullStoryProgressFromCloud(true);
+                        return;
+                    }
                     await forceCloudPull(true);
                     await pullStoryProgressFromCloud(true);
                     await pushScoreToLeaderboard();
