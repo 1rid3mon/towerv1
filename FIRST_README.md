@@ -479,3 +479,16 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [x] Merge commit için Vercel kontrolü başarılı. Bu, cihaz üstünde oynanış testi yerine geçmez.
 - [ ] Gerçek masaüstü, mobil portre/yatay ve Android WebView oynanış kontrolü hâlâ yapılmalı.
 - [ ] Bölüm 03 görev 22–27 henüz uygulanmadı; sıradaki içerik görevi 22–24.
+
+
+## 2026-10-28 — Story/Endless separation: explicit runtime boundary (phase 1)
+
+- User clarified that the priority is separating Story and Endless because shared runtime state causes cross-mode conflicts; adding more missions is not the current priority.
+- Created a dedicated `mode-runtime.js` owner for the active mode and Story session lifecycle.
+- `story.js` now enters/leaves Story through `GameModeRuntime`; `engine.js` and `ui.js` query the explicit runtime instead of the legacy `window.__storyBattle` global.
+- Added a regression test for runtime lifecycle, overlapping Story-session rejection, and removal of the legacy global.
+- Important limitation: this is the first boundary step, NOT full simulation-state isolation. Story currently still borrows the shared engine's `game/tower/enemies/projectiles` globals and snapshots/restores them. The next phase must move the simulation state behind a mode-specific context before calling the modes fully separated.
+- [ ] Run JavaScript syntax + security/progression regression tests and fix any failures.
+- [ ] Inspect Story exit/re-entry and Endless anti-cheat behavior under the new runtime.
+- [ ] Next architectural step: separate the Story simulation state from the Endless state; do not add more mission content until this boundary is validated.
+- Merge: NOT DONE. Production deploy: NOT VERIFIED.
