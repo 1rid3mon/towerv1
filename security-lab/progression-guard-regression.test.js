@@ -430,6 +430,32 @@ test('mode runtime owns the Story session lifecycle and rejects overlapping sess
   assert.notEqual(runtime.storySession, session);
 });
 
+test('isolated Story runtime gets a separate browsing-context mode without claiming the Endless tab lock', () => {
+  const runtimeSource = fs.readFileSync(path.join(root, 'mode-runtime.js'), 'utf8');
+  const body = { dataset: {}, classList: { add(name) { this.added = name; } } };
+  const isolatedWindow = { location: { search: '?runtime=story&mission=4' }, document: { body } };
+  vm.runInNewContext(runtimeSource, { window: isolatedWindow });
+  assert.equal(isolatedWindow.GameModeRuntime.isIsolatedStoryRuntime(), true);
+  assert.equal(body.dataset.gameMode, 'story');
+  assert.equal(body.classList.added, 'isolated-story-runtime');
+  assert.match(engineSource, /if \(!isolatedStory && !claimActiveTab\(\)\)/);
+  assert.match(engineSource, /if \(!isolatedStory\) \{[\s\S]*?gameSaveTimer = setInterval/);
+  assert.match(engineSource, /if \(!GameModeRuntime\.isIsolatedStoryRuntime\(\) && now - lastTabCheckTime > 1000\)/);
+});
+
+test('Story mission launch leaves parent Endless globals untouched and runs inside a separate iframe', () => {
+  const launch = storySource.indexOf('function openStoryRuntimeFrame(missionNumber)');
+  const start = storySource.indexOf('function startStoryMission(missionNumber = 1)');
+  const frameLaunch = storySource.indexOf('openStoryRuntimeFrame(missionNumber);', start);
+  const sessionSnapshot = storySource.indexOf('const session = {', start);
+  assert.ok(launch >= 0, 'isolated runtime launcher should exist');
+  assert.ok(frameLaunch > start && sessionSnapshot > frameLaunch);
+  assert.match(storySource.slice(frameLaunch, sessionSnapshot), /return;/);
+  assert.match(storySource, /url\.searchParams\.set\('runtime', 'story'\)/);
+  assert.match(storySource, /window\.parent\.postMessage\(\{ type: 'tower-story-runtime-close' \}/);
+  assert.match(storySource, /event\.source !== frame\.contentWindow/);
+});
+
 test('Story and Endless engine hooks use the explicit mode runtime instead of an ad-hoc session global', () => {
   assert.ok(indexSourceForModeBoundary().includes('<script src="mode-runtime.js"></script>'));
   assert.doesNotMatch(storySource, /window\.__storyBattle/);
