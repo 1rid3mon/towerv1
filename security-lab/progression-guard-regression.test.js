@@ -534,13 +534,27 @@ test('mission 1 requires an explicit core-stabilization action before completion
   assert.match(body.slice(stabilizeGate, genericCompletion), /setAction\('story-stabilize-action', true\)/);
 });
 
-test('isolated Story keeps an explicit upgrades toggle and does not force-hide the upgrade drawer', () => {
+test('isolated Story uses the native top-bar upgrade control and keeps the upgrade drawer visible', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  assert.match(html, /id="story-upgrades-toggle"[^>]*onclick="toggleStoryUpgradePanel\(\)"/);
+  assert.doesNotMatch(html, /id="story-upgrades-toggle"/);
   assert.match(html, /id="story-stabilize-action"[^>]*onclick="finishStoryBattleEncounter\(\)"/);
-  assert.match(storySource, /function toggleStoryUpgradePanel\(\)[\s\S]{0,150}toggleUpgradeDrawer\(\)/);
+  assert.match(storySource, /body\.isolated-story-runtime > header > div:first-child > div \{ display:none!important; \}/);
+  assert.match(storySource, /body\.isolated-story-runtime #upgrade-drawer \{ z-index:60!important; \}/);
   const styleStart = storySource.indexOf("style.textContent = `", storySource.indexOf('function initializeIsolatedStoryRuntime()'));
   const styleEnd = storySource.indexOf('`;', styleStart);
   assert.ok(styleStart >= 0 && styleEnd > styleStart, 'isolated Story layout style should be present');
   assert.doesNotMatch(storySource.slice(styleStart, styleEnd), /#upgrade-drawer[^}]*display:\s*none/i);
+});
+
+
+test('Story HUD uses native top-bar upgrades and speed controls, with collapsible mission objectives', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(storySource, /body\.isolated-story-runtime > header \{[\s\S]*?position:fixed!important; inset:0 0 auto 0!important/);
+  assert.match(storySource, /header > div:last-child > button:first-child,[\s\S]*?button:nth-child\(2\) \{ display:none!important; \}/);
+  assert.match(html, /id="btn-speed" onclick="toggleGameSpeed\(\)"/);
+  assert.match(uiSource, /function toggleGameSpeed\(\) \{ gameSpeed = gameSpeed === 1 \? 2 : \(gameSpeed === 2 \? 3 : 1\);/);
+  assert.match(html, /id="story-mission-panel-toggle"[^>]*onclick="toggleStoryMissionPanel\(\)"/);
+  assert.match(storySource, /function toggleStoryMissionPanel\(\)[\s\S]*?hud\.classList\.toggle\('is-collapsed'\)/);
+  assert.match(html, /#story-battle-hud\.is-collapsed \.story-battle-panel > :not\(\.story-battle-heading\)/);
+  assert.doesNotMatch(html, /YÜKSELTME(?:LERİ|LER)İ? AÇ \/ KAPAT/);
 });
