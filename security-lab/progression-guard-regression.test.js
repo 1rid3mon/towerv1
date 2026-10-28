@@ -274,7 +274,7 @@ test('story mode bypasses the Endless anti-cheat shadow while preserving it for 
   const antiCheatStart = engineSource.indexOf('// 🛡️ ANTI-CHEAT: GÖLGE KASA VE BELLEK KORUMASI');
   assert.notEqual(antiCheatStart, -1);
   const intervalStart = engineSource.indexOf('setInterval(() => {', antiCheatStart);
-  const storyGuard = engineSource.indexOf("document.body?.dataset?.gameMode === 'story' || window.__storyBattle?.active", intervalStart);
+  const storyGuard = engineSource.indexOf("document.body?.dataset?.gameMode === 'story' || GameModeRuntime.isStoryActive()", intervalStart);
   const shadowInit = engineSource.indexOf('if (!shadow) { syncShadow(); return; }', intervalStart);
   assert.ok(storyGuard > intervalStart && storyGuard < shadowInit, 'story guard must run before shadow initialization or rollback checks');
 });
@@ -309,7 +309,7 @@ test('completed Story Mode session is cleaned before the Endless unlock check, w
   const cleanup = body.indexOf('exitStoryBattle(false);');
   const unlockGate = body.indexOf('if (!updateStoryUnlockUI())');
   assert.ok(cleanup >= 0 && unlockGate > cleanup, 'completed story replay must restore Endless state before checking the Endless wave requirement');
-  assert.match(body, /if \(\!window\.__storyBattle\.completed\) return;/);
+  assert.match(body, /if \(!GameModeRuntime\.storySession\.completed\) return;/);
 });
 
 
@@ -364,7 +364,7 @@ test('plasma satellite target selection matches stable nearest-first slicing wit
 test('Story wave completion fails closed if the Story controller did not load', () => {
   const body = extractFunction(engineSource, 'function completeWave()', 'function triggerTowerDefeat()');
   const sandbox = {
-    window: { __storyBattle: { active: true } },
+    GameModeRuntime: { isStoryActive: () => true },
     isPaused: false,
     game: { wave: 7, gold: 123, crystals: 9 },
     showToast(message) { sandbox.toast = message; },
@@ -386,7 +386,7 @@ test('Story completion exceptions pause safely instead of escaping the engine lo
   const runner = new Function('window', 'isPaused', 'showToast', 'console', 'finishStoryBattleEncounter',
     body + '\ncompleteWave(); return isPaused;');
   const paused = runner(
-    { __storyBattle: { active: true } },
+    { isStoryActive: () => true },
     false,
     message => { toast = message; },
     { error: message => { logged = message; } },
@@ -396,6 +396,40 @@ test('Story completion exceptions pause safely instead of escaping the engine lo
   assert.match(toast, /Hikâye görevi bitirilemedi/);
   assert.match(logged, /Mission completion failed/);
 });
+
+
+test('mode runtime owns the Story session lifecycle and rejects overlapping sessions', () => {
+  const runtimeSource = fs.readFileSync(path.join(root, 'mode-runtime.js'), 'utf8');
+  const sandbox = {};
+  vm.runInNewContext(runtimeSource, sandbox);
+  const runtime = sandbox.GameModeRuntime;
+  assert.equal(runtime.activeMode, 'endless');
+  assert.equal(runtime.isStoryActive(), false);
+  const session = { active: true, completed: false, mission: 1 };
+  runtime.enterStory(session);
+  assert.equal(runtime.activeMode, 'story');
+  assert.equal(runtime.storySession, session);
+  assert.equal(runtime.isStoryActive(), true);
+  assert.throws(() => runtime.enterStory({ active: true }), /already active/);
+  runtime.leaveStory(true);
+  assert.equal(runtime.activeMode, 'endless');
+  assert.equal(runtime.isStoryActive(), false);
+  assert.equal(runtime.storySession.completed, true);
+  assert.notEqual(runtime.storySession, session);
+});
+
+test('Story and Endless engine hooks use the explicit mode runtime instead of an ad-hoc session global', () => {
+  assert.match(indexSourceForModeBoundary(), /<script src="mode-runtime\.js"><\\/script>/);
+  assert.doesNotMatch(storySource, /window\.__storyBattle/);
+  assert.doesNotMatch(engineSource, /window\.__storyBattle/);
+  assert.doesNotMatch(uiSource, /window\.__storyBattle/);
+  assert.match(storySource, /GameModeRuntime\.enterStory\(session\)/);
+  assert.match(storySource, /GameModeRuntime\.leaveStory\(session\.completed\)/);
+});
+
+function indexSourceForModeBoundary() {
+  return fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+}
 
 test('Chapter 03 missions 19–21 are wired, sequentially gated, and persisted by Story-only flags', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8'); const rules = fs.readFileSync(path.join(root, 'security-lab/firestore.rules'), 'utf8');
