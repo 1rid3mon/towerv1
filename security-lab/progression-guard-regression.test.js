@@ -398,6 +398,18 @@ test('Story completion exceptions pause safely instead of escaping the engine lo
 });
 
 
+test('periodic Endless autosave never writes the temporary Story simulation state', () => {
+  const start = engineSource.indexOf('gameSaveTimer = setInterval(() => {');
+  const end = engineSource.indexOf('}, 15000);', start);
+  assert.ok(start >= 0 && end > start, 'periodic autosave timer should exist');
+  const body = engineSource.slice(start, end);
+  const storyGuard = body.indexOf('GameModeRuntime.isStoryActive()');
+  const saveCall = body.indexOf('saveGame(false)');
+  assert.ok(storyGuard >= 0 && saveCall > storyGuard,
+    'Story mode must return before the periodic Endless save can run');
+  assert.match(body, /document\.body\?\.dataset\?\.gameMode === 'story'/);
+});
+
 test('mode runtime owns the Story session lifecycle and rejects overlapping sessions', () => {
   const runtimeSource = fs.readFileSync(path.join(root, 'mode-runtime.js'), 'utf8');
   const sandbox = {};
