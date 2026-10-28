@@ -544,3 +544,16 @@ test('isolated Story keeps an explicit upgrades toggle and does not force-hide t
   assert.ok(styleStart >= 0 && styleEnd > styleStart, 'isolated Story layout style should be present');
   assert.doesNotMatch(storySource.slice(styleStart, styleEnd), /#upgrade-drawer[^}]*display:\s*none/i);
 });
+
+
+test('Story HUD uses native top-bar upgrades and speed controls, with collapsible mission objectives', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(storySource, /body\.isolated-story-runtime > header \{[\s\S]*?position:fixed!important; inset:0 0 auto 0!important/);
+  assert.match(storySource, /header > div:last-child > button:first-child,[\s\S]*?button:nth-child\(2\) \{ display:none!important; \}/);
+  assert.match(html, /id="btn-speed" onclick="toggleGameSpeed\(\)"/);
+  assert.match(uiSource, /function toggleGameSpeed\(\) \{ gameSpeed = gameSpeed === 1 \? 2 : \(gameSpeed === 2 \? 3 : 1\);/);
+  assert.match(html, /id="story-mission-panel-toggle"[^>]*onclick="toggleStoryMissionPanel\(\)"/);
+  assert.match(storySource, /function toggleStoryMissionPanel\(\)[\s\S]*?hud\.classList\.toggle\('is-collapsed'\)/);
+  assert.match(html, /#story-battle-hud\.is-collapsed \.story-battle-panel > :not\(\.story-battle-heading\)/);
+  assert.doesNotMatch(html, /YÜKSELTME(?:LERİ|LER)İ? AÇ \/ KAPAT/);
+});
