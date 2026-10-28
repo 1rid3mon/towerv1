@@ -1278,6 +1278,9 @@ window.onload = function () {
     updateHUD();
 
     gameSaveTimer = setInterval(() => {
+        // Story currently runs on the shared engine globals. Never serialize its temporary
+        // mission state into the Endless save while the Story session owns those globals.
+        if (GameModeRuntime.isStoryActive() || document.body?.dataset?.gameMode === 'story') return;
         if (!isDuplicateTab) {
             const active = readActiveTab();
             if (active && active.id === TAB_ID) saveGame(false);
