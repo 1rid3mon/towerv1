@@ -1932,7 +1932,7 @@ function applyParsedGameData(parsed) {
 function saveGame(silent = false) {
     // Story missions run on a temporary in-memory state; never persist it over the Endless Mode save.
     if (document.body?.dataset?.gameMode === 'story') return false;
-    if (window.__storyBattle && window.__storyBattle.active) return;
+    if (GameModeRuntime.isStoryActive()) return;
     try {
         if (typeof game === 'undefined') return;
         game.lastSaveTime = Date.now();
@@ -3602,7 +3602,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'İlerideki her neyse, kod adımı biliyor. Henüz onu kullanma hakkını kazanmadı.'
         ];
         if (document.body?.dataset?.gameMode === 'story') {
-            const mission = Number(window.__storyBattle?.mission) || 1;
+            const mission = Number(GameModeRuntime.storySession?.mission) || 1;
             const lines = english ? {
                 1: ['Core link is unstable. I woke up beside you, so I suppose we are a team now.','I can help keep you alive, Commander. My own memory is… less cooperative.'],
                 2: ['The patrol is reacting to the signal, not to us. That distinction matters.','Three traces, one source. Stay close; I will track the pattern.'],
@@ -3969,7 +3969,7 @@ function openDailyMissionsFromMainMenu() {
 }
 
 function returnToMainMenu() {
-    if (window.__storyBattle && window.__storyBattle.active && typeof exitStoryBattle === 'function') { exitStoryBattle(true); return; }
+    if (GameModeRuntime.isStoryActive() && typeof exitStoryBattle === 'function') { exitStoryBattle(true); return; }
     if (typeof saveGame === 'function') saveGame(true);
     if (typeof updateStoryUnlockUI === 'function') updateStoryUnlockUI();
     if (typeof isPaused !== 'undefined') isPaused = true;
