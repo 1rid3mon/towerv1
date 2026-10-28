@@ -538,3 +538,9 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [x] Parent Story launch carries its already-validated unlock decision into the isolated mission iframe.
 - [x] Prevents the child iframe from rejecting a valid launch because its independently loaded local/cloud save is stale.
 - [ ] Verify JavaScript syntax and CI; then test Story mission start, combat canvas, abort, and mission completion on the live deployment.
+
+
+## 2026-10-28 — Story combat flow and upgrade access
+- [x] Mission 01 now pauses after the required hostiles are defeated and asks the player to stabilize the core before completion is recorded.
+- [x] Added a dedicated Story HUD button to open/close the upgrade drawer; the isolated Story layout no longer forcibly hides that drawer.
+- [ ] Run CI and verify the full mission loop on the live deployment, including upgrades, mission completion, and Endless save isolation.
