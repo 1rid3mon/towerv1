@@ -534,11 +534,12 @@ test('mission 1 requires an explicit core-stabilization action before completion
   assert.match(body.slice(stabilizeGate, genericCompletion), /setAction\('story-stabilize-action', true\)/);
 });
 
-test('isolated Story keeps an explicit upgrades toggle and does not force-hide the upgrade drawer', () => {
+test('isolated Story uses the native top-bar upgrade control and keeps the upgrade drawer visible', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  assert.match(html, /id="story-upgrades-toggle"[^>]*onclick="toggleStoryUpgradePanel\(\)"/);
+  assert.doesNotMatch(html, /id="story-upgrades-toggle"/);
   assert.match(html, /id="story-stabilize-action"[^>]*onclick="finishStoryBattleEncounter\(\)"/);
-  assert.match(storySource, /function toggleStoryUpgradePanel\(\)[\s\S]{0,150}toggleUpgradeDrawer\(\)/);
+  assert.match(storySource, /body\.isolated-story-runtime > header > div:first-child > div \{ display:none!important; \}/);
+  assert.match(storySource, /body\.isolated-story-runtime #upgrade-drawer \{ z-index:60!important; \}/);
   const styleStart = storySource.indexOf("style.textContent = `", storySource.indexOf('function initializeIsolatedStoryRuntime()'));
   const styleEnd = storySource.indexOf('`;', styleStart);
   assert.ok(styleStart >= 0 && styleEnd > styleStart, 'isolated Story layout style should be present');
