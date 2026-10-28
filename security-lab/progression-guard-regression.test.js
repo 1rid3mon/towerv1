@@ -451,6 +451,20 @@ test('isolated Story runtime gets a separate browsing-context mode without claim
   assert.match(storySource, /function initializeIsolatedStoryRuntime\(\)/);
 });
 
+test('isolated Story auth sync cannot apply an Endless cloud save over the mission state', () => {
+  const authStart = uiSource.indexOf('fbAuth.onAuthStateChanged(async (user) => {');
+  const authEnd = uiSource.indexOf('\nfunction sanitizeUsernameToEmail', authStart);
+  assert.ok(authStart >= 0 && authEnd > authStart, 'auth callback should exist');
+  const authBlock = uiSource.slice(authStart, authEnd);
+  const isolatedGuard = authBlock.indexOf('if (GameModeRuntime.isIsolatedStoryRuntime())');
+  const storySync = authBlock.indexOf('await pullStoryProgressFromCloud(true);', isolatedGuard);
+  const earlyReturn = authBlock.indexOf('return;', storySync);
+  const endlessCloudPull = authBlock.indexOf('await forceCloudPull(true);');
+  assert.ok(isolatedGuard >= 0 && storySync > isolatedGuard && earlyReturn > storySync);
+  assert.ok(endlessCloudPull > earlyReturn,
+    'isolated Story must return before the Endless cloud-save pull');
+});
+
 test('Story mission launch leaves parent Endless globals untouched and runs inside a separate iframe', () => {
   const launch = storySource.indexOf('function openStoryRuntimeFrame(missionNumber)');
   const start = storySource.indexOf('function startStoryMission(missionNumber = 1)');
