@@ -516,3 +516,13 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - Vercel preview check for the refactor branch is successful. This is a preview/check result, not a production merge or proof of hands-on gameplay on a phone.
 - The Story simulation now executes in its own iframe JavaScript realm; delayed Endless cloud-save pulls are disabled in that realm, and the layout class is preserved across normal UI refreshes.
 - Remaining before merge: manual mission start/complete/abort/re-entry and mobile portrait/landscape verification. Keep PR #62 as draft until those interaction checks are completed.
+
+## İş günlüğü — 2026-10-28: Firebase veri saklama temelinin sürümlenmesi
+
+- [x] Firebase Auth + Cloud Firestore mevcut uygulamanın kalıcı hesap/bulut katmanı olarak teyit edildi; yeni veritabanı eklenmedi.
+- [x] Veri haritası eklendi: Endless kaydı `users/{uid}`, Story ilerlemesi `storyProgress/{uid}`, kullanıcı adı kaydı, leaderboard/rate-limit ve arkadaş istekleri.
+- [x] Aday Firestore kuralları kök `firestore.rules` dosyasına alındı ve `firebase.json` ile aynı dosya Emulator/dağıtım yapılandırmasına bağlandı.
+- [x] Firestore Emulator testleri artık kök `firestore.rules` dosyasını okuyor; CI run 40650261155 başarılı tamamlandı.
+- [ ] **ÜRETİM KURALLARI DOĞRULANMADI:** Firebase Console'daki gerçek kurallar otomatik okunamadı veya canlı projeye dağıtılamadı. Canlı kurallar karşılaştırılmalı ve üretim dağıtımı ayrıca yapılmalı.
+- [ ] Gerçek Firebase projesinde iki cihaz, hesap değiştirme, Story ilerlemesi ve hesap silme akışları doğrulanmalı.
+- [ ] İstemci tarafından bildirilen leaderboard skorları sunucu tarafından gerçek oyunla doğrulanmıyor.

@@ -1,9 +1,9 @@
 {
   "name": "towerv1-security-lab",
   "private": true,
-  "description": "Isolated Firebase Emulator tests for the Firestore Rules snapshot supplied for review. Not production configuration.",
+  "description": "Firestore Emulator regression tests for the versioned root firestore.rules candidate. Emulator-only; does not deploy production rules.",
   "scripts": {
-    "test": "firebase emulators:exec --only firestore --project demo-towerv1-security-lab \"node --test\""
+    "test": "firebase emulators:exec --config ../firebase.json --only firestore --project demo-towerv1-security-lab \"node --test\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^4.0.1",
