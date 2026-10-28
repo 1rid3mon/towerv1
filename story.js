@@ -1513,7 +1513,7 @@ function showStoryModeComingSoon() { openStoryMode(); }
 
 // Configure the isolated Story page after the normal engine has initialized. It reads the
 // existing Endless save only for the 25-wave unlock check; all mission mutations stay here.
-window.addEventListener('load', () => {
+function initializeIsolatedStoryRuntime() {
     if (!isIsolatedStoryRuntime()) return;
     document.body.classList.add('isolated-story-runtime');
     const style = document.createElement('style');
@@ -1535,7 +1535,7 @@ window.addEventListener('load', () => {
     const mission = Number(new URLSearchParams(window.location.search).get('mission')) || 1;
     // A direct runtime URL is not an unlock bypass: startStoryMission re-checks the gate.
     startStoryMission(mission);
-});
+}
 
 document.addEventListener('DOMContentLoaded', () => { updateStoryUnlockUI(); });
 document.addEventListener('keydown', event => {
