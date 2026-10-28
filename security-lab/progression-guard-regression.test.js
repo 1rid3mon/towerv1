@@ -383,7 +383,7 @@ test('Story completion exceptions pause safely instead of escaping the engine lo
   const body = extractFunction(engineSource, 'function completeWave()', 'function triggerTowerDefeat()');
   let toast = '';
   let logged = '';
-  const runner = new Function('window', 'isPaused', 'showToast', 'console', 'finishStoryBattleEncounter',
+  const runner = new Function('GameModeRuntime', 'isPaused', 'showToast', 'console', 'finishStoryBattleEncounter',
     body + '\ncompleteWave(); return isPaused;');
   const paused = runner(
     { isStoryActive: () => true },
