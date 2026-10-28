@@ -41,7 +41,7 @@ before(async () => {
     firestore: {
       host: "127.0.0.1",
       port: 8085,
-      rules: readFileSync(join(__dirname, "firestore.rules"), "utf8")
+      rules: readFileSync(join(__dirname, "..", "firestore.rules"), "utf8")
     }
   });
 });
