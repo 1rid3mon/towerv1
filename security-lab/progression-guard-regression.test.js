@@ -518,3 +518,29 @@ test('Chapter 02 missions 16–18 are wired, sequentially gated, and persisted b
   assert.ok(storySource.includes("callSignChoice: ['echo','piko'].includes(saved.callSignChoice) ? saved.callSignChoice : null"));
   assert.ok(rules.includes("d.callSignChoice in ['echo','piko']"));
 });
+
+
+test('mission 1 requires an explicit core-stabilization action before completion', () => {
+  const body = extractFunction(
+    storySource,
+    'function finishStoryBattleEncounter()',
+    'function scanStorySignal()'
+  );
+  const combatGate = body.indexOf("if (session.mission === 1 && session.phase === 'combat')");
+  const stabilizeGate = body.indexOf("if (session.mission === 1 && session.phase === 'stabilize')");
+  const genericCompletion = body.indexOf('session.completed = true; showStoryMissionResult(); isPaused = true; enemies = []; projectiles = [];');
+  assert.ok(combatGate >= 0 && stabilizeGate > combatGate && genericCompletion > stabilizeGate);
+  assert.match(body.slice(combatGate, stabilizeGate), /session\.phase = 'stabilize'[\s\S]*?setAction\('story-stabilize-action', false[\s\S]*?return;/);
+  assert.match(body.slice(stabilizeGate, genericCompletion), /setAction\('story-stabilize-action', true\)/);
+});
+
+test('isolated Story keeps an explicit upgrades toggle and does not force-hide the upgrade drawer', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(html, /id="story-upgrades-toggle"[^>]*onclick="toggleStoryUpgradePanel\(\)"/);
+  assert.match(html, /id="story-stabilize-action"[^>]*onclick="finishStoryBattleEncounter\(\)"/);
+  assert.match(storySource, /function toggleStoryUpgradePanel\(\)[\s\S]{0,150}toggleUpgradeDrawer\(\)/);
+  const styleStart = storySource.indexOf("style.textContent = `", storySource.indexOf('function initializeIsolatedStoryRuntime()'));
+  const styleEnd = storySource.indexOf('`;', styleStart);
+  assert.ok(styleStart >= 0 && styleEnd > styleStart, 'isolated Story layout style should be present');
+  assert.doesNotMatch(storySource.slice(styleStart, styleEnd), /#upgrade-drawer[^}]*display:\s*none/i);
+});
