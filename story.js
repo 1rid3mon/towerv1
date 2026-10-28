@@ -3,6 +3,58 @@
 // Bu dosya index.html'de ui.js sonrasında, render.js ve engine.js öncesinde yüklenir.
 
 // Story progress is deliberately isolated from the existing Endless save.
+let storyRuntimeFrameOverlay = null;
+
+function isIsolatedStoryRuntime() {
+    return typeof GameModeRuntime !== 'undefined' &&
+        typeof GameModeRuntime.isIsolatedStoryRuntime === 'function' &&
+        GameModeRuntime.isIsolatedStoryRuntime();
+}
+
+function closeStoryRuntimeFrame() {
+    if (storyRuntimeFrameOverlay) {
+        storyRuntimeFrameOverlay.remove();
+        storyRuntimeFrameOverlay = null;
+    }
+    try {
+        if (typeof updateStoryUnlockUI === 'function') updateStoryUnlockUI();
+        if (typeof updateStoryMissionBoard === 'function') updateStoryMissionBoard();
+    } catch (_) {}
+}
+
+function openStoryRuntimeFrame(missionNumber) {
+    if (storyRuntimeFrameOverlay) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set('runtime', 'story');
+    url.searchParams.set('mission', String(missionNumber));
+    url.hash = '';
+
+    const overlay = document.createElement('div');
+    overlay.id = 'isolated-story-runtime-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:1000000;background:#020617;';
+    const frame = document.createElement('iframe');
+    frame.title = storyLanguage() === 'en' ? 'Isolated Story Mode' : 'Hikâye Modu';
+    frame.src = url.href;
+    frame.allow = 'autoplay';
+    frame.style.cssText = 'display:block;width:100%;height:100%;border:0;background:#020617;';
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = storyLanguage() === 'en' ? 'CLOSE MISSION ✕' : 'GÖREVİ KAPAT ✕';
+    close.setAttribute('aria-label', storyLanguage() === 'en' ? 'Close Story mission' : 'Hikâye görevini kapat');
+    close.style.cssText = 'position:absolute;top:10px;right:10px;z-index:2;padding:9px 12px;border:1px solid rgba(148,163,184,.45);border-radius:10px;background:rgba(2,6,23,.88);color:#e2e8f0;font:700 11px sans-serif;letter-spacing:.04em;';
+    close.addEventListener('click', closeStoryRuntimeFrame);
+    overlay.append(frame, close);
+    storyRuntimeFrameOverlay = overlay;
+    document.body.appendChild(overlay);
+}
+
+window.addEventListener('message', event => {
+    if (!storyRuntimeFrameOverlay || event.origin !== window.location.origin) return;
+    const frame = storyRuntimeFrameOverlay.querySelector('iframe');
+    if (!frame || event.source !== frame.contentWindow) return;
+    if (event.data?.type === 'tower-story-runtime-close') closeStoryRuntimeFrame();
+});
+
 const STORY_PROGRESS_KEY = 'towerDefenseStoryProgressV1';
 const STORY_PROGRESS_OWNER_KEY = 'towerDefenseStoryProgressOwnerV1';
 const STORY_DIALOGUES = [
@@ -165,8 +217,8 @@ function applyStoryUiLanguage() {
         if (pair) node.textContent = pair[en ? 1 : 0];
     });
     const chapterLabel = document.getElementById('story-chapter-label');
-    if (chapterLabel && window.__storyBattle && window.__storyBattle.active && window.__storyBattle.mission >= 10) {
-        chapterLabel.textContent = window.__storyBattle.mission >= 19 ? (en ? 'CHAPTER 03 · THE SHAPE OF MEMORY' : 'BÖLÜM 03 · HAFIZANIN BİÇİMİ') : (en ? 'CHAPTER 02 · BENEATH THE SIGNAL' : 'BÖLÜM 02 · SİNYALİN ALTINDA');
+    if (chapterLabel && GameModeRuntime.storySession && GameModeRuntime.storySession.active && GameModeRuntime.storySession.mission >= 10) {
+        chapterLabel.textContent = GameModeRuntime.storySession.mission >= 19 ? (en ? 'CHAPTER 03 · THE SHAPE OF MEMORY' : 'BÖLÜM 03 · HAFIZANIN BİÇİMİ') : (en ? 'CHAPTER 02 · BENEATH THE SIGNAL' : 'BÖLÜM 02 · SİNYALİN ALTINDA');
     }
     const next = document.getElementById('story-next');
     if (next) next.textContent = storyCopy(STORY_UI_COPY[storyMissionViewOpen ? 'start' : 'continue']);
@@ -175,7 +227,7 @@ function applyStoryUiLanguage() {
 let storyTypingTimer = null;
 let storyTypingFullText = '';
 function showStoryMissionResult() {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     const overlay = document.getElementById('story-mission-result');
     const title = document.getElementById('story-mission-result-title');
     const copy = document.getElementById('story-mission-result-copy');
@@ -262,7 +314,7 @@ function showStoryMissionBriefing() {
 }
 // The story encounter temporarily borrows the existing combat engine, but never its save.
 // All mutable combat state is snapshotted and restored when the player leaves the mission.
-window.__storyBattle = window.__storyBattle || { active: false };
+
 function updateStoryMissionBoard() {
     const progress = getStoryProgress();
     const en = storyLanguage() === 'en';
@@ -448,14 +500,22 @@ function startStoryMission(missionNumber = 1) {
     // Clean up a completed session before checking the Endless unlock requirement:
     // while the story sandbox is active, game.wave is the mission wave, not the saved Endless wave.
     // Never auto-abort an unfinished mission.
-    if (window.__storyBattle?.active) {
-        if (!window.__storyBattle.completed) return;
+    if (GameModeRuntime.storySession?.active) {
+        if (!GameModeRuntime.storySession.completed) return;
         exitStoryBattle(false);
     }
     if (!updateStoryUnlockUI()) {
         showToast(storyLanguage() === 'en' ? 'Clear 25 waves in Endless Mode first.' : 'Önce Sonsuz Mod’da 25 dalgayı tamamlamalısın.');
         return;
     }
+
+    // The parent Endless game never borrows Story globals. Launch the mission in a
+    // separate browsing context, which gets its own engine globals, timers, and canvas.
+    if (!isIsolatedStoryRuntime()) {
+        openStoryRuntimeFrame(missionNumber);
+        return;
+    }
+
     const session = {
         active: true, completed: false, companionSynced: false, mission: missionNumber, phase: missionNumber === 3 ? 'investigate' : (missionNumber === 4 ? 'powerChoice' : (missionNumber === 6 ? 'repair' : (missionNumber === 8 ? 'memory' : 'combat'))), scans: 0, repairs: 0, memories: 0, routeChoice: null,
         snapshot: {
@@ -469,7 +529,7 @@ function startStoryMission(missionNumber = 1) {
             gameMode: document.body.dataset.gameMode || ''
         }
     };
-    window.__storyBattle = session;
+    GameModeRuntime.enterStory(session);
     const resultOverlay = document.getElementById('story-mission-result');
     if (resultOverlay) { resultOverlay.hidden = true; resultOverlay.setAttribute('aria-hidden', 'true'); }
     // Set the mode before deriving HP, shield, and damage so Endless bonuses cannot leak into this mission.
@@ -629,7 +689,7 @@ function startStoryMission(missionNumber = 1) {
     else if (missionNumber === 15) showToast(storyLanguage() === 'en' ? 'Mission 15 · Stabilize Piko after the pulse feedback. The missing memory may not return.' : 'Görev 15 · Sinyal geri beslemesinden sonra Piko’yu dengele. Kayıp anı geri dönmeyebilir.');
 }
 function finishStoryBattleEncounter() {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.completed) return;
     const en = storyLanguage() === 'en';
     const setStatus = text => { const el = document.getElementById('story-battle-status'); if (el) el.textContent = text; };
@@ -926,17 +986,17 @@ function finishStoryBattleEncounter() {
         setAction('story-mission10-pulse-action', true);
         setExit(en ? 'ABORT MISSION' : 'GÖREVDEN ÇIK');
         window.setTimeout(() => {
-            if (window.__storyBattle !== session || !session.active || session.phase !== 'accessReveal') return;
+            if (GameModeRuntime.storySession !== session || !session.active || session.phase !== 'accessReveal') return;
             session.phase = 'adminVerified';
             setStatus(en ? 'CORRECTION · ADMINISTRATOR ACCESS VERIFIED.' : 'DÜZELTME · YÖNETİCİ ERİŞİMİ DOĞRULANDI.');
             setStoryComms('İSTASYON YAPAY ZEKÂSI','STATION AI','Düzeltme: yönetici erişimi doğrulandı.','Correction: administrator access verified.');
             window.setTimeout(() => {
-                if (window.__storyBattle !== session || !session.active || session.phase !== 'adminVerified') return;
+                if (GameModeRuntime.storySession !== session || !session.active || session.phase !== 'adminVerified') return;
                 session.phase = 'complete'; session.completed = true; showStoryMissionResult();
                 setStatus(en ? 'LIFT STABLE · DESCENT ACCESS GRANTED.' : 'ASANSÖR SABİT · ALT KAT ERİŞİMİ AÇILDI.');
                 setStoryComms('KOMUTAN','COMMANDER','Sistemde kaydın yok. Nasıl yönetici olabilirsin?','You have no identity record in this system. How can you be an administrator?');
                 window.setTimeout(() => {
-                    if (window.__storyBattle !== session || !session.active || session.phase !== 'complete') return;
+                    if (GameModeRuntime.storySession !== session || !session.active || session.phase !== 'complete') return;
                     setStoryComms('PİKO','PIKO','Bilmiyorum. Ama kapı açılınca… içimde bir şey hatırladı.','I don’t know. But when the door opened… something inside me remembered.');
                     saveStoryProgress({ introSeen: true, chapter: 2, mission10Complete: true, pulseTutorialComplete: true });
                     setExit(en ? 'RETURN TO CHAPTER BOARD' : 'GÖREV PANOSUNA DÖN');
@@ -1143,7 +1203,7 @@ function finishStoryBattleEncounter() {
     showToast(en ? 'Mission complete. Story progress saved separately.' : 'Görev tamamlandı. Hikâye ilerlemesi ayrı kaydedildi.');
 }
 function scanStorySignal() {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 2 || session.phase !== 'scan' || session.completed) return;
     session.scans = Math.min(3, (session.scans || 0) + 1);
     const en = storyLanguage() === 'en';
@@ -1164,18 +1224,18 @@ function scanStorySignal() {
     showToast(en ? 'Signal trace recovered (' + session.scans + '/3).' : 'Sinyal izi kurtarıldı (' + session.scans + '/3).');
 }
 function inspectStoryMemory() {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 8 || session.phase !== 'memory' || session.completed) return;
     finishStoryBattleEncounter();
 }
 function inspectStoryVoiceRecord() {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 13 || !['voice1','voice2'].includes(session.phase) || session.completed || isPaused !== true || session.voiceBusy) return;
     session.voiceBusy = true; const previousPhase = session.phase; finishStoryBattleEncounter();
-    if (window.__storyBattle === session && session.phase !== previousPhase) session.voiceBusy = false;
+    if (GameModeRuntime.storySession === session && session.phase !== previousPhase) session.voiceBusy = false;
 }
 function chooseStoryVoice(choice) {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 13 || session.phase !== 'voiceChoice' || session.completed || isPaused !== true || session.choiceBusy || !['human','station'].includes(choice)) return;
     session.choiceBusy = true; session.phase = 'complete'; session.completed = true; showStoryMissionResult();
     saveStoryProgress({ introSeen: true, chapter: 2, mission12Complete: true, mission13Complete: true, voiceChoice: choice });
@@ -1189,29 +1249,29 @@ function chooseStoryVoice(choice) {
     showToast(en ? 'Mission 13 complete. Your choice has been saved.' : '13. görev tamamlandı. Seçimin kaydedildi.');
 }
 function inspectStoryArchive() {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 12 || !['archive1','archive2','archive3'].includes(session.phase) || session.completed || isPaused !== true || session.archiveBusy) return;
     session.archiveBusy = true;
     const previousPhase = session.phase;
     finishStoryBattleEncounter();
     window.setTimeout(() => {
-        if (window.__storyBattle !== session || !session.active) return;
+        if (GameModeRuntime.storySession !== session || !session.active) return;
         if (session.phase !== previousPhase) session.archiveBusy = false;
     }, 450);
 }
 function pulseStoryMission11() {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 11 || !['relayNode1','relayNode2','relayNode3'].includes(session.phase) || session.completed || isPaused !== true || session.pulseBusy) return;
     session.pulseBusy = true;
     const previousPhase = session.phase;
     finishStoryBattleEncounter();
     window.setTimeout(() => {
-        if (window.__storyBattle !== session || !session.active) return;
+        if (GameModeRuntime.storySession !== session || !session.active) return;
         if (session.phase !== previousPhase) session.pulseBusy = false;
     }, 350);
 }
 function pulseStoryMission10() {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 10 || !['pulseNode1','pulseNode2'].includes(session.phase) || session.completed || isPaused !== true || session.pulseBusy) return;
 
     // A fast double-tap must never skip both tutorial nodes in one gesture.
@@ -1220,29 +1280,29 @@ function pulseStoryMission10() {
     const previousPhase = session.phase;
     finishStoryBattleEncounter();
     window.setTimeout(() => {
-        if (window.__storyBattle !== session || !session.active) return;
+        if (GameModeRuntime.storySession !== session || !session.active) return;
         // Release only after the phase transition has settled.
         if (session.phase !== previousPhase) session.pulseBusy = false;
     }, 700);
 }
 function reconnectStoryCompanion() {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 9 || session.phase !== 'reconnect' || session.completed) return;
     finishStoryBattleEncounter();
 }
 function awakenStoryCompanion() {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 9 || session.phase !== 'awaken' || session.completed) return;
     finishStoryBattleEncounter();
 }
 function testStoryPulse() {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 9 || session.phase !== 'pulseTest' || session.completed) return;
     finishStoryBattleEncounter();
 }
 
 function startStoryChapter2CombatStage(targetKills, statusTr, statusEn) {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.completed) return;
     enemies = []; projectiles = [];
     game.wave = 1; game.highestWave = 1; game.waveKills = 0; game.waveTargetKills = targetKills; game.holdWave = false;
@@ -1254,7 +1314,7 @@ function startStoryChapter2CombatStage(targetKills, statusTr, statusEn) {
     if (typeof updateHUD === 'function') updateHUD();
 }
 function continueStoryChapter2Mission() {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.completed || isPaused !== true) return;
     if (session.mission === 19 && session.phase === 'navigationScan') return finishStoryBattleEncounter();
     if (session.mission === 20 && session.phase === 'selectivePulse') return finishStoryBattleEncounter();
@@ -1264,7 +1324,7 @@ function continueStoryChapter2Mission() {
     if (session.mission === 18 && ['relay1','relay2','finalLock'].includes(session.phase)) return finishStoryBattleEncounter();
 }
 function chooseStoryChapter2CallSign(choice) {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 17 || session.phase !== 'callSign' || session.completed || isPaused !== true) return;
     if (!['echo','piko'].includes(choice)) return;
     session.callSign = choice; session.phase = 'complete'; session.completed = true; showStoryMissionResult(); isPaused = true;
@@ -1285,22 +1345,22 @@ function chooseStoryChapter2CallSign(choice) {
 }
 
 function repairStoryMission15System() {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 15 || !['repairSystem1','repairSystem2','repairSystem3'].includes(session.phase) || session.completed) return;
     finishStoryBattleEncounter();
 }
 function repairStoryConnection() {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 6 || session.phase !== 'repair' || session.completed) return;
     finishStoryBattleEncounter();
 }
 function disableStoryAmplifier() {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 7 || session.phase !== 'amplifier' || session.completed) return;
     finishStoryBattleEncounter();
 }
 function chooseStoryPowerPriority(choice) {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 4 || session.phase !== 'powerChoice' || session.completed) return;
     if (choice !== 'shield' && choice !== 'weapon') return;
     session.completed = true; showStoryMissionResult(); isPaused = true;
@@ -1314,19 +1374,19 @@ function chooseStoryPowerPriority(choice) {
     showToast(storyLanguage() === 'en' ? 'Power priority saved. It affects Mission 05.' : 'Güç tercihi kaydedildi. 5. görevi etkileyecek.');
 }
 function disableStoryRelay() {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 5 || session.phase !== 'relay' || session.completed) return;
     finishStoryBattleEncounter();
 }
 function chooseStorySignalSource(source) {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.mission !== 3 || session.phase !== 'investigate' || session.completed) return;
     if (source !== 'array' && source !== 'blackbox') return;
     session.routeChoice = source;
     finishStoryBattleEncounter();
 }
 function exitStoryBattle(toMainMenu = false) {
-    const session = window.__storyBattle;
+    const session = GameModeRuntime.storySession;
     if (!session || !session.active || !session.snapshot) return;
     const s = session.snapshot;
     game = s.game; tower = s.tower; enemies = s.enemies; projectiles = s.projectiles;
@@ -1336,7 +1396,12 @@ function exitStoryBattle(toMainMenu = false) {
     cargoSpawnTimer = s.cargoSpawnTimer; gameSpeed = s.gameSpeed; isPaused = s.isPaused;
     isDefeated = s.isDefeated; defeatTimer = s.defeatTimer;
     document.body.dataset.gameMode = s.gameMode;
-    window.__storyBattle = { active: false, completed: session.completed };
+    GameModeRuntime.leaveStory(session.completed);
+    if (isIsolatedStoryRuntime()) {
+        // Closing the isolated browsing context discards its temporary simulation entirely.
+        window.parent.postMessage({ type: 'tower-story-runtime-close' }, window.location.origin);
+        return;
+    }
     const resultOverlay = document.getElementById('story-mission-result');
     if (resultOverlay) { resultOverlay.hidden = true; resultOverlay.setAttribute('aria-hidden', 'true'); }
     const hud = document.getElementById('story-battle-hud');
@@ -1443,7 +1508,35 @@ function closeStoryMode() {
         ? 'Choose your mission, Commander. The unknown signal is waiting.'
         : 'Görevini seç, komutan. Bilinmeyen sinyal bizi bekliyor.';
 }
+
 function showStoryModeComingSoon() { openStoryMode(); }
+
+// Configure the isolated Story page after the normal engine has initialized. It reads the
+// existing Endless save only for the 25-wave unlock check; all mission mutations stay here.
+function initializeIsolatedStoryRuntime() {
+    if (!isIsolatedStoryRuntime()) return;
+    document.body.classList.add('isolated-story-runtime');
+    const style = document.createElement('style');
+    style.id = 'isolated-story-runtime-style';
+    style.textContent = `
+        html, body { width:100%; height:100%; overflow:hidden!important; background:#020617!important; }
+        body.isolated-story-runtime > header { display:none!important; }
+        #mode-main-menu, #story-mode-screen, #hud-top-bar, #hud-quick-stats,
+        #hud-bottom-controls, #upgrade-drawer, #inventory-drawer, #battle-moment,
+        #battle-sfx-toggle, #game-mascot, #game-mascot-bubble,
+        #theme-modal, #settings-modal, #roulette-modal, #daily-missions-modal,
+        #achievements-modal, #update-notes-modal { display:none!important; }
+        body.isolated-story-runtime > main { min-height:0!important; width:100%!important; height:100%!important; flex:1 1 auto!important; }
+        #canvas-container { position:absolute!important; inset:0!important; width:100%!important; height:100%!important; }
+        #gameCanvas { display:block!important; width:100%!important; height:100%!important; }
+        #story-battle-hud { display:block!important; }
+    `;
+    document.head.appendChild(style);
+    const mission = Number(new URLSearchParams(window.location.search).get('mission')) || 1;
+    // A direct runtime URL is not an unlock bypass: startStoryMission re-checks the gate.
+    startStoryMission(mission);
+}
+
 document.addEventListener('DOMContentLoaded', () => { updateStoryUnlockUI(); });
 document.addEventListener('keydown', event => {
     const screen = document.getElementById('story-mode-screen');

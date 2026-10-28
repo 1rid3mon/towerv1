@@ -479,3 +479,40 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [x] Merge commit için Vercel kontrolü başarılı. Bu, cihaz üstünde oynanış testi yerine geçmez.
 - [ ] Gerçek masaüstü, mobil portre/yatay ve Android WebView oynanış kontrolü hâlâ yapılmalı.
 - [ ] Bölüm 03 görev 22–27 henüz uygulanmadı; sıradaki içerik görevi 22–24.
+
+
+## 2026-10-28 — Story/Endless separation: explicit runtime boundary (phase 1)
+
+- User clarified that the priority is separating Story and Endless because shared runtime state causes cross-mode conflicts; adding more missions is not the current priority.
+- Created a dedicated `mode-runtime.js` owner for the active mode and Story session lifecycle.
+- `story.js` now enters/leaves Story through `GameModeRuntime`; `engine.js` and `ui.js` query the explicit runtime instead of the legacy `window.__storyBattle` global.
+- Added a regression test for runtime lifecycle, overlapping Story-session rejection, and removal of the legacy global.
+- Important limitation: this is the first boundary step, NOT full simulation-state isolation. Story currently still borrows the shared engine's `game/tower/enemies/projectiles` globals and snapshots/restores them. The next phase must move the simulation state behind a mode-specific context before calling the modes fully separated.
+- [ ] Run JavaScript syntax + security/progression regression tests and fix any failures.
+- [ ] Inspect Story exit/re-entry and Endless anti-cheat behavior under the new runtime.
+- [ ] Next architectural step: separate the Story simulation state from the Endless state; do not add more mission content until this boundary is validated.
+- Merge: NOT DONE. Production deploy: NOT VERIFIED.
+
+
+## 2026-10-28 — Isolated Story runtime (implementation in progress)
+
+- Story mission launch now opens a same-origin iframe with `?runtime=story&mission=N`. The iframe has its own JavaScript realm, engine globals, canvas, timers, and temporary mission state; the parent Endless runtime is not mutated by the mission.
+- `mode-runtime.js` detects isolated Story runtime mode and marks the iframe body as Story before engine initialization.
+- `engine.js` skips the Endless tab lock, tab heartbeat, and Endless autosave timer inside the Story runtime. The Story iframe can read the existing save for the 25-wave unlock gate but does not write its temporary simulation to the Endless save.
+- `story.js` launches and closes the isolated runtime, hides Endless-only controls in the mission frame, and validates the frame source/origin before accepting its close message.
+- Added static regression tests for the separate runtime launch path, lock/autosave isolation, and close-message source validation.
+- CI status for the newest refactor commits is not yet confirmed. Vercel reported a successful preview check; this is not a manual gameplay test and does not mean the change is deployed to production.
+- Remaining validation: syntax + all security/progression tests, Story mission start/complete/abort/re-entry, Firebase Story progress persistence, Endless save unchanged before/after a Story mission, and phone portrait/landscape layout. Do not merge until these checks pass.
+- Merge: NOT DONE. Production deploy: NOT VERIFIED.
+
+
+- Follow-up hardening: the isolated runtime starts only after `loadGame()` has loaded the local save used by the unlock check. Firebase auth in the iframe may sync Story progress, but it skips `forceCloudPull(true)` so a delayed Endless cloud-save response cannot replace the active Story mission state.
+- Regression coverage now includes the iframe-only runtime flag, startup ordering, Endless cloud-pull suppression, and Story frame close-message validation.
+
+
+## 2026-10-28 — Isolation validation checkpoint
+
+- GitHub Actions run 40648360953 completed successfully: JavaScript syntax check passed and the security/progression + Firestore Emulator suite reported **150 tests passed, 0 failed**.
+- Vercel preview check for the refactor branch is successful. This is a preview/check result, not a production merge or proof of hands-on gameplay on a phone.
+- The Story simulation now executes in its own iframe JavaScript realm; delayed Endless cloud-save pulls are disabled in that realm, and the layout class is preserved across normal UI refreshes.
+- Remaining before merge: manual mission start/complete/abort/re-entry and mobile portrait/landscape verification. Keep PR #62 as draft until those interaction checks are completed.
