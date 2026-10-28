@@ -441,6 +441,9 @@ test('isolated Story runtime gets a separate browsing-context mode without claim
   assert.match(engineSource, /if \(!isolatedStory && !claimActiveTab\(\)\)/);
   assert.match(engineSource, /if \(!isolatedStory\) \{[\s\S]*?gameSaveTimer = setInterval/);
   assert.match(engineSource, /if \(!GameModeRuntime\.isIsolatedStoryRuntime\(\) && now - lastTabCheckTime > 1000\)/);
+  assert.match(engineSource, /if \(isolatedStory && typeof initializeIsolatedStoryRuntime === 'function'\)\s*\{\s*initializeIsolatedStoryRuntime\(\);/);
+  assert.match(engineSource, /loadGame\(\);[\s\S]*?initializeIsolatedStoryRuntime\(\);/);
+  assert.match(storySource, /function initializeIsolatedStoryRuntime\(\)/);
 });
 
 test('Story mission launch leaves parent Endless globals untouched and runs inside a separate iframe', () => {
