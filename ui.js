@@ -423,6 +423,11 @@ function applyBodyClasses() {
     if (!body || typeof game === 'undefined') return;
     const dev = game.deviceMode || 'pc';
     body.className = `h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-${dev} color-pastel`;
+    if (typeof GameModeRuntime !== 'undefined' &&
+        typeof GameModeRuntime.isIsolatedStoryRuntime === 'function' &&
+        GameModeRuntime.isIsolatedStoryRuntime()) {
+        body.classList.add('isolated-story-runtime');
+    }
 }
 
 function buildUpgradesUI() {
