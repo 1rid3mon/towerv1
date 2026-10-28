@@ -1211,8 +1211,9 @@ function showDuplicateTabScreen() {
 function gameLoop(now) {
     if (isDuplicateTab) return;
 
-    // Performans için localStorage kontrolünü her karede değil saniyede 1 kez yap
-    if (now - lastTabCheckTime > 1000) {
+    // The isolated Story runtime has its own browsing context and must not compete
+    // with the parent Endless tab's localStorage lock.
+    if (!GameModeRuntime.isIsolatedStoryRuntime() && now - lastTabCheckTime > 1000) {
         lastTabCheckTime = now;
         const active = readActiveTab();
         if (!active || active.id !== TAB_ID) {
@@ -1232,6 +1233,7 @@ function gameLoop(now) {
 }
 
 window.addEventListener('storage', event => {
+    if (GameModeRuntime.isIsolatedStoryRuntime()) return;
     if (event.key !== ACTIVE_TAB_KEY || isDuplicateTab) return;
 
     const active = readActiveTab();
@@ -1254,20 +1256,22 @@ window.addEventListener('pagehide', () => {
 });
 
 window.onload = function () {
-    if (!claimActiveTab()) {
+    const isolatedStory = GameModeRuntime.isIsolatedStoryRuntime();
+    if (!isolatedStory && !claimActiveTab()) {
         showDuplicateTabScreen();
         return;
     }
 
+    // Read the existing Endless progression only to validate the Story unlock gate.
+    // This runs in a separate JS realm; Story simulation mutations cannot touch the parent.
     loadGame();
-    // Başlangıçta mod seçimi görünür; simülasyon menü arkasında ilerlemesin.
     isPaused = true;
     resizeCanvas();
 
     tower.maxHp = getTowerMaxHp();
-    tower.hp = tower.maxHp;
+    tower.hp = getTowerMaxHp();
     tower.maxShield = getTowerMaxShield();
-    tower.shield = tower.maxShield;
+    tower.shield = getTowerMaxShield();
 
     applyBodyClasses();
     setDeviceMode(game.deviceMode || 'pc');
@@ -1277,32 +1281,27 @@ window.onload = function () {
     drawRouletteWheel();
     updateHUD();
 
-    gameSaveTimer = setInterval(() => {
-        // Story currently runs on the shared engine globals. Never serialize its temporary
-        // mission state into the Endless save while the Story session owns those globals.
-        if (GameModeRuntime.isStoryActive() || document.body?.dataset?.gameMode === 'story') return;
-        if (!isDuplicateTab) {
+    // An isolated Story iframe must never claim the Endless tab lock or start Endless autosaves.
+    if (!isolatedStory) {
+        gameSaveTimer = setInterval(() => {
+            if (GameModeRuntime.isStoryActive() || document.body?.dataset?.gameMode === 'story') return;
+            if (!isDuplicateTab) {
+                const active = readActiveTab();
+                if (active && active.id === TAB_ID) saveGame(false);
+                else showDuplicateTabScreen();
+            }
+        }, 15000);
+
+        tabHeartbeat = setInterval(() => {
+            if (isDuplicateTab) return;
             const active = readActiveTab();
-            if (active && active.id === TAB_ID) saveGame(false);
-            else showDuplicateTabScreen();
-        }
-    }, 15000);
-
-    tabHeartbeat = setInterval(() => {
-        if (isDuplicateTab) return;
-
-        const active = readActiveTab();
-
-        if (!active || active.id !== TAB_ID) {
-            showDuplicateTabScreen();
-            return;
-        }
-
-        localStorage.setItem(ACTIVE_TAB_KEY, JSON.stringify({
-            id: TAB_ID,
-            time: Date.now()
-        }));
-    }, 2000);
+            if (!active || active.id !== TAB_ID) {
+                showDuplicateTabScreen();
+                return;
+            }
+            localStorage.setItem(ACTIVE_TAB_KEY, JSON.stringify({ id: TAB_ID, time: Date.now() }));
+        }, 2000);
+    }
 
     requestAnimationFrame(gameLoop);
 };
