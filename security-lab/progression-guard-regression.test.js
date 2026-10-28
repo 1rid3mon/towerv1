@@ -434,13 +434,13 @@ test('isolated Story runtime gets a separate browsing-context mode without claim
   const runtimeSource = fs.readFileSync(path.join(root, 'mode-runtime.js'), 'utf8');
   const body = { dataset: {}, classList: { add(name) { this.added = name; } } };
   const isolatedWindow = { parent: {}, location: { search: '?runtime=story&mission=4' }, document: { body } };
-  vm.runInNewContext(runtimeSource, { window: isolatedWindow });
+  vm.runInNewContext(runtimeSource, { window: isolatedWindow, URLSearchParams });
   assert.equal(isolatedWindow.GameModeRuntime.isIsolatedStoryRuntime(), true);
   assert.equal(body.dataset.gameMode, 'story');
   assert.equal(body.classList.added, 'isolated-story-runtime');
   const topLevelWindow = { location: { search: '?runtime=story&mission=4' }, document: { body: { dataset: {}, classList: { add() {} } } } };
   topLevelWindow.parent = topLevelWindow;
-  vm.runInNewContext(runtimeSource, { window: topLevelWindow });
+  vm.runInNewContext(runtimeSource, { window: topLevelWindow, URLSearchParams });
   assert.equal(topLevelWindow.GameModeRuntime.isIsolatedStoryRuntime(), false,
     'the query parameter alone must not turn a top-level Endless page into Story mode');
   assert.match(engineSource, /if \(!isolatedStory && !claimActiveTab\(\)\)/);
