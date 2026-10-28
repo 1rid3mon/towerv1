@@ -490,3 +490,15 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] CI / Firestore Emulator ve gerçek cihaz oynanışı doğrulanmalı.
 - Main'e merge: HAYIR. Canlı deploy: DOĞRULANMADI.
 - Sıradaki adım: CI hatası çıkarsa düzelt, ardından görev 25–27.
+
+
+## İş günlüğü — 2026-10-28: PR #61 doğrulama ve düzeltme
+
+- [x] PR #61 (`story/chapter3-missions22-24`) gerçek GitHub durumundan kontrol edildi; PR açık, merge edilmemiş.
+- [x] GitHub Actions run `40478492271` incelendi: JavaScript syntax başarılı; Firestore Emulator testlerinde 146 testten 144 başarılı, 2 başarısız.
+- [x] İki hata eski regresyon beklentilerinin `completedCount / 21` aramasından kaynaklanıyordu; kampanya 24 göreve çıktığı için bu beklentiler 24 olarak güncellendi.
+- [x] Görev 22–24 İngilizce UI başlık/açıklamalarının Türkçe kopyalanmış olduğu bulundu ve gerçek İngilizce metinlerle düzeltildi.
+- [ ] Yeni commit sonrası CI yeniden çalışmalı ve tüm testler geçmeli.
+- [ ] Görev 22–24'ün mobil/masaüstü gerçek oynanışı hâlâ manuel doğrulama bekliyor.
+- Main'e merge: HAYIR. Canlı deploy: DOĞRULANMADI.
+- Sıradaki adım: PR #61 Actions sonuçlarını tekrar kontrol et; yeşil değilse düzeltmeye devam et.
