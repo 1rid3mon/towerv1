@@ -230,7 +230,7 @@ test('unsupported Story Mode phases cannot fall through and falsely complete mis
 
 test('mission 13, 14 and 15 each have exactly one initial objective label branch', () => {
   const start = storySource.indexOf('function startStoryMission(');
-  const end = storySource.indexOf('function finishStoryBattleEncounter()', start);
+  const end = storySource.indexOf('\nfunction ', start + 'function startStoryMission('.length);
   const body = storySource.slice(start, end);
   assert.equal((body.match(/else if \(missionNumber === 13\) status\.textContent/g) || []).length, 1);
   assert.equal((body.match(/else if \(missionNumber === 14\) status\.textContent/g) || []).length, 1);
@@ -274,7 +274,7 @@ test('story mode bypasses the Endless anti-cheat shadow while preserving it for 
   const antiCheatStart = engineSource.indexOf('// 🛡️ ANTI-CHEAT: GÖLGE KASA VE BELLEK KORUMASI');
   assert.notEqual(antiCheatStart, -1);
   const intervalStart = engineSource.indexOf('setInterval(() => {', antiCheatStart);
-  const storyGuard = engineSource.indexOf("document.body?.dataset?.gameMode === 'story' || GameModeRuntime.isStoryActive()", intervalStart);
+  const storyGuard = engineSource.indexOf("document.body?.dataset?.gameMode === 'story' || (typeof GameModeRuntime !== 'undefined' && GameModeRuntime.isStoryActive())", intervalStart);
   const shadowInit = engineSource.indexOf('if (!shadow) { syncShadow(); return; }', intervalStart);
   assert.ok(storyGuard > intervalStart && storyGuard < shadowInit, 'story guard must run before shadow initialization or rollback checks');
 });
@@ -307,7 +307,7 @@ test('completed Story Mode session is cleaned before the Endless unlock check, w
   const end = storySource.indexOf('function finishStoryBattleEncounter()', start);
   const body = storySource.slice(start, end);
   const cleanup = body.indexOf('exitStoryBattle(false);');
-  const unlockGate = body.indexOf('if (!updateStoryUnlockUI())');
+  const unlockGate = body.indexOf('if (!parentAuthorizedLaunch && !updateStoryUnlockUI())');
   assert.ok(cleanup >= 0 && unlockGate > cleanup, 'completed story replay must restore Endless state before checking the Endless wave requirement');
   assert.match(body, /if \(!GameModeRuntime\.storySession\.completed\) return;/);
 });
