@@ -1303,6 +1303,11 @@ window.onload = function () {
         }, 2000);
     }
 
+    // Initialize Story only after loadGame() has read the saved Endless progression
+    // used by the unlock gate; the Story mission then runs in this page's isolated realm.
+    if (isolatedStory && typeof initializeIsolatedStoryRuntime === 'function') {
+        initializeIsolatedStoryRuntime();
+    }
     requestAnimationFrame(gameLoop);
 };
 
