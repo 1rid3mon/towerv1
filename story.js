@@ -699,9 +699,17 @@ function startStoryMission(missionNumber = 1) {
     else if (missionNumber === 15) showToast(storyLanguage() === 'en' ? 'Mission 15 · Stabilize Piko after the pulse feedback. The missing memory may not return.' : 'Görev 15 · Sinyal geri beslemesinden sonra Piko’yu dengele. Kayıp anı geri dönmeyebilir.');
 }
 function toggleStoryUpgradePanel() {
-    if (typeof toggleUpgradeDrawer === 'function') {
-        toggleUpgradeDrawer();
-    }
+    if (typeof toggleUpgradeDrawer === 'function') toggleUpgradeDrawer();
+}
+function toggleStoryMissionPanel() {
+    const hud = document.getElementById('story-battle-hud');
+    const button = document.getElementById('story-mission-panel-toggle');
+    if (!hud || !button) return;
+    const collapsed = hud.classList.toggle('is-collapsed');
+    button.setAttribute('aria-expanded', String(!collapsed));
+    button.textContent = collapsed
+        ? (storyLanguage() === 'en' ? 'SHOW OBJECTIVES ▾' : 'GÖREVİ AÇ ▾')
+        : (storyLanguage() === 'en' ? 'HIDE OBJECTIVES ▴' : 'GÖREVİ KAPAT ▴');
 }
 function finishStoryBattleEncounter() {
     const session = GameModeRuntime.storySession;
@@ -1552,7 +1560,19 @@ function initializeIsolatedStoryRuntime() {
     style.id = 'isolated-story-runtime-style';
     style.textContent = `
         html, body { width:100%; height:100%; overflow:hidden!important; background:#020617!important; }
-        body.isolated-story-runtime > header { display:none!important; }
+        body.isolated-story-runtime > header {
+            display:flex!important; position:fixed!important; inset:0 0 auto 0!important;
+            z-index:50!important; height:54px!important; min-height:54px!important;
+            padding:8px!important; background:rgba(2,6,23,.94)!important;
+        }
+        body.isolated-story-runtime > header > div:first-child > div { display:none!important; }
+        body.isolated-story-runtime > header > div:last-child > button:first-child,
+        body.isolated-story-runtime > header > div:last-child > button:nth-child(2) { display:none!important; }
+        body.isolated-story-runtime #upgrade-drawer { z-index:60!important; }
+        body.isolated-story-runtime #story-battle-hud {
+            top:62px!important; width:min(420px,calc(100% - 16px))!important;
+            max-height:calc(100dvh - 70px)!important;
+        }
         #mode-main-menu, #story-mode-screen, #hud-top-bar, #hud-quick-stats,
         #hud-bottom-controls, #inventory-drawer, #battle-moment,
         #battle-sfx-toggle, #game-mascot, #game-mascot-bubble,
