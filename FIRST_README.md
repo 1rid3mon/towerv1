@@ -479,3 +479,26 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [x] Merge commit için Vercel kontrolü başarılı. Bu, cihaz üstünde oynanış testi yerine geçmez.
 - [ ] Gerçek masaüstü, mobil portre/yatay ve Android WebView oynanış kontrolü hâlâ yapılmalı.
 - [ ] Bölüm 03 görev 22–27 henüz uygulanmadı; sıradaki içerik görevi 22–24.
+
+
+## İş günlüğü — 2026-10-27: Bölüm 03 ikinci oynanabilir dilim (Görev 22–24)
+
+- [x] Görev panosuna 22–24 eklendi; sıralı açılma, sayaç ve ilerleme yüzdesi 24 göreve çıkarıldı.
+- [x] Görev 22 sinyal silueti, görev 23 üçüncü ses, görev 24 frekans eşleme + 14 düşmanlı savunma + final konuşma fazı eklendi.
+- [x] Story progress ve Firestore rules/test fixture'ları mission22Complete–mission24Complete alanlarıyla güncellendi.
+- [x] Yeni metinler Türkçe öncelikli; İngilizce yerelleştirme toplu dil aşamasına ertelendi.
+- [ ] CI / Firestore Emulator ve gerçek cihaz oynanışı doğrulanmalı.
+- Main'e merge: HAYIR. Canlı deploy: DOĞRULANMADI.
+- Sıradaki adım: CI hatası çıkarsa düzelt, ardından görev 25–27.
+
+
+## İş günlüğü — 2026-10-28: PR #61 doğrulama ve düzeltme
+
+- [x] PR #61 (`story/chapter3-missions22-24`) gerçek GitHub durumundan kontrol edildi; PR açık, merge edilmemiş.
+- [x] GitHub Actions run `40478492271` incelendi: JavaScript syntax başarılı; Firestore Emulator testlerinde 146 testten 144 başarılı, 2 başarısız.
+- [x] İki hata eski regresyon beklentilerinin `completedCount / 21` aramasından kaynaklanıyordu; kampanya 24 göreve çıktığı için bu beklentiler 24 olarak güncellendi.
+- [x] Görev 22–24 İngilizce UI başlık/açıklamalarının Türkçe kopyalanmış olduğu bulundu ve gerçek İngilizce metinlerle düzeltildi.
+- [ ] Yeni commit sonrası CI yeniden çalışmalı ve tüm testler geçmeli.
+- [ ] Görev 22–24'ün mobil/masaüstü gerçek oynanışı hâlâ manuel doğrulama bekliyor.
+- Main'e merge: HAYIR. Canlı deploy: DOĞRULANMADI.
+- Sıradaki adım: PR #61 Actions sonuçlarını tekrar kontrol et; yeşil değilse düzeltmeye devam et.
