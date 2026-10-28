@@ -4,7 +4,8 @@
     'use strict';
     const isolatedStoryRuntime = (() => {
         try {
-            return new URLSearchParams(root.location?.search || '').get('runtime') === 'story';
+            return root.parent !== root &&
+                new URLSearchParams(root.location?.search || '').get('runtime') === 'story';
         } catch (_) {
             return false;
         }
