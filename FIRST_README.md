@@ -526,3 +526,9 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] **ÜRETİM KURALLARI DOĞRULANMADI:** Firebase Console'daki gerçek kurallar otomatik okunamadı veya canlı projeye dağıtılamadı. Canlı kurallar karşılaştırılmalı ve üretim dağıtımı ayrıca yapılmalı.
 - [ ] Gerçek Firebase projesinde iki cihaz, hesap değiştirme, Story ilerlemesi ve hesap silme akışları doğrulanmalı.
 - [ ] İstemci tarafından bildirilen leaderboard skorları sunucu tarafından gerçek oyunla doğrulanmıyor.
+
+
+## 2026-10-28 — GameModeRuntime guard fix
+- [x] `engine.js`: anti-cheat shadow-restore interval now checks whether `GameModeRuntime` exists before calling `isStoryActive()`, preventing a `ReferenceError` from stopping the interval when the runtime global is unavailable.
+- [ ] Validate JavaScript syntax and regression tests in GitHub Actions; verify on the live site after merge/deploy.
+- [ ] Story cloud persistence remains unverified against the live Firebase project until a real signed-in save is observed in `storyProgress/{uid}`.
