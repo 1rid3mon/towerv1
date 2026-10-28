@@ -3,6 +3,58 @@
 // Bu dosya index.html'de ui.js sonrasında, render.js ve engine.js öncesinde yüklenir.
 
 // Story progress is deliberately isolated from the existing Endless save.
+let storyRuntimeFrameOverlay = null;
+
+function isIsolatedStoryRuntime() {
+    return typeof GameModeRuntime !== 'undefined' &&
+        typeof GameModeRuntime.isIsolatedStoryRuntime === 'function' &&
+        GameModeRuntime.isIsolatedStoryRuntime();
+}
+
+function closeStoryRuntimeFrame() {
+    if (storyRuntimeFrameOverlay) {
+        storyRuntimeFrameOverlay.remove();
+        storyRuntimeFrameOverlay = null;
+    }
+    try {
+        if (typeof updateStoryUnlockUI === 'function') updateStoryUnlockUI();
+        if (typeof updateStoryMissionBoard === 'function') updateStoryMissionBoard();
+    } catch (_) {}
+}
+
+function openStoryRuntimeFrame(missionNumber) {
+    if (storyRuntimeFrameOverlay) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set('runtime', 'story');
+    url.searchParams.set('mission', String(missionNumber));
+    url.hash = '';
+
+    const overlay = document.createElement('div');
+    overlay.id = 'isolated-story-runtime-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:1000000;background:#020617;';
+    const frame = document.createElement('iframe');
+    frame.title = storyLanguage() === 'en' ? 'Isolated Story Mode' : 'Hikâye Modu';
+    frame.src = url.href;
+    frame.allow = 'autoplay';
+    frame.style.cssText = 'display:block;width:100%;height:100%;border:0;background:#020617;';
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = storyLanguage() === 'en' ? 'CLOSE MISSION ✕' : 'GÖREVİ KAPAT ✕';
+    close.setAttribute('aria-label', storyLanguage() === 'en' ? 'Close Story mission' : 'Hikâye görevini kapat');
+    close.style.cssText = 'position:absolute;top:10px;right:10px;z-index:2;padding:9px 12px;border:1px solid rgba(148,163,184,.45);border-radius:10px;background:rgba(2,6,23,.88);color:#e2e8f0;font:700 11px sans-serif;letter-spacing:.04em;';
+    close.addEventListener('click', closeStoryRuntimeFrame);
+    overlay.append(frame, close);
+    storyRuntimeFrameOverlay = overlay;
+    document.body.appendChild(overlay);
+}
+
+window.addEventListener('message', event => {
+    if (!storyRuntimeFrameOverlay || event.origin !== window.location.origin) return;
+    const frame = storyRuntimeFrameOverlay.querySelector('iframe');
+    if (!frame || event.source !== frame.contentWindow) return;
+    if (event.data?.type === 'tower-story-runtime-close') closeStoryRuntimeFrame();
+});
+
 const STORY_PROGRESS_KEY = 'towerDefenseStoryProgressV1';
 const STORY_PROGRESS_OWNER_KEY = 'towerDefenseStoryProgressOwnerV1';
 const STORY_DIALOGUES = [
@@ -456,6 +508,14 @@ function startStoryMission(missionNumber = 1) {
         showToast(storyLanguage() === 'en' ? 'Clear 25 waves in Endless Mode first.' : 'Önce Sonsuz Mod’da 25 dalgayı tamamlamalısın.');
         return;
     }
+
+    // The parent Endless game never borrows Story globals. Launch the mission in a
+    // separate browsing context, which gets its own engine globals, timers, and canvas.
+    if (!isIsolatedStoryRuntime()) {
+        openStoryRuntimeFrame(missionNumber);
+        return;
+    }
+
     const session = {
         active: true, completed: false, companionSynced: false, mission: missionNumber, phase: missionNumber === 3 ? 'investigate' : (missionNumber === 4 ? 'powerChoice' : (missionNumber === 6 ? 'repair' : (missionNumber === 8 ? 'memory' : 'combat'))), scans: 0, repairs: 0, memories: 0, routeChoice: null,
         snapshot: {
@@ -1337,6 +1397,11 @@ function exitStoryBattle(toMainMenu = false) {
     isDefeated = s.isDefeated; defeatTimer = s.defeatTimer;
     document.body.dataset.gameMode = s.gameMode;
     GameModeRuntime.leaveStory(session.completed);
+    if (isIsolatedStoryRuntime()) {
+        // Closing the isolated browsing context discards its temporary simulation entirely.
+        window.parent.postMessage({ type: 'tower-story-runtime-close' }, window.location.origin);
+        return;
+    }
     const resultOverlay = document.getElementById('story-mission-result');
     if (resultOverlay) { resultOverlay.hidden = true; resultOverlay.setAttribute('aria-hidden', 'true'); }
     const hud = document.getElementById('story-battle-hud');
@@ -1443,7 +1508,35 @@ function closeStoryMode() {
         ? 'Choose your mission, Commander. The unknown signal is waiting.'
         : 'Görevini seç, komutan. Bilinmeyen sinyal bizi bekliyor.';
 }
+
 function showStoryModeComingSoon() { openStoryMode(); }
+
+// Configure the isolated Story page after the normal engine has initialized. It reads the
+// existing Endless save only for the 25-wave unlock check; all mission mutations stay here.
+window.addEventListener('load', () => {
+    if (!isIsolatedStoryRuntime()) return;
+    document.body.classList.add('isolated-story-runtime');
+    const style = document.createElement('style');
+    style.id = 'isolated-story-runtime-style';
+    style.textContent = `
+        html, body { width:100%; height:100%; overflow:hidden!important; background:#020617!important; }
+        body.isolated-story-runtime > header { display:none!important; }
+        #mode-main-menu, #story-mode-screen, #hud-top-bar, #hud-quick-stats,
+        #hud-bottom-controls, #upgrade-drawer, #inventory-drawer, #battle-moment,
+        #battle-sfx-toggle, #game-mascot, #game-mascot-bubble,
+        #theme-modal, #settings-modal, #roulette-modal, #daily-missions-modal,
+        #achievements-modal, #update-notes-modal { display:none!important; }
+        body.isolated-story-runtime > main { min-height:0!important; width:100%!important; height:100%!important; flex:1 1 auto!important; }
+        #canvas-container { position:absolute!important; inset:0!important; width:100%!important; height:100%!important; }
+        #gameCanvas { display:block!important; width:100%!important; height:100%!important; }
+        #story-battle-hud { display:block!important; }
+    `;
+    document.head.appendChild(style);
+    const mission = Number(new URLSearchParams(window.location.search).get('mission')) || 1;
+    // A direct runtime URL is not an unlock bypass: startStoryMission re-checks the gate.
+    startStoryMission(mission);
+});
+
 document.addEventListener('DOMContentLoaded', () => { updateStoryUnlockUI(); });
 document.addEventListener('keydown', event => {
     const screen = document.getElementById('story-mode-screen');
