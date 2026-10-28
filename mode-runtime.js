@@ -2,11 +2,24 @@
 // but ownership and lifecycle are no longer inferred from an ad-hoc window global.
 (function attachGameModeRuntime(root) {
     'use strict';
+    const isolatedStoryRuntime = (() => {
+        try {
+            return new URLSearchParams(root.location?.search || '').get('runtime') === 'story';
+        } catch (_) {
+            return false;
+        }
+    })();
+    if (isolatedStoryRuntime && root.document?.body) {
+        root.document.body.dataset.gameMode = 'story';
+        root.document.body.classList.add('isolated-story-runtime');
+    }
+
     let activeMode = 'endless';
     let storySession = { active: false, completed: false };
 
     const runtime = {
         get activeMode() { return activeMode; },
+        isIsolatedStoryRuntime() { return isolatedStoryRuntime; },
         get storySession() { return storySession; },
         isStoryActive() {
             return activeMode === 'story' && storySession?.active === true;
