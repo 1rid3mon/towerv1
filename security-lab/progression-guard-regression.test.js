@@ -449,6 +449,8 @@ test('isolated Story runtime gets a separate browsing-context mode without claim
   assert.match(engineSource, /if \(isolatedStory && typeof initializeIsolatedStoryRuntime === 'function'\)\s*\{\s*initializeIsolatedStoryRuntime\(\);/);
   assert.match(engineSource, /loadGame\(\);[\s\S]*?initializeIsolatedStoryRuntime\(\);/);
   assert.match(storySource, /function initializeIsolatedStoryRuntime\(\)/);
+  assert.match(uiSource, /body\.classList\.add\('isolated-story-runtime'\)/,
+    'normal body-class refreshes must preserve the isolated Story layout');
 });
 
 test('isolated Story auth sync cannot apply an Endless cloud save over the mission state', () => {
