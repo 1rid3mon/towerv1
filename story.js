@@ -27,6 +27,10 @@ function openStoryRuntimeFrame(missionNumber) {
     const url = new URL(window.location.href);
     url.searchParams.set('runtime', 'story');
     url.searchParams.set('mission', String(missionNumber));
+    // The parent has already validated the Endless unlock against its loaded save.
+    // Pass that decision into the isolated realm so a delayed cloud/local load there
+    // cannot leave the player on a blank screen before the mission starts.
+    url.searchParams.set('storyLaunch', 'parent');
     url.hash = '';
 
     const overlay = document.createElement('div');
@@ -504,11 +508,15 @@ function startStoryMission(missionNumber = 1) {
         if (!GameModeRuntime.storySession.completed) return;
         exitStoryBattle(false);
     }
-    if (!updateStoryUnlockUI()) {
+    const parentAuthorizedLaunch = isIsolatedStoryRuntime() &&
+        new URLSearchParams(window.location.search).get('storyLaunch') === 'parent';
+    if (!parentAuthorizedLaunch && !updateStoryUnlockUI()) {
         showToast(storyLanguage() === 'en' ? 'Clear 25 waves in Endless Mode first.' : 'Önce Sonsuz Mod’da 25 dalgayı tamamlamalısın.');
         return;
     }
 
+    // The parent already checked the unlock before opening the isolated runtime. Avoid
+    // checking a second, potentially stale cloud/local snapshot in the child iframe.
     // The parent Endless game never borrows Story globals. Launch the mission in a
     // separate browsing context, which gets its own engine globals, timers, and canvas.
     if (!isIsolatedStoryRuntime()) {
