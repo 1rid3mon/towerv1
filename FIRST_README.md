@@ -492,3 +492,15 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] Inspect Story exit/re-entry and Endless anti-cheat behavior under the new runtime.
 - [ ] Next architectural step: separate the Story simulation state from the Endless state; do not add more mission content until this boundary is validated.
 - Merge: NOT DONE. Production deploy: NOT VERIFIED.
+
+
+## 2026-10-28 — Isolated Story runtime (implementation in progress)
+
+- Story mission launch now opens a same-origin iframe with `?runtime=story&mission=N`. The iframe has its own JavaScript realm, engine globals, canvas, timers, and temporary mission state; the parent Endless runtime is not mutated by the mission.
+- `mode-runtime.js` detects isolated Story runtime mode and marks the iframe body as Story before engine initialization.
+- `engine.js` skips the Endless tab lock, tab heartbeat, and Endless autosave timer inside the Story runtime. The Story iframe can read the existing save for the 25-wave unlock gate but does not write its temporary simulation to the Endless save.
+- `story.js` launches and closes the isolated runtime, hides Endless-only controls in the mission frame, and validates the frame source/origin before accepting its close message.
+- Added static regression tests for the separate runtime launch path, lock/autosave isolation, and close-message source validation.
+- CI status for the newest refactor commits is not yet confirmed. Vercel reported a successful preview check; this is not a manual gameplay test and does not mean the change is deployed to production.
+- Remaining validation: syntax + all security/progression tests, Story mission start/complete/abort/re-entry, Firebase Story progress persistence, Endless save unchanged before/after a Story mission, and phone portrait/landscape layout. Do not merge until these checks pass.
+- Merge: NOT DONE. Production deploy: NOT VERIFIED.
