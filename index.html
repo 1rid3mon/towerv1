@@ -701,6 +701,10 @@
 .story-deploy:disabled{opacity:.55;cursor:default}
 #story-battle-hud{position:fixed;z-index:35;top:78px;left:50%;transform:translateX(-50%);width:min(540px,calc(100% - 20px));max-height:calc(100dvh - 90px);overflow:auto;overscroll-behavior:contain;pointer-events:none}
 #story-battle-hud[hidden]{display:none}
+#story-battle-hud.is-collapsed .story-battle-panel{padding:7px 10px}
+#story-battle-hud.is-collapsed .story-battle-panel > :not(.story-battle-heading){display:none!important}
+#story-battle-hud.is-collapsed .story-battle-heading{min-height:28px}
+#story-mission-panel-toggle{border:1px solid rgba(103,232,249,.28);border-radius:7px;padding:5px 7px;background:rgba(8,47,73,.55);color:#a5f3fc;font-size:9px;font-weight:800;letter-spacing:.04em;white-space:nowrap}
   /* The HUD wrapper lets canvas gestures pass through; every actual control must opt back in. */
   #story-battle-hud .story-battle-panel,
   #story-battle-hud button,
@@ -823,7 +827,7 @@
 
 <div id="story-battle-hud" hidden aria-live="polite">
  <div class="story-battle-panel">
-  <div class="story-battle-heading"><span>✦ <span id="story-chapter-label" data-story-ui="chapter">BÖLÜM 01 · KAYIP SİNYAL</span></span><span class="story-battle-live">● LIVE</span></div>
+  <div class="story-battle-heading"><span>✦ <span id="story-chapter-label" data-story-ui="chapter">BÖLÜM 01 · KAYIP SİNYAL</span></span><button type="button" id="story-mission-panel-toggle" onclick="toggleStoryMissionPanel()" aria-expanded="true">GÖREVİ KAPAT ▴</button><span class="story-battle-live">● LIVE</span></div>
   <p id="story-battle-status">GÖREV: 8 düşmanı durdur ve çekirdeği güvene al.</p>
   <div id="story-comms" style="margin:8px 0;padding:9px 10px;border:1px solid rgba(103,232,249,.18);border-left:2px solid rgba(103,232,249,.75);border-radius:8px;background:rgba(8,20,39,.76)">
    <div id="story-comms-speaker" style="font-size:10px;letter-spacing:.12em;font-weight:800;color:#67e8f9;margin-bottom:4px">İSTASYON YAPAY ZEKÂSI</div>
@@ -862,7 +866,6 @@
    <span class="story-companion-signal" aria-hidden="true"></span>
   </div>
   <button type="button" id="story-stabilize-action" class="story-primary story-deploy" onclick="finishStoryBattleEncounter()" hidden>ÇEKİRDEĞİ SABİTLE · GÖREVİ TAMAMLA</button>
-  <button type="button" id="story-upgrades-toggle" class="story-primary story-deploy" onclick="toggleStoryUpgradePanel()">YÜKSELTMELERİ AÇ / KAPAT</button>
   <button type="button" id="story-battle-exit" onclick="exitStoryBattle(false)">GÖREVDEN ÇIK</button>
  </div>
 </div>
