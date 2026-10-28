@@ -540,7 +540,7 @@ test('isolated Story keeps an explicit upgrades toggle and does not force-hide t
   assert.match(html, /id="story-stabilize-action"[^>]*onclick="finishStoryBattleEncounter\(\)"/);
   assert.match(storySource, /function toggleStoryUpgradePanel\(\)[\s\S]{0,150}toggleUpgradeDrawer\(\)/);
   const styleStart = storySource.indexOf("style.textContent = `", storySource.indexOf('function initializeIsolatedStoryRuntime()'));
-  const styleEnd = storySource.indexOf('`; ', styleStart);
+  const styleEnd = storySource.indexOf('`;', styleStart);
   assert.ok(styleStart >= 0 && styleEnd > styleStart, 'isolated Story layout style should be present');
   assert.doesNotMatch(storySource.slice(styleStart, styleEnd), /#upgrade-drawer[^}]*display:\s*none/i);
 });
