@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - "security-lab/**"
+      - "firestore.rules"
+      - "firebase.json"
+      - "DATA_STORAGE_ARCHITECTURE.md"
       - ".github/workflows/security-lab.yml"
       - "ui.js"
       - "story.js"
@@ -16,8 +19,12 @@ on:
       - main
       - security-hardening-review
       - "feature/**"
+      - "release/**"
     paths:
       - "security-lab/**"
+      - "firestore.rules"
+      - "firebase.json"
+      - "DATA_STORAGE_ARCHITECTURE.md"
       - ".github/workflows/security-lab.yml"
       - "ui.js"
       - "index.html"

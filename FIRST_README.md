@@ -479,3 +479,14 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [x] Merge commit için Vercel kontrolü başarılı. Bu, cihaz üstünde oynanış testi yerine geçmez.
 - [ ] Gerçek masaüstü, mobil portre/yatay ve Android WebView oynanış kontrolü hâlâ yapılmalı.
 - [ ] Bölüm 03 görev 22–27 henüz uygulanmadı; sıradaki içerik görevi 22–24.
+
+
+## İş günlüğü — 2026-10-28: Firebase veri saklama temelinin sürümlenmesi
+
+- [x] Firebase Auth + Cloud Firestore mevcut uygulamanın kalıcı hesap/bulut katmanı olarak teyit edildi; yeni veritabanı eklenmedi.
+- [x] Veri haritası eklendi: Endless kaydı `users/{uid}`, Story ilerlemesi `storyProgress/{uid}`, kullanıcı adı kaydı, leaderboard/rate-limit ve arkadaş istekleri.
+- [x] Aday Firestore kuralları kök `firestore.rules` dosyasına alındı ve `firebase.json` ile aynı dosya Emulator/dağıtım yapılandırmasına bağlandı.
+- [x] Firestore Emulator testleri artık kök `firestore.rules` dosyasını okuyor; böylece test snapshot'ı ile dağıtım adayı arasındaki drift riski azaltıldı.
+- [ ] **ÜRETİM KURALLARI DOĞRULANMADI:** Bu PR Firebase Console'daki gerçek kuralları okuyamaz veya canlı projeye dağıtamaz. Canlı kurallar mevcut dosyayla karşılaştırılmalı; üretim dağıtımı ayrıca, bilinçli onayla yapılmalı.
+- [ ] **VERİ AKIŞI QA BEKLİYOR:** iki cihazda giriş, kayıt yükleme/yazma, Story ilerlemesi, hesap değiştirme ve hesap silme akışları gerçek Firebase projesinde test edilmeli.
+- [ ] İstemci tarafından bildirilen leaderboard skorları sunucu tarafından gerçek oyunla doğrulanmıyor; aday kurallar bunu tek başına çözmez.
