@@ -22,6 +22,9 @@ on:
       - "release/**"
     paths:
       - "security-lab/**"
+      - "firestore.rules"
+      - "firebase.json"
+      - "DATA_STORAGE_ARCHITECTURE.md"
       - ".github/workflows/security-lab.yml"
       - "ui.js"
       - "index.html"
