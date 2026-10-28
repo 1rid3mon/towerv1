@@ -504,3 +504,7 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - CI status for the newest refactor commits is not yet confirmed. Vercel reported a successful preview check; this is not a manual gameplay test and does not mean the change is deployed to production.
 - Remaining validation: syntax + all security/progression tests, Story mission start/complete/abort/re-entry, Firebase Story progress persistence, Endless save unchanged before/after a Story mission, and phone portrait/landscape layout. Do not merge until these checks pass.
 - Merge: NOT DONE. Production deploy: NOT VERIFIED.
+
+
+- Follow-up hardening: the isolated runtime starts only after `loadGame()` has loaded the local save used by the unlock check. Firebase auth in the iframe may sync Story progress, but it skips `forceCloudPull(true)` so a delayed Endless cloud-save response cannot replace the active Story mission state.
+- Regression coverage now includes the iframe-only runtime flag, startup ordering, Endless cloud-pull suppression, and Story frame close-message validation.
