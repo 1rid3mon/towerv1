@@ -29,9 +29,10 @@ test('cloud save writes the required user document fields with compatible value 
   assert.match(rulesSource, /match \/users\/\{userId\}[\s\S]*?allow create,update: if isOwner\(userId\)&&validUserDoc\(\)/);
 });
 
-test('account deletion intentionally leaves rate-limit metadata and documents that policy', () => {
-  assert.match(uiSource, /fbDb\.collection\('leaderboard'\)\.doc\(uid\)\.delete\(\)/);
-  assert.match(uiSource, /fbDb\.collection\('users'\)\.doc\(uid\)\.delete\(\)/);
-  assert.doesNotMatch(uiSource, /fbDb\.collection\('leaderboardRateLimits'\)\.doc\(uid\)\.delete\(\)/);
+test('account deletion removes UID-owned game records but preserves rate-limit metadata', () => {
+  assert.match(uiSource, /await boardRef\.delete\(\)/);
+  assert.match(uiSource, /await userRef\.delete\(\)/);
+  assert.match(uiSource, /await storyRef\.delete\(\)/);
+  assert.doesNotMatch(uiSource, /collection\('leaderboardRateLimits'\)[\s\S]{0,80}delete\(\)/);
   assert.match(rulesSource, /This record must survive leaderboard deletion/);
 });

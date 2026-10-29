@@ -2480,30 +2480,123 @@ function openDeleteAccountConfirm() {
     );
 }
 
-async function deleteMyAccount() {
-    if (!currentUser || !currentUser.isCloud) return;
-    const uid = currentUser.uid;
-    try {
-        if (isFirebaseReady && fbDb) {
-            await fbDb.collection('leaderboard').doc(uid).delete();
-            await fbDb.collection('storyProgress').doc(uid).delete();
-            await fbDb.collection('users').doc(uid).delete();
-        }
-    } catch (e) {
-        showToast('❌ Hesap verileri silinemedi. Hiçbir şeyin tamamen silindiğini varsayma; tekrar dene.');
+async function reauthenticateForAccountDeletion(authUser) {
+    if (!authUser || typeof firebase === 'undefined' || !firebase.auth) throw new Error('AUTH_USER_MISSING');
+    const providers = Array.isArray(authUser.providerData) ? authUser.providerData.map(p => p && p.providerId).filter(Boolean) : [];
+
+    if (providers.includes('password')) {
+        const password = window.prompt('Hesabını silmeden önce güvenlik için şifreni tekrar gir:');
+        if (password === null) throw new Error('DELETE_CANCELLED');
+        if (!password) throw new Error('PASSWORD_REQUIRED');
+        const credential = firebase.auth.EmailAuthProvider.credential(authUser.email, password);
+        await authUser.reauthenticateWithCredential(credential);
         return;
     }
 
+    if (providers.includes('google.com')) {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        await authUser.reauthenticateWithPopup(provider);
+        return;
+    }
+
+    throw new Error('REAUTH_PROVIDER_UNSUPPORTED');
+}
+
+async function deleteMyAccount() {
+    if (!currentUser || !currentUser.isCloud || !isFirebaseReady || !fbDb || !fbAuth || !fbAuth.currentUser) return;
+    const uid = currentUser.uid;
+    const authUser = fbAuth.currentUser;
+    if (authUser.uid !== uid) {
+        showToast('❌ Oturum kimliği eşleşmiyor; hesap silme durduruldu.');
+        return;
+    }
+
+    // Reauthenticate before deleting any Firestore data so a recent-login failure
+    // does not normally erase the player's save before Firebase Auth refuses deletion.
     try {
-        if (isFirebaseReady && fbAuth && fbAuth.currentUser) {
-            await fbAuth.currentUser.delete();
-        }
+        await reauthenticateForAccountDeletion(authUser);
     } catch (e) {
-        if (e && e.code === 'auth/requires-recent-login') {
-            showToast('⚠️ Güvenlik gereği önce çıkış yapıp tekrar giriş yap, hemen ardından tekrar "Hesabı Sil" de.');
-            return;
+        if (e && e.message === 'DELETE_CANCELLED') {
+            showToast('Hesap silme iptal edildi; verilerin korunuyor.');
+        } else if (e && e.code === 'auth/wrong-password') {
+            showToast('❌ Şifre yanlış; hiçbir hesap verisi silinmedi.');
+        } else if (e && e.code === 'auth/popup-closed-by-user') {
+            showToast('Hesap silme iptal edildi; verilerin korunuyor.');
+        } else {
+            console.error('[Account Delete] Reauthentication failed:', e);
+            showToast('❌ Yeniden kimlik doğrulama başarısız. Hiçbir hesap verisi silinmedi; tekrar giriş yapıp yeniden dene.');
         }
-        showToast('❌ Firebase hesabı silinemedi. Bazı veriler silinmiş olabilir; tekrar giriş yapıp silme işlemini yeniden dene.');
+        return;
+    }
+
+    let previousUserDoc = null;
+    let previousBoardDoc = null;
+    let previousStoryDoc = null;
+    let previousUsernameDoc = null;
+    const usernameKey = normalizeUsernameKey(currentUser.username);
+    try {
+        const userRef = fbDb.collection('users').doc(uid);
+        const boardRef = fbDb.collection('leaderboard').doc(uid);
+        const storyRef = fbDb.collection('storyProgress').doc(uid);
+        const usernameRef = usernameKey ? fbDb.collection('usernameRegistry').doc(usernameKey) : null;
+        const snapshots = await Promise.all([
+            userRef.get(),
+            boardRef.get(),
+            storyRef.get(),
+            usernameRef ? usernameRef.get() : Promise.resolve(null)
+        ]);
+        previousUserDoc = snapshots[0].exists ? snapshots[0].data() : null;
+        previousBoardDoc = snapshots[1].exists ? snapshots[1].data() : null;
+        previousStoryDoc = snapshots[2].exists ? snapshots[2].data() : null;
+        previousUsernameDoc = snapshots[3] && snapshots[3].exists && snapshots[3].data().uid === uid ? snapshots[3].data() : null;
+
+        // Remove incoming/outgoing friend requests owned by this account. Queries are
+        // constrained to the authenticated UID, matching the Firestore read rules.
+        const [outgoing, incoming] = await Promise.all([
+            fbDb.collection('friendRequests').where('fromUid', '==', uid).get(),
+            fbDb.collection('friendRequests').where('toUid', '==', uid).get()
+        ]);
+        const requestRefs = new Map();
+        [...outgoing.docs, ...incoming.docs].forEach(doc => requestRefs.set(doc.ref.path, doc.ref));
+        const refs = Array.from(requestRefs.values());
+        for (let i = 0; i < refs.length; i += 400) {
+            const batch = fbDb.batch();
+            refs.slice(i, i + 400).forEach(ref => batch.delete(ref));
+            await batch.commit();
+        }
+
+        // Release only this UID's username reservation. Rate-limit/security records
+        // intentionally survive deletion under Firestore rules.
+        if (usernameKey && previousUsernameDoc) await releaseUsernameReservation(uid, currentUser.username);
+        await boardRef.delete();
+        await storyRef.delete();
+        await userRef.delete();
+        await authUser.delete();
+    } catch (e) {
+        // Best-effort restore game records if a later step fails. Firestore/Auth is not
+        // a cross-service transaction, so any restoration failure must be surfaced.
+        const restoreErrors = [];
+        try {
+            if (previousUsernameDoc && usernameKey) await fbDb.collection('usernameRegistry').doc(usernameKey).set(previousUsernameDoc);
+        } catch (restoreErr) { restoreErrors.push(restoreErr); }
+        try {
+            if (previousBoardDoc) await fbDb.collection('leaderboard').doc(uid).set(previousBoardDoc);
+        } catch (restoreErr) { restoreErrors.push(restoreErr); }
+        try {
+            if (previousStoryDoc) await fbDb.collection('storyProgress').doc(uid).set(previousStoryDoc);
+        } catch (restoreErr) { restoreErrors.push(restoreErr); }
+        try {
+            if (previousUserDoc) await fbDb.collection('users').doc(uid).set(previousUserDoc);
+        } catch (restoreErr) { restoreErrors.push(restoreErr); }
+
+        if (e && e.code === 'auth/requires-recent-login') {
+            showToast('⚠️ Firebase hâlâ yeniden giriş istiyor. Hesap verilerini geri yüklemeyi denedim; tekrar giriş yapıp hesabı yeniden sil.');
+        } else {
+            console.error('[Account Delete] Deletion failed:', e, restoreErrors);
+            showToast(restoreErrors.length
+                ? '❌ Silme yarıda kaldı ve verilerin geri yüklenmesi tam doğrulanamadı. Hata kaydını kontrol et.'
+                : '❌ Hesap silinemedi; kaldırılan oyun verileri geri yüklendi. Tekrar deneyebilirsin.');
+        }
         return;
     }
 
@@ -2513,7 +2606,7 @@ async function deleteMyAccount() {
     localStorage.removeItem(STORY_PROGRESS_OWNER_KEY);
     updateAccountHeaderUI();
     refreshLeaderboard(false);
-    showToast('🗑️ Hesap ve oyun verileri silindi. Bazı güvenlik kayıtları ayrı tutulabilir.');
+    showToast('🗑️ Hesap, oyun kaydı, hikâye ilerlemesi, kullanıcı adı ve arkadaş istekleri silindi. Bazı güvenlik kayıtları ayrı tutulabilir.');
 }
 
 async function logoutAccount() {
