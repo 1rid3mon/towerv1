@@ -552,7 +552,7 @@ test('Story HUD uses native top-bar upgrades and speed controls, with collapsibl
   assert.match(storySource, /body\.isolated-story-runtime > header \{[\s\S]*?position:fixed!important; inset:0 0 auto 0!important/);
   assert.match(storySource, /header > div:last-child > button:first-child,[\s\S]*?button:nth-child\(2\) \{ display:none!important; \}/);
   assert.match(html, /id="btn-speed"[^>]*onclick="toggleGameSpeed\(\)"/);
-  assert.match(uiSource, /function toggleGameSpeed\(\) \{ gameSpeed = gameSpeed === 1 \? 2 : \(gameSpeed === 2 \? 3 : 1\);/);
+  assert.match(uiSource, /function toggleGameSpeed\(\) \{\s*gameSpeed = gameSpeed === 1 \? 2 : \(gameSpeed === 2 \? 3 : 1\);/);
   assert.match(html, /id="story-mission-panel-toggle"[^>]*onclick="toggleStoryMissionPanel\(\)"/);
   assert.match(storySource, /function toggleStoryMissionPanel\(\)[\s\S]*?hud\.classList\.toggle\('is-collapsed'\)/);
   assert.match(html, /#story-battle-hud\.is-collapsed \.story-battle-panel > :not\(\.story-battle-heading\)/);
