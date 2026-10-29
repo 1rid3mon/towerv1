@@ -558,3 +558,13 @@ test('Story HUD uses native top-bar upgrades and speed controls, with collapsibl
   assert.match(html, /#story-battle-hud\.is-collapsed \.story-battle-panel > :not\(\.story-battle-heading\)/);
   assert.doesNotMatch(html, /YÜKSELTME(?:LERİ|LER)İ? AÇ \/ KAPAT/);
 });
+
+
+test('unowned legacy story progress is preserved separately and never treated as the signed-in account save', () => {
+  assert.match(storySource, /const STORY_PROGRESS_UNCLAIMED_KEY = 'towerDefenseStoryProgressUnclaimedV1';/);
+  assert.match(storySource, /const unownedLocal = !localOwner \? getStoryProgress\(\) : null;/);
+  assert.match(storySource, /localStorage\.setItem\(STORY_PROGRESS_UNCLAIMED_KEY, JSON\.stringify\(unownedLocal\)\)/);
+  assert.match(storySource, /const local = localOwner === currentUser\.uid \? getStoryProgress\(\) : null;/);
+  assert.match(storySource, /else if \(belongsToAnotherAccount \|\| !localOwner\)/);
+  assert.match(storySource, /if \(local && local\.updatedAt > remote\.updatedAt && local\.updatedAt > 0\)/);
+});
