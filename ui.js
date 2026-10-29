@@ -1749,11 +1749,21 @@ function switchTab(tab) {
     if (tab === 'leaderboard') { refreshLeaderboard(false); renderFriends(); }
 }
 
-function toggleGameSpeed() { gameSpeed = gameSpeed === 1 ? 2 : (gameSpeed === 2 ? 3 : 1); setElText('ui-speed', `${gameSpeed}x`); }
+function toggleGameSpeed() {
+    gameSpeed = gameSpeed === 1 ? 2 : (gameSpeed === 2 ? 3 : 1);
+    setElText('ui-speed', `${gameSpeed}x`);
+    const button = document.getElementById('btn-speed');
+    if (button) button.setAttribute('aria-label', `Oyun hızı ${gameSpeed}x`);
+}
 function togglePause() {
     isPaused = !isPaused;
     const ic = document.getElementById('icon-pause');
+    const button = document.getElementById('btn-pause');
     if (ic) ic.className = isPaused ? 'fa-solid fa-play w-3 text-center' : 'fa-solid fa-pause w-3 text-center';
+    if (button) {
+        button.setAttribute('aria-label', isPaused ? 'Oyunu sürdür' : 'Oyunu duraklat');
+        button.setAttribute('aria-pressed', String(isPaused));
+    }
 }
 function toggleRangeCircle() { game.settings.showRange = !game.settings.showRange; saveGame(true); }
 function toggleDamageText() { game.settings.showDamageText = !game.settings.showDamageText; saveGame(true); }
