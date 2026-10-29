@@ -584,6 +584,6 @@ test('top-bar speed and pause controls expose accessible labels that update when
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   assert.match(html, /id="btn-speed" aria-label="Oyun hızı 1x" onclick="toggleGameSpeed\(\)"/);
   assert.match(html, /id="btn-pause" aria-label="Oyunu duraklat" aria-pressed="false" onclick="togglePause\(\)"/);
-  assert.match(uiSource, /button\.setAttribute\('aria-label', `Oyun hızı \$\{gameSpeed\}x`)/);
-  assert.match(uiSource, /button\.setAttribute\('aria-label', isPaused \? 'Oyunu sürdür' : 'Oyunu duraklat'\)/);
+  assert.ok(uiSource.includes("button.setAttribute('aria-label', `Oyun hızı ${gameSpeed}x`)"));
+  assert.ok(uiSource.includes("button.setAttribute('aria-label', isPaused ? 'Oyunu sürdür' : 'Oyunu duraklat')"));
 });
