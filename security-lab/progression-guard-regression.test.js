@@ -568,3 +568,22 @@ test('unowned legacy story progress is preserved separately and never treated as
   assert.match(storySource, /else if \(belongsToAnotherAccount \|\| !localOwner\)/);
   assert.match(storySource, /if \(local && local\.updatedAt > remote\.updatedAt && local\.updatedAt > 0\)/);
 });
+
+
+test('Story mission startup synchronizes speed and pause indicators with the isolated simulation state', () => {
+  const start = storySource.indexOf('function startStoryMission(');
+  const end = storySource.indexOf('function ', start + 20);
+  const body = storySource.slice(start, end);
+  assert.match(body, /gameSpeed = 1; isPaused = \[3, 4, 6, 8\]\.includes\(missionNumber\)/);
+  assert.match(body, /speedLabel\.textContent = `\$\{gameSpeed\}x`/);
+  assert.match(body, /pauseIcon\.className = isPaused \? 'fa-solid fa-play/);
+  assert.match(body, /pauseButton\.setAttribute\('aria-pressed', String\(isPaused\)\)/);
+});
+
+test('top-bar speed and pause controls expose accessible labels that update when toggled', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(html, /id="btn-speed" aria-label="Oyun hızı 1x" onclick="toggleGameSpeed\(\)"/);
+  assert.match(html, /id="btn-pause" aria-label="Oyunu duraklat" aria-pressed="false" onclick="togglePause\(\)"/);
+  assert.match(uiSource, /button\.setAttribute\('aria-label', `Oyun hızı \$\{gameSpeed\}x`)/);
+  assert.match(uiSource, /button\.setAttribute\('aria-label', isPaused \? 'Oyunu sürdür' : 'Oyunu duraklat'\)/);
+});
