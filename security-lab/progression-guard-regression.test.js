@@ -551,8 +551,8 @@ test('Story HUD uses native top-bar upgrades and speed controls, with collapsibl
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   assert.match(storySource, /body\.isolated-story-runtime > header \{[\s\S]*?position:fixed!important; inset:0 0 auto 0!important/);
   assert.match(storySource, /header > div:last-child > button:first-child,[\s\S]*?button:nth-child\(2\) \{ display:none!important; \}/);
-  assert.match(html, /id="btn-speed" onclick="toggleGameSpeed\(\)"/);
-  assert.match(uiSource, /function toggleGameSpeed\(\) \{ gameSpeed = gameSpeed === 1 \? 2 : \(gameSpeed === 2 \? 3 : 1\);/);
+  assert.match(html, /id="btn-speed"[^>]*onclick="toggleGameSpeed\(\)"/);
+  assert.match(uiSource, /function toggleGameSpeed\(\) \{\s*gameSpeed = gameSpeed === 1 \? 2 : \(gameSpeed === 2 \? 3 : 1\);/);
   assert.match(html, /id="story-mission-panel-toggle"[^>]*onclick="toggleStoryMissionPanel\(\)"/);
   assert.match(storySource, /function toggleStoryMissionPanel\(\)[\s\S]*?hud\.classList\.toggle\('is-collapsed'\)/);
   assert.match(html, /#story-battle-hud\.is-collapsed \.story-battle-panel > :not\(\.story-battle-heading\)/);
@@ -567,4 +567,23 @@ test('unowned legacy story progress is preserved separately and never treated as
   assert.match(storySource, /const local = localOwner === currentUser\.uid \? getStoryProgress\(\) : null;/);
   assert.match(storySource, /else if \(belongsToAnotherAccount \|\| !localOwner\)/);
   assert.match(storySource, /if \(local && local\.updatedAt > remote\.updatedAt && local\.updatedAt > 0\)/);
+});
+
+
+test('Story mission startup synchronizes speed and pause indicators with the isolated simulation state', () => {
+  const start = storySource.indexOf('function startStoryMission(');
+  const end = storySource.indexOf('function ', start + 20);
+  const body = storySource.slice(start, end);
+  assert.match(body, /gameSpeed = 1; isPaused = \[3, 4, 6, 8\]\.includes\(missionNumber\)/);
+  assert.match(body, /speedLabel\.textContent = `\$\{gameSpeed\}x`/);
+  assert.match(body, /pauseIcon\.className = isPaused \? 'fa-solid fa-play/);
+  assert.match(body, /pauseButton\.setAttribute\('aria-pressed', String\(isPaused\)\)/);
+});
+
+test('top-bar speed and pause controls expose accessible labels that update when toggled', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(html, /id="btn-speed" aria-label="Oyun hızı 1x" onclick="toggleGameSpeed\(\)"/);
+  assert.match(html, /id="btn-pause" aria-label="Oyunu duraklat" aria-pressed="false" onclick="togglePause\(\)"/);
+  assert.ok(uiSource.includes("button.setAttribute('aria-label', `Oyun hızı ${gameSpeed}x`)"));
+  assert.ok(uiSource.includes("button.setAttribute('aria-label', isPaused ? 'Oyunu sürdür' : 'Oyunu duraklat')"));
 });

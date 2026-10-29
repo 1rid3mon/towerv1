@@ -577,6 +577,18 @@ function startStoryMission(missionNumber = 1) {
     lightningBeams = []; rings = []; cargoDrones = [];
     spawnTimer = 0; playTimeAccum = 0; waveFrostSpawns = 0; cargoSpawnTimer = 999999;
     gameSpeed = 1; isPaused = [3, 4, 6, 8].includes(missionNumber); isDefeated = false; defeatTimer = 0;
+    // The isolated runtime may open on a narrative pause; keep the visible controls truthful.
+    const speedLabel = document.getElementById('ui-speed');
+    if (speedLabel) speedLabel.textContent = `${gameSpeed}x`;
+    const speedButton = document.getElementById('btn-speed');
+    if (speedButton) speedButton.setAttribute('aria-label', `Oyun hızı ${gameSpeed}x`);
+    const pauseIcon = document.getElementById('icon-pause');
+    if (pauseIcon) pauseIcon.className = isPaused ? 'fa-solid fa-play w-3 text-center' : 'fa-solid fa-pause w-3 text-center';
+    const pauseButton = document.getElementById('btn-pause');
+    if (pauseButton) {
+        pauseButton.setAttribute('aria-label', isPaused ? 'Oyunu sürdür' : 'Oyunu duraklat');
+        pauseButton.setAttribute('aria-pressed', String(isPaused));
+    }
     document.body.dataset.gameMode = 'story';
     // Rebuild upgrade controls against the fresh mission state, not the previous Endless Mode save.
     if (typeof buildUpgradesUI === 'function') buildUpgradesUI();
