@@ -601,3 +601,27 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [x] Chromium yerel sunucu CI `41128019715`: **4/4 viewport başarılı** (390×844, 844×390, 1024×1366, 1366×900); telefon boyutunda gerçek savaş + açık sabitleme eylemi + sonuçtan dönüş; tüm boyutlarda hız/pause, yükseltme çekmecesi, görev paneli, çıkış ve parent Endless kayıt karşılaştırması geçti. Konsolda yakalanmamış JS hatası yok. Artifact `13011213408` içindeki telefon/yatay görüntüleri ayrıca gözle incelendi.
 - Yatay görüntüde açık görev paneli merkezdeki kuleyi örtüyordu. 500 px'den kısa yatay viewport'larda panel varsayılan kapalı başlatıldı; açma düğmesi korunur. Tarayıcı testine yeniden giriş/tekrar oynama ve Sonsuz Mod'a dönüş kontrolleri eklendi; son commit için CI yeniden gerekli.
 - CI `41128459148` yeni dönüş testinde gerçek mobil hata yakaladı: `setupMobileHudAndSettingsFix()` üst çubuğu `z-index:9500!important` ile Hikâye panosunun (`90`) üstüne çıkarıyor, “Ana Menü” dokunmasını yutuyordu. Failure screenshot ve Playwright pointer-interception loguyla doğrulandı. Mobil header, masaüstüyle aynı `20` katmanına indirildi; panolar/menüler üstte kalır. Son CI yeniden bekleniyor; başarısız koşu başarılı diye raporlanmamalı.
+
+### 2026-10-30 — PR #73 yayın ve doğrulanmış sonuçlar
+
+- [x] PR #73 squash merge edildi: https://github.com/1rid3mon/towerv1/pull/73
+- Oyun değişikliklerinin main commit'i: `d9f8f897d1a2ff45eb1376905122cd73408b07db`. Son PR head'i: `61478d1f9cb65bb1c738086213a8af0ea2dc4f13`.
+- [x] Son PR CI `41128882392`: syntax, **191/191** emülatör/regresyon testi, dört Chromium viewport'u başarılı. Mobil header hatası düzeltildikten sonra ana menüye dönüş/tekrar oynama/Sonsuz Mod dönüşü de geçti.
+- [x] Main CI https://github.com/1rid3mon/towerv1/actions/runs/41129257870 **SUCCESS**: syntax + emülatör/regresyon ve browser-smoke işleri başarılı.
+- [x] Vercel production `dpl_CuiWEzpTb5WcLAJpGV6nCHkLgzYR`, commit `d9f8f89`, **READY**; `towerv1-murex.vercel.app` bu commit'e bağlı olarak doğrulandı.
+- [x] Main browser işi yedi canlı kaynak dosyasının checkout ile birebir eşleştiğini kontrol etti. Ardından **hem localhost'ta 4/4 hem canlı oyunda 4/4** Chromium viewport'u başarılı: 390×844 telefon, 844×390 yatay, 1024×1366 tablet, 1366×900 masaüstü.
+- [x] Her boyutta gerçek DOM tıklamalarıyla görev açılışı, pause/sürdür, 2x/3x hız, yükseltme çekmecesi, görev panelini aç/kapat, görevden çıkış, yeniden giriş/tekrar oynama ve Sonsuz Mod'a dönüş doğrulandı. Parent Endless oyun durumu ve kaydı, Story oturumu boyunca birebir korundu. Yatay panel kısa başlıkla başlıyor; Canvas boyutu pozitif, yatay taşma yok, yakalanmamış JS hatası yok.
+- [x] Telefon viewport'unda hem yerel hem canlı görev 1, öldürme sayısı enjekte edilmeden gerçek savaşla sabitleme fazına ulaştı; sabitleme yapılmadan tamamlanmadı; açık oyuncu eyleminden sonra sonuç ekranı ve panoya dönüş çalıştı.
+- Kanıt: https://github.com/1rid3mon/towerv1/actions/runs/41129257870/artifacts/13011444103 — JSON raporu ve ekran görüntüleri. Önceki başarılı koşunun telefon, sonuç, tablet ve düzeltilmiş yatay görüntüleri de ajan tarafından gözle incelendi.
+- Bu tarayıcılar **temiz misafir bağlamları** kullanır; Firebase API trafiği engellidir. Gerçek kullanıcı hesabı, bulut kaydı veya üretim kuralları değiştirilmedi. Bu sonuç Auth/Firestore üretim testinin yerine geçmez; Chromium viewport testi gerçek iPad/iOS testi değildir.
+
+**GENEL DURUM: KRİTİK HİKÂYE DÜZELTMELERİ TEST EDİLDİ VE YAYINLANDI; OYUNUN TAMAMI TAMAMLANMADI.**
+
+Sonraki ajan için öncelik sırası:
+1. Resmî **Firebase** eklentisi bulunup kullanıcıya önerildi; henüz bağlı olmadığı doğrulandı. Kullanıcı eklentiyi kurup hesabını bağlayınca üretim kurallarını ve doğru projeyi salt okunur inceleyerek başla. Sohbetten anahtar isteme, canlı veriyi sıfırlama. Aday kuralları karşılaştırmadan dağıtma.
+2. Kontrollü test hesaplarıyla gerçek Auth, kullanıcı adı benzersizliği, arkadaş isteği/kabul/silme, iki hesap ayrımı, iki cihaz Story/Endless senkronizasyonu ve eski kayıt uyumluluğunu doğrula.
+3. Endless ekonomi/boss/prestij/envanter/başarımlar için daha geniş oynanış ve denge ölçümü yap; sunucu otoriteli ekonomi/skor ve veri göçü hâlâ eksik.
+4. `es`/`de` dil desteği yok; `tr`/`en` dinamik metin denetimi de gerekli. PR #61'deki 22–24 görevlerini güncel mimariye göre incele; 25–27 ve diğer içerik kapıları açık.
+5. Gerçek iOS/Android/WebView, ses, sürükleme ve performans QA'sı; ardından reklamlı/mağaza sürümü. Üstteki bekleyen kutular, bu yeni dar test kapsamı dışında kapatılmış sayılmaz.
+
+Bu son kayıt yalnızca devir belgesi güncellemesidir; oyun kodu değişmez. Yayın doğrulama belgesi ayrı PR ile main'e taşınacaktır.
