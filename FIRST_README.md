@@ -545,7 +545,7 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [x] Added a dedicated Story HUD button to open/close the upgrade drawer; the isolated Story layout no longer forcibly hides that drawer.
 - [ ] Run CI and verify the full mission loop on the live deployment, including upgrades, mission completion, and Endless save isolation.
 
-## 2026-10-31 (Türkiye) — Devralma denetimi ve görev/kayıt yarış koşulları
+## 2026-10-30 — Devralma denetimi ve görev/kayıt yarış koşulları
 
 **Durum: KISMEN TAMAMLANDI. Tam oyun/yayın onayı verilmedi.**
 
@@ -585,3 +585,12 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [ ] Android/reklamlı mağaza sürümü ve tam yayın onayı bu kapılar kapanmadan hazır sayılmaz.
 - Başlangıç canlı deployment: `dpl_BR4BoRJ1X3cyZd4j67L5X31EV73E`, production `READY`, commit `d58873c`; bu yalnızca API dağıtım doğrulamasıdır.
 - Çalışma dalı: `fix/story-phase-progression-guards`. PR, son commit/CI ve dağıtım sonuçları takip kaydına eklenecek.
+
+### 2026-10-30 — PR #73 doğrulama ve takip
+- PR: https://github.com/1rid3mon/towerv1/pull/73
+- İlk kod commit'i: `da3c8b1bc492010e07643efefca5c339bb5da295`; ağaç `006c0bbe9ef6262e0adf93be42929c823e42e704` yerelde test edilen ağaçla birebir eşleşiyor.
+- [x] Tam yerel Firestore Emulator/regresyon suite: **189/189**, 0 başarısız. Syntax/diff kontrolleri başarılı.
+- [x] İlk commit Vercel preview `dpl_ExF6zgtRuLCHeHGX4cWYc7r4a54R` READY. Bu production değildir ve görsel oynanış kanıtı değildir.
+- [x] Ek davranış testi kaynak/origin/UID doğrulamasını ve iframe kapandıktan sonra ana pencere timer'ının kayıt yazmasını çalıştırır. Yeni suite hedefi **190 test**; son CI sonucu aşağıdaki yayın kaydıyla takip edilir.
+- [x] Anlatı duraklamasında aynı erişilebilirlik attribute'larını her karede yeniden yazmak önlendi; yalnızca pause durumu değişince eşitlenir.
+- [ ] Tarayıcı/mobil, üretim Firebase ve dört dil kapıları hâlâ açık. Oyunun tamamı bitti denmemeli.

@@ -10,6 +10,7 @@ function runtime(mission = 1) {
   const nodes = new Map();
   const storage = new Map();
   const timers = [];
+  const listeners = new Map();
   let randomState = 123456789;
   const seededMath = Object.create(Math);
   seededMath.random = () => { randomState = (Math.imul(randomState, 1664525) + 1013904223) >>> 0; return randomState / 4294967296; };
@@ -30,7 +31,10 @@ function runtime(mission = 1) {
   }
   const sandbox = { console, Math: seededMath, URL, URLSearchParams, performance: { now: () => 100 },
     location: { search: `?runtime=story&mission=${mission}&storyLaunch=parent`, origin: 'https://test.invalid' },
-    parent: { postMessage: noop }, addEventListener: noop, setInterval: noop, clearInterval: noop,
+    parent: { postMessage: noop }, addEventListener: (name, callback) => {
+      if (!listeners.has(name)) listeners.set(name, []);
+      listeners.get(name).push(callback);
+    }, setInterval: noop, clearInterval: noop,
     setTimeout: callback => { timers.push(callback); return timers.length; }, clearTimeout: noop,
     requestAnimationFrame: noop,
     localStorage: { getItem: k => storage.get(k) ?? null, setItem: (k, v) => storage.set(k, String(v)), removeItem: k => storage.delete(k) },
@@ -53,7 +57,7 @@ function runtime(mission = 1) {
   run(`saveStoryProgress(Object.fromEntries(Array.from({length:21}, (_,i)=>['mission'+(i+1)+'Complete', false])));`);
   if (mission > 1) run(`saveStoryProgress({mission${mission - 1}Complete:true});`);
   run(`startStoryMission(${mission});`);
-  return { sandbox, run, nodes, storage, flushTimers() { while (timers.length) timers.shift()(); } };
+  return { sandbox, run, nodes, storage, listeners, flushTimers() { while (timers.length) timers.shift()(); } };
 }
 
 test('Mission 1 cannot finish on a stray completion call or by resuming the stabilization phase', () => {
@@ -166,6 +170,33 @@ test('Story upload rejects a local save belonging to another account', async () 
   sandbox.fbDb = { collection() { assert.fail('must not write unowned data'); } };
   storage.set('towerDefenseStoryProgressOwnerV1', 'a');
   assert.equal(await run('pushStoryProgressToCloud()'), false);
+});
+
+test('only the active same-origin mission can request a parent-owned save that survives frame closure', async () => {
+  const { sandbox, run, storage, listeners, flushTimers } = runtime();
+  const source = {};
+  sandbox.testFrame = { querySelector: () => ({ contentWindow: source }), remove() {} };
+  sandbox.currentUser = { uid: 'a', isCloud: true };
+  sandbox.isFirebaseReady = true;
+  let writes = 0;
+  sandbox.fbDb = { collection: () => ({ doc: uid => {
+    assert.equal(uid, 'a');
+    return { set: async () => { writes++; } };
+  } }) };
+  storage.set('towerDefenseStoryProgressOwnerV1', 'a');
+  run('storyRuntimeFrameOverlay = testFrame');
+  const dispatch = event => listeners.get('message').forEach(callback => callback(event));
+  const valid = { source, origin: 'https://test.invalid', data: { type: 'tower-story-progress-saved', ownerUid: 'a' } };
+  dispatch({ ...valid, origin: 'https://other.invalid' });
+  dispatch({ ...valid, source: {} });
+  dispatch({ ...valid, data: { ...valid.data, ownerUid: 'b' } });
+  flushTimers();
+  assert.equal(writes, 0);
+  dispatch(valid);
+  run('closeStoryRuntimeFrame()');
+  flushTimers();
+  await Promise.resolve();
+  assert.equal(writes, 1);
 });
 
 test('mission 1 combat reaches its objective through the real simulation without awarding completion', () => {

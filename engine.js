@@ -442,8 +442,10 @@ function addFloatingText(x, y, text, color = '#ffffff', size = 12) {
 function updateGame(dt) {
     // Narrative objectives are player actions, never additional combat waves.
     if (GameModeRuntime.isStoryActive() && !GameModeRuntime.isStoryCombatActive()) {
-        isPaused = true;
-        if (typeof syncPlaybackControls === 'function') syncPlaybackControls();
+        if (!isPaused) {
+            isPaused = true;
+            if (typeof syncPlaybackControls === 'function') syncPlaybackControls();
+        }
         return;
     }
     if (isPaused) return;
