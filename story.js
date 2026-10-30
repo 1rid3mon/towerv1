@@ -623,7 +623,18 @@ function startStoryMission(missionNumber = 1) {
     const screen = document.getElementById('story-mode-screen');
     if (screen) { screen.classList.remove('is-open'); screen.setAttribute('aria-hidden', 'true'); }
     const hud = document.getElementById('story-battle-hud');
-    if (hud) { hud.hidden = false; hud.classList.add('is-active'); }
+    const compactMissionPanel = window.innerHeight < 500 && window.innerWidth > window.innerHeight;
+    if (hud) {
+        hud.hidden = false; hud.classList.add('is-active');
+        hud.classList.toggle('is-collapsed', compactMissionPanel);
+    }
+    const missionPanelToggle = document.getElementById('story-mission-panel-toggle');
+    if (missionPanelToggle) {
+        missionPanelToggle.setAttribute('aria-expanded', String(!compactMissionPanel));
+        missionPanelToggle.textContent = compactMissionPanel
+            ? (storyLanguage() === 'en' ? 'SHOW OBJECTIVES ▾' : 'GÖREVİ AÇ ▾')
+            : (storyLanguage() === 'en' ? 'HIDE OBJECTIVES ▴' : 'GÖREVİ KAPAT ▴');
+    }
     const chapterLabel = document.getElementById('story-chapter-label');
     if (chapterLabel) chapterLabel.textContent = missionNumber >= 19
         ? (storyLanguage() === 'en' ? 'CHAPTER 03 · THE SHAPE OF MEMORY' : 'BÖLÜM 03 · HAFIZANIN BİÇİMİ')

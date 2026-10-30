@@ -86,8 +86,10 @@ async function main() {
         await frame.locator('header button[onclick="toggleUpgradeDrawer()"]').click();
         assert.equal(await frame.evaluate(() => isDrawerOpen), true);
         await frame.locator('#upgrade-drawer button[onclick="toggleUpgradeDrawer()"]').click();
+        const expanded = await frame.locator('#story-mission-panel-toggle').getAttribute('aria-expanded');
+        assert.equal(expanded, size.height < 500 ? 'false' : 'true');
         await frame.locator('#story-mission-panel-toggle').click();
-        assert.equal(await frame.locator('#story-mission-panel-toggle').getAttribute('aria-expanded'), 'false');
+        assert.equal(await frame.locator('#story-mission-panel-toggle').getAttribute('aria-expanded'), String(expanded !== 'true'));
         await frame.locator('#story-mission-panel-toggle').click();
         await page.screenshot({ path: path.join(evidence, `${size.name}-mission.png`) });
         if (size.fullCombat) {
@@ -105,6 +107,16 @@ async function main() {
         await page.waitForFunction(() => !document.getElementById('isolated-story-runtime-overlay'));
         const after = await page.evaluate(() => ({ game: JSON.stringify(game), save: localStorage.getItem(SAVE_KEY) }));
         assert.deepEqual(after, before, 'Story must preserve parent Endless state and save');
+        await page.locator('#story-start-mission1').click();
+        await page.waitForFunction(() => document.querySelector('#isolated-story-runtime-overlay iframe')?.contentWindow?.location.search.includes('runtime=story'));
+        const replay = page.frames().find(frame => frame.url().includes('runtime=story'));
+        await replay.waitForFunction(() => typeof GameModeRuntime !== 'undefined' && GameModeRuntime.storySession.active);
+        assert.equal(await replay.evaluate(() => GameModeRuntime.storySession.completed), false);
+        await page.locator('#isolated-story-runtime-overlay > button').click();
+        await page.locator('#story-mode-screen .story-exit').first().click();
+        await page.locator('#mode-main-menu button').filter({ hasText: 'Sonsuz Mod' }).click();
+        assert.equal(await page.evaluate(() => isPaused), false);
+        assert.equal(await page.evaluate(() => game.highestWave), 26);
         assert.deepEqual(errors, []);
         results.push({ target, viewport: size.name, status: 'passed', dimensions, combat: size.fullCombat ? 'natural combat + explicit completion' : 'launch/controls/abort' });
         console.log(JSON.stringify(results.at(-1)));
