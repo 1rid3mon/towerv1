@@ -6,6 +6,7 @@
     "test": "firebase emulators:exec --config ../firebase.json --only firestore --project demo-towerv1-security-lab \"node --test\""
   },
   "devDependencies": {
+    "playwright": "1.62.1",
     "@firebase/rules-unit-testing": "^4.0.1",
     "firebase": "^11.0.0",
     "firebase-tools": "^13.29.2"

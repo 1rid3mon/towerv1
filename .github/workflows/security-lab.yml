@@ -74,3 +74,28 @@ jobs:
       - name: Run Firestore Rules tests in local emulator
         working-directory: security-lab
         run: npm test
+
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install test dependencies
+        working-directory: security-lab
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        working-directory: security-lab
+        run: npx playwright install --with-deps chromium
+      - name: Test Story in desktop and mobile Chromium
+        working-directory: security-lab
+        run: node browser-smoke.cjs
+      - name: Preserve guest-only browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-smoke-evidence
+          path: security-lab/browser-evidence/
+          if-no-files-found: ignore
