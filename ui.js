@@ -1756,6 +1756,12 @@ function toggleGameSpeed() {
     if (button) button.setAttribute('aria-label', `Oyun hızı ${gameSpeed}x`);
 }
 function togglePause() {
+    if (typeof GameModeRuntime !== 'undefined' && GameModeRuntime.isStoryActive() &&
+        !GameModeRuntime.isStoryCombatActive()) {
+        isPaused = true;
+        syncPlaybackControls();
+        return;
+    }
     isPaused = !isPaused;
     const ic = document.getElementById('icon-pause');
     const button = document.getElementById('btn-pause');
@@ -1763,6 +1769,18 @@ function togglePause() {
     if (button) {
         button.setAttribute('aria-label', isPaused ? 'Oyunu sürdür' : 'Oyunu duraklat');
         button.setAttribute('aria-pressed', String(isPaused));
+    }
+}
+function syncPlaybackControls() {
+    setElText('ui-speed', `${gameSpeed}x`);
+    const speedButton = document.getElementById('btn-speed');
+    if (speedButton) speedButton.setAttribute('aria-label', `Oyun hızı ${gameSpeed}x`);
+    const pauseButton = document.getElementById('btn-pause');
+    const pauseIcon = document.getElementById('icon-pause');
+    if (pauseIcon) pauseIcon.className = isPaused ? 'fa-solid fa-play w-3 text-center' : 'fa-solid fa-pause w-3 text-center';
+    if (pauseButton) {
+        pauseButton.setAttribute('aria-label', isPaused ? 'Oyunu sürdür' : 'Oyunu duraklat');
+        pauseButton.setAttribute('aria-pressed', String(isPaused));
     }
 }
 function toggleRangeCircle() { game.settings.showRange = !game.settings.showRange; saveGame(true); }
@@ -3439,7 +3457,7 @@ document.addEventListener('DOMContentLoaded', () => {
             @media (max-width: 1024px) {
                 header, body > div > header, #main-body > header {
                     position: relative !important;
-                    z-index: 9500 !important;
+                    z-index: 20 !important;
                     padding-left: 6px !important;
                     padding-right: 6px !important;
                     max-width: 100vw !important;

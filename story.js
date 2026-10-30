@@ -13,6 +13,12 @@ function isIsolatedStoryRuntime() {
 
 function closeStoryRuntimeFrame() {
     if (storyRuntimeFrameOverlay) {
+        // A close click can beat the child's queued progress message. Schedule from
+        // the already-written shared local record before destroying the frame.
+        if (currentUser?.isCloud && localStorage.getItem(STORY_PROGRESS_OWNER_KEY) === currentUser.uid) {
+            clearTimeout(storyCloudSaveTimer);
+            storyCloudSaveTimer = setTimeout(() => pushStoryProgressToCloud(true), 1200);
+        }
         storyRuntimeFrameOverlay.remove();
         storyRuntimeFrameOverlay = null;
     }
@@ -45,7 +51,7 @@ function openStoryRuntimeFrame(missionNumber) {
     close.type = 'button';
     close.textContent = storyLanguage() === 'en' ? 'CLOSE MISSION ✕' : 'GÖREVİ KAPAT ✕';
     close.setAttribute('aria-label', storyLanguage() === 'en' ? 'Close Story mission' : 'Hikâye görevini kapat');
-    close.style.cssText = 'position:absolute;top:10px;right:10px;z-index:2;padding:9px 12px;border:1px solid rgba(148,163,184,.45);border-radius:10px;background:rgba(2,6,23,.88);color:#e2e8f0;font:700 11px sans-serif;letter-spacing:.04em;';
+    close.style.cssText = 'position:absolute;bottom:max(10px,env(safe-area-inset-bottom));right:max(10px,env(safe-area-inset-right));z-index:2;padding:9px 12px;border:1px solid rgba(148,163,184,.45);border-radius:10px;background:rgba(2,6,23,.88);color:#e2e8f0;font:700 11px sans-serif;letter-spacing:.04em;';
     close.addEventListener('click', closeStoryRuntimeFrame);
     overlay.append(frame, close);
     storyRuntimeFrameOverlay = overlay;
@@ -57,6 +63,13 @@ window.addEventListener('message', event => {
     const frame = storyRuntimeFrameOverlay.querySelector('iframe');
     if (!frame || event.source !== frame.contentWindow) return;
     if (event.data?.type === 'tower-story-runtime-close') closeStoryRuntimeFrame();
+    // Use the parent timer: removing the mission iframe cancels the child's debounced save.
+    if (event.data?.type === 'tower-story-progress-saved' && currentUser?.isCloud &&
+        event.data.ownerUid === currentUser.uid &&
+        localStorage.getItem(STORY_PROGRESS_OWNER_KEY) === currentUser.uid) {
+        clearTimeout(storyCloudSaveTimer);
+        storyCloudSaveTimer = setTimeout(() => pushStoryProgressToCloud(true), 1200);
+    }
 });
 
 const STORY_PROGRESS_KEY = 'towerDefenseStoryProgressV1';
@@ -139,6 +152,10 @@ function saveStoryProgress(patch) {
     try {
         const next = { ...getStoryProgress(), ...patch, updatedAt: Date.now() };
         localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(next));
+        if (isIsolatedStoryRuntime()) {
+            window.parent.postMessage({ type: 'tower-story-progress-saved',
+                ownerUid: localStorage.getItem(STORY_PROGRESS_OWNER_KEY) }, window.location.origin);
+        }
         if (currentUser && currentUser.isCloud && isFirebaseReady && fbDb) {
             clearTimeout(storyCloudSaveTimer);
             storyCloudSaveTimer = setTimeout(() => pushStoryProgressToCloud(true), 1200);
@@ -164,12 +181,19 @@ function getValidatedStoryProgress(source) {
 }
 async function pushStoryProgressToCloud(silent = true) {
     if (!currentUser || !currentUser.isCloud || !isFirebaseReady || !fbDb) return false;
+    const ownerUid = currentUser.uid;
+    if (localStorage.getItem(STORY_PROGRESS_OWNER_KEY) !== ownerUid) return false;
     try {
+        const localAtStart = localStorage.getItem(STORY_PROGRESS_KEY);
         const progress = getStoryProgress();
         const payload = { ...progress, updatedAt: Math.max(Date.now(), progress.updatedAt || 0) };
-        await fbDb.collection('storyProgress').doc(currentUser.uid).set(payload);
-        localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(payload));
-        localStorage.setItem(STORY_PROGRESS_OWNER_KEY, currentUser.uid);
+        await fbDb.collection('storyProgress').doc(ownerUid).set(payload);
+        // A delayed response must not roll back a newer mission or relabel another account's save.
+        if (currentUser?.uid !== ownerUid || localStorage.getItem(STORY_PROGRESS_OWNER_KEY) !== ownerUid) return false;
+        if (localStorage.getItem(STORY_PROGRESS_KEY) === localAtStart) {
+            localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(payload));
+            localStorage.setItem(STORY_PROGRESS_OWNER_KEY, currentUser.uid);
+        }
         if (!silent) showToast('☁️ Hikâye ilerlemen buluta kaydedildi.');
         return true;
     } catch (err) {
@@ -180,9 +204,11 @@ async function pushStoryProgressToCloud(silent = true) {
 }
 async function pullStoryProgressFromCloud(silent = true) {
     if (!currentUser || !currentUser.isCloud || !isFirebaseReady || !fbDb) return false;
+    const ownerUid = currentUser.uid;
     try {
-        const ref = fbDb.collection('storyProgress').doc(currentUser.uid);
+        const ref = fbDb.collection('storyProgress').doc(ownerUid);
         const snapshot = await ref.get();
+        if (currentUser?.uid !== ownerUid) return false;
         const localOwner = localStorage.getItem(STORY_PROGRESS_OWNER_KEY);
         const belongsToAnotherAccount = !!localOwner && localOwner !== currentUser.uid;
         // A local save without an owner marker is legacy/guest data, not proof that it belongs
@@ -597,9 +623,22 @@ function startStoryMission(missionNumber = 1) {
     const screen = document.getElementById('story-mode-screen');
     if (screen) { screen.classList.remove('is-open'); screen.setAttribute('aria-hidden', 'true'); }
     const hud = document.getElementById('story-battle-hud');
-    if (hud) { hud.hidden = false; hud.classList.add('is-active'); }
+    const compactMissionPanel = window.innerHeight < 500 && window.innerWidth > window.innerHeight;
+    if (hud) {
+        hud.hidden = false; hud.classList.add('is-active');
+        hud.classList.toggle('is-collapsed', compactMissionPanel);
+    }
+    const missionPanelToggle = document.getElementById('story-mission-panel-toggle');
+    if (missionPanelToggle) {
+        missionPanelToggle.setAttribute('aria-expanded', String(!compactMissionPanel));
+        missionPanelToggle.textContent = compactMissionPanel
+            ? (storyLanguage() === 'en' ? 'SHOW OBJECTIVES ▾' : 'GÖREVİ AÇ ▾')
+            : (storyLanguage() === 'en' ? 'HIDE OBJECTIVES ▴' : 'GÖREVİ KAPAT ▴');
+    }
     const chapterLabel = document.getElementById('story-chapter-label');
-    if (chapterLabel) chapterLabel.textContent = missionNumber >= 10
+    if (chapterLabel) chapterLabel.textContent = missionNumber >= 19
+        ? (storyLanguage() === 'en' ? 'CHAPTER 03 · THE SHAPE OF MEMORY' : 'BÖLÜM 03 · HAFIZANIN BİÇİMİ')
+        : missionNumber >= 10
         ? (storyLanguage() === 'en' ? 'CHAPTER 02 · BENEATH THE SIGNAL' : 'BÖLÜM 02 · SİNYALİN ALTINDA')
         : (storyLanguage() === 'en' ? 'CHAPTER 01 · LOST SIGNAL' : 'BÖLÜM 01 · KAYIP SİNYAL');
     const commsByMission = {
@@ -734,6 +773,7 @@ function toggleStoryMissionPanel() {
 function finishStoryBattleEncounter() {
     const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.completed) return;
+    if (GameModeRuntime.isStoryCombatActive() && game.waveKills < game.waveTargetKills) return;
     const en = storyLanguage() === 'en';
     const setStatus = text => { const el = document.getElementById('story-battle-status'); if (el) el.textContent = text; };
     const setAction = (id, hidden, label) => { const el = document.getElementById(id); if (el) { el.hidden = hidden; if (label) el.textContent = label; } };
@@ -1036,12 +1076,13 @@ function finishStoryBattleEncounter() {
             window.setTimeout(() => {
                 if (GameModeRuntime.storySession !== session || !session.active || session.phase !== 'adminVerified') return;
                 session.phase = 'complete'; session.completed = true; showStoryMissionResult();
+                // Persist before exposing a return action; closing the iframe cancels its timers.
+                saveStoryProgress({ introSeen: true, chapter: 2, mission10Complete: true, pulseTutorialComplete: true });
                 setStatus(en ? 'LIFT STABLE · DESCENT ACCESS GRANTED.' : 'ASANSÖR SABİT · ALT KAT ERİŞİMİ AÇILDI.');
                 setStoryComms('KOMUTAN','COMMANDER','Sistemde kaydın yok. Nasıl yönetici olabilirsin?','You have no identity record in this system. How can you be an administrator?');
                 window.setTimeout(() => {
                     if (GameModeRuntime.storySession !== session || !session.active || session.phase !== 'complete') return;
                     setStoryComms('PİKO','PIKO','Bilmiyorum. Ama kapı açılınca… içimde bir şey hatırladı.','I don’t know. But when the door opened… something inside me remembered.');
-                    saveStoryProgress({ introSeen: true, chapter: 2, mission10Complete: true, pulseTutorialComplete: true });
                     setExit(en ? 'RETURN TO CHAPTER BOARD' : 'GÖREV PANOSUNA DÖN');
                     showToast(en ? 'Mission 10 complete. Pulse tutorial progress saved.' : '10. görev tamamlandı. Darbe öğreticisi ilerlemesi kaydedildi.');
                 }, 1500);
@@ -1240,6 +1281,8 @@ function finishStoryBattleEncounter() {
     // Only missions 1 and 2 use the generic combat/scan completion path below.
     // Unknown or out-of-order phases must never fall through and falsely award mission 2.
     if (![1, 2].includes(session.mission)) return;
+    if (session.mission === 1 && session.phase !== 'stabilize') return;
+    if (session.mission === 2 && (session.phase !== 'scan' || session.scans < 3)) return;
 
     session.completed = true; showStoryMissionResult(); isPaused = true; enemies = []; projectiles = [];
     if (session.mission === 1) {
@@ -1367,6 +1410,7 @@ function startStoryChapter2CombatStage(targetKills, statusTr, statusEn) {
     enemies = []; projectiles = [];
     game.wave = 1; game.highestWave = 1; game.waveKills = 0; game.waveTargetKills = targetKills; game.holdWave = false;
     spawnTimer = 0; cargoSpawnTimer = 999999; isDefeated = false; defeatTimer = 0; gameSpeed = 1; isPaused = false;
+    if (typeof syncPlaybackControls === 'function') syncPlaybackControls();
     const action = document.getElementById('story-chapter2-action'); if (action) action.hidden = true;
     const human = document.getElementById('story-chapter2-route-human'); if (human) human.hidden = true;
     const archive = document.getElementById('story-chapter2-route-archive'); if (archive) archive.hidden = true;

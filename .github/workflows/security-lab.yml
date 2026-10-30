@@ -10,6 +10,7 @@ on:
       - ".github/workflows/security-lab.yml"
       - "ui.js"
       - "story.js"
+      - "mode-runtime.js"
       - "index.html"
       - "engine.js"
       - "render.js"
@@ -27,6 +28,8 @@ on:
       - "DATA_STORAGE_ARCHITECTURE.md"
       - ".github/workflows/security-lab.yml"
       - "ui.js"
+      - "story.js"
+      - "mode-runtime.js"
       - "index.html"
       - "engine.js"
       - "render.js"
@@ -58,6 +61,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check ui.js
+          node --check mode-runtime.js
           node --check story.js
           node --check engine.js
           node --check render.js
@@ -70,3 +74,32 @@ jobs:
       - name: Run Firestore Rules tests in local emulator
         working-directory: security-lab
         run: npm test
+
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install test dependencies
+        working-directory: security-lab
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        working-directory: security-lab
+        run: npx playwright install --with-deps chromium
+      - name: Test Story in desktop and mobile Chromium
+        working-directory: security-lab
+        run: node browser-smoke.cjs
+      - name: Test the matching live production assets with a disposable guest
+        if: github.ref == 'refs/heads/main'
+        working-directory: security-lab
+        run: node browser-smoke.cjs --live
+      - name: Preserve guest-only browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-smoke-evidence
+          path: security-lab/browser-evidence/
+          if-no-files-found: ignore
