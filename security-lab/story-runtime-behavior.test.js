@@ -9,7 +9,8 @@ const vm = require('node:vm');
 function runtime(mission = 1) {
   const nodes = new Map();
   const storage = new Map();
-  const timers = [];
+  const timers = new Map();
+  let nextTimer = 0;
   const listeners = new Map();
   let randomState = 123456789;
   const seededMath = Object.create(Math);
@@ -35,7 +36,8 @@ function runtime(mission = 1) {
       if (!listeners.has(name)) listeners.set(name, []);
       listeners.get(name).push(callback);
     }, setInterval: noop, clearInterval: noop,
-    setTimeout: callback => { timers.push(callback); return timers.length; }, clearTimeout: noop,
+    setTimeout: callback => { const id = ++nextTimer; timers.set(id, callback); return id; },
+    clearTimeout: id => timers.delete(id),
     requestAnimationFrame: noop,
     localStorage: { getItem: k => storage.get(k) ?? null, setItem: (k, v) => storage.set(k, String(v)), removeItem: k => storage.delete(k) },
     document: { readyState: 'loading', body: node('body'), head: node('head'), getElementById: node,
@@ -57,7 +59,9 @@ function runtime(mission = 1) {
   run(`saveStoryProgress(Object.fromEntries(Array.from({length:21}, (_,i)=>['mission'+(i+1)+'Complete', false])));`);
   if (mission > 1) run(`saveStoryProgress({mission${mission - 1}Complete:true});`);
   run(`startStoryMission(${mission});`);
-  return { sandbox, run, nodes, storage, listeners, flushTimers() { while (timers.length) timers.shift()(); } };
+  return { sandbox, run, nodes, storage, listeners, flushTimers() {
+    while (timers.size) { const [id, callback] = timers.entries().next().value; timers.delete(id); callback(); }
+  } };
 }
 
 test('Mission 1 cannot finish on a stray completion call or by resuming the stabilization phase', () => {
@@ -194,6 +198,20 @@ test('only the active same-origin mission can request a parent-owned save that s
   assert.equal(writes, 0);
   dispatch(valid);
   run('closeStoryRuntimeFrame()');
+  flushTimers();
+  await Promise.resolve();
+  assert.equal(writes, 1);
+});
+
+test('closing the mission before its progress message arrives still schedules an owned cloud save', async () => {
+  const { sandbox, run, storage, flushTimers } = runtime();
+  sandbox.testFrame = { remove() {} };
+  sandbox.currentUser = { uid: 'a', isCloud: true };
+  sandbox.isFirebaseReady = true;
+  let writes = 0;
+  sandbox.fbDb = { collection: () => ({ doc: () => ({ set: async () => { writes++; } }) }) };
+  storage.set('towerDefenseStoryProgressOwnerV1', 'a');
+  run('storyRuntimeFrameOverlay = testFrame; closeStoryRuntimeFrame()');
   flushTimers();
   await Promise.resolve();
   assert.equal(writes, 1);

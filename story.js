@@ -13,6 +13,12 @@ function isIsolatedStoryRuntime() {
 
 function closeStoryRuntimeFrame() {
     if (storyRuntimeFrameOverlay) {
+        // A close click can beat the child's queued progress message. Schedule from
+        // the already-written shared local record before destroying the frame.
+        if (currentUser?.isCloud && localStorage.getItem(STORY_PROGRESS_OWNER_KEY) === currentUser.uid) {
+            clearTimeout(storyCloudSaveTimer);
+            storyCloudSaveTimer = setTimeout(() => pushStoryProgressToCloud(true), 1200);
+        }
         storyRuntimeFrameOverlay.remove();
         storyRuntimeFrameOverlay = null;
     }

@@ -594,3 +594,4 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [x] Ek davranış testi kaynak/origin/UID doğrulamasını ve iframe kapandıktan sonra ana pencere timer'ının kayıt yazmasını çalıştırır. Yeni suite hedefi **190 test**; son CI sonucu aşağıdaki yayın kaydıyla takip edilir.
 - [x] Anlatı duraklamasında aynı erişilebilirlik attribute'larını her karede yeniden yazmak önlendi; yalnızca pause durumu değişince eşitlenir.
 - [ ] Tarayıcı/mobil, üretim Firebase ve dört dil kapıları hâlâ açık. Oyunun tamamı bitti denmemeli.
+- [x] Ek kapatma yarışı: kullanıcı kapatma düğmesine, iframe'in ilerleme bildirimi ana pencereye ulaşmadan basarsa da ana pencere sahipliği doğrulanmış yerel kaydı buluta yazmak için timer kurar. Gerçek timer iptal davranışı ve bu olay sırası için regresyon eklendi; suite hedefi 191.
