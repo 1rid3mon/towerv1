@@ -364,7 +364,7 @@ test('plasma satellite target selection matches stable nearest-first slicing wit
 test('Story wave completion fails closed if the Story controller did not load', () => {
   const body = extractFunction(engineSource, 'function completeWave()', 'function triggerTowerDefeat()');
   const sandbox = {
-    GameModeRuntime: { isStoryActive: () => true },
+    GameModeRuntime: { isStoryActive: () => true, isStoryCombatActive: () => true },
     isPaused: false,
     game: { wave: 7, gold: 123, crystals: 9 },
     showToast(message) { sandbox.toast = message; },
@@ -383,14 +383,15 @@ test('Story completion exceptions pause safely instead of escaping the engine lo
   const body = extractFunction(engineSource, 'function completeWave()', 'function triggerTowerDefeat()');
   let toast = '';
   let logged = '';
-  const runner = new Function('GameModeRuntime', 'isPaused', 'showToast', 'console', 'finishStoryBattleEncounter',
+  const runner = new Function('GameModeRuntime', 'isPaused', 'showToast', 'console', 'finishStoryBattleEncounter', 'game',
     body + '\ncompleteWave(); return isPaused;');
   const paused = runner(
-    { isStoryActive: () => true },
+    { isStoryActive: () => true, isStoryCombatActive: () => true },
     false,
     message => { toast = message; },
     { error: message => { logged = message; } },
-    () => { throw new Error('synthetic Story completion failure'); }
+    () => { throw new Error('synthetic Story completion failure'); },
+    { waveKills: 8, waveTargetKills: 8 }
   );
   assert.equal(paused, true);
   assert.match(toast, /Hikâye görevi bitirilemedi/);

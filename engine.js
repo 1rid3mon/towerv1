@@ -440,6 +440,12 @@ function addFloatingText(x, y, text, color = '#ffffff', size = 12) {
 }
 
 function updateGame(dt) {
+    // Narrative objectives are player actions, never additional combat waves.
+    if (GameModeRuntime.isStoryActive() && !GameModeRuntime.isStoryCombatActive()) {
+        isPaused = true;
+        if (typeof syncPlaybackControls === 'function') syncPlaybackControls();
+        return;
+    }
     if (isPaused) return;
 
     playTimeAccum += dt;
@@ -1011,6 +1017,7 @@ function damageTower(rawDamage, attacker) {
 
 function completeWave() {
     if (GameModeRuntime.isStoryActive()) {
+        if (!GameModeRuntime.isStoryCombatActive() || game.waveKills < game.waveTargetKills) return;
         if (typeof finishStoryBattleEncounter !== 'function') {
             // Never fall through into Endless rewards when Story's controller failed to load.
             isPaused = true;
@@ -1032,6 +1039,8 @@ function completeWave() {
             if (typeof showToast === 'function') {
                 showToast('Hikâye görevi bitirilemedi. İlerlemen korunuyor; oyunu yenileyip tekrar dene.');
             }
+        } finally {
+            if (typeof syncPlaybackControls === 'function') syncPlaybackControls();
         }
         return;
     }

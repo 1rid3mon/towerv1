@@ -10,6 +10,7 @@ on:
       - ".github/workflows/security-lab.yml"
       - "ui.js"
       - "story.js"
+      - "mode-runtime.js"
       - "index.html"
       - "engine.js"
       - "render.js"
@@ -27,6 +28,8 @@ on:
       - "DATA_STORAGE_ARCHITECTURE.md"
       - ".github/workflows/security-lab.yml"
       - "ui.js"
+      - "story.js"
+      - "mode-runtime.js"
       - "index.html"
       - "engine.js"
       - "render.js"
@@ -58,6 +61,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check ui.js
+          node --check mode-runtime.js
           node --check story.js
           node --check engine.js
           node --check render.js

@@ -25,6 +25,10 @@
         isStoryActive() {
             return activeMode === 'story' && storySession?.active === true;
         },
+        isStoryCombatActive() {
+            return runtime.isStoryActive() && !storySession.completed &&
+                ['combat', 'combat2', 'combat3'].includes(storySession.phase);
+        },
         enterStory(session) {
             if (!session || session.active !== true) {
                 throw new TypeError('A live Story session is required.');

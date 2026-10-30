@@ -544,3 +544,44 @@ Her anlamlı iş bittiğinde aşağıdaki şablonu dosyanın sonuna ekle ve dold
 - [x] Mission 01 now pauses after the required hostiles are defeated and asks the player to stabilize the core before completion is recorded.
 - [x] Added a dedicated Story HUD button to open/close the upgrade drawer; the isolated Story layout no longer forcibly hides that drawer.
 - [ ] Run CI and verify the full mission loop on the live deployment, including upgrades, mission completion, and Endless save isolation.
+
+## 2026-10-31 (Türkiye) — Devralma denetimi ve görev/kayıt yarış koşulları
+
+**Durum: KISMEN TAMAMLANDI. Tam oyun/yayın onayı verilmedi.**
+
+- Başlangıç main SHA: `d58873c4798b69254cdf6176f9aeb6711b8d3b64`. PR #72 birleşmiş; main CI `40861208608` başarılı. Önceki başarısız `40861000758` koşusunun logunda değişen fonksiyon biçimine uymayan eski regex testi bulundu; son başarılı koşu bunu kapsıyor.
+- FIRST_README'nin 546 satırlık önceki kaydı tamamen okundu. Gerçek yapı: `index.html`, `mode-runtime.js`, `data.js`, `ui.js`, `story.js`, `render.js`, `engine.js`; Firebase aday kuralları kökte, emülatör harness'i `security-lab/` içinde.
+- Açık PR denetimi: #63'ün veri temeli #64 ile, #50'nin sahiplik düzeltmesi #70 ile main'de karşılanmış. Bunlar yeniden körlemesine birleştirilmemeli. #61'de 22–24 görevleri var ama main'de yalnızca 1–21 bulunuyor. #54, #55, #12, #10 ve #4 de açık/eski çalışma içeriyor; mevcut main'e göre yeniden inceleme gerektiriyor.
+
+### Gerçek kodda yeniden üretilen ve düzeltilen hatalar
+
+- [x] Savaş bittikten sonra pause tuşuyla anlatı aşamasını sürdürmek, yeni düşman öldürülünce savaş callback'inin tarama/darbe adımlarını tüketmesine yol açabiliyordu. `isStoryCombatActive()` savaş fazlarını açıkça sınırlar; simülasyon ve dalga sonu yalnızca bu fazları işler.
+- [x] Erken/tekrarlanan savaş tamamlama callback'leri artık hedef öldürme sayısını sağlamadan görev fazını ilerletemez. Görev 2'nin tamamlanması üç gerçek tarama eylemi gerektirir; görev 1 yalnızca sabitleme fazından tamamlanır.
+- [x] Otomatik duraklama ve yeni savaş aşamasında hız/erişilebilir pause göstergeleri eşitlenir. Anlatı aşamasını pause tuşuyla savaşa çevirmek engellenir.
+- [x] Görev 10'da sonuç ekranından dönen oyuncu, son repliğin zamanlayıcısı iptal olduğu için ilerlemeyi kaybedebiliyordu. Kalıcı ilerleme sonuç ekranının gösterildiği aşamada kaydedilir.
+- [x] Çocuk iframe kaldırıldığında onun debounce timer'ı da yok olur. Yerel ilerleme bildirimi kaynak pencere + origin + UID doğrulanarak ana pencereye taşınır; ana pencere bulut yazımını zamanlar.
+- [x] Gecikmiş Story push yanıtı yeni yerel görevi ezmez; gecikmiş push/pull yanıtı hesap değiştikten sonra yeni hesabın yerel kaydını/UID işaretini değiştirmez. Upload, UID sahipliği eşleşmeyen kaydı reddeder.
+- [x] Görev 19–21 başlangıcındaki yanlış Bölüm 02 etiketi Bölüm 03 olarak düzeltildi.
+- [x] Ana pencerenin görev kapatma düğmesi sağ üst hız/pause kontrollerini örtmemesi için güvenli alt kenara alındı. Bu yerleşim kod incelemesine dayanır; mobil görsel doğrulama yapılmadı.
+- [x] `mode-runtime.js` CI tetikleyicilerine ve syntax adımına; eksik push `story.js` yolu da tetikleyicilere eklendi.
+
+### Doğrulama
+
+- [x] Başlangıç suite'i yerelde gerçek Firestore Emulator ile **158/158** geçti.
+- [x] Yeni VM davranış testleri düzeltme öncesinde beş farklı beklentide başarısız olarak hataları gösterdi; düzeltmeden sonra geçti.
+- [x] Yeni testler: görev 1'in gerçek `updateGame` simülasyonuyla düşman öldürerek sabitleme adımına ulaşması; görev 1–21 controller savaş/eylem/kayıt yolları; görev 2 tarama koşulu; görev 10 darbe koşulu; anlatı pause koruması; otomatik HUD; 25 dalga kilidi; bulut yanıtı/hesap yarışı. Simülasyon RNG'si tekrarlanabilir.
+- [x] Genişletilen suite 188/188 geçti; ardından 25 dalga sınır testi eklendi (31 yeni davranış testi). Son 189 testlik tam koşu ve PR CI aşağıdaki yayın kaydında belirtilecek.
+- [x] Altı üretim JS dosyasında `node --check`; `git diff --check` başarılı.
+- [ ] Tarayıcı/mobil görsel veya canlı etkileşim testi: yerel Chromium `socket() failed: Operation not permitted` ile başlatılamadı; CUA iki denemede `trusted Node process exited unexpectedly` hatası verdi. VM testleri gerçek tarayıcı, dokunma, Canvas görüntüsü, ses, WebView veya iPad testi değildir.
+
+### Tamamlanma kapıları / sonraki öncelikler
+
+- [ ] Yetkili Firebase erişimiyle **yayınlanmış** kuralları kök `firestore.rules` ile karşılaştır. Bu oturum üretim kurallarını değiştirmedi veya kullanıcı verisi silmedi.
+- [ ] İki kontrollü test hesabı ve iki cihazla Auth, username yarışı, Story/Endless push-pull, arkadaş isteği/kabul/silme, envanter, hesap değişimi/silme akışlarını doğrula. Emülatör bu üretim kanıtının yerine geçmez.
+- [ ] Skor/ekonomi hâlâ istemci tarafından bildirilir; JSON/checksum/kurallar gerçek kazanımı kanıtlamaz. Mevcut backend yok; sunucu otoriteli sistem ve eski kullanıcı verisi göçü test edilmeden rekabetçi/ödüllü güvenlik iddiası yapılamaz.
+- [ ] Dil sistemi gerçekte `tr`/`en` seçiyor. `es`/`de` yok; tam dört dil desteği tamamlanmadı. İngilizce dinamik metinlerde de kapsam denetimi gerekli.
+- [ ] Görev 22–24 açık PR #61'de; 25–27 tasarım aşamasında. Önce tarayıcı ve üretim veri kapılarını kapat, sonra güncel main üzerinde içerik/lokalizasyonu sürdür.
+- [ ] Sonsuz mod ekonomi dengesi, erken yükseltmelerle yüksek dalga, boss/prestij, başarımlar/unvanlar ve mobil performans için gerçek oyun ölçümü gerekli. Bu düzeltme Endless formüllerini değiştirmedi.
+- [ ] Android/reklamlı mağaza sürümü ve tam yayın onayı bu kapılar kapanmadan hazır sayılmaz.
+- Başlangıç canlı deployment: `dpl_BR4BoRJ1X3cyZd4j67L5X31EV73E`, production `READY`, commit `d58873c`; bu yalnızca API dağıtım doğrulamasıdır.
+- Çalışma dalı: `fix/story-phase-progression-guards`. PR, son commit/CI ve dağıtım sonuçları takip kaydına eklenecek.
