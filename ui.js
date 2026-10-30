@@ -3457,7 +3457,7 @@ document.addEventListener('DOMContentLoaded', () => {
             @media (max-width: 1024px) {
                 header, body > div > header, #main-body > header {
                     position: relative !important;
-                    z-index: 9500 !important;
+                    z-index: 20 !important;
                     padding-left: 6px !important;
                     padding-right: 6px !important;
                     max-width: 100vw !important;
