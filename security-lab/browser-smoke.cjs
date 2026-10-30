@@ -6,7 +6,9 @@ const http = require('node:http');
 const { chromium } = require('playwright');
 
 const root = path.resolve(__dirname, '..');
-const evidence = path.join(__dirname, 'browser-evidence');
+const live = process.argv.includes('--live');
+const target = live ? 'https://towerv1-murex.vercel.app/' : 'http://127.0.0.1:4173/';
+const evidence = path.join(__dirname, 'browser-evidence', live ? 'live' : 'local');
 fs.mkdirSync(evidence, { recursive: true });
 const results = [];
 const server = http.createServer((request, response) => {
@@ -21,7 +23,19 @@ const server = http.createServer((request, response) => {
 });
 
 async function main() {
-  await new Promise(resolve => server.listen(4173, '127.0.0.1', resolve));
+  if (!live) await new Promise(resolve => server.listen(4173, '127.0.0.1', resolve));
+  if (live) {
+    // Test exactly the checked-out production revision, not a stale deployment.
+    let matches = false;
+    for (let attempt = 0; attempt < 30 && !matches; attempt++) {
+      matches = (await Promise.all(['index.html', 'mode-runtime.js', 'data.js', 'ui.js', 'story.js', 'engine.js', 'render.js'].map(async file => {
+        const response = await fetch(new URL(file, target));
+        return response.ok && await response.text() === fs.readFileSync(path.join(root, file), 'utf8');
+      }))).every(Boolean);
+      if (!matches) await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+    assert.equal(matches, true, 'Production assets must match the tested commit');
+  }
   const browser = await chromium.launch({ headless: true });
   try {
     for (const size of [
@@ -38,10 +52,10 @@ async function main() {
       const errors = [];
       page.on('pageerror', error => errors.push(error.message));
       try {
-        await page.goto('http://127.0.0.1:4173/', { waitUntil: 'networkidle' });
+        await page.goto(target, { waitUntil: 'networkidle' });
         await page.waitForFunction(() => typeof GameModeRuntime !== 'undefined' && typeof game !== 'undefined');
         assert.equal(await page.locator('#mode-main-menu').isVisible(), true);
-        // Seed only this fresh localhost guest context with the legitimate wave-26 boundary.
+        // Seed only this fresh disposable guest context with the wave-26 boundary.
         await page.evaluate(() => {
           game.highestWave = 26; game.wave = 26;
           window._syncShadow(); saveGame(true); clearInterval(gameSaveTimer);
@@ -92,7 +106,7 @@ async function main() {
         const after = await page.evaluate(() => ({ game: JSON.stringify(game), save: localStorage.getItem(SAVE_KEY) }));
         assert.deepEqual(after, before, 'Story must preserve parent Endless state and save');
         assert.deepEqual(errors, []);
-        results.push({ viewport: size.name, status: 'passed', dimensions, combat: size.fullCombat ? 'natural combat + explicit completion' : 'launch/controls/abort' });
+        results.push({ target, viewport: size.name, status: 'passed', dimensions, combat: size.fullCombat ? 'natural combat + explicit completion' : 'launch/controls/abort' });
         console.log(JSON.stringify(results.at(-1)));
       } catch (error) {
         await page.screenshot({ path: path.join(evidence, `${size.name}-failure.png`) }).catch(() => {});
@@ -105,4 +119,4 @@ async function main() {
     }
   } finally { await browser.close(); }
 }
-main().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => server.close());
+main().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => { if (server.listening) server.close(); });
