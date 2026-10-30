@@ -625,3 +625,10 @@ Sonraki ajan için öncelik sırası:
 5. Gerçek iOS/Android/WebView, ses, sürükleme ve performans QA'sı; ardından reklamlı/mağaza sürümü. Üstteki bekleyen kutular, bu yeni dar test kapsamı dışında kapatılmış sayılmaz.
 
 Bu son kayıt yalnızca devir belgesi güncellemesidir; oyun kodu değişmez. Yayın doğrulama belgesi ayrı PR ile main'e taşınacaktır.
+
+### Son yayın notu — belge dağıtımı kotası
+- [x] Yukarıdaki doğrulama kaydı PR #74 ile main'e alındı: `66510d828c872ec5f601fbc1d3ce2de3483b8985`.
+- [ ] Bu **yalnızca FIRST_README** commit'inin Vercel check'i `failure`: **Deployment rate limited — retry in 24 hours.** Üretim dağıtımı yeniden oluşturulmadı; bunu yeni commit için READY diye raporlama.
+- [x] Canlı production alias hâlâ testleri geçen `d9f8f897d1a2ff45eb1376905122cd73408b07db` / `dpl_CuiWEzpTb5WcLAJpGV6nCHkLgzYR` READY sürümünü sunuyor. `git diff d9f8f89 66510d8` yalnızca FIRST_README değişikliğini gösteriyor; yedi oyun kaynağında fark yok.
+- Son belge ekleri için aynı kota sürebilir. Ödeme/plan yükseltmesi yapılmadı, dağıtım sınırını aşmak için tekrar tekrar build denenmedi. Kota açılınca en son main dağıtımını yeniden kontrol et; mevcut çalışan production sürümünü gereksiz yere değiştirme.
+- Son durum: kritik oyun düzeltmesi yayında ve canlı Chromium doğrulaması başarılı; en son belge commit'inin Vercel check'i kota nedeniyle yeşil değil. Tüm oyun tamamlanma kriterlerinin sağlandığını iddia etme. Bir sonraki bağımlı iş, resmî Firebase eklentisinin kullanıcı tarafından kurulup hesaba bağlanmasıdır.
