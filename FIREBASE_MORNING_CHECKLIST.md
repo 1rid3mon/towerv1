@@ -19,3 +19,9 @@ Oyun savaşı ve ekonomi hâlâ istemcide hesaplanır. Kayıt checksum'u ve öd�
 ## Firebase'den bağımsız son kontroller
 
 En son PR'nin Actions sonuçlarını ve Vercel'de o **commit** için READY durumunu kontrol et. Eski bir dağıtımın READY olması yeni sürümü doğrulamaz. Üretim asset eşleşmesi ve misafir Chromium testinin sonucu ayrı raporlanmalıdır. Gerçek iOS/iPad ve Android dokunma/ses/performans testi ayrıca gereklidir.
+
+## Son yayın ve hesap geçişi ek kontrolü
+
+31 Ekim oyun kaynağı `20b4a01ac25ed7873f6932fd13aefc0023ae66a1` / PR #76 yayımlandı. Main CI `41179542041`: 245 test, 27 görevlik Chromium kampanyası, Chromium ve WebKit'te yerel/canlı dört viewport başarılı. Bunlar temiz misafir testleridir; üretim Auth/Firestore hâlâ doğrulanmadı.
+
+A→B→A geçişini **görev açıkken** de dene. Eski görev kapanmalı; A'nın bekleyen yerel Story kaydı hesap önbelleğinde kalıp A'ya dönüşte korunmalı. Misafir→hesap→misafir geçişi misafir kaydını hesaba otomatik aktarmamalı. Üretim bağlantısı olmadan bu senaryolar yalnızca controller/adapter testleriyle doğrulandı. İlk 21 görevde yarım görev yeniden başlar; 22–27 yerel aşama kontrol noktası tutar. İki cihazda aynı yarım sahneden devam bekleme.
