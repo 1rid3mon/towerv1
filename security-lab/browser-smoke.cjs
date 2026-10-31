@@ -3,12 +3,14 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
-const { chromium } = require('playwright');
+const { chromium, webkit } = require('playwright');
+const browserName = process.env.BROWSER_ENGINE || 'chromium';
+assert.ok(['chromium','webkit'].includes(browserName));
 
 const root = path.resolve(__dirname, '..');
 const live = process.argv.includes('--live');
 const target = live ? 'https://towerv1-murex.vercel.app/' : 'http://127.0.0.1:4173/';
-const evidence = path.join(__dirname, 'browser-evidence', live ? 'live' : 'local');
+const evidence = path.join(__dirname, 'browser-evidence', browserName, live ? 'live' : 'local');
 fs.mkdirSync(evidence, { recursive: true });
 const results = [];
 const server = http.createServer((request, response) => {
@@ -36,7 +38,7 @@ async function main() {
     }
     assert.equal(matches, true, 'Production assets must match the tested commit');
   }
-  const browser = await chromium.launch({ headless: true });
+  const browser = await ({chromium,webkit})[browserName].launch({ headless: true });
   try {
     for (const size of [
       { name: 'phone', width: 390, height: 844, touch: true, fullCombat: true },
@@ -118,7 +120,7 @@ async function main() {
         assert.equal(await page.evaluate(() => isPaused), false);
         assert.equal(await page.evaluate(() => game.highestWave), 26);
         assert.deepEqual(errors, []);
-        results.push({ target, viewport: size.name, status: 'passed', dimensions, combat: size.fullCombat ? 'natural combat + explicit completion' : 'launch/controls/abort' });
+        results.push({ target, browser:browserName, viewport: size.name, status: 'passed', dimensions, combat: size.fullCombat ? 'natural combat + explicit completion' : 'launch/controls/abort' });
         console.log(JSON.stringify(results.at(-1)));
       } catch (error) {
         await page.screenshot({ path: path.join(evidence, `${size.name}-failure.png`) }).catch(() => {});

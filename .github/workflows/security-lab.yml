@@ -115,3 +115,34 @@ jobs:
           name: browser-smoke-evidence
           path: security-lab/browser-evidence/
           if-no-files-found: ignore
+
+  webkit-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BROWSER_ENGINE: webkit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install test dependencies
+        working-directory: security-lab
+        run: npm install --no-audit --no-fund
+      - name: Install WebKit
+        working-directory: security-lab
+        run: npx playwright install --with-deps webkit
+      - name: Test Story phone, landscape, tablet and desktop in WebKit
+        working-directory: security-lab
+        run: node browser-smoke.cjs
+      - name: Test matching production assets and flows in WebKit
+        if: github.ref == 'refs/heads/main'
+        working-directory: security-lab
+        run: node browser-smoke.cjs --live
+      - name: Preserve WebKit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webkit-smoke-evidence
+          path: security-lab/browser-evidence/
+          if-no-files-found: ignore
