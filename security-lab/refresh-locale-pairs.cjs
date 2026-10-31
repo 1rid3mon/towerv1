@@ -35,6 +35,10 @@ for (const values of [
   ['Unvanlar','Titles','Títulos','Titel'],
   ['Yoldaşlar','Companions','Compañeros','Begleiter'],
   ['Ekipman','Equipment','Equipo','Ausrüstung'],
+  ['FİNAL: Üç savunma hattını geç. 180 altını yükseltmelerde kullan.',
+   'CLIMAX: Hold three defense lines. Spend your 180 gold on upgrades.',
+   'FINAL: Resiste en tres líneas de defensa. Gasta tus 180 de oro en mejoras.',
+   'FINALE: Halte drei Verteidigungslinien. Gib deine 180 Gold für Verbesserungen aus.'],
 ]) {
   const row=Object.fromEntries(['tr','en','es','de'].map((lang,i)=>[lang,values[i]]));
   for(const value of values) rows[value]=row;

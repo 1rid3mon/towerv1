@@ -55,6 +55,7 @@ function runtime(mission = 1) {
   }
   const ui = fs.readFileSync(path.join(__dirname, '..', 'ui.js'), 'utf8');
   vm.runInContext(ui.slice(ui.indexOf('function toggleGameSpeed()'), ui.indexOf('function toggleRangeCircle()')), sandbox);
+  vm.runInContext(ui.slice(ui.indexOf('function buyUpgrade(key)'), ui.indexOf('function refreshUpgradeButtonsState()')), sandbox);
   const run = code => vm.runInContext(code, sandbox);
   run(`saveStoryProgress(Object.fromEntries(Array.from({length:21}, (_,i)=>['mission'+(i+1)+'Complete', false])));`);
   if (mission > 1) run(`saveStoryProgress({mission${mission - 1}Complete:true});`);
@@ -307,9 +308,11 @@ test('mission 1 combat reaches its objective through the real simulation without
   assert.ok(run('game.stats.totalKills') >= 8);
 });
 
-for (let mission = 1; mission <= 27; mission++) {
-  test(`mission ${mission} controller reaches saved completion only after its combat and action stages`, () => {
+for (const simulate of [false,true]) for (let mission = 1; mission <= 27; mission++) {
+  test(`mission ${mission} ${simulate ? 'real simulation' : 'controller'} reaches saved completion only after its combat and action stages`, () => {
     const { run, flushTimers } = runtime(mission);
+    // The chapter-one finale teaches spending its real 180-gold mission budget.
+    if (simulate && mission === 9) run("buyMultiplier=1; for(const key of ['damage','damage','armor','maxHp','attackSpeed']) buyUpgrade(key);");
     const actions = {
       stabilize: 'finishStoryBattleEncounter()', scan: 'scanStorySignal()',
       investigate: "chooseStorySignalSource('array')", powerChoice: "chooseStoryPowerPriority('shield')",
@@ -332,8 +335,8 @@ for (let mission = 1; mission <= 27; mission++) {
       const phase = run('GameModeRuntime.storySession.phase');
       assert.equal(run(`getStoryProgress().mission${mission}Complete`), false);
       if (run('GameModeRuntime.isStoryCombatActive()')) {
-        // Supply a combat result for controller coverage; the simulation has a separate test.
-        run('game.waveKills = game.waveTargetKills; completeWave()');
+        if (simulate) run('for(let tick=0;tick<60*300 && GameModeRuntime.isStoryCombatActive() && !isPaused;tick++) updateGame(1/60)');
+        else run('game.waveKills = game.waveTargetKills; completeWave()');
       } else {
         if (mission >= 22) {
           const kind = run('STORY_FINALE[GameModeRuntime.storySession.mission].stages[GameModeRuntime.storySession.finaleStage].kind');

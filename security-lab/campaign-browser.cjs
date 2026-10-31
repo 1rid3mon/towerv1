@@ -45,6 +45,20 @@ async function main() {
       await page.waitForFunction(()=>document.querySelector('#isolated-story-runtime-overlay iframe')?.contentWindow?.location.search.includes('runtime=story'));
       const frame=page.frames().find(f=>f.url().includes('runtime=story'));
       await frame.waitForFunction(()=>typeof GameModeRuntime!=='undefined'&&GameModeRuntime.storySession.active);
+      if(mission===9) {
+        // Spend only the actual mission budget through the same controls as a player.
+        await frame.locator('#btn-pause').click();
+        await frame.locator('header button[onclick="toggleUpgradeDrawer()"]').click();
+        const before=await frame.evaluate(()=>({gold:game.gold,damage:game.upgrades.damage}));
+        for(const [tab,key] of [['attack','damage'],['attack','damage'],['defense','armor'],['defense','maxHp'],['attack','attackSpeed']]) {
+          await frame.locator('#tab-btn-'+tab).click();
+          await frame.locator('#upg-btn-'+key).click();
+        }
+        const after=await frame.evaluate(()=>({gold:game.gold,damage:game.upgrades.damage}));
+        assert.equal(after.damage,before.damage+2);assert.ok(after.gold<before.gold);
+        await frame.locator('#upgrade-drawer button[onclick="toggleUpgradeDrawer()"]').click();
+        await frame.locator('#btn-pause').click();
+      }
       for(let step=0;step<40;step++) {
         const state=await frame.evaluate(()=>({completed:GameModeRuntime.storySession.completed,phase:GameModeRuntime.storySession.phase,combat:GameModeRuntime.isStoryCombatActive(),busy:GameModeRuntime.storySession.pulseBusy||GameModeRuntime.storySession.archiveBusy||GameModeRuntime.storySession.voiceBusy}));
         if(state.completed) break;
