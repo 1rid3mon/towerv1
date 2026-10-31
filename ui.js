@@ -363,8 +363,12 @@ function toggleUpgradeDrawer() {
     isDrawerOpen = !isDrawerOpen;
     const drawer = document.getElementById('upgrade-drawer');
     if (!drawer) return;
-    if (isDrawerOpen) drawer.classList.remove('-translate-x-full');
-    else drawer.classList.add('-translate-x-full');
+    if (isDrawerOpen) {
+        drawer.classList.remove('-translate-x-full');
+        // Combat deliberately skips hidden upgrade DOM work. Opening while paused
+        // must refresh affordability from the gold earned since the previous visit.
+        refreshUpgradeButtonsState();
+    } else drawer.classList.add('-translate-x-full');
     syncHudPositionsWithDrawer();
 }
 

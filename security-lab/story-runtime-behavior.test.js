@@ -143,6 +143,23 @@ test('narrative phases never spawn enemies and controls reflect automatic pauses
   assert.equal(combat.nodes.get('btn-pause').attributes['aria-pressed'], 'false');
 });
 
+test('opening the paused upgrade drawer refreshes stale affordability and permits a real purchase', () => {
+  const {sandbox,run,nodes}=runtime(9);
+  const ui=fs.readFileSync(path.join(__dirname,'..','ui.js'),'utf8');
+  sandbox.updateLootboxCollectionCounters=()=>{};
+  vm.runInContext(ui.slice(ui.indexOf('function toggleUpgradeDrawer()'),ui.indexOf('function formatNumber(')),sandbox);
+  vm.runInContext(ui.slice(ui.indexOf('function refreshUpgradeButtonsState()'),ui.indexOf('function renderCompanionStars(')),sandbox);
+  run('game.gold=0;isDrawerOpen=false;isPaused=true;refreshUpgradeButtonsState()');
+  assert.equal(nodes.get('upg-btn-damage').disabled,true);
+  run('game.gold=180;toggleUpgradeDrawer()');
+  assert.equal(nodes.get('upg-btn-damage').disabled,false);
+  const level=run('game.upgrades.damage');
+  run("buyUpgrade('damage')");
+  assert.equal(run('game.upgrades.damage'),level+1);
+  assert.ok(run('game.gold')<180);
+  assert.equal(run('isPaused'),true);
+});
+
 test('chapter 3 mission starts with the chapter 3 heading', () => {
   const { nodes } = runtime(19);
   assert.match(nodes.get('story-chapter-label').textContent, /03/);
