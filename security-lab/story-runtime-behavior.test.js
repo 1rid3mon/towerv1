@@ -64,6 +64,21 @@ function runtime(mission = 1) {
   } };
 }
 
+test('a last projectile kill stops the outgoing frame after the mission clears combat arrays', () => {
+  const { run } = runtime(5);
+  run(`spawnTimer = 9999; tower.fireCooldown = 9999; game.waveKills = game.waveTargetKills - 1;
+    enemies = [{x:50,y:50,hp:1,gold:1,radius:6,color:'#fff',type:'normal'}];
+    projectiles = [
+      {x:80,y:80,vx:0,vy:0,life:2,radius:2,damage:1},
+      {x:50,y:50,vx:0,vy:0,life:2,radius:2,damage:999,bouncesLeft:0,hitList:[]}
+    ];`);
+  assert.doesNotThrow(()=>run('updateGame(1/60)'));
+  assert.equal(run('GameModeRuntime.storySession.phase'),'combat2');
+  assert.equal(run('game.waveKills'),0);
+  assert.equal(run('projectiles.length'),0);
+  assert.equal(run('getStoryProgress().mission5Complete'),false);
+});
+
 test('Mission 1 cannot finish on a stray completion call or by resuming the stabilization phase', () => {
   const { run } = runtime();
   run('completeWave()');
@@ -76,6 +91,16 @@ test('Mission 1 cannot finish on a stray completion call or by resuming the stab
   assert.equal(run('getStoryProgress().mission1Complete'), false);
   run('finishStoryBattleEncounter()');
   assert.equal(run('getStoryProgress().mission1Complete'), true);
+});
+
+test('splash damage stops at the mission boundary without reading a cleared enemy array', () => {
+  const { run } = runtime(1);
+  run(`spawnTimer = 9999; tower.fireCooldown = 9999; game.waveKills = game.waveTargetKills - 1;
+    enemies = [0,1].map(n=>({x:50+n,y:50,hp:1,gold:1,radius:6,color:'#fff',type:'normal'}));
+    projectiles = [{x:50,y:50,vx:0,vy:0,life:2,radius:2,damage:999,splashRadius:80,bouncesLeft:0,hitList:[]}];`);
+  assert.doesNotThrow(()=>run('updateGame(1/60)'));
+  assert.equal(run('GameModeRuntime.storySession.phase'),'stabilize');
+  assert.equal(run('getStoryProgress().mission1Complete'),false);
 });
 
 test('Mission 2 requires all three explicit scans even after resuming or repeated wave callbacks', () => {

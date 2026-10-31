@@ -646,3 +646,9 @@ Kullanıcı Firebase bağlantısını sabaha bıraktı; kalan erişimsiz işleri
 - CI'a 27 görevin tümünü gerçek savaş simülasyonu + DOM etkileşimiyle geçen kampanya testi eklendi. Bu kodun yazılması testin geçtiğini kanıtlamaz; PR koşusu bekleniyor. Canlı asset testi Vercel kotası nedeniyle ayrı raporlanır, yerel test başarısı canlı yayın başarısı değildir.
 - Sabah kontrol listesi: `FIREBASE_MORNING_CHECKLIST.md`. Gerçek Auth/iki hesap/iki cihaz/üretim kuralları, sunucu doğrulaması, fiziksel iOS/Android QA, anadil metin incelemesi ve ölçülmüş uzun süreli denge hâlâ tamamlanma engelleridir. 4–6 saat hedef oyun süresi doğrulanmadı.
 - PR, head/main SHA, CI ve Vercel sonuçları sonraki ek kayıtta belirtilmelidir. Bu aşamada “TowerV1 tamamen tamamlandı” denmemeli.
+
+#### PR #76 ilk gerçek oynanış bulgusu
+- PR: https://github.com/1rid3mon/towerv1/pull/76. İlk head `9de209c05140638930532b52b9dabe87d88d4f24`; dil komutları düzeltmesi `e7a4a4bb4f4142e76e1e092042adb33f96154b1a`.
+- CI `41177265458`: syntax + **210/210** demo emülatör/regresyon testi başarılı. Dört Chromium viewport'u da geçti. Ancak 27 görev testi **5. görevde gerçek bir hata buldu**: son düşman ölürken görev geçişi mermi dizisini temizliyor; eski kare döngüsü `undefined.x` okuyordu (`engine.js:602`). Bu koşu genel olarak FAILURE; başarılı diye raporlanmamalı.
+- Engine artık görev geçişi/yenilgi sırasında savaş dizileri değiştiğinde eski simülasyon adımından çıkar; normal mermi, alan hasarı, yoldaş hasarı ve yakın saldırı yolları korunur. Gerçek controller/engine ile iki yarış regresyonu eklendi; yerel Story testleri **46/46** geçti. Yeni CI yeniden gerekli.
+- İlk önizleme Vercel `dpl_8y88s9wdNXQk3dFsjqMZmcAwR8KJ` READY; bu production yayını değildir. Kota o önizleme için engel olmadı. Son sürümün main/production doğrulaması bekler.

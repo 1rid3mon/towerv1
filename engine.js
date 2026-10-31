@@ -469,6 +469,10 @@ function updateGame(dt) {
         return;
     }
 
+    // Mission callbacks can replace both combat arrays during a kill. The outgoing
+    // simulation step must stop before reading or mutating the next stage's state.
+    const frameEnemies = enemies, frameProjectiles = projectiles;
+    const frameInvalidated = () => enemies !== frameEnemies || projectiles !== frameProjectiles || isPaused || isDefeated;
     const simDt = dt * gameSpeed;
     if (typeof tickStoryFinale === 'function') tickStoryFinale(simDt);
 
@@ -588,6 +592,7 @@ function updateGame(dt) {
     }
 
     updateCompanions(simDt);
+    if (frameInvalidated()) return;
 
     if (game.settings.activeTheme === 'snow') {
         for (const sf of snowFlakes) {
@@ -615,6 +620,7 @@ function updateGame(dt) {
         if (p.fromEnemy) {
             if (distToSegment(tower.x, tower.y, prevX, prevY, p.x, p.y) <= 24) {
                 damageTower(p.damage, null);
+                if (frameInvalidated()) return;
                 if (p.isFrost) {
                     applyFrostToTower(p.freezeDuration || 0.8, p.frostSlowDuration || 3.0);
                     // v1.1.0: frost boss impacts leave a readable crystalline burst.
@@ -648,10 +654,12 @@ function updateGame(dt) {
                             if (distAoe <= p.splashRadius + aoeEnemy.radius) {
                                 const falloff = distAoe < 15 ? 1.0 : 0.70;
                                 dealDamageToEnemy(aoeEnemy, Math.round(p.damage * falloff), p.isCrit, '#fb923c', false);
+                                if (frameInvalidated()) return;
                             }
                         }
                     } else {
                         dealDamageToEnemy(e, p.damage, p.isCrit, p.isCrit ? '#c084fc' : '#60a5fa', true);
+                        if (frameInvalidated()) return;
                         createParticles(e.x, e.y, p.color, 5, 50);
                     }
 
@@ -788,6 +796,7 @@ function updateGame(dt) {
                     }
                 } else {
                     damageTower(e.dmg, e);
+                    if (frameInvalidated()) return;
                     if (e.isFrost) applyFrostToTower(e.freezeDuration, e.frostSlowDuration);
                     if (e.type === 'boss') {
                         rings.push({ x: tower.x, y: tower.y, radius: 14, color: e.color, life: 0.5 });
@@ -862,6 +871,7 @@ function fireTowerProjectile(startX, startY, target, barrelIdx = 0, totalBarrels
 }
 
 function updateCompanions(simDt) {
+    const companionEnemies = enemies;
     for (const [key, st] of Object.entries(game.companions)) {
         const star = Math.min(5, Math.max(0, st.unlocked ? (st.level || 1) : 0));
         if (star <= 0) continue;
@@ -888,6 +898,7 @@ function updateCompanions(simDt) {
                 let dmg = Math.max(1, Math.round(towerDmg * def.damageMults[idx] * compBoost));
                 if (isCrit) dmg = Math.round(dmg * getTowerCritMult());
                 dealDamageToEnemy(target, dmg, isCrit, isCrit ? '#facc15' : '#ef4444');
+                if (enemies !== companionEnemies || isPaused || isDefeated) return;
                 lightningBeams.push({ x1: st.x, y1: st.y, x2: target.x, y2: target.y, color: isCrit ? '#facc15' : '#ef4444', life: 0.11 });
             }
         } else if (key === 'frostOrb' && enemies.length > 0) {
@@ -902,6 +913,7 @@ function updateCompanions(simDt) {
                     e.slowFactor = Math.min(e.slowFactor, slowRatio);
                     e.slowTimer = 2.2 + star * 0.25;
                     dealDamageToEnemy(e, frostDmg, false, '#38bdf8');
+                    if (enemies !== companionEnemies || isPaused || isDefeated) return;
                     hitAny = true;
                 }
             }
