@@ -2059,6 +2059,7 @@ function initAuthAndCloudSystem() {
             isFirebaseReady = true;
 
             fbAuth.onAuthStateChanged(async (user) => {
+                if (typeof handleStoryAccountChange === 'function') handleStoryAccountChange(user?.uid || null);
                 if (user) {
                     const cleanName = user.displayName || (user.email ? user.email.split('@')[0] : 'Komutan');
                     currentUser = { uid: user.uid, username: cleanName, email: user.email || '', isCloud: true };
@@ -2632,6 +2633,7 @@ async function deleteMyAccount() {
     localStorage.removeItem(LOCAL_CURRENT_USER_KEY);
     localStorage.removeItem(STORY_PROGRESS_KEY);
     localStorage.removeItem(STORY_PROGRESS_OWNER_KEY);
+    localStorage.removeItem(STORY_ACCOUNT_CACHE_PREFIX + uid);
     updateAccountHeaderUI();
     refreshLeaderboard(false);
     showToast('🗑️ Hesap, oyun kaydı, hikâye ilerlemesi, kullanıcı adı ve arkadaş istekleri silindi. Bazı güvenlik kayıtları ayrı tutulabilir.');

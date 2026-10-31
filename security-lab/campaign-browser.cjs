@@ -66,8 +66,10 @@ async function main() {
           const outcome=await frame.evaluate(()=>{
             const seconds=GameModeRuntime.storySession.mission===9 ? 20 : 240;
             for(let tick=0;tick<60*seconds&&GameModeRuntime.isStoryCombatActive()&&!isPaused;tick++) updateGame(1/60);
-            return {combat:GameModeRuntime.isStoryCombatActive(),kills:game.waveKills,target:game.waveTargetKills,paused:isPaused};
+            return {combat:GameModeRuntime.isStoryCombatActive(),kills:game.waveKills,target:game.waveTargetKills,paused:isPaused,
+              gold:game.gold,upgrades:{...game.upgrades},hp:tower.hp,defeated:isDefeated,phase:GameModeRuntime.storySession.phase};
           });
+          if(mission===9) console.log(JSON.stringify({mission,step,...outcome}));
           if(mission!==9) assert.equal(outcome.combat,false,JSON.stringify({mission,...outcome}));
           continue;
         }
@@ -106,8 +108,10 @@ async function main() {
     }
     fs.writeFileSync(path.join(evidence,'results.json'),JSON.stringify(results,null,2));
   } catch(error) {
+    const frame=page.frames().find(f=>f.url().includes('runtime=story'));
+    const state=frame ? await frame.evaluate(()=>({game,tower,session:GameModeRuntime.storySession})).catch(()=>null) : null;
     await page.screenshot({path:path.join(evidence,'failure.png')}).catch(()=>{});
-    fs.writeFileSync(path.join(evidence,'failure.json'),JSON.stringify({error:error.stack,errors,results},null,2));
+    fs.writeFileSync(path.join(evidence,'failure.json'),JSON.stringify({error:error.stack,errors,results,state},null,2));
     throw error;
   } finally { await context.close();await browser.close(); }
 }

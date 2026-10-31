@@ -52,7 +52,11 @@ for (const [number, definition] of Object.entries(STORY_FINALE)) {
 }
 
 function finaleCopy(pair) { return pair[storyLanguage() === 'en' ? 1 : 0]; }
-function storyCheckpointOwner() { return currentUser?.uid || localStorage.getItem(STORY_PROGRESS_OWNER_KEY) || 'guest'; }
+function storyCheckpointOwner() {
+  const session = GameModeRuntime.storySession;
+  if (session?.active && Object.prototype.hasOwnProperty.call(session,'ownerUid')) return session.ownerUid || 'guest';
+  return currentUser?.uid || localStorage.getItem(STORY_PROGRESS_OWNER_KEY) || 'guest';
+}
 function storyCheckpointKey(mission) { return 'TowerV1_StoryCheckpointV1:' + storyCheckpointOwner() + ':' + mission; }
 function setFinaleText(id, text) { const node = document.getElementById(id); if (node) node.textContent = text; }
 function setFinaleVisible(id, visible) { const node = document.getElementById(id); if (node) node.hidden = !visible; }
@@ -74,6 +78,7 @@ function initializeStoryFinale() {
   enterStoryFinaleStage();
 }
 function enterStoryFinaleStage() {
+  if (!isStorySessionOwnerCurrent()) return;
   const s = GameModeRuntime.storySession, def = STORY_FINALE[s.mission], stage = def?.stages[s.finaleStage];
   if (!stage || s.completed) return;
   if (stage.form) s.finaleForm = stage.form;
@@ -97,6 +102,7 @@ function enterStoryFinaleStage() {
   syncPlaybackControls(); updateStoryFinaleAbilityUI();
 }
 function advanceStoryFinale(choice = null) {
+  if (!isStorySessionOwnerCurrent()) return;
   const s = GameModeRuntime.storySession, def = STORY_FINALE[s.mission], stage = def?.stages[s.finaleStage];
   if (!s.active || s.completed || !stage) return;
   if (stage.kind === 'combat' && (s.phase !== 'combat' || game.waveKills < stage.kills)) return;

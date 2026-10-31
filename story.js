@@ -148,8 +148,34 @@ function getStoryProgress() {
     } catch (_) { return defaults; }
 }
 let storyCloudSaveTimer = null;
+const STORY_ACCOUNT_CACHE_PREFIX = 'towerDefenseStoryAccountV1:';
+function isStorySessionOwnerCurrent() {
+    const session = GameModeRuntime.storySession;
+    if (!session?.active || !Object.prototype.hasOwnProperty.call(session, 'ownerUid')) return true;
+    const owner = localStorage.getItem(STORY_PROGRESS_OWNER_KEY) || null;
+    return session.ownerUid === owner && (!currentUser?.uid || currentUser.uid === owner);
+}
+function handleStoryAccountChange(nextUid) {
+    nextUid = nextUid || null;
+    clearTimeout(storyCloudSaveTimer);
+    const session = GameModeRuntime.storySession;
+    if (isIsolatedStoryRuntime() && session?.active && session.ownerUid !== nextUid) exitStoryBattle(false);
+    if (!isIsolatedStoryRuntime() && (currentUser?.uid || null) !== nextUid) closeStoryRuntimeFrame();
+    // Preserve pending local progress per account before selecting another account
+    // or guest record. Guest progress is never silently claimed by a new account.
+    const previous = localStorage.getItem(STORY_PROGRESS_OWNER_KEY) || null;
+    if (previous === nextUid) return;
+    const raw = localStorage.getItem(STORY_PROGRESS_KEY);
+    if (raw) localStorage.setItem(previous ? STORY_ACCOUNT_CACHE_PREFIX + previous : STORY_PROGRESS_UNCLAIMED_KEY, raw);
+    const restored = localStorage.getItem(nextUid ? STORY_ACCOUNT_CACHE_PREFIX + nextUid : STORY_PROGRESS_UNCLAIMED_KEY);
+    if (restored) localStorage.setItem(STORY_PROGRESS_KEY, restored);
+    else localStorage.removeItem(STORY_PROGRESS_KEY);
+    if (nextUid) localStorage.setItem(STORY_PROGRESS_OWNER_KEY, nextUid);
+    else localStorage.removeItem(STORY_PROGRESS_OWNER_KEY);
+}
 function saveStoryProgress(patch) {
     try {
+        if (!isStorySessionOwnerCurrent()) return false;
         const next = { ...getStoryProgress(), ...patch, updatedAt: Date.now() };
         localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(next));
         if (isIsolatedStoryRuntime()) {
@@ -574,7 +600,7 @@ function startStoryMission(missionNumber = 1) {
     }
 
     const session = {
-        active: true, completed: false, companionSynced: false, mission: missionNumber, phase: missionNumber === 3 ? 'investigate' : (missionNumber === 4 ? 'powerChoice' : (missionNumber === 6 ? 'repair' : (missionNumber === 8 ? 'memory' : 'combat'))), scans: 0, repairs: 0, memories: 0, routeChoice: null,
+        active: true, completed: false, ownerUid: currentUser?.uid || localStorage.getItem(STORY_PROGRESS_OWNER_KEY) || null, companionSynced: false, mission: missionNumber, phase: missionNumber === 3 ? 'investigate' : (missionNumber === 4 ? 'powerChoice' : (missionNumber === 6 ? 'repair' : (missionNumber === 8 ? 'memory' : 'combat'))), scans: 0, repairs: 0, memories: 0, routeChoice: null,
         snapshot: {
             game: storyDeepCopy(game), tower: storyDeepCopy(tower),
             enemies: storyDeepCopy(enemies), projectiles: storyDeepCopy(projectiles),

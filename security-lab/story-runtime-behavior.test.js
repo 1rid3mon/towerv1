@@ -6,9 +6,10 @@ const vm = require('node:vm');
 
 // Execute the actual controllers and engine together. DOM/audio/network are adapters;
 // mission transitions, combat gates, progress normalization and storage are production code.
-function runtime(mission = 1) {
+function runtime(mission = 1, ownerUid = null) {
   const nodes = new Map();
   const storage = new Map();
+  if (ownerUid) storage.set('towerDefenseStoryProgressOwnerV1',ownerUid);
   const timers = new Map();
   let nextTimer = 0;
   const listeners = new Map();
@@ -42,7 +43,7 @@ function runtime(mission = 1) {
     localStorage: { getItem: k => storage.get(k) ?? null, setItem: (k, v) => storage.set(k, String(v)), removeItem: k => storage.delete(k) },
     document: { readyState: 'loading', body: node('body'), head: node('head'), getElementById: node,
       addEventListener: noop, querySelectorAll: () => [], createElement: () => node('new') },
-    currentUser: null, isFirebaseReady: false, fbDb: null, getGameLanguage: () => 'tr',
+    currentUser: ownerUid ? {uid:ownerUid,isCloud:true} : null, isFirebaseReady: false, fbDb: null, getGameLanguage: () => 'tr',
     showToast: noop, buildUpgradesUI: noop, buildInventoryUI: noop, applyBodyClasses: noop,
     createParticles: noop, addFloatingText: noop,
     updateHUD: noop, refreshUpgradeButtonsState: noop, updatePrestigeUI: noop, saveGame: noop,
@@ -156,7 +157,7 @@ test('Story unlock requires clearing wave 25, not merely entering it', () => {
 });
 
 test('a delayed Story upload preserves newer local progress', async () => {
-  const { sandbox, run, storage } = runtime();
+  const { sandbox, run, storage } = runtime(1,'a');
   let finish;
   sandbox.currentUser = { uid: 'a', isCloud: true };
   sandbox.isFirebaseReady = true;
@@ -202,8 +203,56 @@ test('Story upload rejects a local save belonging to another account', async () 
   assert.equal(await run('pushStoryProgressToCloud()'), false);
 });
 
+test('an old live mission cannot write a new account record or checkpoint after owner change', () => {
+  const {run,storage,sandbox}=runtime(27,'a');
+  sandbox.currentUser={uid:'b',isCloud:true};
+  storage.set('towerDefenseStoryProgressOwnerV1','b');
+  const before='{"mission1Complete":false,"updatedAt":42}';
+  storage.set('towerDefenseStoryProgressV1',before);
+  assert.equal(run('saveStoryProgress({mission27Complete:true})'),false);
+  run('continueStoryFinale();enterStoryFinaleStage()');
+  assert.equal(storage.get('towerDefenseStoryProgressV1'),before);
+  assert.equal(run('storyCheckpointOwner()'),'a');
+  assert.equal(storage.has('TowerV1_StoryCheckpointV1:b:27'),false);
+});
+
+test('account switching closes the old mission and restores each pending owned local save', () => {
+  const {run,storage,sandbox}=runtime(1,'a');
+  run('saveStoryProgress({mission1Complete:true})');
+  const a=storage.get('towerDefenseStoryProgressV1');
+  run("handleStoryAccountChange('b')");sandbox.currentUser={uid:'b',isCloud:true};
+  assert.equal(run('GameModeRuntime.isStoryActive()'),false);
+  assert.equal(storage.get('towerDefenseStoryAccountV1:a'),a);
+  run('saveStoryProgress({mission2Complete:true})');
+  const b=storage.get('towerDefenseStoryProgressV1');
+  run("handleStoryAccountChange('a')");sandbox.currentUser={uid:'a',isCloud:true};
+  assert.equal(storage.get('towerDefenseStoryProgressV1'),a);
+  assert.equal(storage.get('towerDefenseStoryAccountV1:b'),b);
+});
+
+test('guest progress is preserved separately across sign-in and sign-out', () => {
+  const {run,storage,sandbox}=runtime();
+  run('saveStoryProgress({mission1Complete:true})');
+  const guest=storage.get('towerDefenseStoryProgressV1');
+  run("handleStoryAccountChange('a')");sandbox.currentUser={uid:'a',isCloud:true};
+  assert.equal(storage.has('towerDefenseStoryProgressV1'),false);
+  run('saveStoryProgress({mission2Complete:true})');
+  run('handleStoryAccountChange(null)');sandbox.currentUser=null;
+  assert.equal(storage.get('towerDefenseStoryProgressV1'),guest);
+  assert.equal(storage.has('towerDefenseStoryProgressOwnerV1'),false);
+});
+
+test('failed account-cache write preserves the original owned save', () => {
+  const {run,storage,sandbox}=runtime(1,'a');
+  const before=storage.get('towerDefenseStoryProgressV1');
+  sandbox.localStorage.setItem=()=>{throw new Error('quota');};
+  assert.throws(()=>run("handleStoryAccountChange('b')"),/quota/);
+  assert.equal(storage.get('towerDefenseStoryProgressV1'),before);
+  assert.equal(storage.get('towerDefenseStoryProgressOwnerV1'),'a');
+});
+
 test('legacy production rules preserve both the old cloud save and new local finale progress', async () => {
-  const { sandbox, run, storage } = runtime(27);
+  const { sandbox, run, storage } = runtime(27,'a');
   sandbox.currentUser = { uid:'a', isCloud:true }; sandbox.isFirebaseReady = true;
   storage.set('towerDefenseStoryProgressOwnerV1', 'a');
   run("saveStoryProgress({mission27Complete:true,companionForm:'tower',stabilityChoice:'preserve'})");
