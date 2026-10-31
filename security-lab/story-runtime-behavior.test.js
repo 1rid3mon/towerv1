@@ -308,6 +308,25 @@ test('mission 1 combat reaches its objective through the real simulation without
   assert.ok(run('game.stats.totalKills') >= 8);
 });
 
+test('mission 9 finishes across 15 spawn seeds using earned gold and real purchase/recovery handlers', () => {
+  for(let seed=1;seed<=15;seed++) {
+    const {run,sandbox,flushTimers}=runtime(9);
+    let value=seed;
+    sandbox.Math.random=()=>{value=(Math.imul(value,1664525)+1013904223)>>>0;return value/4294967296;};
+    for(let step=0;step<60&&!run('GameModeRuntime.storySession.completed');step++) {
+      if(run('GameModeRuntime.isStoryCombatActive()')) {
+        run("buyMultiplier=1;for(const key of ['damage','damage','armor','maxHp','attackSpeed']) buyUpgrade(key);for(let t=0;t<60*20 && GameModeRuntime.isStoryCombatActive() && !isPaused;t++) updateGame(1/60)");
+      } else {
+        const phase=run('GameModeRuntime.storySession.phase');
+        const actions={reconnect:'reconnectStoryCompanion()',awaken:'awakenStoryCompanion()',pulseTest:'testStoryPulse()'};
+        assert.ok(actions[phase],phase);run(actions[phase]);flushTimers();
+      }
+    }
+    assert.equal(run('getStoryProgress().mission9Complete'),true,'spawn seed '+seed);
+    assert.ok(run('game.gold')>=0);
+  }
+});
+
 for (const simulate of [false,true]) for (let mission = 1; mission <= 27; mission++) {
   test(`mission ${mission} ${simulate ? 'real simulation' : 'controller'} reaches saved completion only after its combat and action stages`, () => {
     const { run, flushTimers } = runtime(mission);
