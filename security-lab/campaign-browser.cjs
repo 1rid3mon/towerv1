@@ -50,19 +50,19 @@ async function main() {
         if(state.completed) break;
         if(state.combat) {
           if(mission===9) {
-        // Spend only the actual mission budget through the same controls as a player.
-        await frame.locator('#btn-pause').click();
-        await frame.locator('header button[onclick="toggleUpgradeDrawer()"]').click();
-        const before=await frame.evaluate(()=>({gold:game.gold,damage:game.upgrades.damage}));
-        for(const [tab,key] of [['attack','damage'],['attack','damage'],['defense','armor'],['defense','maxHp'],['attack','attackSpeed']]) {
-          await frame.locator('#tab-btn-'+tab).click();
-          if(await frame.locator('#upg-btn-'+key).isEnabled()) await frame.locator('#upg-btn-'+key).click();
-        }
-        const after=await frame.evaluate(()=>({gold:game.gold,damage:game.upgrades.damage}));
-        assert.ok(after.damage>=before.damage);assert.ok(after.gold<=before.gold);
-        await frame.locator('#upgrade-drawer button[onclick="toggleUpgradeDrawer()"]').click();
-        await frame.locator('#btn-pause').click();
-      }
+            // Spend only the actual mission budget through the same controls as a player.
+            await frame.locator('#btn-pause').click();
+            await frame.locator('header button[onclick="toggleUpgradeDrawer()"]').click();
+            const before=await frame.evaluate(()=>({gold:game.gold,damage:game.upgrades.damage}));
+            for(const [tab,key] of [['attack','damage'],['attack','damage'],['defense','armor'],['defense','maxHp'],['attack','attackSpeed']]) {
+              await frame.locator('#tab-btn-'+tab).click();
+              if(await frame.locator('#upg-btn-'+key).isEnabled()) await frame.locator('#upg-btn-'+key).click();
+            }
+            const after=await frame.evaluate(()=>({gold:game.gold,damage:game.upgrades.damage}));
+            assert.ok(after.damage>=before.damage);assert.ok(after.gold<=before.gold);
+            await frame.locator('#upgrade-drawer button[onclick="toggleUpgradeDrawer()"]').click();
+            await frame.locator('#btn-pause').click();
+          }
           const outcome=await frame.evaluate(()=>{
             const seconds=GameModeRuntime.storySession.mission===9 ? 20 : 240;
             for(let tick=0;tick<60*seconds&&GameModeRuntime.isStoryCombatActive()&&!isPaused;tick++) updateGame(1/60);
@@ -99,6 +99,8 @@ async function main() {
       assert.equal(await page.evaluate(()=>getGameLanguage()),language);
       const text=await page.locator('#story-start-mission1').innerText();
       assert.equal(text.trim(),{tr:'TEKRAR OYNA ↻',en:'REPLAY ↻',es:'REPETIR ↻',de:'ERNEUT SPIELEN ↻'}[language]);
+      assert.equal(await page.evaluate(()=>document.getElementById('story-start-mission27').closest('.story-mission').getAttribute('data-mission-state')),
+        {tr:'TAMAM',en:'COMPLETE',es:'COMPLETADO',de:'ABGESCHLOSSEN'}[language]);
       await page.screenshot({path:path.join(evidence,'language-'+language+'.png')});
       results.push({language,status:'passed',replayLabel:text});
     }

@@ -106,7 +106,6 @@ jobs:
         run: node campaign-browser.cjs
       - name: Test the matching live production assets with a disposable guest
         if: github.ref == 'refs/heads/main'
-        continue-on-error: true
         working-directory: security-lab
         run: node browser-smoke.cjs --live
       - name: Preserve guest-only browser evidence

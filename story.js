@@ -502,8 +502,9 @@ function updateStoryMissionBoard() {
         card.classList.toggle('is-complete', complete);
         card.classList.toggle('is-current', !complete && missionNumber === nextMission && !button.disabled);
         card.classList.toggle('is-locked-card', button.disabled && !complete);
-        if (complete) card.setAttribute('data-mission-state', en ? 'COMPLETE' : 'TAMAM');
-        else if (!button.disabled) card.setAttribute('data-mission-state', en ? 'AVAILABLE' : 'HAZIR');
+        const locale = getGameLanguage();
+        if (complete) card.setAttribute('data-mission-state', {tr:'TAMAM',en:'COMPLETE',es:'COMPLETADO',de:'ABGESCHLOSSEN'}[locale] || 'TAMAM');
+        else if (!button.disabled) card.setAttribute('data-mission-state', {tr:'HAZIR',en:'AVAILABLE',es:'DISPONIBLE',de:'BEREIT'}[locale] || 'HAZIR');
         else card.removeAttribute('data-mission-state');
     });
 }

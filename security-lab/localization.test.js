@@ -16,6 +16,8 @@ test('all four locales provide reviewed mode labels and preserve dynamic mission
   }
   assert.equal(s.GameLocale.translate('GÖREV 27','es'),'MISIÓN 27');
   assert.equal(s.GameLocale.translate('Kayıt Ol','de'),'Registrieren');
+  assert.equal(s.GameLocale.translate('%12 Faiz','en'),'12% Interest');
+  assert.equal(s.GameLocale.translate('%8 Yavaşlatma | %20 Alan Hasarı','de'),'8% Verlangsamung | 20% Flächenschaden');
 });
 test('language changes restore the original text rather than translating a previous output',()=>{
   const {GameLocale}=runtime();
