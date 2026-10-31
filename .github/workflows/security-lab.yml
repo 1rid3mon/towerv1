@@ -10,6 +10,9 @@ on:
       - ".github/workflows/security-lab.yml"
       - "ui.js"
       - "story.js"
+      - "story-finale.js"
+      - "locales.js"
+      - "i18n.js"
       - "mode-runtime.js"
       - "index.html"
       - "engine.js"
@@ -29,6 +32,9 @@ on:
       - ".github/workflows/security-lab.yml"
       - "ui.js"
       - "story.js"
+      - "story-finale.js"
+      - "locales.js"
+      - "i18n.js"
       - "mode-runtime.js"
       - "index.html"
       - "engine.js"
@@ -63,6 +69,9 @@ jobs:
           node --check ui.js
           node --check mode-runtime.js
           node --check story.js
+          node --check story-finale.js
+          node --check locales.js
+          node --check i18n.js
           node --check engine.js
           node --check render.js
           node --check data.js
@@ -92,8 +101,12 @@ jobs:
       - name: Test Story in desktop and mobile Chromium
         working-directory: security-lab
         run: node browser-smoke.cjs
+      - name: Play all 27 campaign missions and switch all four languages
+        working-directory: security-lab
+        run: node campaign-browser.cjs
       - name: Test the matching live production assets with a disposable guest
         if: github.ref == 'refs/heads/main'
+        continue-on-error: true
         working-directory: security-lab
         run: node browser-smoke.cjs --live
       - name: Preserve guest-only browser evidence

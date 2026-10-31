@@ -2558,8 +2558,9 @@ function renderGame() {
 
     // Story Mission 10 pulse is a render-only effect: it remains visible while the
     // encounter is paused and never touches combat, rewards, or persistent game state.
-    const storyPulse = window.__storyBattle;
-    if (storyPulse && storyPulse.active && storyPulse.mission === 10 && Number.isFinite(storyPulse.pulseVisualAt)) {
+    const storyRenderSession = typeof GameModeRuntime !== 'undefined' ? GameModeRuntime.storySession : null;
+    const storyPulse = storyRenderSession;
+    if (storyPulse && storyPulse.active && (storyPulse.mission === 10 || storyPulse.mission >= 25) && Number.isFinite(storyPulse.pulseVisualAt)) {
         const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
         const age = Math.max(0, (now - storyPulse.pulseVisualAt) / 1000);
         if (age < 0.95 && typeof tower !== 'undefined' && tower) {
@@ -2590,13 +2591,15 @@ function renderGame() {
 
     // Story-only companion: a powerless maintenance unit, visually separate from owned combat companions.
     // It never enters game.companions, so it cannot grant attacks, rewards, or persist into Endless Mode.
-    if (window.__storyBattle && window.__storyBattle.active) {
+    if (storyRenderSession && storyRenderSession.active) {
         const phase = nowCompTime * 0.0015;
         const cx = tx + Math.cos(phase) * 48;
         const cy = ty - 34 + Math.sin(phase * 1.35) * 5;
-        const temporaryFlicker = window.__storyBattle.mission === 6 && window.__storyBattle.completed && window.__storyBattle.repairs >= 3;
-        const linked = !!window.__storyBattle.companionSynced || (temporaryFlicker && Math.sin(nowCompTime * 0.05) > 0.25);
+        const temporaryFlicker = storyRenderSession.mission === 6 && storyRenderSession.completed && storyRenderSession.repairs >= 3;
+        const linked = !!storyRenderSession.companionSynced || storyRenderSession.mission >= 10 || (temporaryFlicker && Math.sin(nowCompTime * 0.05) > 0.25);
         ctx.save();
+        const evolved = ['purple','tower'].includes(storyRenderSession.finaleForm);
+        if (evolved) ctx.filter = 'hue-rotate(65deg)';
         ctx.strokeStyle = linked ? 'rgba(103,232,249,0.42)' : 'rgba(148,163,184,0.24)';
         ctx.lineWidth = 1.4;
         ctx.beginPath(); ctx.moveTo(tx + 14, ty - 9); ctx.quadraticCurveTo(tx + 32, ty - 34, cx - 10, cy + 2); ctx.stroke();
@@ -2608,7 +2611,7 @@ function renderGame() {
         ctx.strokeStyle = linked ? 'rgba(103,232,249,0.9)' : 'rgba(148,163,184,0.75)';
         ctx.fillStyle = linked ? '#172554' : '#1e293b';
         ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.roundRect(-12, -9, 24, 18, 5); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.roundRect(-12, storyRenderSession.finaleForm === 'tower' ? -22 : -9, 24, storyRenderSession.finaleForm === 'tower' ? 31 : 18, 5); ctx.fill(); ctx.stroke();
         ctx.fillStyle = linked ? '#67e8f9' : '#94a3b8';
         ctx.beginPath(); ctx.arc(-4, -1, 2, 0, Math.PI * 2); ctx.arc(4, -1, 2, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = linked ? '#67e8f9' : '#64748b';
@@ -2617,7 +2620,7 @@ function renderGame() {
         ctx.beginPath(); ctx.arc(0, -16, 2, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = 'rgba(148,163,184,0.65)';
         ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-17, 3); ctx.moveTo(12, 0); ctx.lineTo(17, 3); ctx.stroke();
-        if (window.__storyBattle.phase === 'pulseTest') {
+        if (storyRenderSession.phase === 'pulseTest') {
             const pulsePhase = (nowCompTime * 0.055) % 64;
             ctx.globalAlpha = Math.max(0, 0.48 * (1 - pulsePhase / 64));
             ctx.strokeStyle = '#67e8f9';

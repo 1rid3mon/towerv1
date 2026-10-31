@@ -28,7 +28,7 @@ async function main() {
     // Test exactly the checked-out production revision, not a stale deployment.
     let matches = false;
     for (let attempt = 0; attempt < 30 && !matches; attempt++) {
-      matches = (await Promise.all(['index.html', 'mode-runtime.js', 'data.js', 'ui.js', 'story.js', 'engine.js', 'render.js'].map(async file => {
+      matches = (await Promise.all(['index.html', 'mode-runtime.js', 'data.js', 'locales.js', 'i18n.js', 'ui.js', 'story.js', 'story-finale.js', 'engine.js', 'render.js'].map(async file => {
         const response = await fetch(new URL(file, target));
         return response.ok && await response.text() === fs.readFileSync(path.join(root, file), 'utf8');
       }))).every(Boolean);

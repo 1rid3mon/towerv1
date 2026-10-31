@@ -1,7 +1,7 @@
 # Chapter 03 — The Shape of Memory
 ## Narrative and gameplay outline
 
-**Status:** first playable slice implemented for Missions 19–21; Missions 22–27 remain design-only. It follows Chapter 01's first awakening and Chapter 02's descent beneath the station.
+**Status:** Missions 19–27 have a first playable implementation. Missions 22–27 use story-finale.js with explicit actions, real combat, a stability choice, defense-link cooldown, and local stage checkpoints. Full-browser verification results belong in FIRST_README; do not infer them from this design document. It follows Chapter 01's first awakening and Chapter 02's descent beneath the station.
 
 ## Purpose
 

@@ -50,7 +50,7 @@ function runtime(mission = 1) {
   };
   sandbox.window = sandbox;
   vm.createContext(sandbox);
-  for (const file of ['mode-runtime.js', 'data.js', 'story.js', 'engine.js']) {
+  for (const file of ['mode-runtime.js', 'data.js', 'story.js', 'story-finale.js', 'engine.js']) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), sandbox, { filename: file });
   }
   const ui = fs.readFileSync(path.join(__dirname, '..', 'ui.js'), 'utf8');
@@ -176,6 +176,63 @@ test('Story upload rejects a local save belonging to another account', async () 
   assert.equal(await run('pushStoryProgressToCloud()'), false);
 });
 
+test('legacy production rules preserve both the old cloud save and new local finale progress', async () => {
+  const { sandbox, run, storage } = runtime(27);
+  sandbox.currentUser = { uid:'a', isCloud:true }; sandbox.isFirebaseReady = true;
+  storage.set('towerDefenseStoryProgressOwnerV1', 'a');
+  run("saveStoryProgress({mission27Complete:true,companionForm:'tower',stabilityChoice:'preserve'})");
+  const writes = [];
+  sandbox.fbDb = { collection: () => ({ doc: () => ({ set: async payload => {
+    writes.push(payload);
+    if ('mission27Complete' in payload) throw { code:'permission-denied' };
+  } }) }) };
+  assert.equal(await run('pushStoryProgressToCloud()'), true);
+  assert.equal(writes.length, 2);
+  assert.equal(writes[1].companionForm, 'cyan');
+  assert.equal('mission27Complete' in writes[1], false);
+  assert.equal(run('getStoryProgress().mission27Complete'), true);
+  assert.equal(run('getStoryProgress().companionForm'), 'tower');
+  assert.equal(sandbox.storyCloudExpansionPending, true);
+});
+
+test('legacy remote records cannot erase account-owned local finale flags', () => {
+  const { run } = runtime(27);
+  run("globalThis.remoteFixture={mission21Complete:true,companionForm:'cyan'}; preserveLocalFinaleProgress(remoteFixture, {mission27Complete:true,companionForm:'tower',stabilityChoice:'recover'}, {})");
+  assert.equal(run('remoteFixture.mission27Complete'), true);
+  assert.equal(run('remoteFixture.companionForm'), 'tower');
+});
+
+test('finale defense link has a bounded shield, cooldown, and no Endless bonus', () => {
+  const { run } = runtime(26);
+  run('tower.shield = 0; activateStoryDefenseLink()');
+  const first = run('tower.shield');
+  assert.ok(first > 0);
+  assert.ok(first <= run('getTowerMaxShield()'));
+  run('activateStoryDefenseLink()');
+  assert.equal(run('tower.shield'), first);
+  run('tickStoryFinale(11); activateStoryDefenseLink()');
+  assert.ok(run('tower.shield') <= run('getTowerMaxShield()'));
+  run('exitStoryBattle(false)');
+  assert.equal(run('getStoryFinaleShieldBonus()'), 0);
+  assert.equal(run('getTowerMaxShield()'), 0);
+});
+
+test('finale abort and reentry resume the last completed stage without awarding the mission', () => {
+  const { run } = runtime(24);
+  run('game.waveKills=game.waveTargetKills; completeWave()');
+  assert.equal(run('GameModeRuntime.storySession.finaleStage'), 1);
+  run('exitStoryBattle(false); startStoryMission(24)');
+  assert.equal(run('GameModeRuntime.storySession.finaleStage'), 1);
+  assert.equal(run('GameModeRuntime.storySession.phase'), 'finaleAction');
+  assert.equal(run('getStoryProgress().mission24Complete'), false);
+});
+
+test('Story rendering reads the explicit runtime rather than the removed legacy session', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'render.js'), 'utf8');
+  assert.doesNotMatch(source, /window\.__storyBattle/);
+  assert.match(source, /GameModeRuntime\.storySession/);
+});
+
 test('only the active same-origin mission can request a parent-owned save that survives frame closure', async () => {
   const { sandbox, run, storage, listeners, flushTimers } = runtime();
   const source = {};
@@ -225,7 +282,7 @@ test('mission 1 combat reaches its objective through the real simulation without
   assert.ok(run('game.stats.totalKills') >= 8);
 });
 
-for (let mission = 1; mission <= 21; mission++) {
+for (let mission = 1; mission <= 27; mission++) {
   test(`mission ${mission} controller reaches saved completion only after its combat and action stages`, () => {
     const { run, flushTimers } = runtime(mission);
     const actions = {
@@ -253,6 +310,12 @@ for (let mission = 1; mission <= 21; mission++) {
         // Supply a combat result for controller coverage; the simulation has a separate test.
         run('game.waveKills = game.waveTargetKills; completeWave()');
       } else {
+        if (mission >= 22) {
+          const kind = run('STORY_FINALE[GameModeRuntime.storySession.mission].stages[GameModeRuntime.storySession.finaleStage].kind');
+          run(kind === 'choice' ? "chooseStoryFinaleMemory('preserve')" : kind === 'ability' ? 'activateStoryDefenseLink()' : 'continueStoryFinale()');
+          flushTimers();
+          continue;
+        }
         assert.ok(actions[phase], `No action for ${phase}`);
         run(actions[phase]);
         flushTimers();

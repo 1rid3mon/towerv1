@@ -3274,14 +3274,14 @@ async function renderFriends() {
         list.innerHTML = byUid.size ? Array.from(byUid.values()).sort((a,b)=>a.username.localeCompare(b.username)).map(f =>
             '<div class="flex items-center gap-2 rounded-xl bg-slate-950/70 border border-sky-500/20 p-2.5">' +
             '<div class="w-9 h-9 shrink-0 rounded-lg bg-sky-500/15 border border-sky-400/30 flex items-center justify-center text-sky-300"><i class="fa-solid fa-user-astronaut"></i></div>' +
-            '<div class="min-w-0 flex-1"><div class="text-sm font-bold text-white truncate">'+friendEsc(f.username)+'</div><div class="text-[10px] text-slate-400">Arkadaşın · Komutan</div></div>' +
+            '<div class="min-w-0 flex-1"><div data-no-i18n class="text-sm font-bold text-white truncate">'+friendEsc(f.username)+'</div><div class="text-[10px] text-slate-400">Arkadaşın · Komutan</div></div>' +
             '<button onclick="removeFriend(\''+friendEsc(f.requestId)+'\')" class="shrink-0 rounded-lg border border-rose-500/20 px-2 py-1.5 text-[10px] text-rose-300 hover:bg-rose-950/40">Kaldır</button></div>'
         ).join('') : '<div class="text-xs text-slate-400 text-center py-4">Henüz arkadaşın yok. Yukarıdan kullanıcı adıyla istek gönder!</div>';
         incomingEl.innerHTML = incoming.length ? incoming.map(d =>
-            '<div class="flex items-center gap-2 rounded-lg bg-slate-950/70 p-2"><div class="min-w-0 flex-1"><div class="text-xs font-bold text-white">'+friendEsc(d.fromUsername)+'</div><div class="text-[10px] text-slate-500">Sana arkadaşlık isteği gönderdi</div></div><button onclick="respondToFriendRequest(\''+friendEsc(d._id)+'\',true)" class="rounded-lg bg-emerald-600 px-2 py-1.5 text-[10px] font-bold text-white">Kabul</button><button onclick="respondToFriendRequest(\''+friendEsc(d._id)+'\',false)" class="rounded-lg bg-slate-800 px-2 py-1.5 text-[10px] text-slate-300">Reddet</button></div>'
+            '<div class="flex items-center gap-2 rounded-lg bg-slate-950/70 p-2"><div class="min-w-0 flex-1"><div data-no-i18n class="text-xs font-bold text-white">'+friendEsc(d.fromUsername)+'</div><div class="text-[10px] text-slate-500">Sana arkadaşlık isteği gönderdi</div></div><button onclick="respondToFriendRequest(\''+friendEsc(d._id)+'\',true)" class="rounded-lg bg-emerald-600 px-2 py-1.5 text-[10px] font-bold text-white">Kabul</button><button onclick="respondToFriendRequest(\''+friendEsc(d._id)+'\',false)" class="rounded-lg bg-slate-800 px-2 py-1.5 text-[10px] text-slate-300">Reddet</button></div>'
         ).join('') : '<div class="text-xs text-slate-500">Bekleyen gelen istek yok.</div>';
         outgoingEl.innerHTML = outgoing.length ? outgoing.map(d =>
-            '<div class="flex items-center gap-2 rounded-lg bg-slate-950/70 p-2"><div class="min-w-0 flex-1"><div class="text-xs font-bold text-white">'+friendEsc(d.toUsername)+'</div><div class="text-[10px] text-amber-300">Yanıt bekleniyor…</div></div><button onclick="removeFriend(\''+friendEsc(d._id)+'\')" class="rounded-lg bg-slate-800 px-2 py-1.5 text-[10px] text-slate-300">İptal</button></div>'
+            '<div class="flex items-center gap-2 rounded-lg bg-slate-950/70 p-2"><div class="min-w-0 flex-1"><div data-no-i18n class="text-xs font-bold text-white">'+friendEsc(d.toUsername)+'</div><div class="text-[10px] text-amber-300">Yanıt bekleniyor…</div></div><button onclick="removeFriend(\''+friendEsc(d._id)+'\')" class="rounded-lg bg-slate-800 px-2 py-1.5 text-[10px] text-slate-300">İptal</button></div>'
         ).join('') : '<div class="text-xs text-slate-500">Bekleyen gönderilmiş istek yok.</div>';
     } catch (err) {
         list.innerHTML = '<div class="text-xs text-rose-300 text-center py-3">Arkadaş listesi yüklenemedi. Firestore kuralları güncel mi?</div>';
@@ -3402,7 +3402,7 @@ async function refreshLeaderboard(showNotification = false) {
                     <canvas id="lb-skin-canvas-${idx}" width="42" height="42" class="w-10 h-10 rounded-xl bg-slate-950 border border-white/10 shrink-0"></canvas>
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5">
-                            <span class="font-tech font-bold text-xs sm:text-sm ${isMe ? 'text-emerald-300' : 'text-white'} truncate">${escapeHtml(pName)}</span>
+                            <span data-no-i18n class="font-tech font-bold text-xs sm:text-sm ${isMe ? 'text-emerald-300' : 'text-white'} truncate">${escapeHtml(pName)}</span>
                             <span title="${getCommanderBadge(p.highestWave, p.prestiges).name}" class="inline-flex shrink-0 items-center rounded border px-1 py-0.5 text-[9px] ${getCommanderBadge(p.highestWave, p.prestiges).className}">${getCommanderBadge(p.highestWave, p.prestiges).icon}</span>
                             ${isMe ? '<span class="px-1.5 py-0.2 rounded bg-emerald-500/20 border border-emerald-400/40 text-[9px] font-tech font-bold text-emerald-300">SEN</span>' : ''}
                         </div>
@@ -4076,7 +4076,7 @@ document.addEventListener('DOMContentLoaded', () => {
 let dailyMissionsOpenedFromMainMenu = false;
 
 function getGameLanguage() {
-    try { return localStorage.getItem('towerDefenseLanguage') === 'en' ? 'en' : 'tr'; }
+    try { const language = localStorage.getItem('towerDefenseLanguage'); return ['tr','en','es','de'].includes(language) ? language : 'tr'; }
     catch (_) { return 'tr'; }
 }
 
@@ -4771,7 +4771,9 @@ const GAME_CONTENT_TRANSLATIONS = {
 };
 
 function localizeGameContent(value) {
-    if (typeof value !== 'string' || getGameLanguage() !== 'en') return value;
+    if (typeof value !== 'string') return value;
+    if (['es','de'].includes(getGameLanguage()) && window.GameLocale) return GameLocale.translate(value);
+    if (getGameLanguage() !== 'en') return value;
     if (Object.prototype.hasOwnProperty.call(GAME_CONTENT_TRANSLATIONS, value)) return GAME_CONTENT_TRANSLATIONS[value];
     return value.replace(/\\bSv\\./g, 'Lv.').replace(/\\bMaks\\b/g, 'Max');
 }
@@ -4782,6 +4784,7 @@ const gameAttributeOriginals = new WeakMap();
 let gameLanguageObserver = null;
 
 function translateGameNode(node, language) {
+    if (window.GameLocale) { GameLocale.translateNode(node, language); return; }
     if (!node) return;
     if (node.nodeType === Node.TEXT_NODE) {
         if (!gameTextOriginals.has(node)) gameTextOriginals.set(node, node.nodeValue);
@@ -4812,9 +4815,10 @@ function translateGameNode(node, language) {
 }
 
 function applyGameLanguage(language) {
-    const selected = language === 'en' ? 'en' : 'tr';
+    const selected = ['tr','en','es','de'].includes(language) ? language : 'tr';
     document.documentElement.lang = selected;
-    document.title = selected === 'en' ? 'Tower Defense: Endless Loop' : 'Kule Savunma: Sonsuz Döngü | v2.0.0';
+    document.title = {tr:'Kule Savunma: Sonsuz Döngü',en:'Tower Defense: Endless Loop',es:'Defensa de torres: Bucle infinito',de:'Turmverteidigung: Endlosschleife'}[selected];
+    if (gameLanguageObserver) gameLanguageObserver.disconnect();
     translateGameNode(document.body, selected);
     const selector = document.getElementById('language-select');
     if (selector) selector.value = selected;
@@ -4945,7 +4949,9 @@ const GAME_DYNAMIC_TRANSLATIONS = {
 };
 
 function localizeGameMessage(message) {
-    if (getGameLanguage() !== 'en' || typeof message !== 'string') return message;
+    if (typeof message !== 'string') return message;
+    if (['es','de'].includes(getGameLanguage()) && window.GameLocale) return GameLocale.translate(message);
+    if (getGameLanguage() !== 'en') return message;
     if (GAME_TRANSLATIONS[message]) return GAME_TRANSLATIONS[message];
     if (GAME_CONTENT_TRANSLATIONS[message]) return GAME_CONTENT_TRANSLATIONS[message];
     let result = message;
@@ -4959,9 +4965,10 @@ function localizeGameMessage(message) {
 }
 
 function setGameLanguage(language) {
-    const selected = language === 'en' ? 'en' : 'tr';
+    const selected = ['tr','en','es','de'].includes(language) ? language : 'tr';
     try { localStorage.setItem('towerDefenseLanguage', selected); } catch (_) {}
     applyGameLanguage(selected);
+    if (typeof applyStoryUiLanguage === 'function') applyStoryUiLanguage();
     if (typeof buildInventoryUI === 'function') buildInventoryUI();
     if (typeof buildUpgradesUI === 'function') buildUpgradesUI();
     if (typeof buildCompanionsUI === 'function') buildCompanionsUI();

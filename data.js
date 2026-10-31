@@ -368,9 +368,10 @@ function getTowerThorns() { return Math.min(25, game.upgrades.thorns || 0) * 3; 
 function getTowerMaxShield() {
     const lvl = game.upgrades.shield || 0;
     const itemShieldPct = getItemStatBonus('shield');
-    if (lvl === 0 && itemShieldPct === 0) return 0;
+    const storyShield = typeof getStoryFinaleShieldBonus === 'function' ? getStoryFinaleShieldBonus() : 0;
+    if (lvl === 0 && itemShieldPct === 0) return storyShield;
     const base = (35 + lvl * 14) * Math.pow(1.04, Math.max(0, lvl - 1)) * getLevelMilestoneMult(lvl);
-    return Math.round(base * (1 + itemShieldPct));
+    return Math.round(base * (1 + itemShieldPct)) + storyShield;
 }
 
 function getTowerLifesteal() { return Math.min(20, game.upgrades.lifesteal || 0) * 0.0035 + getItemStatBonus('lifesteal'); }
