@@ -83,7 +83,7 @@ async function main() {
       await page.waitForFunction(l=>document.documentElement.lang===l,language);
       assert.equal(await page.evaluate(()=>getGameLanguage()),language);
       const text=await page.locator('#story-start-mission1').innerText();
-      assert.ok(text.length>2);
+      assert.equal(text.trim(),{tr:'TEKRAR OYNA ↻',en:'REPLAY ↻',es:'REPETIR ↻',de:'ERNEUT SPIELEN ↻'}[language]);
       await page.screenshot({path:path.join(evidence,'language-'+language+'.png')});
       results.push({language,status:'passed',replayLabel:text});
     }

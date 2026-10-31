@@ -24,9 +24,24 @@ for (const values of [
   ['Sonsuz Mod','Endless Mode','Modo infinito','Endlosmodus'],
   ['GÖREVE BAŞLA →','DEPLOY →','INICIAR MISIÓN →','MISSION STARTEN →'],
   ['TEKRAR OYNA ↻','REPLAY ↻','REPETIR ↻','ERNEUT SPIELEN ↻'],
+  ['Yenile','Refresh','Actualizar','Aktualisieren'],
+  ['Faiz','Interest','Interés','Zinsen'],
+  ['Hız','Speed','Velocidad','Geschwindigkeit'],
+  ['Ruh Taşı','Soul Stones','Piedras del alma','Seelensteine'],
+  ['Prestij','Prestige','Prestigio','Prestige'],
+  ['Giriş Yap','Log In','Iniciar sesión','Anmelden'],
+  ['Kayıt Ol','Sign Up','Registrarse','Registrieren'],
+  ['Liderlik Tablosu','Leaderboard','Clasificación','Bestenliste'],
+  ['Unvanlar','Titles','Títulos','Titel'],
+  ['Yoldaşlar','Companions','Compañeros','Begleiter'],
+  ['Ekipman','Equipment','Equipo','Ausrüstung'],
 ]) {
   const row=Object.fromEntries(['tr','en','es','de'].map((lang,i)=>[lang,values[i]]));
   for(const value of values) rows[value]=row;
+}
+for(let n=1;n<=27;n++) {
+  const row={tr:'GÖREV '+n,en:'MISSION '+n,es:'MISIÓN '+n,de:'MISSION '+n};
+  for(const text of Object.values(row)) rows[text]=row;
 }
 fs.writeFileSync(file,'// Offline public-text catalog. ES/DE prose is machine translated; native review pending.\nwindow.GAME_LOCALES = '+JSON.stringify(rows)+';\n');
 console.log('Refreshed source pairs:',corrected);

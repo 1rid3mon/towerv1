@@ -14,6 +14,8 @@ test('all four locales provide reviewed mode labels and preserve dynamic mission
     assert.equal(s.GameLocale.translate('Hikâye Modu',language),expected);
     assert.ok(s.GameLocale.translate('MISSION 27 COMPLETE',language).includes('27'));
   }
+  assert.equal(s.GameLocale.translate('GÖREV 27','es'),'MISIÓN 27');
+  assert.equal(s.GameLocale.translate('Kayıt Ol','de'),'Registrieren');
 });
 test('language changes restore the original text rather than translating a previous output',()=>{
   const {GameLocale}=runtime();
