@@ -6,9 +6,10 @@ const vm = require('node:vm');
 
 // Execute the actual controllers and engine together. DOM/audio/network are adapters;
 // mission transitions, combat gates, progress normalization and storage are production code.
-function runtime(mission = 1) {
+function runtime(mission = 1, ownerUid = null) {
   const nodes = new Map();
   const storage = new Map();
+  if (ownerUid) storage.set('towerDefenseStoryProgressOwnerV1',ownerUid);
   const timers = new Map();
   let nextTimer = 0;
   const listeners = new Map();
@@ -42,7 +43,7 @@ function runtime(mission = 1) {
     localStorage: { getItem: k => storage.get(k) ?? null, setItem: (k, v) => storage.set(k, String(v)), removeItem: k => storage.delete(k) },
     document: { readyState: 'loading', body: node('body'), head: node('head'), getElementById: node,
       addEventListener: noop, querySelectorAll: () => [], createElement: () => node('new') },
-    currentUser: null, isFirebaseReady: false, fbDb: null, getGameLanguage: () => 'tr',
+    currentUser: ownerUid ? {uid:ownerUid,isCloud:true} : null, isFirebaseReady: false, fbDb: null, getGameLanguage: () => 'tr',
     showToast: noop, buildUpgradesUI: noop, buildInventoryUI: noop, applyBodyClasses: noop,
     createParticles: noop, addFloatingText: noop,
     updateHUD: noop, refreshUpgradeButtonsState: noop, updatePrestigeUI: noop, saveGame: noop,
@@ -50,11 +51,12 @@ function runtime(mission = 1) {
   };
   sandbox.window = sandbox;
   vm.createContext(sandbox);
-  for (const file of ['mode-runtime.js', 'data.js', 'story.js', 'engine.js']) {
+  for (const file of ['mode-runtime.js', 'data.js', 'story.js', 'story-finale.js', 'engine.js']) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), sandbox, { filename: file });
   }
   const ui = fs.readFileSync(path.join(__dirname, '..', 'ui.js'), 'utf8');
   vm.runInContext(ui.slice(ui.indexOf('function toggleGameSpeed()'), ui.indexOf('function toggleRangeCircle()')), sandbox);
+  vm.runInContext(ui.slice(ui.indexOf('function buyUpgrade(key)'), ui.indexOf('function refreshUpgradeButtonsState()')), sandbox);
   const run = code => vm.runInContext(code, sandbox);
   run(`saveStoryProgress(Object.fromEntries(Array.from({length:21}, (_,i)=>['mission'+(i+1)+'Complete', false])));`);
   if (mission > 1) run(`saveStoryProgress({mission${mission - 1}Complete:true});`);
@@ -63,6 +65,21 @@ function runtime(mission = 1) {
     while (timers.size) { const [id, callback] = timers.entries().next().value; timers.delete(id); callback(); }
   } };
 }
+
+test('a last projectile kill stops the outgoing frame after the mission clears combat arrays', () => {
+  const { run } = runtime(5);
+  run(`spawnTimer = 9999; tower.fireCooldown = 9999; game.waveKills = game.waveTargetKills - 1;
+    enemies = [{x:50,y:50,hp:1,gold:1,radius:6,color:'#fff',type:'normal'}];
+    projectiles = [
+      {x:80,y:80,vx:0,vy:0,life:2,radius:2,damage:1},
+      {x:50,y:50,vx:0,vy:0,life:2,radius:2,damage:999,bouncesLeft:0,hitList:[]}
+    ];`);
+  assert.doesNotThrow(()=>run('updateGame(1/60)'));
+  assert.equal(run('GameModeRuntime.storySession.phase'),'combat2');
+  assert.equal(run('game.waveKills'),0);
+  assert.equal(run('projectiles.length'),0);
+  assert.equal(run('getStoryProgress().mission5Complete'),false);
+});
 
 test('Mission 1 cannot finish on a stray completion call or by resuming the stabilization phase', () => {
   const { run } = runtime();
@@ -76,6 +93,16 @@ test('Mission 1 cannot finish on a stray completion call or by resuming the stab
   assert.equal(run('getStoryProgress().mission1Complete'), false);
   run('finishStoryBattleEncounter()');
   assert.equal(run('getStoryProgress().mission1Complete'), true);
+});
+
+test('splash damage stops at the mission boundary without reading a cleared enemy array', () => {
+  const { run } = runtime(1);
+  run(`spawnTimer = 9999; tower.fireCooldown = 9999; game.waveKills = game.waveTargetKills - 1;
+    enemies = [0,1].map(n=>({x:50+n,y:50,hp:1,gold:1,radius:6,color:'#fff',type:'normal'}));
+    projectiles = [{x:50,y:50,vx:0,vy:0,life:2,radius:2,damage:999,splashRadius:80,bouncesLeft:0,hitList:[]}];`);
+  assert.doesNotThrow(()=>run('updateGame(1/60)'));
+  assert.equal(run('GameModeRuntime.storySession.phase'),'stabilize');
+  assert.equal(run('getStoryProgress().mission1Complete'),false);
 });
 
 test('Mission 2 requires all three explicit scans even after resuming or repeated wave callbacks', () => {
@@ -116,6 +143,23 @@ test('narrative phases never spawn enemies and controls reflect automatic pauses
   assert.equal(combat.nodes.get('btn-pause').attributes['aria-pressed'], 'false');
 });
 
+test('opening the paused upgrade drawer refreshes stale affordability and permits a real purchase', () => {
+  const {sandbox,run,nodes}=runtime(9);
+  const ui=fs.readFileSync(path.join(__dirname,'..','ui.js'),'utf8');
+  sandbox.updateLootboxCollectionCounters=()=>{};
+  vm.runInContext(ui.slice(ui.indexOf('function toggleUpgradeDrawer()'),ui.indexOf('function formatNumber(')),sandbox);
+  vm.runInContext(ui.slice(ui.indexOf('function refreshUpgradeButtonsState()'),ui.indexOf('function renderCompanionStars(')),sandbox);
+  run('game.gold=0;isDrawerOpen=false;isPaused=true;refreshUpgradeButtonsState()');
+  assert.equal(nodes.get('upg-btn-damage').disabled,true);
+  run('game.gold=180;toggleUpgradeDrawer()');
+  assert.equal(nodes.get('upg-btn-damage').disabled,false);
+  const level=run('game.upgrades.damage');
+  run("buyUpgrade('damage')");
+  assert.equal(run('game.upgrades.damage'),level+1);
+  assert.ok(run('game.gold')<180);
+  assert.equal(run('isPaused'),true);
+});
+
 test('chapter 3 mission starts with the chapter 3 heading', () => {
   const { nodes } = runtime(19);
   assert.match(nodes.get('story-chapter-label').textContent, /03/);
@@ -130,7 +174,7 @@ test('Story unlock requires clearing wave 25, not merely entering it', () => {
 });
 
 test('a delayed Story upload preserves newer local progress', async () => {
-  const { sandbox, run, storage } = runtime();
+  const { sandbox, run, storage } = runtime(1,'a');
   let finish;
   sandbox.currentUser = { uid: 'a', isCloud: true };
   sandbox.isFirebaseReady = true;
@@ -174,6 +218,111 @@ test('Story upload rejects a local save belonging to another account', async () 
   sandbox.fbDb = { collection() { assert.fail('must not write unowned data'); } };
   storage.set('towerDefenseStoryProgressOwnerV1', 'a');
   assert.equal(await run('pushStoryProgressToCloud()'), false);
+});
+
+test('an old live mission cannot write a new account record or checkpoint after owner change', () => {
+  const {run,storage,sandbox}=runtime(27,'a');
+  sandbox.currentUser={uid:'b',isCloud:true};
+  storage.set('towerDefenseStoryProgressOwnerV1','b');
+  const before='{"mission1Complete":false,"updatedAt":42}';
+  storage.set('towerDefenseStoryProgressV1',before);
+  assert.equal(run('saveStoryProgress({mission27Complete:true})'),false);
+  run('continueStoryFinale();enterStoryFinaleStage()');
+  assert.equal(storage.get('towerDefenseStoryProgressV1'),before);
+  assert.equal(run('storyCheckpointOwner()'),'a');
+  assert.equal(storage.has('TowerV1_StoryCheckpointV1:b:27'),false);
+});
+
+test('account switching closes the old mission and restores each pending owned local save', () => {
+  const {run,storage,sandbox}=runtime(1,'a');
+  run('saveStoryProgress({mission1Complete:true})');
+  const a=storage.get('towerDefenseStoryProgressV1');
+  run("handleStoryAccountChange('b')");sandbox.currentUser={uid:'b',isCloud:true};
+  assert.equal(run('GameModeRuntime.isStoryActive()'),false);
+  assert.equal(storage.get('towerDefenseStoryAccountV1:a'),a);
+  run('saveStoryProgress({mission2Complete:true})');
+  const b=storage.get('towerDefenseStoryProgressV1');
+  run("handleStoryAccountChange('a')");sandbox.currentUser={uid:'a',isCloud:true};
+  assert.equal(storage.get('towerDefenseStoryProgressV1'),a);
+  assert.equal(storage.get('towerDefenseStoryAccountV1:b'),b);
+});
+
+test('guest progress is preserved separately across sign-in and sign-out', () => {
+  const {run,storage,sandbox}=runtime();
+  run('saveStoryProgress({mission1Complete:true})');
+  const guest=storage.get('towerDefenseStoryProgressV1');
+  run("handleStoryAccountChange('a')");sandbox.currentUser={uid:'a',isCloud:true};
+  assert.equal(storage.has('towerDefenseStoryProgressV1'),false);
+  run('saveStoryProgress({mission2Complete:true})');
+  run('handleStoryAccountChange(null)');sandbox.currentUser=null;
+  assert.equal(storage.get('towerDefenseStoryProgressV1'),guest);
+  assert.equal(storage.has('towerDefenseStoryProgressOwnerV1'),false);
+});
+
+test('failed account-cache write preserves the original owned save', () => {
+  const {run,storage,sandbox}=runtime(1,'a');
+  const before=storage.get('towerDefenseStoryProgressV1');
+  sandbox.localStorage.setItem=()=>{throw new Error('quota');};
+  assert.throws(()=>run("handleStoryAccountChange('b')"),/quota/);
+  assert.equal(storage.get('towerDefenseStoryProgressV1'),before);
+  assert.equal(storage.get('towerDefenseStoryProgressOwnerV1'),'a');
+});
+
+test('legacy production rules preserve both the old cloud save and new local finale progress', async () => {
+  const { sandbox, run, storage } = runtime(27,'a');
+  sandbox.currentUser = { uid:'a', isCloud:true }; sandbox.isFirebaseReady = true;
+  storage.set('towerDefenseStoryProgressOwnerV1', 'a');
+  run("saveStoryProgress({mission27Complete:true,companionForm:'tower',stabilityChoice:'preserve'})");
+  const writes = [];
+  sandbox.fbDb = { collection: () => ({ doc: () => ({ set: async payload => {
+    writes.push(payload);
+    if ('mission27Complete' in payload) throw { code:'permission-denied' };
+  } }) }) };
+  assert.equal(await run('pushStoryProgressToCloud()'), true);
+  assert.equal(writes.length, 2);
+  assert.equal(writes[1].companionForm, 'cyan');
+  assert.equal('mission27Complete' in writes[1], false);
+  assert.equal(run('getStoryProgress().mission27Complete'), true);
+  assert.equal(run('getStoryProgress().companionForm'), 'tower');
+  assert.equal(sandbox.storyCloudExpansionPending, true);
+});
+
+test('legacy remote records cannot erase account-owned local finale flags', () => {
+  const { run } = runtime(27);
+  run("globalThis.remoteFixture={mission21Complete:true,companionForm:'cyan'}; preserveLocalFinaleProgress(remoteFixture, {mission27Complete:true,companionForm:'tower',stabilityChoice:'recover'}, {})");
+  assert.equal(run('remoteFixture.mission27Complete'), true);
+  assert.equal(run('remoteFixture.companionForm'), 'tower');
+});
+
+test('finale defense link has a bounded shield, cooldown, and no Endless bonus', () => {
+  const { run } = runtime(26);
+  run('tower.shield = 0; activateStoryDefenseLink()');
+  const first = run('tower.shield');
+  assert.ok(first > 0);
+  assert.ok(first <= run('getTowerMaxShield()'));
+  run('activateStoryDefenseLink()');
+  assert.equal(run('tower.shield'), first);
+  run('tickStoryFinale(11); activateStoryDefenseLink()');
+  assert.ok(run('tower.shield') <= run('getTowerMaxShield()'));
+  run('exitStoryBattle(false)');
+  assert.equal(run('getStoryFinaleShieldBonus()'), 0);
+  assert.equal(run('getTowerMaxShield()'), 0);
+});
+
+test('finale abort and reentry resume the last completed stage without awarding the mission', () => {
+  const { run } = runtime(24);
+  run('game.waveKills=game.waveTargetKills; completeWave()');
+  assert.equal(run('GameModeRuntime.storySession.finaleStage'), 1);
+  run('exitStoryBattle(false); startStoryMission(24)');
+  assert.equal(run('GameModeRuntime.storySession.finaleStage'), 1);
+  assert.equal(run('GameModeRuntime.storySession.phase'), 'finaleAction');
+  assert.equal(run('getStoryProgress().mission24Complete'), false);
+});
+
+test('Story rendering reads the explicit runtime rather than the removed legacy session', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'render.js'), 'utf8');
+  assert.doesNotMatch(source, /window\.__storyBattle/);
+  assert.match(source, /GameModeRuntime\.storySession/);
 });
 
 test('only the active same-origin mission can request a parent-owned save that survives frame closure', async () => {
@@ -225,9 +374,30 @@ test('mission 1 combat reaches its objective through the real simulation without
   assert.ok(run('game.stats.totalKills') >= 8);
 });
 
-for (let mission = 1; mission <= 21; mission++) {
-  test(`mission ${mission} controller reaches saved completion only after its combat and action stages`, () => {
+test('mission 9 finishes across 15 spawn seeds using earned gold and real purchase/recovery handlers', () => {
+  for(let seed=1;seed<=15;seed++) {
+    const {run,sandbox,flushTimers}=runtime(9);
+    let value=seed;
+    sandbox.Math.random=()=>{value=(Math.imul(value,1664525)+1013904223)>>>0;return value/4294967296;};
+    for(let step=0;step<60&&!run('GameModeRuntime.storySession.completed');step++) {
+      if(run('GameModeRuntime.isStoryCombatActive()')) {
+        run("buyMultiplier=1;for(const key of ['damage','damage','armor','maxHp','attackSpeed']) buyUpgrade(key);for(let t=0;t<60*20 && GameModeRuntime.isStoryCombatActive() && !isPaused;t++) updateGame(1/60)");
+      } else {
+        const phase=run('GameModeRuntime.storySession.phase');
+        const actions={reconnect:'reconnectStoryCompanion()',awaken:'awakenStoryCompanion()',pulseTest:'testStoryPulse()'};
+        assert.ok(actions[phase],phase);run(actions[phase]);flushTimers();
+      }
+    }
+    assert.equal(run('getStoryProgress().mission9Complete'),true,'spawn seed '+seed);
+    assert.ok(run('game.gold')>=0);
+  }
+});
+
+for (const simulate of [false,true]) for (let mission = 1; mission <= 27; mission++) {
+  test(`mission ${mission} ${simulate ? 'real simulation' : 'controller'} reaches saved completion only after its combat and action stages`, () => {
     const { run, flushTimers } = runtime(mission);
+    // The chapter-one finale teaches spending its real 180-gold mission budget.
+    if (simulate && mission === 9) run("buyMultiplier=1; for(const key of ['damage','damage','armor','maxHp','attackSpeed']) buyUpgrade(key);");
     const actions = {
       stabilize: 'finishStoryBattleEncounter()', scan: 'scanStorySignal()',
       investigate: "chooseStorySignalSource('array')", powerChoice: "chooseStoryPowerPriority('shield')",
@@ -250,9 +420,15 @@ for (let mission = 1; mission <= 21; mission++) {
       const phase = run('GameModeRuntime.storySession.phase');
       assert.equal(run(`getStoryProgress().mission${mission}Complete`), false);
       if (run('GameModeRuntime.isStoryCombatActive()')) {
-        // Supply a combat result for controller coverage; the simulation has a separate test.
-        run('game.waveKills = game.waveTargetKills; completeWave()');
+        if (simulate) run('for(let tick=0;tick<60*300 && GameModeRuntime.isStoryCombatActive() && !isPaused;tick++) updateGame(1/60)');
+        else run('game.waveKills = game.waveTargetKills; completeWave()');
       } else {
+        if (mission >= 22) {
+          const kind = run('STORY_FINALE[GameModeRuntime.storySession.mission].stages[GameModeRuntime.storySession.finaleStage].kind');
+          run(kind === 'choice' ? "chooseStoryFinaleMemory('preserve')" : kind === 'ability' ? 'activateStoryDefenseLink()' : 'continueStoryFinale()');
+          flushTimers();
+          continue;
+        }
         assert.ok(actions[phase], `No action for ${phase}`);
         run(actions[phase]);
         flushTimers();

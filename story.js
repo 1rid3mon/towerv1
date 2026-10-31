@@ -141,15 +141,41 @@ let storyDialogueIndex = 0;
 let storyMissionViewOpen = false;
 
 function getStoryProgress() {
-    const defaults = { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false, mission3Complete: false, mission4Complete: false, mission5Complete: false, mission6Complete: false, mission7Complete: false, mission8Complete: false, mission9Complete: false, mission10Complete: false, mission11Complete: false, mission12Complete: false, mission13Complete: false, mission14Complete: false, mission15Complete: false, mission16Complete: false, mission17Complete: false, mission18Complete: false, mission19Complete: false, mission20Complete: false, mission21Complete: false, voiceChoice: null, pulseTutorialComplete: false, companionForm: 'basic', repairChoiceCount: 0, routeChoice: null, powerChoice: null, callSignChoice: null, updatedAt: 0 };
+    const defaults = { introSeen: false, chapter: 1, mission1Complete: false, mission2Complete: false, mission3Complete: false, mission4Complete: false, mission5Complete: false, mission6Complete: false, mission7Complete: false, mission8Complete: false, mission9Complete: false, mission10Complete: false, mission11Complete: false, mission12Complete: false, mission13Complete: false, mission14Complete: false, mission15Complete: false, mission16Complete: false, mission17Complete: false, mission18Complete: false, mission19Complete: false, mission20Complete: false, mission21Complete: false, mission22Complete: false, mission23Complete: false, mission24Complete: false, mission25Complete: false, mission26Complete: false, mission27Complete: false, stabilityChoice: null, voiceChoice: null, pulseTutorialComplete: false, companionForm: 'basic', repairChoiceCount: 0, routeChoice: null, powerChoice: null, callSignChoice: null, updatedAt: 0 };
     try {
         const saved = JSON.parse(localStorage.getItem(STORY_PROGRESS_KEY) || '{}');
-        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Math.min(3, Number(saved.chapter) || 1)), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true, mission3Complete: saved.mission3Complete === true, mission4Complete: saved.mission4Complete === true, mission5Complete: saved.mission5Complete === true, mission6Complete: saved.mission6Complete === true, mission7Complete: saved.mission7Complete === true, mission8Complete: saved.mission8Complete === true, mission9Complete: saved.mission9Complete === true, mission10Complete: saved.mission10Complete === true, mission11Complete: saved.mission11Complete === true, mission12Complete: saved.mission12Complete === true, mission13Complete: saved.mission13Complete === true, mission14Complete: saved.mission14Complete === true, mission15Complete: saved.mission15Complete === true, mission16Complete: saved.mission16Complete === true, mission17Complete: saved.mission17Complete === true, mission18Complete: saved.mission18Complete === true, mission19Complete: saved.mission19Complete === true, mission20Complete: saved.mission20Complete === true, mission21Complete: saved.mission21Complete === true, voiceChoice: ['human','station'].includes(saved.voiceChoice) ? saved.voiceChoice : null, pulseTutorialComplete: saved.pulseTutorialComplete === true, companionForm: saved.companionForm === 'cyan' ? 'cyan' : 'basic', repairChoiceCount: Math.max(0, Math.min(3, Number(saved.repairChoiceCount) || 0)), routeChoice: ['array','blackbox'].includes(saved.routeChoice) ? saved.routeChoice : null, powerChoice: ['shield','weapon'].includes(saved.powerChoice) ? saved.powerChoice : null, callSignChoice: ['echo','piko'].includes(saved.callSignChoice) ? saved.callSignChoice : null, updatedAt: Math.max(0, Number(saved.updatedAt) || 0) };
+        return { introSeen: saved.introSeen === true, chapter: Math.max(1, Math.min(3, Number(saved.chapter) || 1)), mission1Complete: saved.mission1Complete === true, mission2Complete: saved.mission2Complete === true, mission3Complete: saved.mission3Complete === true, mission4Complete: saved.mission4Complete === true, mission5Complete: saved.mission5Complete === true, mission6Complete: saved.mission6Complete === true, mission7Complete: saved.mission7Complete === true, mission8Complete: saved.mission8Complete === true, mission9Complete: saved.mission9Complete === true, mission10Complete: saved.mission10Complete === true, mission11Complete: saved.mission11Complete === true, mission12Complete: saved.mission12Complete === true, mission13Complete: saved.mission13Complete === true, mission14Complete: saved.mission14Complete === true, mission15Complete: saved.mission15Complete === true, mission16Complete: saved.mission16Complete === true, mission17Complete: saved.mission17Complete === true, mission18Complete: saved.mission18Complete === true, mission19Complete: saved.mission19Complete === true, mission20Complete: saved.mission20Complete === true, mission21Complete: saved.mission21Complete === true, mission22Complete: saved.mission22Complete === true, mission23Complete: saved.mission23Complete === true, mission24Complete: saved.mission24Complete === true, mission25Complete: saved.mission25Complete === true, mission26Complete: saved.mission26Complete === true, mission27Complete: saved.mission27Complete === true, stabilityChoice: ['preserve','recover'].includes(saved.stabilityChoice) ? saved.stabilityChoice : null, voiceChoice: ['human','station'].includes(saved.voiceChoice) ? saved.voiceChoice : null, pulseTutorialComplete: saved.pulseTutorialComplete === true, companionForm: ['cyan','purple','tower'].includes(saved.companionForm) ? saved.companionForm : 'basic', repairChoiceCount: Math.max(0, Math.min(3, Number(saved.repairChoiceCount) || 0)), routeChoice: ['array','blackbox'].includes(saved.routeChoice) ? saved.routeChoice : null, powerChoice: ['shield','weapon'].includes(saved.powerChoice) ? saved.powerChoice : null, callSignChoice: ['echo','piko'].includes(saved.callSignChoice) ? saved.callSignChoice : null, updatedAt: Math.max(0, Number(saved.updatedAt) || 0) };
     } catch (_) { return defaults; }
 }
 let storyCloudSaveTimer = null;
+const STORY_ACCOUNT_CACHE_PREFIX = 'towerDefenseStoryAccountV1:';
+function isStorySessionOwnerCurrent() {
+    const session = GameModeRuntime.storySession;
+    if (!session?.active || !Object.prototype.hasOwnProperty.call(session, 'ownerUid')) return true;
+    const owner = localStorage.getItem(STORY_PROGRESS_OWNER_KEY) || null;
+    return session.ownerUid === owner && (!currentUser?.uid || currentUser.uid === owner);
+}
+function handleStoryAccountChange(nextUid) {
+    nextUid = nextUid || null;
+    clearTimeout(storyCloudSaveTimer);
+    const session = GameModeRuntime.storySession;
+    if (isIsolatedStoryRuntime() && session?.active && session.ownerUid !== nextUid) exitStoryBattle(false);
+    if (!isIsolatedStoryRuntime() && (currentUser?.uid || null) !== nextUid) closeStoryRuntimeFrame();
+    // Preserve pending local progress per account before selecting another account
+    // or guest record. Guest progress is never silently claimed by a new account.
+    const previous = localStorage.getItem(STORY_PROGRESS_OWNER_KEY) || null;
+    if (previous === nextUid) return;
+    const raw = localStorage.getItem(STORY_PROGRESS_KEY);
+    if (raw) localStorage.setItem(previous ? STORY_ACCOUNT_CACHE_PREFIX + previous : STORY_PROGRESS_UNCLAIMED_KEY, raw);
+    const restored = localStorage.getItem(nextUid ? STORY_ACCOUNT_CACHE_PREFIX + nextUid : STORY_PROGRESS_UNCLAIMED_KEY);
+    if (restored) localStorage.setItem(STORY_PROGRESS_KEY, restored);
+    else localStorage.removeItem(STORY_PROGRESS_KEY);
+    if (nextUid) localStorage.setItem(STORY_PROGRESS_OWNER_KEY, nextUid);
+    else localStorage.removeItem(STORY_PROGRESS_OWNER_KEY);
+}
 function saveStoryProgress(patch) {
     try {
+        if (!isStorySessionOwnerCurrent()) return false;
         const next = { ...getStoryProgress(), ...patch, updatedAt: Date.now() };
         localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(next));
         if (isIsolatedStoryRuntime()) {
@@ -187,7 +213,18 @@ async function pushStoryProgressToCloud(silent = true) {
         const localAtStart = localStorage.getItem(STORY_PROGRESS_KEY);
         const progress = getStoryProgress();
         const payload = { ...progress, updatedAt: Math.max(Date.now(), progress.updatedAt || 0) };
-        await fbDb.collection('storyProgress').doc(ownerUid).set(payload);
+        let legacyCloud = false;
+        try {
+            await fbDb.collection('storyProgress').doc(ownerUid).set(payload);
+        } catch (error) {
+            if (!String(error?.code || '').includes('permission-denied') || typeof legacyStoryCloudPayload !== 'function') throw error;
+            if (currentUser?.uid !== ownerUid || localStorage.getItem(STORY_PROGRESS_OWNER_KEY) !== ownerUid) return false;
+            await fbDb.collection('storyProgress').doc(ownerUid).set(legacyStoryCloudPayload(payload));
+            legacyCloud = true;
+        }
+        window.storyCloudExpansionPending = legacyCloud;
+        const cloudNote = document.getElementById('story-cloud-expansion-note');
+        if (cloudNote) cloudNote.hidden = !legacyCloud || !payload.mission22Complete;
         // A delayed response must not roll back a newer mission or relabel another account's save.
         if (currentUser?.uid !== ownerUid || localStorage.getItem(STORY_PROGRESS_OWNER_KEY) !== ownerUid) return false;
         if (localStorage.getItem(STORY_PROGRESS_KEY) === localAtStart) {
@@ -232,6 +269,7 @@ async function pullStoryProgressFromCloud(silent = true) {
             return false;
         }
         const remote = getValidatedStoryProgress(snapshot.data());
+        if (typeof preserveLocalFinaleProgress === 'function') preserveLocalFinaleProgress(remote, local, snapshot.data());
         if (local && local.updatedAt > remote.updatedAt && local.updatedAt > 0) {
             await pushStoryProgressToCloud(true);
         } else {
@@ -246,7 +284,7 @@ async function pullStoryProgressFromCloud(silent = true) {
         return false;
     }
 }
-function storyLanguage() { return getGameLanguage() === 'en' ? 'en' : 'tr'; }
+function storyLanguage() { return getGameLanguage() === 'tr' ? 'tr' : 'en'; }
 function storyCopy(pair) { return pair[storyLanguage() === 'en' ? 1 : 0]; }
 function applyStoryUiLanguage() {
     const en = storyLanguage() === 'en';
@@ -305,6 +343,7 @@ function showStoryDialogue() {
     const avatar = document.getElementById('story-avatar-glyph');
     const speakerText = line.speaker[en ? 'en' : 'tr'];
     storyTypingFullText = line.text[en ? 'en' : 'tr'];
+    if (window.GameLocale) storyTypingFullText = GameLocale.translate(storyTypingFullText);
     const isHologram = /HOLOGRAM|HOLOGRAMI|BLUE HOLOGRAM/.test(speakerText.toUpperCase());
     const isCommander = /KOMUTAN|COMMANDER/.test(speakerText.toUpperCase());
     const speakerKind = isHologram ? 'hologram' : (isCommander ? 'commander' : 'station');
@@ -459,23 +498,24 @@ function updateStoryMissionBoard() {
         if(b){b.disabled=!unlocked;b.textContent=done?(en?'REPLAY ↻':'TEKRAR OYNA ↻'):(en?enLabel:trLabel);}
         if(st){st.classList.toggle('is-locked',!unlocked&&!done);st.textContent=done?(en?enDone:trDone):(unlocked?(en?'CHAPTER 03 · PLAYABLE':'3. BÖLÜM · OYNANABİLİR'):(en?'LOCKED · COMPLETE MISSION '+(n-1):'KİLİTLİ · '+(n-1)+'. GÖREVİ TAMAMLA'));}
     }
+    if (typeof updateStoryFinaleBoard === 'function') updateStoryFinaleBoard(progress);
     document.querySelectorAll('.story-mission-status.is-locked').forEach(node => {
-        if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status','story-mission-6-status','story-mission-7-status','story-mission-8-status','story-mission-9-status','story-mission-10-status','story-mission-11-status','story-mission-12-status','story-mission-13-status','story-mission-14-status','story-mission-15-status','story-mission-16-status','story-mission-17-status','story-mission-18-status','story-mission-19-status','story-mission-20-status','story-mission-21-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
+        if (!['story-mission-2-status','story-mission-3-status','story-mission-4-status','story-mission-5-status','story-mission-6-status','story-mission-7-status','story-mission-8-status','story-mission-9-status','story-mission-10-status','story-mission-11-status','story-mission-12-status','story-mission-13-status','story-mission-14-status','story-mission-15-status','story-mission-16-status','story-mission-17-status','story-mission-18-status','story-mission-19-status','story-mission-20-status','story-mission-21-status','story-mission-22-status','story-mission-23-status','story-mission-24-status','story-mission-25-status','story-mission-26-status','story-mission-27-status'].includes(node.id)) node.textContent = en ? 'LOCKED · NEXT UPDATE' : 'KİLİTLİ · SONRAKİ AŞAMA';
     });
 
     // Campaign progress is presentation-only: it reads story flags and never mutates saves.
-    const completedCount = Array.from({ length: 21 }, (_, index) => Boolean(progress['mission' + (index + 1) + 'Complete'])).filter(Boolean).length;
+    const completedCount = Array.from({ length: 27 }, (_, index) => Boolean(progress['mission' + (index + 1) + 'Complete'])).filter(Boolean).length;
     const progressLabel = document.getElementById('story-campaign-progress-label');
     const progressCount = document.getElementById('story-campaign-progress-count');
     const progressFill = document.getElementById('story-campaign-progress-fill');
     const progressTrack = document.getElementById('story-campaign-progress-track');
     if (progressLabel) progressLabel.textContent = en ? 'CAMPAIGN SYNCHRONIZED' : 'HİKÂYE İLERLEMESİ';
-    if (progressCount) progressCount.textContent = en ? (completedCount + ' / 21 MISSIONS') : (completedCount + ' / 21 GÖREV');
-    if (progressFill) progressFill.style.width = ((completedCount / 21) * 100) + '%';
+    if (progressCount) progressCount.textContent = en ? (completedCount + ' / 27 MISSIONS') : (completedCount + ' / 27 GÖREV');
+    if (progressFill) progressFill.style.width = ((completedCount / 27) * 100) + '%';
     if (progressTrack) progressTrack.setAttribute('aria-valuenow', String(completedCount));
 
     let nextMission = 0;
-    for (let missionNumber = 1; missionNumber <= 21; missionNumber++) {
+    for (let missionNumber = 1; missionNumber <= 27; missionNumber++) {
         if (!progress['mission' + missionNumber + 'Complete']) { nextMission = missionNumber; break; }
     }
     document.querySelectorAll('[id^="story-start-mission"]').forEach(button => {
@@ -488,8 +528,9 @@ function updateStoryMissionBoard() {
         card.classList.toggle('is-complete', complete);
         card.classList.toggle('is-current', !complete && missionNumber === nextMission && !button.disabled);
         card.classList.toggle('is-locked-card', button.disabled && !complete);
-        if (complete) card.setAttribute('data-mission-state', en ? 'COMPLETE' : 'TAMAM');
-        else if (!button.disabled) card.setAttribute('data-mission-state', en ? 'AVAILABLE' : 'HAZIR');
+        const locale = getGameLanguage();
+        if (complete) card.setAttribute('data-mission-state', {tr:'TAMAM',en:'COMPLETE',es:'COMPLETADO',de:'ABGESCHLOSSEN'}[locale] || 'TAMAM');
+        else if (!button.disabled) card.setAttribute('data-mission-state', {tr:'HAZIR',en:'AVAILABLE',es:'DISPONIBLE',de:'BEREIT'}[locale] || 'HAZIR');
         else card.removeAttribute('data-mission-state');
     });
 }
@@ -519,14 +560,14 @@ function storyMissionPrerequisiteMet(missionNumber, progress) {
         15: 'mission14Complete',
         16: 'mission15Complete',
         17: 'mission16Complete',
-        18: 'mission17Complete', 19: 'mission18Complete', 20: 'mission19Complete', 21: 'mission20Complete'
+        18: 'mission17Complete', 19: 'mission18Complete', 20: 'mission19Complete', 21: 'mission20Complete', 22: 'mission21Complete', 23: 'mission22Complete', 24: 'mission23Complete', 25: 'mission24Complete', 26: 'mission25Complete', 27: 'mission26Complete'
     };
     const requiredProgressFlag = prerequisiteByMission[missionNumber];
     return !requiredProgressFlag || progress[requiredProgressFlag] === true;
 }
 function startStoryMission(missionNumber = 1) {
     const progress = getStoryProgress();
-    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21].includes(missionNumber)) return;
+    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27].includes(missionNumber)) return;
     // Enforce mission order in the handler as well as the disabled UI buttons.
     // This prevents direct calls from bypassing the chapter's narrative gates.
     if (!storyMissionPrerequisiteMet(missionNumber, progress)) {
@@ -559,7 +600,7 @@ function startStoryMission(missionNumber = 1) {
     }
 
     const session = {
-        active: true, completed: false, companionSynced: false, mission: missionNumber, phase: missionNumber === 3 ? 'investigate' : (missionNumber === 4 ? 'powerChoice' : (missionNumber === 6 ? 'repair' : (missionNumber === 8 ? 'memory' : 'combat'))), scans: 0, repairs: 0, memories: 0, routeChoice: null,
+        active: true, completed: false, ownerUid: currentUser?.uid || localStorage.getItem(STORY_PROGRESS_OWNER_KEY) || null, companionSynced: false, mission: missionNumber, phase: missionNumber === 3 ? 'investigate' : (missionNumber === 4 ? 'powerChoice' : (missionNumber === 6 ? 'repair' : (missionNumber === 8 ? 'memory' : 'combat'))), scans: 0, repairs: 0, memories: 0, routeChoice: null,
         snapshot: {
             game: storyDeepCopy(game), tower: storyDeepCopy(tower),
             enemies: storyDeepCopy(enemies), projectiles: storyDeepCopy(projectiles),
@@ -685,7 +726,7 @@ function startStoryMission(missionNumber = 1) {
         else if (missionNumber === 6) status.textContent = storyLanguage() === 'en' ? 'REPAIR: Restore three connections while the companion guides you.' : 'ONARIM: Yoldaş sana rehberlik ederken üç bağlantıyı onar.';
         else if (missionNumber === 7) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 8 hostiles, hold off 10 reinforcements, then disable the signal amplifier.' : 'GÖREV: 8 düşmanı durdur, 10 takviyeyi püskürt, ardından sinyal yükselticisini kapat.';
         else if (missionNumber === 8) status.textContent = storyLanguage() === 'en' ? 'MEMORY REVIEW: Inspect three clues in the familiar room.' : 'HAFIZA İNCELEMESİ: Tanıdık odadaki üç ipucunu incele.';
-        else if (missionNumber === 9) status.textContent = storyLanguage() === 'en' ? 'CLIMAX: Defeat 10 hostiles, reconnect with the companion, then awaken it.' : 'FİNAL: 10 düşmanı durdur, yoldaşla bağlantıyı kur ve onu uyandır.';
+        else if (missionNumber === 9) status.textContent = storyLanguage() === 'en' ? 'CLIMAX: Hold three defense lines. Spend your 180 gold on upgrades.' : 'FİNAL: Üç savunma hattını geç. 180 altını yükseltmelerde kullan.';
         else if (missionNumber === 10) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 6 hostiles, then use the cyan pulse to reveal and activate two hidden nodes.' : 'GÖREV: 6 düşmanı durdur, ardından camgöbeği darbeyle iki gizli düğümü açığa çıkarıp etkinleştir.';
         else if (missionNumber === 11) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 8 hostiles, then pulse three ancient relays to map the lower network.' : 'GÖREV: 8 düşmanı durdur, ardından üç kadim röleye sinyal darbesi göndererek alt ağı haritala.';
         else if (missionNumber === 12) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat 6 hostiles, then inspect three conflicting archive records.' : 'GÖREV: 6 düşmanı durdur, ardından birbiriyle çelişen üç arşiv kaydını incele.';
@@ -743,6 +784,7 @@ function startStoryMission(missionNumber = 1) {
     if (typeof updateHUD === 'function') updateHUD();
     if (typeof refreshUpgradeButtonsState === 'function') refreshUpgradeButtonsState();
     if (typeof updateHoldWaveButton === 'function') updateHoldWaveButton();
+    if (missionNumber >= 22 && typeof initializeStoryFinale === 'function') initializeStoryFinale();
     if (missionNumber === 1) showToast(storyLanguage() === 'en' ? 'Lost Signal · Mission 01. Your core fires automatically; use the upgrade panel if needed.' : 'Kayıp Sinyal · Görev 01. Çekirdeğin otomatik ateş ediyor; gerekirse yükseltme panelini kullan.');
     else if (missionNumber === 2) showToast(storyLanguage() === 'en' ? 'Mission 02 · Clear the patrol. The companion will help scan the signal traces.' : 'Görev 02 · Devriyeyi durdur. Yoldaş sinyal izlerini taramana yardım edecek.');
     else if (missionNumber === 3) showToast(storyLanguage() === 'en' ? 'Mission 03 · Choose which record to inspect.' : 'Görev 03 · Hangi kaydı inceleyeceğini seç.');
@@ -774,6 +816,7 @@ function finishStoryBattleEncounter() {
     const session = GameModeRuntime.storySession;
     if (!session || !session.active || session.completed) return;
     if (GameModeRuntime.isStoryCombatActive() && game.waveKills < game.waveTargetKills) return;
+    if (session.mission >= 22 && typeof advanceStoryFinale === 'function') { advanceStoryFinale(); return; }
     const en = storyLanguage() === 'en';
     const setStatus = text => { const el = document.getElementById('story-battle-status'); if (el) el.textContent = text; };
     const setAction = (id, hidden, label) => { const el = document.getElementById(id); if (el) { el.hidden = hidden; if (label) el.textContent = label; } };

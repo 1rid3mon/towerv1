@@ -1,3 +1,12 @@
+// Client diagnostic ledger: gameplay rewards may legitimately exceed a fixed delta.
+// This is not server authority; modified clients still require backend validation.
+function creditGameplayCrystals(amount) {
+    if (!Number.isFinite(amount) || amount < 0) return false;
+    if (typeof window._recordCrystalReward === 'function') window._recordCrystalReward(amount);
+    game.crystals += amount;
+    return true;
+}
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -175,7 +184,7 @@ function collectCargoDrone(index, reflexBonus = false) {
         }
     } else if (d.rewardType === 'crystal') {
         const cAmt = Math.max(3, Math.round((4 + Math.floor(w * 0.35)) * getCrystalDropMult() * (reflexBonus ? 1.5 : 1)));
-        game.crystals += cAmt;
+        creditGameplayCrystals(cAmt);
         addFloatingText(d.x, d.y - 8, `+${formatNumber(cAmt)} 💎`, '#22d3ee', 15);
         if (typeof showToast === 'function') {
             showToast(`💎 Kargo İmha Edildi! +${formatNumber(cAmt)} Kristal Kazandın!${reflexBonus ? ' REFLEKS BONUSU!' : ''}`);
@@ -460,7 +469,12 @@ function updateGame(dt) {
         return;
     }
 
+    // Mission callbacks can replace both combat arrays during a kill. The outgoing
+    // simulation step must stop before reading or mutating the next stage's state.
+    const frameEnemies = enemies, frameProjectiles = projectiles;
+    const frameInvalidated = () => enemies !== frameEnemies || projectiles !== frameProjectiles || isPaused || isDefeated;
     const simDt = dt * gameSpeed;
+    if (typeof tickStoryFinale === 'function') tickStoryFinale(simDt);
 
     if (game.holdWave) {
         game.holdWaveTimer += simDt;
@@ -578,6 +592,7 @@ function updateGame(dt) {
     }
 
     updateCompanions(simDt);
+    if (frameInvalidated()) return;
 
     if (game.settings.activeTheme === 'snow') {
         for (const sf of snowFlakes) {
@@ -605,6 +620,7 @@ function updateGame(dt) {
         if (p.fromEnemy) {
             if (distToSegment(tower.x, tower.y, prevX, prevY, p.x, p.y) <= 24) {
                 damageTower(p.damage, null);
+                if (frameInvalidated()) return;
                 if (p.isFrost) {
                     applyFrostToTower(p.freezeDuration || 0.8, p.frostSlowDuration || 3.0);
                     // v1.1.0: frost boss impacts leave a readable crystalline burst.
@@ -638,10 +654,12 @@ function updateGame(dt) {
                             if (distAoe <= p.splashRadius + aoeEnemy.radius) {
                                 const falloff = distAoe < 15 ? 1.0 : 0.70;
                                 dealDamageToEnemy(aoeEnemy, Math.round(p.damage * falloff), p.isCrit, '#fb923c', false);
+                                if (frameInvalidated()) return;
                             }
                         }
                     } else {
                         dealDamageToEnemy(e, p.damage, p.isCrit, p.isCrit ? '#c084fc' : '#60a5fa', true);
+                        if (frameInvalidated()) return;
                         createParticles(e.x, e.y, p.color, 5, 50);
                     }
 
@@ -778,6 +796,7 @@ function updateGame(dt) {
                     }
                 } else {
                     damageTower(e.dmg, e);
+                    if (frameInvalidated()) return;
                     if (e.isFrost) applyFrostToTower(e.freezeDuration, e.frostSlowDuration);
                     if (e.type === 'boss') {
                         rings.push({ x: tower.x, y: tower.y, radius: 14, color: e.color, life: 0.5 });
@@ -852,6 +871,7 @@ function fireTowerProjectile(startX, startY, target, barrelIdx = 0, totalBarrels
 }
 
 function updateCompanions(simDt) {
+    const companionEnemies = enemies;
     for (const [key, st] of Object.entries(game.companions)) {
         const star = Math.min(5, Math.max(0, st.unlocked ? (st.level || 1) : 0));
         if (star <= 0) continue;
@@ -878,6 +898,7 @@ function updateCompanions(simDt) {
                 let dmg = Math.max(1, Math.round(towerDmg * def.damageMults[idx] * compBoost));
                 if (isCrit) dmg = Math.round(dmg * getTowerCritMult());
                 dealDamageToEnemy(target, dmg, isCrit, isCrit ? '#facc15' : '#ef4444');
+                if (enemies !== companionEnemies || isPaused || isDefeated) return;
                 lightningBeams.push({ x1: st.x, y1: st.y, x2: target.x, y2: target.y, color: isCrit ? '#facc15' : '#ef4444', life: 0.11 });
             }
         } else if (key === 'frostOrb' && enemies.length > 0) {
@@ -892,6 +913,7 @@ function updateCompanions(simDt) {
                     e.slowFactor = Math.min(e.slowFactor, slowRatio);
                     e.slowTimer = 2.2 + star * 0.25;
                     dealDamageToEnemy(e, frostDmg, false, '#38bdf8');
+                    if (enemies !== companionEnemies || isPaused || isDefeated) return;
                     hitAny = true;
                 }
             }
@@ -966,7 +988,7 @@ function killEnemy(enemy) {
     if (enemy.type === 'boss') {
         const baseBossCrystals = Math.round((5 + Math.floor(game.wave * 0.75)) * crystalMult);
         const c = game.holdWave ? Math.max(1, Math.round(baseBossCrystals * 0.35)) : baseBossCrystals;
-        game.crystals += c; game.stats.bossKills++;
+        creditGameplayCrystals(c); game.stats.bossKills++;
         addFloatingText(enemy.x, enemy.y - 24, `+${formatNumber(c)} 💎`, '#22d3ee', 15);
         showToast(`${enemy.name || 'Boss'} İmha Edildi! +${formatNumber(c)} Kristal!`);
         if (typeof showBattleMoment === 'function') {
@@ -977,7 +999,7 @@ function killEnemy(enemy) {
         }
     } else if (Math.random() * 100 < crystalChance) {
         const cAmt = Math.max(1, Math.round(crystalMult));
-        game.crystals += cAmt;
+        creditGameplayCrystals(cAmt);
         addFloatingText(enemy.x, enemy.y - 22, `+${cAmt} 💎`, '#22d3ee', 13);
     }
 
@@ -1063,7 +1085,7 @@ function completeWave() {
             if (game.highestWave % 10 === 0) {
                 const milestoneCrystals = 15 + Math.floor(game.highestWave * 1.0);
                 milestoneCrystalsAwarded = milestoneCrystals;
-                game.crystals += milestoneCrystals;
+                creditGameplayCrystals(milestoneCrystals);
                 showToast(`🏆 Dalga ${game.highestWave} Rekor Ödülü: +${milestoneCrystals} 💎 Kristal!`);
             }
             if (prevHighest < 15 && game.highestWave >= 15) showToast('⚔️ 15. Dalga! Cengiz Hakanlığı Teması Açıldı!');
@@ -1132,7 +1154,7 @@ function recoverFromDefeat() {
     const salvageGold = Math.floor(getWaveBaseGold(game.wave) * getGoldMultiplier() * 8);
     const salvageCrystal = Math.max(1, Math.floor(game.wave / 4));
     game.gold += salvageGold;
-    game.crystals += salvageCrystal;
+    creditGameplayCrystals(salvageCrystal);
 
     if (game.wave > 1) { 
         game.wave--; 
@@ -1329,6 +1351,10 @@ window.onload = function () {
     const SECRET_SALT = "Kule_v11_KrM_2026_#99!";
     let shadow = null;
     let cheatFlags = 0;
+    let pendingCrystalRewards = 0;
+    window._recordCrystalReward = amount => {
+        if (Number.isFinite(amount) && amount >= 0) pendingCrystalRewards += amount;
+    };
 
     // Companion objects also contain live combat/render fields (angle, x/y, cooldown).
     // Those fields legitimately change during play and must never participate in anti-cheat
@@ -1351,6 +1377,7 @@ window.onload = function () {
 
     function syncShadow() {
         if (typeof game === 'undefined') return;
+        pendingCrystalRewards = 0;
         shadow = {
             gold: Number(game.gold) || 0,
             crystals: Number(game.crystals) || 0,
@@ -1439,7 +1466,7 @@ window.onload = function () {
             if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Geçersiz dalga değişimi engellendi!');
         }
 
-        if (game.crystals - shadow.crystals > 650) {
+        if (game.crystals - shadow.crystals > pendingCrystalRewards + 0.000001) {
             game.crystals = shadow.crystals;
             cheatFlags++;
             if (typeof showToast === 'function') showToast('🛡️ Güvenlik: Geçersiz kristal artışı engellendi!');

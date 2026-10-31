@@ -145,6 +145,14 @@ test("story progress accepts Chapter 03 missions 19–21 and chapter 3", async (
   await assertFails(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({ chapter: 4 })));
 });
 
+test("story finale schema accepts optional new fields without requiring old clients to send them", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  await assertSucceeds(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress()));
+  await assertSucceeds(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({ mission22Complete:true, mission23Complete:true, mission24Complete:true, mission25Complete:true, mission26Complete:true, mission27Complete:true, companionForm:'tower', stabilityChoice:'preserve', chapter:3 })));
+  await assertFails(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({ mission27Complete:'true' })));
+  await assertFails(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({ stabilityChoice:'erase' })));
+});
+
 test("story progress owner can create a valid cloud save", async () => {
   const alice = testEnv.authenticatedContext("alice").firestore();
   await assertSucceeds(setDoc(doc(alice, "storyProgress/alice"), validStoryProgress({ mission1Complete: true })));
