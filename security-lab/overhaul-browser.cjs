@@ -24,6 +24,7 @@ async function main() {
   try {for (const [width,height] of [[390,844],[844,390],[1024,1366],[1366,900]]) {
     const context = await browser.newContext({viewport:{width,height},hasTouch:true});
     await context.route(/firestore\.googleapis\.com|identitytoolkit\.googleapis\.com|securetoken\.googleapis\.com/,r=>r.abort());
+    const out=path.join(__dirname,'browser-evidence','overhaul',engine,live?'live':'local');fs.mkdirSync(out,{recursive:true});
     const page = await context.newPage(); const errors=[];page.on('pageerror',e=>errors.push(e.message));
     await page.goto(target,{waitUntil:'networkidle'});
     await page.waitForFunction(()=>window.TowerOverhaulV11 && typeof game !== 'undefined');
@@ -57,6 +58,7 @@ async function main() {
       });
       for(const route of routes){assert.ok(route);for(const label of route)await page.locator('.ls-v11-controls').getByRole('button',{name:label,exact:true}).tap();await page.getByRole('button',{name:'ETKİLEŞ',exact:true}).tap();}
       assert.match(await page.locator('.ls-v11-note').innerText(),/KAYIT ÇÖZÜLDÜ/);
+      await page.screenshot({path:path.join(out,`${width}x${height}-sector-${m}.png`)});
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
       await page.getByRole('button',{name:'KAPAT ✕',exact:true}).click();
       assert.equal(await page.evaluate(()=>TowerOverhaulV11.getScene()),null);
@@ -70,7 +72,7 @@ async function main() {
     assert.equal(await page.evaluate(()=>TowerOverhaulV11.getState().modules.weapon),'focus');
     assert.equal(await page.evaluate(()=>TowerHardV10.path()),'kinetic');
     assert.equal(await page.evaluate(()=>game.highestWave),60);
-    const out=path.join(__dirname,'browser-evidence','overhaul',engine,live?'live':'local');fs.mkdirSync(out,{recursive:true});
+    assert.equal(await page.locator('#mode-story-button').getAttribute('aria-disabled'),'false','Loaded save refreshes Story unlock');
     await page.screenshot({path:path.join(out,`${width}x${height}.png`)});
     assert.deepEqual(errors,[]);
     console.log(JSON.stringify({engine,width,height,live,status:'PASS',terminals:6,savePreserved:true}));

@@ -711,3 +711,8 @@ Bu son kayıt ve sabah listesi güncellemesi **yalnızca belgedir**. Yerel Git m
 - Initial CI emulator/regression 248/248 passed. Local expanded suite 208/208 passed, including all eight module combinations through real fireTowerProjectile/damageTower, Story isolation and real wave-clear healing.
 - Test HTTP servers now serve external CSS with text/css so Story/campaign tests also exercise the installed visual layers. V11 browser traversal adds a real keyboard-wall collision check.
 - Final Chromium/WebKit and campaign CI still required before merge. No production release yet.
+
+#### V11 screenshot QA: stale Story unlock after reload
+- First Chromium evidence revealed the main-menu Story card still showing 0/25 after a valid high-wave save reload, although game.highestWave was restored. DOMContentLoaded refreshed the gate before window.load applied saved progression.
+- applyParsedGameData now refreshes Story availability after accepted local/account/cloud data is applied. No save format or progression value changes. Browser regression asserts the unlocked card after reload; sector screenshots added for visual inspection.
+- Re-run all gates on this final fix before release; previous successful campaign run 41595803259 alone is insufficient for the new candidate.
