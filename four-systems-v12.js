@@ -4,11 +4,11 @@
 'use strict';
 const tr=(a,b)=>{try{return typeof getGameLanguage==='function'&&getGameLanguage()==='en'?b:a;}catch(_){return a;}};
 const safe=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const state={open:false,tab:'combat',lastPiko:0,lastBoss:''};
+const state={open:false,tab:'combat',lastPiko:0};
 const missionKeys=Array.from({length:27},(_,i)=>'mission'+(i+1)+'Complete');
 function stats(){try{return typeof game==='object'&&game?game.stats||{}:{};}catch(_){return {};}}
 function progress(){try{return typeof getStoryProgress==='function'?getStoryProgress():{};}catch(_){return {};}}
-function isStory(){try{return typeof GameModeRuntime!=='undefined'&&GameModeRuntime.isStoryActive();}catch(_){return false;}}
+function isStory(){try{return typeof GameModeRuntime!=='undefined'&&(GameModeRuntime.isIsolatedStoryRuntime()||GameModeRuntime.isStoryActive());}catch(_){return false;}}
 function piko(line){
  const now=Date.now();if(now-state.lastPiko<8500)return false;state.lastPiko=now;
  const bubble=document.getElementById('game-mascot-bubble');if(!bubble)return false;
@@ -19,7 +19,7 @@ function piko(line){
 function bossCue(e){
  if(!e||e.type!=='boss'||isStory())return;
  const id=e.subType||'boss';
- if(state.lastBoss===id)return;state.lastBoss=id;
+
  const advice={
  tank_boss:tr('Piko: Titan yaklaşıyor. Savunmayı güçlendir!','Piko: Titan approaching. Reinforce defenses!'),
  ranged_boss:tr('Piko: Topçu menziline dikkat!','Piko: Watch the artillery range!'),
