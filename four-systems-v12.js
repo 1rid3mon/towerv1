@@ -107,7 +107,14 @@ if(typeof w.openStoryMode==='function'&&!w.openStoryMode.v12IntroFixed){
    const seen=typeof getStoryProgress==='function'&&getStoryProgress().introSeen===true;
    const result=originalOpenStory.apply(this,args);
    installIntroReplay();
-   if(seen&&document.getElementById('story-mode-screen')?.classList.contains('is-open')&&typeof showStoryMissionBriefing==='function')showStoryMissionBriefing();
+   if(seen&&document.getElementById('story-mode-screen')?.classList.contains('is-open')){
+     if(typeof finishStoryTyping==='function')finishStoryTyping();
+     if(typeof storyMissionViewOpen!=='undefined')storyMissionViewOpen=true;
+     const dialogue=document.getElementById('story-dialogue-view'),mission=document.getElementById('story-mission-view');
+     if(dialogue)dialogue.hidden=true;
+     if(mission)mission.hidden=false;
+     if(typeof updateStoryMissionBoard==='function')updateStoryMissionBoard();
+   }
    return result;
  };
  w.openStoryMode.v12IntroFixed=true;
