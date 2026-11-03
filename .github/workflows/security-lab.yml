@@ -99,6 +99,8 @@ jobs:
 
       - name: Verify V12 four-system console
         run: node security-lab/four-systems-v12.test.cjs
+      - name: Verify V13 cosmetic quarters and story save isolation
+        run: node security-lab/commanders-quarters-v13.test.cjs
       - name: Verify V12 boss phases, combos and narrative branching
         run: node security-lab/v12-expansion.test.cjs
 
