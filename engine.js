@@ -412,6 +412,7 @@ function spawnEnemy(isBoss = false) {
         const ordinal = enemies.filter(unit => unit && !unit.isBoss).length - 1;
         TowerEnemyDiversity.decorate(enemy, w, ordinal);
     }
+    if (isBoss && window.TowerFourSystemsV12) window.TowerFourSystemsV12.bossCue({type:'boss',subType});
     if (isBoss) {
         // A short, original arrival burst gives each boss a physical entrance without changing combat stats.
         rings.push({ x, y, radius: Math.max(18, radius * 0.62), color: pal.color, life: 0.95 });
