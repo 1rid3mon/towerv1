@@ -130,6 +130,7 @@ function anomaly(wave){
 }
 function onWave(wave){anomaly(wave);}
 function onClick(e){
+ if(e.target.closest('[data-v14-close]')){close();return;}
  const btn=e.target.closest('button');if(!btn)return;
  if(btn.hasAttribute('data-v14-close')){close();return;}
  if(btn.hasAttribute('data-v14-move')){if(room==='map'){const d=btn.dataset.v14Move.split(',').map(Number);walk(d[0],d[1]);}return;}
@@ -168,7 +169,7 @@ function mount(){
   if(e.key==='Escape'){if(document.getElementById('v14-cinema'))stopCinema();else if(isOpen)close();return;}
   if(!isOpen||room!=='map'||document.getElementById('v14-cinema')||/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName||''))return;
   const d={ArrowUp:[0,-1],KeyW:[0,-1],ArrowDown:[0,1],KeyS:[0,1],ArrowLeft:[-1,0],KeyA:[-1,0],ArrowRight:[1,0],KeyD:[1,0]}[e.code];
-  if(d){e.preventDefault();walk(d[0],d[1]);}
+  if(d){e.preventDefault();e.stopPropagation();walk(d[0],d[1]);}
  });
  try{if(typeof game!=='undefined'&&game)anomaly(game.wave);}catch(_){}
 }
