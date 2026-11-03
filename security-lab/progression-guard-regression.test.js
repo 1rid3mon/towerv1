@@ -357,7 +357,7 @@ test('plasma satellite target selection matches stable nearest-first slicing wit
     ).slice(0, limit).map(enemy => enemy.id);
     assert.deepEqual(Array.from(sandbox.select(enemies, 0, 0, limit), enemy => enemy.id), expected);
   }
-  assert.match(engineSource, /getNearestEnemiesByDistance\(enemies, st\.x, st\.y, chainCount\)/);
+  assert.match(engineSource, /getNearestEnemiesByDistance\(eligible, st\.x, st\.y, chainCount\)/);
   assert.doesNotMatch(engineSource, /const sorted = \[\.\.\.enemies\]\.sort/);
 });
 

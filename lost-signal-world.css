@@ -1,0 +1,27 @@
+/* LOST SIGNAL: cohesive art direction, no gameplay or economy changes. */
+:root{--ls-bg:#10161c;--ls-plate:#202a32;--ls-rim:#53616a;--ls-text:#e6e1d3;--ls-muted:#aab3b5;--ls-amber:#d5a66b;--ls-cyan:#87b9bf}
+body{font-feature-settings:'tnum' 1;letter-spacing:.006em}
+#mode-main-menu .mode-menu-eyebrow{letter-spacing:.28em;color:var(--ls-amber)!important;font-size:10px!important}
+#mode-menu-title{font-weight:700!important;letter-spacing:.065em!important;text-shadow:none!important}
+#mode-menu-subtitle{max-width:42rem;line-height:1.55!important;color:var(--ls-muted)!important}
+.mode-menu-card{position:relative;overflow:hidden;transition:background .14s,border-color .14s,transform .14s!important}
+.mode-menu-card:before{content:'';position:absolute;top:0;left:0;width:28px;height:2px;background:var(--ls-amber);opacity:.85;pointer-events:none}
+.mode-menu-card:focus-visible,.mode-menu-tool:focus-visible,button:focus-visible{outline:2px solid var(--ls-amber)!important;outline-offset:3px}
+.mode-menu-card:hover{transform:translateY(-1px)!important}
+.mode-menu-card-title{letter-spacing:.04em!important}
+.mode-menu-card-desc{line-height:1.5!important}
+.mode-menu-icon{box-shadow:none!important;filter:saturate(.75)}
+#hud-hp-card,#hud-wave-card,#hud-quick-stats,#hud-bottom-controls{backdrop-filter:none!important;box-shadow:0 4px 10px rgba(0,0,0,.25)!important;border-color:rgba(131,145,147,.32)!important}
+#battle-moment .battle-frame{box-shadow:0 8px 18px rgba(0,0,0,.3)!important;backdrop-filter:none!important}
+#battle-title{letter-spacing:.075em!important}
+#game-mascot{opacity:.96;transform-origin:center}
+#game-mascot svg{filter:saturate(.78) contrast(1.12)!important}
+#settings-modal button,#theme-modal button,#auth-modal button{transition:background .12s,border-color .12s!important}
+/* Prevent a wall of badges, animated gradients and glowing controls. */
+.rarity-glow-rare,.rarity-glow-super_rare,.rarity-glow-epic,.rarity-glow-mythic,.rarity-glow-legendary{box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)!important}
+.premium-card{transition:background .12s,border-color .12s!important}
+.ls-section-stamp{display:inline-flex;align-items:center;gap:6px;color:var(--ls-amber);font:600 10px 'Rajdhani',sans-serif;letter-spacing:.19em;text-transform:uppercase}
+.ls-section-stamp:before{content:'';display:block;width:14px;height:2px;background:currentColor}
+/* Theme identity survives: only the UI frame is unified, never recolor canvas backgrounds. */
+@media(max-width:480px){#mode-main-menu .mode-menu-inner{max-width:100%!important}#mode-menu-title{letter-spacing:.035em!important}.mode-menu-card{min-height:100px}}
+@media(prefers-reduced-motion:reduce){.mode-menu-card,.premium-card,#game-mascot{transition:none!important;animation:none!important}}

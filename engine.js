@@ -406,6 +406,12 @@ function spawnEnemy(isBoss = false) {
         rot: Math.random() * Math.PI * 2, rotSpeed: (Math.random() - 0.5) * 3, animPhase: Math.random() * Math.PI * 2
     });
 
+    // LOST SIGNAL: visual-only variant selection.
+    if (!isBoss && typeof TowerEnemyDiversity !== "undefined" && enemies.length) {
+        const enemy = enemies[enemies.length - 1];
+        const ordinal = enemies.filter(unit => unit && !unit.isBoss).length - 1;
+        TowerEnemyDiversity.decorate(enemy, w, ordinal);
+    }
     if (isBoss) {
         // A short, original arrival burst gives each boss a physical entrance without changing combat stats.
         rings.push({ x, y, radius: Math.max(18, radius * 0.62), color: pal.color, life: 0.95 });
@@ -585,7 +591,7 @@ function updateGame(dt) {
         const inRange = getNearestEnemiesInRange(enemies, tower.x, tower.y, range, multishot);
         if (inRange.length > 0) {
             const targetsCount = Math.min(inRange.length, multishot);
-            tower.fireCooldown = 1 / getTowerFireRate(); tower.recoil = 4;
+            tower.fireCooldown = 1 / (window.TowerOverhaulV11 ? window.TowerOverhaulV11.fireRate(getTowerFireRate()) : getTowerFireRate()); tower.recoil = 4;
             tower.angle = Math.atan2(inRange[0].enemy.y - tower.y, inRange[0].enemy.x - tower.x);
             for (let i = 0; i < targetsCount; i++) fireTowerProjectile(tower.x, tower.y, inRange[i].enemy, i, multishot);
         }
@@ -658,6 +664,8 @@ function updateGame(dt) {
                             }
                         }
                     } else {
+                        if (p.fromTower && window.TowerHardV10) window.TowerHardV10.onHit(e, p.damage, {enemies,dealDamageToEnemy,tower,getTowerRange,lightningBeams});
+                        if (frameInvalidated()) return;
                         dealDamageToEnemy(e, p.damage, p.isCrit, p.isCrit ? '#c084fc' : '#60a5fa', true);
                         if (frameInvalidated()) return;
                         createParticles(e.x, e.y, p.color, 5, 50);
@@ -740,7 +748,7 @@ function updateGame(dt) {
         const ang = Math.atan2(tower.y - e.y, tower.x - e.x);
 
         if (dist > targetStopDist) {
-            const step = Math.min(dist - targetStopDist, e.speed * e.slowFactor * simDt);
+            const step = Math.min(dist - targetStopDist, e.speed * e.slowFactor * (window.LostSignalEnemyBehaviorsV9 ? window.LostSignalEnemyBehaviorsV9.movementMultiplier(e) : 1) * simDt);
             e.x += Math.cos(ang) * step;
             e.y += Math.sin(ang) * step;
         } else {
@@ -840,9 +848,12 @@ function updateGame(dt) {
 function fireTowerProjectile(startX, startY, target, barrelIdx = 0, totalBarrels = 1) {
     const baseAngle = Math.atan2(target.y - startY, target.x - startX);
     const distToTarget = Math.hypot(target.x - startX, target.y - startY);
-    const speed = 360;
+    const speedBase = window.TowerHardV10 ? window.TowerHardV10.speed(360) : 360;
+    const speed = window.TowerOverhaulV11 ? window.TowerOverhaulV11.speed(speedBase) : speedBase;
     const isCrit = Math.random() * 100 < getTowerCritChance();
     let dmg = getTowerDamage();
+    if (window.TowerHardV10) dmg = window.TowerHardV10.damage(dmg);
+    if (window.TowerOverhaulV11) dmg = window.TowerOverhaulV11.damage(dmg);
     if (isCrit) dmg = Math.round(dmg * getTowerCritMult());
 
     const bCount = Math.min(7, Math.max(1, totalBarrels));
@@ -865,7 +876,7 @@ function fireTowerProjectile(startX, startY, target, barrelIdx = 0, totalBarrels
         x: spawnX, y: spawnY,
         vx: Math.cos(aimAngle) * speed, vy: Math.sin(aimAngle) * speed,
         radius: isCrit ? 5 : 4.0, color: projColor, damage: dmg, isCrit,
-        bouncesLeft: game.upgrades.bounce, hitList: [], life: 2.0, fromEnemy: false
+        bouncesLeft: window.TowerHardV10 ? window.TowerHardV10.bounces(game.upgrades.bounce) : game.upgrades.bounce, hitList: [], life: 2.0, fromEnemy: false, fromTower: true
     });
     if (typeof playBattleCue === 'function') playBattleCue('shot');
 }
@@ -944,8 +955,16 @@ function updateCompanions(simDt) {
             }
         } else if (key === 'plasmaSatellite' && enemies.length > 0) {
             const chainCount = def.chainCounts[idx];
-            const sorted = getNearestEnemiesByDistance(enemies, st.x, st.y, chainCount);
-            if (sorted.length > 0 && Math.hypot(sorted[0].x - st.x, sorted[0].y - st.y) <= 280) {
+            // Both the satellite's own range and the visible tower radar are hard limits.
+            // Every chain target must satisfy both boundaries; no remote chain damage.
+            const plasmaRange = 280;
+            const towerRadarRange = getTowerRange();
+            const eligible = enemies.filter(enemy =>
+                Math.hypot(enemy.x - st.x, enemy.y - st.y) <= plasmaRange &&
+                Math.hypot(enemy.x - tower.x, enemy.y - tower.y) <= towerRadarRange
+            );
+            const sorted = getNearestEnemiesByDistance(eligible, st.x, st.y, chainCount);
+            if (sorted.length > 0) {
                 st.cooldown = Math.max(1.2, 1.9 - star * 0.12);
                 let prevX = st.x, prevY = st.y;
                 for (const target of sorted) {
@@ -1025,6 +1044,7 @@ function killEnemy(enemy) {
 }
 
 function damageTower(rawDamage, attacker) {
+    if (window.TowerOverhaulV11) rawDamage = window.TowerOverhaulV11.incoming(rawDamage);
     const armorVal = getTowerArmor();
     const flatReduced = Math.max(rawDamage * 0.25, rawDamage - armorVal);
     const reduced = Math.max(1, Math.round(flatReduced));
@@ -1079,6 +1099,8 @@ function completeWave() {
         waveRewardGold = total;
         if (total > 0) { game.gold += total; addFloatingText(tower.x, tower.y - 35, `Dalga Ödülü: +${formatNumber(total)} 🪙`, '#f59e0b', 14); }
 
+        if (window.TowerHardV10) window.TowerHardV10.waveClear(tower);
+        if (window.TowerOverhaulV11) window.TowerOverhaulV11.waveClear(tower);
         const prevHighest = game.highestWave; game.wave++;
         if (game.wave > game.highestWave) {
             game.highestWave = game.wave;

@@ -728,6 +728,15 @@
 @media(prefers-reduced-motion:reduce){.story-battle-panel{backdrop-filter:none}}
 
 </style>
+<!-- LOST SIGNAL CONSOLIDATED V11 -->
+<link rel="stylesheet" href="command-deck.css">
+<link rel="stylesheet" href="character-direction.css">
+<link rel="stylesheet" href="lost-signal-world.css">
+<link rel="stylesheet" href="piko-animation.css">
+<link rel="stylesheet" href="lost-signal-atmosphere.css">
+<link rel="stylesheet" href="station-records-v9.css">
+<link rel="stylesheet" href="hard-v10.css">
+<link rel="stylesheet" href="overhaul-v11.css">
 </head>
 <body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-pc color-pastel" id="main-body">
 
@@ -1774,7 +1783,8 @@
         <span class="battle-sfx-dot" aria-hidden="true"></span><span id="battle-sfx-label">SFX AÇIK</span>
     </button>
 
-    <!-- OYUN DOSYALARI -->
+    <button type="button" id="ls-sound-optin" aria-pressed="false" style="position:fixed;right:12px;bottom:12px;z-index:40;padding:7px 10px;border:1px solid #69737a;background:#19232a;color:#d4c4a4;font:600 11px sans-serif">KONSOL SESİ: KAPALI</button>
+<!-- OYUN DOSYALARI -->
 <script src="mode-runtime.js"></script>
     <script src="data.js"></script>
 <script src="locales.js"></script>
@@ -1782,8 +1792,21 @@
 <script src="ui.js"></script>
 <script src="story.js"></script>
 <script src="story-finale.js"></script>
+<script src="living-space.js"></script>
+<script src="theme-atmosphere.js"></script>
 <script src="render.js"></script>
 <script src="engine.js"></script>
+<script src="lost-signal-art.js"></script>
+<script src="enemy-visual-v4.js"></script>
+<script src="enemy-diversity.js"></script>
+<script src="command-sounds.js"></script>
+<script src="lost-signal-towers.js"></script>
+<script src="lost-signal-runtime.js"></script>
+<script src="lost-signal-atmosphere.js"></script>
+<script src="station-records-v9.js"></script>
+<script src="enemy-behaviors-v9.js"></script>
+<script src="hard-v10.js"></script>
+<script src="overhaul-v11.js"></script>
 
 <script>
     function openUpdateNotesModal() {

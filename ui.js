@@ -242,6 +242,7 @@ function formatBattleNumber(value) {
     catch (error) { return String(number); }
 }
 function showBattleMoment(kind, data = {}) {
+    if (typeof TowerLostSignalEventSound === "function") TowerLostSignalEventSound(kind);
     if (kind === 'wave') {
         const wave = Math.max(1, Number(data.wave) || 1);
         if (battleIntroWaveShown === wave) return;

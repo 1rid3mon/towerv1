@@ -18,6 +18,15 @@ on:
       - "engine.js"
       - "render.js"
       - "data.js"
+      - "*.css"
+      - "*signal*.js"
+      - "*v9.js"
+      - "*v10.js"
+      - "*v11.js"
+      - "enemy-*.js"
+      - "living-space.js"
+      - "theme-atmosphere.js"
+      - "command-sounds.js"
   push:
     branches:
       - main
@@ -40,6 +49,15 @@ on:
       - "engine.js"
       - "render.js"
       - "data.js"
+      - "*.css"
+      - "*signal*.js"
+      - "*v9.js"
+      - "*v10.js"
+      - "*v11.js"
+      - "enemy-*.js"
+      - "living-space.js"
+      - "theme-atmosphere.js"
+      - "command-sounds.js"
   workflow_dispatch:
 
 permissions:
@@ -74,7 +92,7 @@ jobs:
           node --check i18n.js
           node --check engine.js
           node --check render.js
-          node --check data.js
+          for file in *.js; do node --check "$file"; done
 
       - name: Install security lab dependencies
         working-directory: security-lab
@@ -108,6 +126,13 @@ jobs:
         if: github.ref == 'refs/heads/main'
         working-directory: security-lab
         run: node browser-smoke.cjs --live
+      - name: Test V8-V11 navigation, modules, evolution and saves
+        working-directory: security-lab
+        run: node overhaul-browser.cjs
+      - name: Test matching V11 production sources and exploration
+        if: github.ref == 'refs/heads/main'
+        working-directory: security-lab
+        run: node overhaul-browser.cjs --live
       - name: Preserve guest-only browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -139,6 +164,13 @@ jobs:
         if: github.ref == 'refs/heads/main'
         working-directory: security-lab
         run: node browser-smoke.cjs --live
+      - name: Test V8-V11 navigation and persistence in WebKit
+        working-directory: security-lab
+        run: node overhaul-browser.cjs
+      - name: Test matching V11 production in WebKit
+        if: github.ref == 'refs/heads/main'
+        working-directory: security-lab
+        run: node overhaul-browser.cjs --live
       - name: Preserve WebKit evidence
         if: always()
         uses: actions/upload-artifact@v4

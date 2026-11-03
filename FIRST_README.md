@@ -696,3 +696,13 @@ Sonraki öncelikler ve açık sınırlar:
 7. Eski PR #61'deki 22–24 çalışması bu mimariyle karşılaştırılmadan ayrıca merge edilmemeli. Mevcut görevler silinmedi; yeni finale modülü mevcut denetleyiciye bağlandı.
 
 Bu son kayıt ve sabah listesi güncellemesi **yalnızca belgedir**. Yerel Git metadata'sı engellenen reset nedeniyle eski HEAD'i gösterebilir; çalışma dosyalarının uzak oyun ağacıyla eşleşmesi doğrulandı. Sonraki ajan güncel main'i temiz bir checkout'ta açabilir; yerel değişiklikleri körlemesine silmemeli. Genel proje için “TOWERV1 TAMAMLANDI” ifadesi henüz kullanılmamalı.
+
+
+### 2026-11-03 — V11 Lost Signal integration candidate
+- Base main: 11ec4b732d17bdce78a49a818848f7d2b2c8f3eb. Branch: feature/lost-signal-v11-integration.
+- Applied V11 package version 2 (SHA256 9f927d9d161e243e68f12de7a351d7bf36803d199a6194d07c2c6a6412437960), including V8/V9/V10 visual, archive, behavior, evolution, 2D exploration and modular core layers.
+- Corrected V9 behavior hook name and restricted V10 plasma on-hit to main tower projectiles; companion attacks do not inherit the evolution.
+- Existing game/cloud/story schemas untouched; supplemental progress is device-local in separate package keys. No production player data or Firebase rules changed.
+- Package unit checks passed. Full local regression initially found a stale satellite selector assertion; updated to the filtered radar/range target collection.
+- Browser/CI: PENDING. Local browser download failed and system Chromium cannot create sockets in this runtime; added actual DOM/touch traversal, 6 terminals, module selection, evolution and save/reload tests to Chromium/WebKit CI alongside existing 27-mission campaign.
+- Status: DEVAM EDİYOR / not merged / production not changed. Merge only after all candidate checks pass.
