@@ -7,9 +7,73 @@ const {
   assertFails
 } = require("@firebase/rules-unit-testing");
 const { doc, getDoc, setDoc, deleteDoc, writeBatch, serverTimestamp } = require("firebase/firestore");
+const { collection, query, where, getDocs, runTransaction, updateDoc: patchDoc } = require('firebase/firestore');
 
 const PROJECT_ID = "demo-towerv1-security-lab";
 let testEnv;
+
+test('save schema rejects missing required fields and privilege/schema injection on create and update', async () => {
+  const alice = testEnv.authenticatedContext('alice').firestore();
+  const ref = doc(alice, 'users/alice');
+  const save = { username: 'Alice', saveData: '{}', highestWave: 1, updatedAt: Date.now() };
+  await assertFails(setDoc(ref, { username: 'Alice' }));
+  await assertFails(setDoc(ref, { ...save, isAdmin: true }));
+  await assertSucceeds(setDoc(ref, save));
+  await assertFails(patchDoc(ref, { role: 'admin' }));
+  await assertFails(setDoc(ref, { username: 'Alice' }));
+  await assertFails(patchDoc(ref, { saveData: 'x'.repeat(200001) }));
+});
+
+test('legacy save fields survive ordinary merged saves but cannot be changed by the client', async () => {
+  const save = { username: 'Alice', saveData: '{}', highestWave: 1, updatedAt: Date.now() };
+  await testEnv.withSecurityRulesDisabled(async ctx => {
+    await setDoc(doc(ctx.firestore(), 'users/alice'), { ...save, legacyVersion: 1 });
+  });
+  const alice = testEnv.authenticatedContext('alice').firestore();
+  const ref = doc(alice, 'users/alice');
+  await assertSucceeds(setDoc(ref, { ...save, highestWave: 2 }, { merge: true }));
+  await assertFails(patchDoc(ref, { legacyVersion: 2 }));
+  const restored = await assertSucceeds(getDoc(ref));
+  require('node:assert/strict').equal(restored.data().legacyVersion, 1);
+});
+
+test('unmatched collections and nested private paths fail closed', async () => {
+  const alice = testEnv.authenticatedContext('alice').firestore();
+  for (const path of ['admins/alice', 'users/alice/private/config']) {
+    await assertFails(getDoc(doc(alice, path)));
+    await assertFails(setDoc(doc(alice, path), { role: 'admin' }));
+  }
+});
+
+test('first friend-request transaction can read absent pairs; queries remain participant-scoped', async () => {
+  const alice = testEnv.authenticatedContext('alice').firestore();
+  const bob = testEnv.authenticatedContext('bob').firestore();
+  const mallory = testEnv.authenticatedContext('mallory').firestore();
+  const outgoing = doc(alice, 'friendRequests/alice_bob');
+  const incoming = doc(alice, 'friendRequests/bob_alice');
+  await assertFails(getDoc(doc(mallory, 'friendRequests/alice_bob')));
+  await assertFails(getDoc(doc(testEnv.unauthenticatedContext().firestore(), 'friendRequests/alice_bob')));
+  await testEnv.withSecurityRulesDisabled(async ctx => {
+    for (const uid of ['alice', 'bob']) await setDoc(doc(ctx.firestore(), 'usernameRegistry', uid), {
+      uid, username: uid, updatedAt: Date.now()
+    });
+  });
+  await assertSucceeds(runTransaction(alice, async tx => {
+    const [a, b] = await Promise.all([tx.get(outgoing), tx.get(incoming)]);
+    require('node:assert/strict').equal(a.exists() || b.exists(), false);
+    tx.set(outgoing, { fromUid: 'alice', toUid: 'bob', fromUsername: 'alice', toUsername: 'bob',
+      status: 'pending', createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+  }));
+  await assertSucceeds(getDocs(query(collection(alice, 'friendRequests'), where('fromUid', '==', 'alice'))));
+  await assertSucceeds(getDocs(query(collection(bob, 'friendRequests'), where('toUid', '==', 'bob'))));
+  await assertFails(getDocs(query(collection(mallory, 'friendRequests'), where('fromUid', '==', 'alice'))));
+  await assertFails(patchDoc(doc(bob, 'friendRequests/alice_bob'), {
+    status: 'accepted', fromUsername: 'x'.repeat(200000), updatedAt: serverTimestamp()
+  }));
+  await assertSucceeds(patchDoc(doc(bob, 'friendRequests/alice_bob'), {
+    status: 'accepted', updatedAt: serverTimestamp()
+  }));
+});
 
 function validBoard(overrides = {}) {
   return {
