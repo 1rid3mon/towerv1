@@ -8,7 +8,7 @@ const items=[
  {id:'medal',at:3,type:'shelf',name:['İlk Temas Madalyası','First Contact Medal'],icon:'✦',desc:['Üç görev tamamlandı.','Three missions completed.']},
  {id:'plant',at:6,type:'desk',name:['Yörünge Bitkisi','Orbital Plant'],icon:'♣',desc:['Altı görevin ardından istasyona hayat döndü.','Life returns after six missions.']},
  {id:'holo',at:9,type:'wall',name:['Holografik Yıldız Atlası','Holographic Star Atlas'],icon:'✧',desc:['Dokuz görevlik ilk bölüm.','The first nine missions.']},
- {id:'piko',at:12,type:'desk',name:['Piko'nun Hatırası',"Piko's Keepsake"],icon:'◎',desc:['On ikinci görevin anısı.','A memento of mission twelve.']},
+ {id:'piko',at:12,type:'desk',name:["Piko'nun Hatırası","Piko's Keepsake"],icon:'◎',desc:['On ikinci görevin anısı.','A memento of mission twelve.']},
  {id:'trophy',at:18,type:'shelf',name:['İstasyon Muhafızı Kupası','Station Guardian Trophy'],icon:'⬡',desc:['On sekiz görevlik savunma.','Eighteen missions defended.']},
  {id:'core',at:21,type:'desk',name:['Reaktör Çekirdeği','Reactor Core'],icon:'◉',desc:['Yirmi birinci görevden kalan bir parça.','A relic from mission twenty-one.']},
  {id:'archive',at:27,type:'shelf',name:['Komutan Arşivi','Commander Archive'],icon:'▣',desc:['Tüm 27 görev tamamlandı.','All 27 missions complete.']}
