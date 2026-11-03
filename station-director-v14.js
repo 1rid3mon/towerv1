@@ -20,7 +20,9 @@ const PUZZLES=[
  {id:'orbit',at:18,clue:['Koordinat: A1 · C3 · E5 · ?','Coordinate: A1 · C3 · E5 · ?'],options:['G7','F6','H8'],answer:0,log:['Sinyal arşivin derin katlarına yöneldi.','The signal points to the archive depths.']},
  {id:'echo',at:27,clue:['Piko: Önce yankı, sonra kaynak. Kod: 3 · 6 · 12 · ?','Piko: Echo before origin. Code: 3 · 6 · 12 · ?'],options:['18','21','24'],answer:2,log:['Kayıt çözüldü: Kaynak istasyonun içinde.','Record decoded: The origin is inside the station.']}
 ];
-let isOpen=false,room='bridge',run=null,notice='',cineTimer=null,lastAnomaly='';
+let isOpen=false,room='bridge',avatar={x:1,y:1},run=null,notice='',cineTimer=null,lastAnomaly='';
+const GRID=['##########','#B...H...#','#..##....#','#Q......L#','#....##..#','#A....O..#','##########'];
+const DOOR_CODES={B:'bridge',H:'hangar',Q:'quarters',L:'lab',A:'archive',O:'observatory'};
 function progress(){try{return typeof getStoryProgress==='function'?getStoryProgress():{};}catch(_){return {};}}
 function completed(){const p=progress();return Array.from({length:27},(_,i)=>p['mission'+(i+1)+'Complete']===true).filter(Boolean).length;}
 function stats(){try{return typeof game!=='undefined'&&game?game.stats||{}:{};}catch(_){return {};}}
@@ -44,9 +46,32 @@ function pikoLine(){
  return t(...lines[profile]);
 }
 function itemMarkup(r,n){const locked=n<r.at;return '<button class="v14-door" type="button" data-v14-room="'+r.id+'" '+(locked?'disabled':'')+'><span aria-hidden="true">'+r.icon+'</span><strong>'+escapeHtml(t(...r.name))+'</strong><small>'+escapeHtml(locked?t('Görev '+r.at+' ile açılır','Unlocks at mission '+r.at):t('İçeri gir','Enter room'))+'</small></button>';}
+function walk(dx,dy){
+ const x=avatar.x+dx,y=avatar.y+dy;
+ if(!GRID[y]||!GRID[y][x]||GRID[y][x]==='#')return false;
+ const id=DOOR_CODES[GRID[y][x]],def=ROOMS.find(r=>r.id===id);
+ if(def&&completed()<def.at){notice=t('Kapı kilitli. Önce hikâyede ilerle.','Door locked. Continue the story first.');paint();return false;}
+ avatar={x,y};notice='';
+ if(id){enter(id);return true;}
+ paint();return true;
+}
+function walkMap(){
+ const n=completed();
+ const cells=GRID.map((row,y)=>Array.from(row,(ch,x)=>{
+  const id=DOOR_CODES[ch],def=ROOMS.find(r=>r.id===id),here=avatar.x===x&&avatar.y===y;
+  const label=here?'●':ch==='#'?'':id?ch:'·';
+  const clazz='v14-cell'+(ch==='#'?' v14-wall':'')+(id?' v14-cell-door':'')+(here?' v14-player':'')+(def&&n<def.at?' v14-cell-locked':'');
+  return id?'<button type="button" class="'+clazz+'" data-v14-tile="'+x+','+y+'" aria-label="'+escapeHtml(t(...def.name))+'">'+label+'</button>':'<span class="'+clazz+'" aria-hidden="true">'+label+'</span>';
+ })).flat().join('');
+ return '<div class="v14-walkmap" aria-label="'+t('Yürünebilir istasyon koridorları','Walkable station corridors')+'">'+cells+'</div><div class="v14-dpad"><button type="button" data-v14-move="0,-1" aria-label="Up">↑</button><button type="button" data-v14-move="-1,0" aria-label="Left">←</button><button type="button" data-v14-move="0,1" aria-label="Down">↓</button><button type="button" data-v14-move="1,0" aria-label="Right">→</button></div>';
+}
+function enter(id){
+ if(id==='quarters'){close();w.TowerCommandersQuartersV13?.open();return;}
+ room=id;notice='';paint();
+}
 function hub(){const n=completed(),stage=logic.stationStage(n);
  const stageNames=[['SESSİZ İSTASYON','SILENT STATION'],['İLK IŞIKLAR','FIRST LIGHTS'],['CANLANAN İSTASYON','REVIVING STATION'],['YENİ KOMUTA ÜSSÜ','NEW COMMAND BASE']];
- return '<div class="v14-status"><strong>'+escapeHtml(t(...stageNames[stage]))+'</strong><span>'+n+'/27 '+escapeHtml(t('görev tamamlandı','missions completed'))+'</span></div><div class="v14-map v14-stage-'+stage+'">'+ROOMS.map(r=>itemMarkup(r,n)).join('')+'</div><p class="v14-note">'+escapeHtml(t('Odalara dokunarak istasyonu keşfet. Yeni bölmeler hikâye ilerleyişiyle açılır.','Tap the doors to explore. New rooms unlock through story progress.'))+'</p>';
+ return '<div class="v14-status"><strong>'+escapeHtml(t(...stageNames[stage]))+'</strong><span>'+n+'/27 '+escapeHtml(t('görev tamamlandı','missions completed'))+'</span></div>'+ (room==='map'?walkMap():'')+'<div class="v14-map v14-stage-'+stage+'">'+ROOMS.map(r=>itemMarkup(r,n)).join('')+'</div><p class="v14-note">'+escapeHtml(t('Koridorlarda yön tuşları / WASD ile yürü, kapılara ulaş veya doğrudan kapıya dokun.','Walk using arrow keys / WASD, approach a door or tap it directly.'))+'</p>';
 }
 function bridge(){return '<h3>'+t('Komuta Köprüsü','Command Bridge')+'</h3><p>'+escapeHtml(pikoLine())+'</p><div class="v14-actions"><button data-v14-piko="1">'+t('Piko ile konuş','Talk to Piko')+'</button><button data-v14-daily="1">'+t('Günlük savunma tatbikatı','Daily defense drill')+'</button><button data-v14-sector="1">'+t('Keşif sektörleri','Exploration sectors')+'</button></div>';}
 function hangar(){return '<h3>'+t('Savunma Hangarı','Defense Hangar')+'</h3><p>'+t('Gerçek savaşta etkin V12 kombinasyonları:','V12 combinations active in real combat:')+'</p><div class="v14-logs"><p>❄ '+t('Buz + Lazer/Plazma: kırılma hasarı','Frost + Laser/Plasma: shatter damage')+'</p><p>⚡ '+t('Plazma işareti + Füze: ek hasar','Plasma mark + Missile: bonus damage')+'</p><p>⬡ '+t('Bosslar %65 ve %28 can eşiklerinde faz değiştirir','Bosses change phase at 65% and 28% health')+'</p></div><p class="v14-note">'+t('Kombolar gerçek yoldaşların açılmış olmasını gerektirir. Bu ekran savaş gücü veya kaynak eklemez.','Combos require unlocked companions. This room grants no power or resources.')+'</p>';}
@@ -107,12 +132,13 @@ function onWave(wave){anomaly(wave);}
 function onClick(e){
  const btn=e.target.closest('button');if(!btn)return;
  if(btn.hasAttribute('data-v14-close')){close();return;}
+ if(btn.hasAttribute('data-v14-move')){if(room==='map'){const d=btn.dataset.v14Move.split(',').map(Number);walk(d[0],d[1]);}return;}
+ if(btn.hasAttribute('data-v14-tile')){const v=btn.dataset.v14Tile.split(',').map(Number);const id=DOOR_CODES[GRID[v[1]]?.[v[0]]];const def=ROOMS.find(r=>r.id===id);if(!def||completed()<def.at)return;avatar={x:v[0],y:v[1]};enter(id);return;}
  if(btn.hasAttribute('data-v14-map')){room='map';notice='';paint();return;}
  if(btn.hasAttribute('data-v14-room')){
   const id=btn.dataset.v14Room,def=ROOMS.find(x=>x.id===id);
   if(!def||completed()<def.at)return;
-  if(id==='quarters'){close();if(w.TowerCommandersQuartersV13)w.TowerCommandersQuartersV13.open();return;}
-  room=id;notice='';paint();return;
+  enter(id);return;
  }
  if(btn.hasAttribute('data-v14-sector')){close();w.TowerOverhaulV11?.sectorsUI();return;}
  if(btn.hasAttribute('data-v14-daily')){room='daily';notice='';paint();return;}
@@ -138,7 +164,12 @@ function mount(){
  const banner=document.createElement('div');banner.id='v14-anomaly';banner.hidden=true;document.body.appendChild(banner);
  const nav=document.querySelector('.mode-menu-tools');
  if(nav){const btn=document.createElement('button');btn.id='v14-station-launch';btn.type='button';btn.className='mode-menu-tool';btn.textContent=t('✧ İSTASYON','✧ STATION');btn.addEventListener('click',()=>show('map'));nav.appendChild(btn);}
- document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('v14-cinema'))stopCinema();else if(isOpen)close();}});
+ document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){if(document.getElementById('v14-cinema'))stopCinema();else if(isOpen)close();return;}
+  if(!isOpen||room!=='map'||document.getElementById('v14-cinema')||/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName||''))return;
+  const d={ArrowUp:[0,-1],KeyW:[0,-1],ArrowDown:[0,1],KeyS:[0,1],ArrowLeft:[-1,0],KeyA:[-1,0],ArrowRight:[1,0],KeyD:[1,0]}[e.code];
+  if(d){e.preventDefault();walk(d[0],d[1]);}
+ });
  try{if(typeof game!=='undefined'&&game)anomaly(game.wave);}catch(_){}
 }
 w.TowerStationDirectorV14=Object.freeze({open:show,close,completed,readSolved,readBest,onWave,pikoLine,diagnostics:()=>({open:isOpen,room,anomaly:lastAnomaly})});
