@@ -80,9 +80,9 @@ function queueSpeechPosition(){
  if(speechFrame)return;
  speechFrame=requestAnimationFrame(()=>{speechFrame=0;positionCompanionSpeech();});
 }
-document.addEventListener('pointermove',queueSpeechPosition);
-document.addEventListener('pointerup',queueSpeechPosition);
-window.addEventListener('resize',queueSpeechPosition);
+if(typeof document.addEventListener==='function')document.addEventListener('pointermove',queueSpeechPosition);
+if(typeof document.addEventListener==='function')document.addEventListener('pointerup',queueSpeechPosition);
+if(typeof w.addEventListener==='function')w.addEventListener('resize',queueSpeechPosition);
 /* Reuse introSeen from the existing story save, with an explicit replay action. */
 function installIntroReplay(){
  const mission=document.getElementById('story-mission-view');
