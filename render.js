@@ -120,6 +120,7 @@ function renderItemIconHTML(item, sizeClass = 'w-9 h-9 sm:w-11 sm:h-11') {
 }
 
 function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
+    if (typeof TowerLostSignalTowers !== "undefined") TowerLostSignalTowers.draw(c, skinId, nowTime);
     function drawBarrels(fillCol, strokeCol, muzzleCol, length = 19, thickness = 7, shape = 'rect') {
         c.save();
         c.rotate(angle);
@@ -2458,6 +2459,8 @@ function renderGame() {
         }
     }
 
+    if (window.LostSignalLivingSpace) window.LostSignalLivingSpace.draw(ctx, canvas.width, canvas.height, theme, game.wave, nowThemeTime);
+    if (window.LostSignalThemeAtmosphere) window.LostSignalThemeAtmosphere.draw(ctx, canvas.width, canvas.height, theme, game.wave, nowThemeTime);
     // V2.4 visual polish: a restrained tactical frame and vignette unify all themes.
     // Pure rendering pass: no game state, timing, economy, or combat values are modified.
     {
@@ -2729,6 +2732,7 @@ function renderGame() {
         }
     }
 
+    if (window.LostSignalAtmosphereV5) window.LostSignalAtmosphereV5.drawAtmosphere(ctx, canvas, Number(game.wave)||1, nowCompTime);
     for (const e of enemies) {
         ctx.save();
         ctx.translate(e.x, e.y);
@@ -2857,6 +2861,8 @@ function renderGame() {
         }
 
         drawCustomEnemy(ctx, e, tx, ty, nowCompTime);
+        if (typeof TowerEnemyVisualV4 !== "undefined") TowerEnemyVisualV4.draw(ctx, e, nowCompTime, "normal");
+        if (typeof TowerLostSignalArt !== "undefined") TowerLostSignalArt.drawEnemyDetails(ctx, e, nowCompTime);
 
         if (e.hp < e.maxHp || e.type === 'boss' || e.isElite) {
             const isBoss = e.type === 'boss';

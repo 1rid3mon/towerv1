@@ -12,7 +12,7 @@ const server = http.createServer((req,res) => {
   const name = new URL(req.url,'http://localhost').pathname;
   const file = path.resolve(root,'.'+(name === '/' ? '/index.html' : name));
   if (!file.startsWith(root+path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404); res.end(); return; }
-  res.setHeader('Content-Type',file.endsWith('.js') ? 'text/javascript; charset=utf-8' : 'text/html; charset=utf-8');
+  res.setHeader('Content-Type',file.endsWith('.js') ? 'text/javascript; charset=utf-8' : file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8');
   fs.createReadStream(file).pipe(res);
 });
 async function main() {

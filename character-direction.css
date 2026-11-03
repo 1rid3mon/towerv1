@@ -1,0 +1,10 @@
+/* LOST SIGNAL — restrained hologram companion. Additive, no gameplay mutations. */
+:root { --ls-ink:#0b1018; --ls-metal:#26333c; --ls-paper:#c9d4d5; --ls-signal:#d9a65b; --ls-holo:#76b4c1; }
+#game-mascot { filter: drop-shadow(0 2px 2px rgba(0,0,0,.38)) !important; transition:filter .2s ease, transform .2s ease; }
+#game-mascot:hover { filter:drop-shadow(0 0 5px rgba(118,180,193,.30)) !important; }
+#game-mascot svg { filter:saturate(.72) contrast(1.08); }
+/* Retain existing story, theme and accessibility semantics. */
+#mode-main-menu .mode-menu-card { border-radius:8px !important; }
+#mode-main-menu .mode-menu-icon { border-radius:5px !important; }
+#battle-moment .battle-frame { border-radius:5px !important; }
+@media (prefers-reduced-motion: reduce) { #game-mascot, #game-mascot * { animation:none !important; transition:none !important; } }

@@ -1,0 +1,13 @@
+/* LOST SIGNAL Piko: physical projector language, calm animation, no neon halo. */
+#game-mascot{filter:drop-shadow(0 4px 2px rgba(0,0,0,.4));transform-origin:50% 80%;animation:ls-piko-idle 5.2s ease-in-out infinite!important}
+#game-mascot-face{filter:drop-shadow(0 0 2px rgba(125,190,198,.3))!important}
+#game-mascot-face .piko-aura{opacity:.16;animation:ls-piko-aura 8s linear infinite!important}
+#game-mascot-face .piko-eye{animation:ls-piko-blink 6.4s steps(1,end) infinite!important}
+#game-mascot-face .piko-core{animation:ls-piko-core 3.4s ease-in-out infinite!important}
+#game-mascot.mascot-react{animation:ls-piko-alert .48s ease-out 1!important}
+@keyframes ls-piko-idle{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-3px) rotate(1deg)}}
+@keyframes ls-piko-aura{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes ls-piko-blink{0%,91%,95%,100%{transform:scaleY(1)}93%{transform:scaleY(.13)}}
+@keyframes ls-piko-core{0%,100%{opacity:.72}50%{opacity:.92}}
+@keyframes ls-piko-alert{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-5px) rotate(-5deg)}60%{transform:translateY(-3px) rotate(4deg)}}
+@media(prefers-reduced-motion:reduce){#game-mascot,#game-mascot.mascot-react,#game-mascot-face *{animation:none!important;transition:none!important}}

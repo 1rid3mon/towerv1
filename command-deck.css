@@ -1,0 +1,69 @@
+/* TOWERV1 / COMMAND DECK — visual direction layer, no gameplay mutations.
+   Load after the original inline styles. Designed to reduce generic neon-dashboard styling. */
+:root {
+  --tv-ink:#0d1218; --tv-panel:#19222a; --tv-panel-hi:#222e37;
+  --tv-edge:#46535b; --tv-paper:#e6e1d3; --tv-muted:#a6b2b7;
+  --tv-signal:#e6b66c; --tv-alert:#e27868; --tv-info:#80b8b4;
+}
+body { background-color:var(--tv-ink) !important; color:var(--tv-paper); }
+body::before { opacity:.28 !important; }
+/* Core structural surfaces: matte metal, not floating glass. */
+#mode-main-menu .mode-menu-inner,
+#settings-modal > div, #theme-modal > div, #confirm-modal > div,
+#auth-modal > div, #upgrade-drawer, header {
+  background:var(--tv-panel) !important;
+  border:1px solid var(--tv-edge) !important;
+  border-radius:8px !important;
+  box-shadow:0 10px 0 rgba(0,0,0,.15), 0 18px 35px rgba(0,0,0,.28) !important;
+  backdrop-filter:none !important;
+}
+.premium-card, .mode-menu-card, .mode-menu-tool {
+  background:var(--tv-panel-hi) !important;
+  border:1px solid var(--tv-edge) !important;
+  border-radius:7px !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+}
+.premium-card:hover,.mode-menu-card:hover,.mode-menu-tool:hover {
+  background:#293640 !important; border-color:#81908e !important;
+  box-shadow:none !important;
+}
+.mode-menu-card { position:relative; overflow:hidden; text-align:left; }
+.mode-menu-card::before { content:'';position:absolute;inset:0 auto 0 0;width:4px;background:var(--tv-info); }
+#mode-story-button::before { background:var(--tv-signal); }
+.mode-menu-title { color:var(--tv-paper) !important; letter-spacing:.085em !important; text-shadow:none !important; }
+.mode-menu-eyebrow { color:var(--tv-signal) !important;letter-spacing:.19em !important; }
+.mode-menu-card-title { color:var(--tv-paper) !important; }
+.mode-menu-card-desc, .mode-menu-subtitle { color:var(--tv-muted) !important; }
+.mode-menu-icon { border-radius:5px !important; background:#152029 !important; box-shadow:none !important; }
+/* HUD resembles fixed instruments rather than translucent app cards. */
+#hud-hp-card,#hud-wave-card,#hud-quick-stats,#hud-bottom-controls {
+  background:rgba(22,31,39,.96) !important;
+  border:1px solid rgba(144,157,159,.6) !important;
+  border-radius:5px !important;
+  box-shadow:0 2px 0 rgba(0,0,0,.4) !important;
+  backdrop-filter:none !important;
+}
+#battle-moment .battle-frame {
+  background:rgba(17,25,31,.96) !important;
+  border:1px solid var(--tv-edge) !important;
+  border-left:4px solid var(--tv-signal) !important;
+  border-radius:4px !important;
+  box-shadow:none !important;
+}
+#battle-moment[data-kind="boss"] .battle-frame {border-left-color:var(--tv-alert) !important;}
+#battle-moment .battle-frame::after {display:none !important;}
+/* Reduce gratuitous ambient animation without hiding combat cues. */
+.premium-card,.mode-menu-card,.mode-menu-tool { transition:background-color .14s ease,border-color .14s ease !important; }
+.rarity-glow-rare,.rarity-glow-super_rare,.rarity-glow-epic,.rarity-glow-mythic,.rarity-glow-legendary {box-shadow:inset 0 0 0 1px rgba(229,224,211,.16) !important;}
+/* Accessible focus and touch targets. */
+.mode-menu-tool:focus-visible,.mode-menu-card:focus-visible,button:focus-visible {
+  outline:2px solid var(--tv-signal) !important;outline-offset:3px;
+}
+@media (prefers-reduced-motion:reduce) {
+  .mode-menu-card,.mode-menu-tool,.premium-card {transition:none !important;}
+}
+@media (max-width:600px) {
+  #mode-main-menu .mode-menu-inner {border-radius:6px !important;}
+  .mode-menu-card {min-height:92px;}
+}

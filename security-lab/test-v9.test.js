@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const root=path.resolve(__dirname,'..');
+const win={};vm.runInNewContext(fs.readFileSync(path.join(root,'enemy-behaviors-v9.js'),'utf8'),{window:win});
+const m=win.LostSignalEnemyBehaviorsV9.movementMultiplier;
+assert.equal(m({variantId:'scout',animPhase:0}),1.22);
+assert.equal(m({variantId:'scout',animPhase:5}),1);
+assert.equal(m({variantId:'glacier',animPhase:0}),.88);
+assert.equal(m({variantId:'glacier',animPhase:10}),1);
+assert.equal(m({variantId:'scout',type:'boss',animPhase:0}),1);
+assert.equal(m({variantId:'scout',isElite:true,animPhase:0}),1);
+assert.equal(m({variantId:'unknown',animPhase:0}),1);
+const storage=new Map();const fake={localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},document:{readyState:'loading',addEventListener:()=>{}},window:{}};fake.window=fake;vm.runInNewContext(fs.readFileSync(path.join(root,'station-records-v9.js'),'utf8'),fake);
+const logs=fake.LostSignalStationRecordsV9;assert.equal(logs.RECORDS.length,6);
+logs.unlock(29);assert.deepEqual(Object.keys(logs.getUnlocked()).sort(),['boot','red']);
+logs.unlock(100);assert.equal(Object.keys(logs.getUnlocked()).length,6);
+logs.unlock(10);assert.equal(Object.keys(logs.getUnlocked()).length,6);
+console.log('PASS: V9 behavior thresholds, boss/elite guards, records unlock & persistence');
