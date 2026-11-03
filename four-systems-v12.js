@@ -13,6 +13,7 @@ function piko(line){
  const now=Date.now();if(now-state.lastPiko<8500)return false;state.lastPiko=now;
  const bubble=document.getElementById('game-mascot-bubble');if(!bubble)return false;
  bubble.textContent=line;bubble.classList.add('is-visible');
+ if(typeof w.positionPikoBubble==='function')w.positionPikoBubble();
  clearTimeout(piko.timer);piko.timer=setTimeout(()=>bubble.classList.remove('is-visible'),4000);
  return true;
 }
@@ -61,5 +62,63 @@ function init(){
  const menu=document.querySelector('.mode-menu-tools');if(menu){launch.className='mode-menu-tool';menu.appendChild(launch);}else{launch.className='v12-floating-launch';document.body.appendChild(launch);}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+
+/* V12.1: keep Piko's speech attached to its draggable character. */
+function positionCompanionSpeech(){
+ const mascot=document.getElementById('game-mascot'),bubble=document.getElementById('game-mascot-bubble');
+ if(!mascot||!bubble||!bubble.classList.contains('is-visible'))return;
+ const rect=mascot.getBoundingClientRect(),width=Math.min(270,innerWidth-24);
+ bubble.style.width=width+'px';
+ bubble.style.left=Math.max(8,Math.min(innerWidth-width-8,rect.left+rect.width/2-width/2))+'px';
+ const height=bubble.offsetHeight||58,above=rect.top-height-14;
+ bubble.style.top=Math.max(8,Math.min(innerHeight-height-8,above>=8?above:rect.bottom+12))+'px';
+ bubble.style.right='auto';bubble.style.bottom='auto';
+}
+w.positionPikoBubble=positionCompanionSpeech;
+let speechFrame=0;
+function queueSpeechPosition(){
+ if(speechFrame)return;
+ speechFrame=requestAnimationFrame(()=>{speechFrame=0;positionCompanionSpeech();});
+}
+if(typeof document.addEventListener==='function')document.addEventListener('pointermove',queueSpeechPosition);
+if(typeof document.addEventListener==='function')document.addEventListener('pointerup',queueSpeechPosition);
+if(typeof w.addEventListener==='function')w.addEventListener('resize',queueSpeechPosition);
+/* Reuse introSeen from the existing story save, with an explicit replay action. */
+function installIntroReplay(){
+ const mission=document.getElementById('story-mission-view');
+ if(!mission||document.getElementById('story-replay-intro'))return;
+ const replay=document.createElement('button');
+ replay.id='story-replay-intro';replay.type='button';
+ replay.textContent=(typeof storyLanguage==='function'&&storyLanguage()==='en')?'↺ Replay introduction':'↺ Girişi tekrar izle';
+ replay.addEventListener('click',()=>{
+   if(typeof finishStoryTyping==='function')finishStoryTyping();
+   if(typeof storyMissionViewOpen!=='undefined')storyMissionViewOpen=false;
+   if(typeof storyDialogueIndex!=='undefined')storyDialogueIndex=0;
+   const intro=document.getElementById('story-dialogue-view');
+   if(intro)intro.hidden=false;
+   mission.hidden=true;
+   if(typeof showStoryDialogue==='function')showStoryDialogue();
+ });
+ mission.prepend(replay);
+}
+if(typeof w.openStoryMode==='function'&&!w.openStoryMode.v12IntroFixed){
+ const originalOpenStory=w.openStoryMode;
+ w.openStoryMode=function(...args){
+   const seen=typeof getStoryProgress==='function'&&getStoryProgress().introSeen===true;
+   const result=originalOpenStory.apply(this,args);
+   installIntroReplay();
+   if(seen&&document.getElementById('story-mode-screen')?.classList.contains('is-open')){
+     if(typeof finishStoryTyping==='function')finishStoryTyping();
+     if(typeof storyMissionViewOpen!=='undefined')storyMissionViewOpen=true;
+     const dialogue=document.getElementById('story-dialogue-view'),mission=document.getElementById('story-mission-view');
+     if(dialogue)dialogue.hidden=true;
+     if(mission)mission.hidden=false;
+     if(typeof updateStoryMissionBoard==='function')updateStoryMissionBoard();
+   }
+   return result;
+ };
+ w.openStoryMode.v12IntroFixed=true;
+}
+
 w.TowerFourSystemsV12=Object.freeze({open,close,bossCue,numbers,diagnostics:()=>({open:state.open,tab:state.tab})});
 })(window);

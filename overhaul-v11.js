@@ -7,7 +7,7 @@ const MAPS=[
  {id:'reactor',name:'REAKTÖR HALKASI',wave:35,accent:'#f1aa68',log:'Enerji yönlendirmesi Piko protokolünden önce başlatılmış.',rows:['###############','#S...#........#','#.##.#.######.#','#....#....T...#','####.###.###..#','#....#...#....#','#.##...#...##.#','#..#####.###..#','#......T......#','###############']},
  {id:'vault',name:'KAYIP ARŞİV',wave:50,accent:'#b69cff',log:'Arşiv mesajı: Sinyali dinle. Sinyalin seni dinlemesine izin verme.',rows:['###############','#S.....#......#','#.####.#.####.#','#......#...T..#','###.##.###.##.#','#...#.........#','#.#.#.#######.#','#.#.....T.....#','###############']}
 ];
-const SLOTS={weapon:[['pulse','DARBELİ NAMLU','Ana kule hasarı +%8'],['focus','ODAK MERCEĞİ','Ana kule hasarı +%5, mermi hızı +%10']],reactor:[['stable','DENGELİ REAKTÖR','Normal atış hızı +%6'],['surge','HIZ REAKTÖRÜ','Normal atış hızı +%10']],hull:[['armor','SERAMİK ZIRH','Gelen hasar -%5'],['repair','ONARIM KAPLAMASI','Dalga sonunda maksimum canın %1 kadarı yenilenir']]};
+const SLOTS={weapon:[['pulse','DARBELİ NAMLU','Ana kule hasarı +%8'],['focus','ODAK MERCEĞİ','Ana kule hasarı +%5, mermi hızı +%10']],reactor:[['stable','DENGELİ REAKTÖR','Atış hızı +%6 · ek risk yok'],['surge','HIZ REAKTÖRÜ','Atış hızı +%10 · gelen hasar +%8']],hull:[['armor','SERAMİK ZIRH','Gelen hasar -%5'],['repair','ONARIM KAPLAMASI','Dalga sonunda maksimum canın %1 kadarı yenilenir']]};
 const DEFAULT={completed:[],modules:{weapon:'pulse',reactor:'stable',hull:'armor'}};
 function validate(raw){const o={completed:[],modules:{...DEFAULT.modules}};if(raw&&typeof raw==='object'){
  if(Array.isArray(raw.completed))o.completed=[...new Set(raw.completed.filter(id=>MAPS.some(m=>m.id===id)))];
@@ -21,7 +21,7 @@ function active(){return endless()&&wave()>=25;}
 function damage(n){return active()?Math.max(1,Math.round(n*(state.modules.weapon==='pulse'?1.08:1.05))):n;}
 function speed(n){return active()&&state.modules.weapon==='focus'?n*1.10:n;}
 function fireRate(n){return active()?n*(state.modules.reactor==='surge'?1.10:1.06):n;}
-function incoming(n){return active()&&state.modules.hull==='armor'?n*.95:n;}
+function incoming(n){if(!active())return n;return n*(state.modules.hull==='armor'?.95:1)*(state.modules.reactor==='surge'?1.08:1);}
 function waveClear(t){if(!active()||state.modules.hull!=='repair'||!t)return; t.hp=Math.min(t.maxHp,t.hp+Math.max(1,Math.round(t.maxHp*.01)));}
 function select(slot,id){if(!Object.hasOwn(SLOTS,slot)||!SLOTS[slot].some(v=>v[0]===id))return false;state.modules[slot]=id;persist();return true;}
 function complete(id){if(!MAPS.some(m=>m.id===id)||state.completed.includes(id))return false;state.completed.push(id);persist();return true;}

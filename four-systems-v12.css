@@ -14,3 +14,18 @@
 #v12-console .v12-metrics strong{display:block;font-size:22px;color:#e8d4ac}
 .v12-floating-launch{position:fixed;left:12px;bottom:12px;z-index:100;border:1px solid #cbb38d;background:#15252b;color:#e8d4ac;padding:8px;border-radius:6px}
 @media(max-width:430px){#v12-console .v12-panel{padding:12px}#v12-console nav button{font-size:10px}}
+
+/* V12.1 iPad interface polish */
+#game-mascot{border:0!important;background:transparent!important;box-shadow:none!important;padding:0!important;filter:drop-shadow(0 4px 12px rgba(42,199,230,.35))}
+#game-mascot-bubble{border-radius:12px!important;border:1px solid rgba(105,206,222,.42)!important;background:rgba(5,18,29,.96)!important;box-shadow:0 8px 26px rgba(0,0,0,.42)!important;overflow-wrap:anywhere}
+#story-replay-intro{display:inline-flex;align-items:center;gap:6px;margin:8px 0 14px;padding:8px 14px;border:1px solid rgba(115,201,219,.42);border-radius:6px;background:rgba(8,30,46,.88);color:#bdeaf1;cursor:pointer;font-size:12px}
+#story-replay-intro:hover,#story-replay-intro:focus-visible{border-color:#75d7e9;background:#133749}
+#v12-console{background:rgba(1,8,16,.87);backdrop-filter:blur(9px)}
+#v12-console .v12-panel{width:min(740px,100%);border-radius:8px;border:1px solid rgba(99,181,201,.54);background:linear-gradient(135deg,rgba(11,37,52,.99),rgba(4,16,29,.99) 60%,rgba(8,26,42,.99));box-shadow:0 24px 85px #000c,inset 3px 0 rgba(93,215,235,.52);padding:26px 30px}
+#v12-console header{border-bottom:1px solid rgba(105,184,207,.24);padding-bottom:17px;color:#83d8eb;font-size:13px;letter-spacing:.18em}
+#v12-console nav{gap:0;margin:20px 0 24px;border-bottom:1px solid rgba(106,194,217,.26)}
+#v12-console nav button{background:transparent;border:0;border-radius:0;border-bottom:2px solid transparent;padding:12px 8px;color:#a2c4d0;font-weight:600}
+#v12-console nav button[aria-selected=true]{background:rgba(40,131,163,.13);border:0;border-bottom:2px solid #69d7e8;color:#e9fbff}
+#v12-console h3{font-size:20px;color:#e3f6fb}
+#v12-console p{font-size:14px;line-height:1.8;color:#b3cbd4}
+@media(max-width:600px){#v12-console .v12-panel{padding:17px 14px}#v12-console nav button{font-size:11px}}

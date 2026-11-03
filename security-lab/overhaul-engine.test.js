@@ -28,7 +28,7 @@ test('all eight modular combinations stack with kinetic evolution through the re
     assert.equal(run('projectiles[0].bouncesLeft'),1);
     assert.equal(run('TowerOverhaulV11.fireRate(100)'),reactor==='surge'?110.00000000000001:106);
     run('tower.hp=1000;tower.shield=0;game.upgrades.armor=0;damageTower(100,null)');
-    assert.equal(run('tower.hp'),hull==='armor'?905:900);
+    assert.equal(run('tower.hp'),1000-Math.round(100*(hull==='armor'?.95:1)*(reactor==='surge'?1.08:1)));
   }
 });
 test('loaded evolution and module hooks leave real Story projectiles, incoming damage and wave rewards isolated',()=>{
