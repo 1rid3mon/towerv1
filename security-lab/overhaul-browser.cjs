@@ -42,8 +42,11 @@ async function main() {
     for (let m=0;m<3;m++) {
       await page.locator('#ls-v11-tools button').first().click();
       await page.locator('.ls-v11-choice').nth(m).click();
+      const start=await page.evaluate(()=>TowerOverhaulV11.getScene().getPosition());
+      await page.keyboard.press('ArrowLeft');
+      assert.deepEqual(await page.evaluate(()=>TowerOverhaulV11.getScene().getPosition()),start,'Walls block keyboard movement');
       const routes=await page.evaluate(()=>{
-        const scene=TowerOverhaulV11.getScene(), rows=TowerOverhaulV11.MAPS.find(m=>m.terminals)?.rows;
+        const scene=TowerOverhaulV11.getScene();
         const map=TowerOverhaulV11.MAPS.find(m=>m.name===document.querySelector('.ls-v11-head strong').textContent.split(' · ')[0]);
         let start=scene.getPosition();const result=[];
         for(const target of scene.terminals){const q=[[start.x,start.y,[]]],seen=new Set();let route;

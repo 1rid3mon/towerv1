@@ -706,3 +706,8 @@ Bu son kayıt ve sabah listesi güncellemesi **yalnızca belgedir**. Yerel Git m
 - Package unit checks passed. Full local regression initially found a stale satellite selector assertion; updated to the filtered radar/range target collection.
 - Browser/CI: PENDING. Local browser download failed and system Chromium cannot create sockets in this runtime; added actual DOM/touch traversal, 6 terminals, module selection, evolution and save/reload tests to Chromium/WebKit CI alongside existing 27-mission campaign.
 - Status: DEVAM EDİYOR / not merged / production not changed. Merge only after all candidate checks pass.
+
+#### V11 candidate follow-up verification
+- Initial CI emulator/regression 248/248 passed. Local expanded suite 208/208 passed, including all eight module combinations through real fireTowerProjectile/damageTower, Story isolation and real wave-clear healing.
+- Test HTTP servers now serve external CSS with text/css so Story/campaign tests also exercise the installed visual layers. V11 browser traversal adds a real keyboard-wall collision check.
+- Final Chromium/WebKit and campaign CI still required before merge. No production release yet.
