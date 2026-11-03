@@ -640,6 +640,9 @@ function startStoryMission(missionNumber = 1) {
     tower.maxHp = getTowerMaxHp(); tower.hp = tower.maxHp;
     tower.maxShield = getTowerMaxShield(); tower.shield = tower.maxShield;
     if (missionNumber === 5 && progress.powerChoice === 'shield') { tower.maxShield += 30; tower.shield = tower.maxShield; }
+    // V12: late missions replay differently according to prior recorded choices.
+    // The change is local to this isolated session; existing save keys and prerequisites stay intact.
+    if (window.TowerNarrativeV12) window.TowerNarrativeV12.apply(session, progress, game, tower);
     enemies = []; projectiles = []; particles = []; floatingTexts = [];
     lightningBeams = []; rings = []; cargoDrones = [];
     spawnTimer = 0; playTimeAccum = 0; waveFrostSpawns = 0; cargoSpawnTimer = 999999;
@@ -704,6 +707,10 @@ function startStoryMission(missionNumber = 1) {
     };
     const openingLine = commsByMission[missionNumber];
     if (openingLine) setStoryComms(...openingLine);
+    if (window.TowerNarrativeV12 && [19,20,21].includes(missionNumber)) {
+        const branchLine = window.TowerNarrativeV12.missionLine(missionNumber, progress, storyLanguage() === 'en');
+        if (branchLine) setStoryComms('PİKO','PIKO',branchLine,branchLine);
+    }
     // Piko is the same companion from the opening scene; make him speak as the mission begins.
     if (typeof window.pikoStoryEvent === 'function') window.pikoStoryEvent('missionStart', missionNumber);
     if (missionNumber === 14 && progress.voiceChoice === 'human') {
@@ -737,6 +744,10 @@ function startStoryMission(missionNumber = 1) {
         else if (missionNumber === 17) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat the archive guards, inspect two records, then choose Piko’s call sign.' : 'GÖREV: Arşiv muhafızlarını durdur, iki kaydı incele ve Piko’nun çağrı adını seç.';
         else if (missionNumber === 18) status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Hold three defense stages and open the lock that recognizes the commander.' : 'GÖREV: Üç savunma aşamasını tamamla ve komutanı tanıyan kilidi aç.';
         else status.textContent = storyLanguage() === 'en' ? 'OBJECTIVE: Defeat the hostiles.' : 'GÖREV: Düşmanları durdur.';
+        if (window.TowerNarrativeV12 && [19,20,21].includes(missionNumber)) {
+            const branchLine = window.TowerNarrativeV12.missionLine(missionNumber, progress, storyLanguage() === 'en');
+            if (branchLine) status.textContent = branchLine + ' · ' + (storyLanguage() === 'en' ? 'Enemies: ' : 'Düşman: ') + game.waveTargetKills;
+        }
     }
     const action = document.getElementById('story-scan-action');
     if (action) action.hidden = true;
@@ -825,7 +836,9 @@ function finishStoryBattleEncounter() {
 
     if (session.mission === 19 && session.phase === 'combat') {
         session.phase='navigationScan'; isPaused=true; enemies=[]; projectiles=[];
-        setStatus(en?'IMPOSSIBLE ORBIT · The structure appears in two positions at once. Scan the pulse-aligned route.':'İMKÂNSIZ YÖRÜNGE · Yapı aynı anda iki konumda görünüyor. Darbeyle eşleşen rotayı tara.');
+        setStatus(session.v12Branch==='blackbox'
+            ? (en?'BLACK-BOX ECHO · The recorded voice points toward the hidden route. Decode its pulse.':'KARAKUTU YANKISI · Kayıttaki ses gizli rotayı gösteriyor. Darbeyi çöz.')
+            : (en?'IMPOSSIBLE ORBIT · The structure appears in two positions at once. Scan the pulse-aligned route.':'İMKÂNSIZ YÖRÜNGE · Yapı aynı anda iki konumda görünüyor. Darbeyle eşleşen rotayı tara.'));
         setStoryComms('STATION AI','STATION AI','Classification failed: the object is not a ship, station, or natural body.','Sınıflandırma başarısız: nesne gemi, istasyon veya doğal bir gök cismi değil.');
         setAction('story-chapter2-action',false,en?'SCAN THE PULSE-ALIGNED ROUTE':'DARBEYLE EŞLEŞEN ROTAYI TARA'); setExit(en?'ABORT MISSION':'GÖREVDEN ÇIK'); return;
     }
@@ -837,7 +850,9 @@ function finishStoryBattleEncounter() {
     }
     if (session.mission === 20 && session.phase === 'combat') {
         session.phase='selectivePulse'; isPaused=true; enemies=[]; projectiles=[];
-        setStatus(en?'QUIET FLEET · The cyan pulse can silence one platform group. Do not wake the whole field.':'SESSİZ FİLO · Camgöbeği darbe bir platform grubunu susturabilir. Tüm alanı uyandırma.');
+        setStatus(session.v12Branch==='weapon'
+            ? (en?'WEAPON ROUTE · Calibrated fire activated two extra platforms. Disable the marked group.':'SİLAH ROTASI · Kalibre edilen ateş iki platformu daha uyandırdı. İşaretli grubu sustur.')
+            : (en?'QUIET FLEET · The cyan pulse can silence one platform group. Do not wake the whole field.':'SESSİZ FİLO · Camgöbeği darbe bir platform grubunu susturabilir. Tüm alanı uyandırma.'));
         setStoryComms('PIKO','PIKO','Bu işaretler benim bakım dilime benziyor ama çok daha eski. Darbeyi seçerek kullanmalıyız.','These markings resemble my maintenance language, but they are much older. We must use the pulse selectively.');
         setAction('story-chapter2-action',false,en?'DISABLE THE MARKED PLATFORM GROUP':'İŞARETLİ PLATFORM GRUBUNU SUSTUR'); setExit(en?'ABORT MISSION':'GÖREVDEN ÇIK'); return;
     }

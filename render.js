@@ -2860,6 +2860,14 @@ function renderGame() {
             ctx.restore();
         }
 
+        if (e.type === 'boss' && e.v12Combat && e.v12Combat.phase > 1) {
+            ctx.save();ctx.font = "bold 10px 'Rajdhani', sans-serif";
+            ctx.textAlign='center';ctx.textBaseline='bottom';
+            ctx.fillStyle=e.v12Combat.phase===3?'#e5b36b':'#5db8c8';
+            ctx.strokeStyle='rgba(5,10,17,.85)';ctx.lineWidth=3;
+            const label='BOSS / FAZ '+e.v12Combat.phase;
+            ctx.strokeText(label,0,-e.radius-29);ctx.fillText(label,0,-e.radius-29);ctx.restore();
+        }
         drawCustomEnemy(ctx, e, tx, ty, nowCompTime);
         if (typeof TowerEnemyVisualV4 !== "undefined") TowerEnemyVisualV4.draw(ctx, e, nowCompTime, "normal");
         if (typeof TowerLostSignalArt !== "undefined") TowerLostSignalArt.drawEnemyDetails(ctx, e, nowCompTime);

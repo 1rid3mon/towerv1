@@ -2794,6 +2794,7 @@ function getAchievementDefinitions() {
     const skins = Array.isArray(game?.ownedSkins) ? new Set(game.ownedSkins).size : 1;
     const items = Array.isArray(game?.inventory) ? new Set(game.inventory).size : 0;
     const unlockedCompanions = Object.values(game?.companions || {}).filter(c => c && c.unlocked).length;
+    const storyProgress = typeof getStoryProgress === 'function' ? getStoryProgress() : {};
     return [
         { id: 'wave5', icon: '🌱', name: 'İlk Savunma', desc: '5. dalgaya ulaş', value: highestWave, target: 5, done: highestWave >= 5 },
         { id: 'wave25', icon: '🛡️', name: 'Öncü Komutan', desc: '25. dalgaya ulaş', value: highestWave, target: 25, done: highestWave >= 25 },
@@ -2816,7 +2817,12 @@ function getAchievementDefinitions() {
         { id: 'play24h', icon: '🕰️', name: 'Nöbeti Bırakmayan', desc: 'Toplam 24 saat oyna', value: seconds, target: 86400, done: seconds >= 86400, format: v => (v / 3600).toFixed(1) + ' sa' },
         { id: 'skins20', icon: '🌈', name: 'Hangar Küratörü', desc: '20 kule görünümü topla', value: skins, target: 20, done: skins >= 20 },
         { id: 'companions5', icon: '🚀', name: 'Yoldaş Filosu', desc: '5 yoldaşın kilidini aç', value: unlockedCompanions, target: 5, done: unlockedCompanions >= 5 },
-        { id: 'items25', icon: '🏺', name: 'Kayıp Emanetler', desc: '25 farklı eşya biriktir', value: items, target: 25, done: items >= 25 }
+        { id: 'items25', icon: '🏺', name: 'Kayıp Emanetler', desc: '25 farklı eşya biriktir', value: items, target: 25, done: items >= 25 },
+        { id: 'v12-wave75', icon: '🪖', name: 'Kuşatma Uzmanı', desc: '75. dalgaya ulaş', value: highestWave, target: 75, done: highestWave >= 75 },
+        { id: 'v12-boss25', icon: '⚙️', name: 'Boss Analisti', desc: '25 boss yen', value: bosses, target: 25, done: bosses >= 25 },
+        { id: 'v12-kills2500', icon: '⚡', name: 'Sinyal Muhafızı', desc: '2.500 düşman imha et', value: kills, target: 2500, done: kills >= 2500 },
+        { id: 'v12-story19', icon: '📡', name: 'Echo Haritacısı', desc: 'Hikâye Görev 19: İmkânsız Yörüngeyi tamamla', value: storyProgress.mission19Complete ? 1 : 0, target: 1, done: storyProgress.mission19Complete === true },
+        { id: 'v12-story27', icon: '🌠', name: 'Kayıp Sinyalin Tanığı', desc: 'Hikâye Görev 27: finali tamamla', value: storyProgress.mission27Complete ? 1 : 0, target: 1, done: storyProgress.mission27Complete === true }
     ];
 }
 
@@ -2828,7 +2834,10 @@ const COMMANDER_TITLES = [
     { id: 'loopmaster', name: 'Döngü Ustası', en: 'Loop Master', icon: '♾️', unlock: () => (Number(game?.stats?.prestiges) || 0) >= 10 },
     { id: 'starlegend', name: 'Yıldızlararası Efsane', en: 'Interstellar Legend', icon: '🪐', unlock: () => Math.max(Number(game?.highestWave) || 1, Number(game?.wave) || 1) >= 250 },
     { id: 'collector', name: 'Hangar Küratörü', en: 'Hangar Curator', icon: '🌈', unlock: () => (Array.isArray(game?.ownedSkins) ? new Set(game.ownedSkins).size : 1) >= 20 },
-    { id: 'nightwatch', name: 'Son Nöbetçi', en: 'The Last Watch', icon: '🕰️', unlock: () => (Number(game?.stats?.playTimeSeconds) || 0) >= 86400 }
+    { id: 'nightwatch', name: 'Son Nöbetçi', en: 'The Last Watch', icon: '🕰️', unlock: () => (Number(game?.stats?.playTimeSeconds) || 0) >= 86400 },
+    { id: 'v12-analyst', name: 'Boss Analisti', en: 'Boss Analyst', icon: '⚙️', unlock: () => (Number(game?.stats?.bossKills) || 0) >= 25 },
+    { id: 'v12-cartographer', name: 'Echo Haritacısı', en: 'Echo Cartographer', icon: '📡', unlock: () => typeof getStoryProgress === 'function' && getStoryProgress().mission19Complete === true },
+    { id: 'v12-witness', name: 'Kayıp Sinyalin Tanığı', en: 'Witness of the Lost Signal', icon: '🌠', unlock: () => typeof getStoryProgress === 'function' && getStoryProgress().mission27Complete === true }
 ];
 function setCommanderTitle(titleId) {
     const title = COMMANDER_TITLES.find(t => t.id === titleId && t.unlock());
@@ -3699,6 +3708,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const english = isEnglish();
         const lang = english ? pikoThoughts.en : pikoThoughts.tr;
         const skin = getTowerSkin();
+        // V12: Piko remembers narrative milestones through the existing story save;
+        // no second, account-unsafe personality store is created.
+        if (window.TowerNarrativeV12 && typeof getStoryProgress === 'function' &&
+            (document.body?.dataset?.gameMode === 'story' || Math.random() < .42)) {
+            const matured = window.TowerNarrativeV12.pikoLine(getStoryProgress(), english, 'idle');
+            if (matured) return matured;
+        }
         // Story mode gives Piko a distinct voice: less generic gameplay chatter, more companion banter and mystery.
         const storyLines = english ? [
             'I was built to protect something. Nobody included a label saying what.',
@@ -3893,6 +3909,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (crystals > 0) lines.unshift(english ? 'Threat cleared. I counted ' + crystals + ' crystals in the reward.' : 'Tehdit temizlendi. Ödülde ' + crystals + ' kristal saydım.');
         } else if (type === 'wave') lines = lang.newWave;
         else if (type === 'danger') lines = lang.lowGold;
+        if (type === 'boss' && window.TowerNarrativeV12 && typeof getStoryProgress === 'function') {
+            const veteranLine = window.TowerNarrativeV12.pikoLine(getStoryProgress(), english, 'boss');
+            if (veteranLine) lines = [veteranLine, ...lines];
+        }
         showLine(chooseLine(lines));
     }
     window.pikoReactEvent = reactToEvent;

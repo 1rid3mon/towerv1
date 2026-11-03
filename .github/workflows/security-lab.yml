@@ -99,6 +99,8 @@ jobs:
 
       - name: Verify V12 four-system console
         run: node security-lab/four-systems-v12.test.cjs
+      - name: Verify V12 boss phases, combos and narrative branching
+        run: node security-lab/v12-expansion.test.cjs
 
       - name: Install security lab dependencies
         working-directory: security-lab
@@ -122,6 +124,9 @@ jobs:
       - name: Install Chromium
         working-directory: security-lab
         run: npx playwright install --with-deps chromium
+      - name: Verify V12 combat in desktop and mobile Chromium
+        working-directory: security-lab
+        run: node v12-browser.cjs
       - name: Test Story in desktop and mobile Chromium
         working-directory: security-lab
         run: node browser-smoke.cjs
@@ -156,6 +161,9 @@ jobs:
       - name: Install WebKit
         working-directory: security-lab
         run: npx playwright install --with-deps webkit
+      - name: Verify V12 combat in WebKit tablet and mobile
+        working-directory: security-lab
+        run: node v12-browser.cjs
       - name: Test Story phone, landscape, tablet and desktop in WebKit
         working-directory: security-lab
         run: node browser-smoke.cjs
