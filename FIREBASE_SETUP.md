@@ -48,7 +48,7 @@ Windows, because several source-extraction regression tests use LF boundaries.
 
 ## Live checks performed on 2026-11-03
 
-- Local verification: **255 tests passed, 0 failed**, using Node 24.22.1,
+- Local verification: **259 tests passed, 0 failed**, using Node 24.22.1,
   Java 21.0.13, Firebase CLI 13.35.1, and the local Auth/Firestore emulators.
   JavaScript syntax and `git diff --check` also passed.
 - GitHub default branch inspected at `55ba11e991a75e4e7f70b512da1517b3eb1a4b07`.
@@ -60,38 +60,56 @@ Windows, because several source-extraction regression tests use LF boundaries.
 - The connected Vercel project is `towerv1`; its latest deployment was READY.
   Its environment inventory was checked without decrypting values. Existing
   unrelated configuration was preserved.
-- Firebase CLI reported no authorized accounts, and Firebase Console opened a
-  Google sign-in page. The Firebase plugin provides skills here, but no remote
-  Firebase management tools. Live provider settings, database edition, deployed
-  rules, indexes, and authenticated cross-device behavior remain unverified.
+- Firebase Console access was subsequently available. Verified both Google and
+  Email/Password providers are enabled, with the production domain authorized.
+- Verified `(default)` is Standard edition, Firestore Native, in `europe-west3`.
+  Collection-scope automatic ascending/descending/array indexes are enabled;
+  there are no manual indexes or field exemptions. Existing app queries use
+  single-field filters or ordering, so no additional composite index is needed.
+- Backed up the actual October 28 production policy, then published the tested
+  root `firestore.rules` through Console on November 3 at 22:24 Europe/Istanbul.
+  Console confirmed success and listed the new version as current. The previous
+  policy is retained in `security-lab/firestore.rules.production-20261103-before`.
+- No production player documents, provider settings, indexes, or environment
+  values were changed. Real Google OAuth and physical-device sync require a
+  controlled player session; emulator success does not prove those workflows.
 
-## Remaining owner/console steps
+## Rule behavior and validation
 
-1. Sign in to Firebase Console with access to **rid3mon-c311a**, or authorize
-   Firebase CLI locally with `npx -y firebase-tools@latest login`. Never paste
-   passwords, authorization codes, CLI tokens, or service-account keys in chat.
-2. In Authentication → Sign-in method, verify **Email/Password** and **Google**
-   are enabled. If Google requires a support email, select the project owner's
-   appropriate email in Console. The production domain is already authorized;
-   do not add wildcard or every temporary preview domain.
-3. Inspect the existing Firestore `(default)` database and its edition and
-   location. Do not create a replacement database or reset collections. CLI:
-   `npx -y firebase-tools@latest firestore:databases:list --project rid3mon-c311a`,
-   then `firestore:databases:get '(default)' --project rid3mon-c311a` using the
-   same CLI invocation.
-4. Export/copy the currently deployed rules and compare them with root
-   `firestore.rules`. The repository policy is a candidate, not proof of the
-   deployed policy. Review compatibility before publishing. If confirmed,
-   deploy only rules using
-   `npx -y firebase-tools@latest deploy --only firestore:rules --project rid3mon-c311a`.
-   No rules, providers, indexes, or production documents were changed by this work.
-5. Validate Google sign-in and existing-account saves with controlled accounts
-   on two devices. Follow `FIREBASE_MORNING_CHECKLIST.md` for Story, account
-   switching, friends, and leaderboard coverage. Use a separate non-production
-   project for destructive tests; do not delete real accounts or saves.
+The published update accepts the optional Story mission 22–27 flags and the
+purple/tower companion forms while retaining compatibility with older clients.
+It also allows a participant to read an absent friend-request pair, which the
+web client's transaction needs before creating the first request. Existing
+requests and collection queries remain restricted to their actual participants.
+The pair format assumes the application's Firebase-generated UIDs contain no
+underscores; future custom-auth UID formats need a separate schema review.
 
-No new secrets are needed for the browser app. Completing live administration
-requires the owner's Firebase account authorization. Server-authoritative
+Save and leaderboard creates now require the application's declared fields and
+reject extra fields. Updates restrict changed fields while preserving unknown
+legacy fields unchanged, so ordinary merge saves do not erase old metadata.
+Friend requests validate types, UID/name bounds, timestamps, and allowed states
+on both creation and update. Private saves remain owner-only, while the existing
+guest-readable leaderboard is preserved. No new public collection was added.
+
+Adversarial emulator checks reject unauthenticated/private reads, cross-user
+writes, role-field injection, missing required fields, oversized saves, invalid
+states, unmatched paths/subcollections, unpaired score/rate-limit writes, and
+outsider friend queries. They confirm ordinary legacy merge saves, first-request
+transactions, participant queries, account deletion, and both old/new Story
+payloads work. A known-limitation test still demonstrates that a validly shaped
+first score can be forged; this policy does not establish server authority.
+
+## Remaining real-device acceptance
+
+Use controlled accounts on two physical devices to validate real Google OAuth,
+save restoration, account switching, Story finale persistence, friends, and the
+leaderboard. Follow `FIREBASE_MORNING_CHECKLIST.md`; do not delete existing player
+records or test by overwriting a real player's progress. These live player
+workflows were not performed during this setup.
+
+No new secrets are needed for the browser app. Future CLI administration needs
+local Firebase sign-in; never paste passwords, tokens, or service-account keys
+in chat. Server-authoritative
 economy/score validation remains a separate backend project, as described in
 `SECURITY_BACKEND_DESIGN.md`; client-submitted scores remain forgeable.
 
