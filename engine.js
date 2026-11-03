@@ -406,6 +406,8 @@ function spawnEnemy(isBoss = false) {
         rot: Math.random() * Math.PI * 2, rotSpeed: (Math.random() - 0.5) * 3, animPhase: Math.random() * Math.PI * 2
     });
 
+    // V12: boss stages are transient and are not added to player saves.
+    if (window.TowerCombatDirectorV12 && isBoss) window.TowerCombatDirectorV12.spawn(enemies[enemies.length - 1]);
     // LOST SIGNAL: visual-only variant selection.
     if (!isBoss && typeof TowerEnemyDiversity !== "undefined" && enemies.length) {
         const enemy = enemies[enemies.length - 1];
@@ -660,14 +662,14 @@ function updateGame(dt) {
                             const distAoe = Math.hypot(aoeEnemy.x - e.x, aoeEnemy.y - e.y);
                             if (distAoe <= p.splashRadius + aoeEnemy.radius) {
                                 const falloff = distAoe < 15 ? 1.0 : 0.70;
-                                dealDamageToEnemy(aoeEnemy, Math.round(p.damage * falloff), p.isCrit, '#fb923c', false);
+                                dealDamageToEnemy(aoeEnemy, Math.round(p.damage * falloff), p.isCrit, '#fb923c', false, 'missile');
                                 if (frameInvalidated()) return;
                             }
                         }
                     } else {
                         if (p.fromTower && window.TowerHardV10) window.TowerHardV10.onHit(e, p.damage, {enemies,dealDamageToEnemy,tower,getTowerRange,lightningBeams});
                         if (frameInvalidated()) return;
-                        dealDamageToEnemy(e, p.damage, p.isCrit, p.isCrit ? '#c084fc' : '#60a5fa', true);
+                        dealDamageToEnemy(e, p.damage, p.isCrit, p.isCrit ? '#c084fc' : '#60a5fa', true, 'tower');
                         if (frameInvalidated()) return;
                         createParticles(e.x, e.y, p.color, 5, 50);
                     }
@@ -707,6 +709,7 @@ function updateGame(dt) {
         if (e.kbImmunityTimer > 0) e.kbImmunityTimer = Math.max(0, e.kbImmunityTimer - simDt);
         e.rot += e.rotSpeed * simDt; e.animPhase = (e.animPhase || 0) + simDt * 5;
         if (e.slowTimer > 0) { e.slowTimer -= simDt; if (e.slowTimer <= 0) e.slowFactor = 1; }
+        if (e.type === 'boss' && window.TowerCombatDirectorV12) window.TowerCombatDirectorV12.tick(e, simDt, {rings, text:addFloatingText, piko:()=>{if(window.TowerFourSystemsV12)window.TowerFourSystemsV12.bossCue(e);}});
 
         let targetStopDist = e.stopDistOverride || (e.isRanged ? Math.max(95, currentTowerRange - 15) : 30);
 
@@ -727,7 +730,8 @@ function updateGame(dt) {
         if (e.dashCooldown && e.dashCooldown > 0) {
             e.dashCooldown -= simDt;
             if (e.dashCooldown <= 0) {
-                e.dashCooldown = 2.8 + Math.random() * 1.2;
+                const nextDash = 2.8 + Math.random() * 1.2;
+                e.dashCooldown = window.TowerCombatDirectorV12 ? window.TowerCombatDirectorV12.dashCooldown(e, nextDash) : nextDash;
                 const currDist = Math.hypot(tower.x - e.x, tower.y - e.y);
                 if (currDist > 75) {
                     const dashDist = Math.min(currDist - 38, 65);
@@ -770,8 +774,9 @@ function updateGame(dt) {
                     const pSpd = e.projSpeed || 220;
                     // v1.1.0 boss signature: artillery and Leviathan fire a readable three-shot fan.
                     // Split damage keeps the pattern threatening without tripling total damage.
-                    const isBossFan = e.type === 'boss' && (e.subType === 'ranged_boss' || e.subType === 'leviathan');
-                    const shotAngles = isBossFan ? [-0.17, 0, 0.17] : [0];
+                    let shotAngles = e.type === 'boss' && (e.subType === 'ranged_boss' || e.subType === 'leviathan') ? [-0.17, 0, 0.17] : [0];
+                    if (window.TowerCombatDirectorV12 && e.type === 'boss') shotAngles = window.TowerCombatDirectorV12.volley(e, shotAngles);
+                    const isBossFan = shotAngles.length > 1;
                     // Armor is applied separately to each projectile, so split raw damage alone
                     // would under-deal against armored towers. Invert damageTower's reduction
                     // to keep three successful hits close to one ordinary hit after armor.
@@ -779,8 +784,8 @@ function updateGame(dt) {
                     if (isBossFan) {
                         const armorVal = getTowerArmor();
                         const singleHitDamage = Math.max(1, Math.round(Math.max(e.dmg * 0.25, e.dmg - armorVal)));
-                        const targetDamagePerShot = singleHitDamage / 3;
-                        fanShotDamage = targetDamagePerShot <= armorVal / 3
+                        const targetDamagePerShot = singleHitDamage / shotAngles.length;
+                        fanShotDamage = targetDamagePerShot <= armorVal / shotAngles.length
                             ? targetDamagePerShot * 4
                             : targetDamagePerShot + armorVal;
                     }
@@ -795,7 +800,7 @@ function updateGame(dt) {
                             life: 3.5, fromEnemy: true,
                             isFrost: e.isFrost || false,
                             isBossFrost: e.type === 'boss' && e.subType === 'frost_boss',
-                            freezeDuration: e.freezeDuration || 0,
+                            freezeDuration: window.TowerCombatDirectorV12 ? window.TowerCombatDirectorV12.frostDuration(e, e.freezeDuration || 0, shotAngles.length) : (e.freezeDuration || 0),
                             frostSlowDuration: e.frostSlowDuration || 0
                         });
                     }
@@ -910,7 +915,7 @@ function updateCompanions(simDt) {
                 const isCrit = star >= 5 && (Math.random() * 100 < getTowerCritChance() * 0.5);
                 let dmg = Math.max(1, Math.round(towerDmg * def.damageMults[idx] * compBoost));
                 if (isCrit) dmg = Math.round(dmg * getTowerCritMult());
-                dealDamageToEnemy(target, dmg, isCrit, isCrit ? '#facc15' : '#ef4444');
+                dealDamageToEnemy(target, dmg, isCrit, isCrit ? '#facc15' : '#ef4444', false, 'laser');
                 if (enemies !== companionEnemies || isPaused || isDefeated) return;
                 lightningBeams.push({ x1: st.x, y1: st.y, x2: target.x, y2: target.y, color: isCrit ? '#facc15' : '#ef4444', life: 0.11 });
             }
@@ -925,7 +930,7 @@ function updateCompanions(simDt) {
                 if (Math.hypot(e.x - st.x, e.y - st.y) <= frostRadius) {
                     e.slowFactor = Math.min(e.slowFactor, slowRatio);
                     e.slowTimer = 2.2 + star * 0.25;
-                    dealDamageToEnemy(e, frostDmg, false, '#38bdf8');
+                    dealDamageToEnemy(e, frostDmg, false, '#38bdf8', false, 'frost');
                     if (enemies !== companionEnemies || isPaused || isDefeated) return;
                     hitAny = true;
                 }
@@ -974,7 +979,8 @@ function updateCompanions(simDt) {
                     const dmg = Math.max(1, Math.round(towerDmg * def.damageMults[idx] * compBoost)) + maxHpBonusDmg;
                     lightningBeams.push({ x1: prevX, y1: prevY, x2: target.x, y2: target.y, color: '#a855f7', life: 0.16 });
                     prevX = target.x; prevY = target.y;
-                    dealDamageToEnemy(target, dmg, false, '#c084fc');
+                    dealDamageToEnemy(target, dmg, false, '#c084fc', false, 'plasma');
+                    if (enemies !== companionEnemies || isPaused || isDefeated) return;
                 }
             }
         }
@@ -987,8 +993,13 @@ function getClosestEnemy(x, y, maxDist) {
     return closest;
 }
 
-function dealDamageToEnemy(enemy, amount, isCrit = false, color = '#ffffff', applyLS = false) {
+function dealDamageToEnemy(enemy, amount, isCrit = false, color = '#ffffff', applyLS = false, source = null) {
     if (!enemies.includes(enemy)) return;
+    if (window.TowerCombatDirectorV12) {
+        const combo = window.TowerCombatDirectorV12.bonus(enemy, amount, source, game.companions);
+        if (combo.bonus > 0) { amount += combo.bonus; addFloatingText(enemy.x, enemy.y - (enemy.radius || 12) - 8, combo.label + ' +' + formatNumber(combo.bonus), '#e5b36b', 9); }
+        amount = window.TowerCombatDirectorV12.mitigation(enemy, amount);
+    }
     enemy.hp -= amount; enemy.hitFlash = 1;
     if (window.TowerCombatV12) window.TowerCombatV12.hit(enemy.x, enemy.y, color, isCrit, enemy.type === 'boss');
     if (typeof playBattleCue === 'function') playBattleCue(isCrit ? 'critical' : 'impact');
