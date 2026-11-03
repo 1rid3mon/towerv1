@@ -716,3 +716,8 @@ Bu son kayıt ve sabah listesi güncellemesi **yalnızca belgedir**. Yerel Git m
 - First Chromium evidence revealed the main-menu Story card still showing 0/25 after a valid high-wave save reload, although game.highestWave was restored. DOMContentLoaded refreshed the gate before window.load applied saved progression.
 - applyParsedGameData now refreshes Story availability after accepted local/account/cloud data is applied. No save format or progression value changes. Browser regression asserts the unlocked card after reload; sector screenshots added for visual inspection.
 - Re-run all gates on this final fix before release; previous successful campaign run 41595803259 alone is insufficient for the new candidate.
+
+#### Browser CI scheduling correction
+- Initial WebKit job log shows all four Story viewports AND all four V11 traversal/save cases PASS, but the combined job hit the pre-existing 10-minute job timeout immediately after the last case (run 41595803259, job 125782759748). This run is CANCELLED, not a successful release gate.
+- Moved the newly added traversal suite into independent Chromium/WebKit matrix jobs. Existing Story/campaign checks remain unchanged; traversal jobs allow 20 minutes for browser installation plus local AND production runs. Assertions, six-terminal navigation and save checks were not weakened.
+- Final CI including this scheduling correction must succeed before merge.
