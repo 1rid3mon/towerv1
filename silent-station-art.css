@@ -1,0 +1,299 @@
+/* LOST SIGNAL — THE SILENT STATION / art direction v2.
+ * Presentation-only. Loaded after all V11 styles; no game state, input or save mutations.
+ * Ink #080d16, hull #152535, signal #5db8c8, alert #e5b36b, text #dce5ea.
+ */
+:root {
+  --ss-void:#080d16;
+  --ss-hull:#152535;
+  --ss-surface:#101d29;
+  --ss-edge:rgba(112,155,167,.32);
+  --ss-signal:#5db8c8;
+  --ss-alert:#e5b36b;
+  --ss-text:#dce5ea;
+  --ss-muted:#99acb8;
+}
+body#main-body { background:#080d16 !important; color:var(--ss-text); }
+body#main-body ::selection { color:#061019; background:var(--ss-signal); }
+
+/* Main menu: station observation bay, with the world behind the controls. */
+#mode-main-menu {
+  isolation:isolate;
+  justify-content:flex-start !important;
+  align-items:center !important;
+  background:
+    linear-gradient(90deg,rgba(3,9,16,.83) 0%,rgba(5,13,21,.48) 47%,rgba(5,12,20,.12) 76%,rgba(2,6,12,.35) 100%),
+    url("silent-station-bridge.svg") center center / cover no-repeat #080d16 !important;
+  padding:clamp(14px,4vw,54px) !important;
+  padding-top:max(18px,env(safe-area-inset-top)) !important;
+  padding-bottom:max(18px,env(safe-area-inset-bottom)) !important;
+}
+#mode-main-menu::before {
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
+  background:repeating-linear-gradient(to bottom,transparent 0 5px,rgba(133,187,198,.012) 6px 7px);
+}
+#mode-main-menu .mode-menu-inner {
+  position:relative;z-index:1;box-sizing:border-box;
+  width:min(630px,100%) !important;max-width:100%;
+  margin:0 auto 0 max(0px,calc((100vw - 1390px)/2)) !important;
+  padding:clamp(20px,3vw,39px) !important;
+  border:1px solid rgba(103,156,166,.33) !important;
+  border-left:3px solid var(--ss-signal) !important;
+  border-radius:3px !important;
+  text-align:left !important;
+  color:var(--ss-text) !important;
+  background:linear-gradient(135deg,rgba(8,19,29,.95),rgba(8,17,27,.89)) !important;
+  box-shadow:0 22px 80px rgba(0,0,0,.48),inset 0 1px rgba(223,240,245,.05) !important;
+  backdrop-filter:none !important;
+}
+#mode-main-menu .mode-menu-inner::before {
+  content:"COMMAND DECK / STATION 01";display:block;
+  margin-bottom:18px;padding-bottom:10px;
+  border-bottom:1px solid rgba(125,168,174,.19);
+  color:#6f9fab;font:600 10px/1.4 'Rajdhani',sans-serif;letter-spacing:.22em;
+}
+#mode-main-menu .mode-menu-eyebrow {
+  font:700 11px/1.5 'Rajdhani',sans-serif;
+  letter-spacing:.24em !important;color:var(--ss-alert) !important;
+  text-align:left !important;
+}
+#mode-main-menu .mode-menu-title {
+  margin-top:9px !important;
+  font:700 clamp(42px,6.2vw,72px)/.94 'Rajdhani',sans-serif !important;
+  letter-spacing:.095em !important;text-align:left !important;
+  background:none !important;-webkit-text-fill-color:var(--ss-text) !important;
+  color:var(--ss-text) !important;text-shadow:none !important;
+}
+#mode-main-menu .mode-menu-subtitle {
+  max-width:490px;margin:13px 0 0 !important;
+  font:400 clamp(12px,1.4vw,14px)/1.65 'Inter',sans-serif;
+  color:var(--ss-muted) !important;text-align:left !important;
+}
+#mode-main-menu .ls-command-status {
+  display:flex;align-items:center;flex-wrap:wrap;gap:9px;
+  padding:9px 0 12px;margin-top:16px;
+  border-top:1px solid rgba(140,173,182,.13);
+  color:var(--ss-alert);font:700 10px/1.3 'Rajdhani',sans-serif;
+  letter-spacing:.18em;
+}
+#mode-main-menu .ls-command-status .ls-status-light {
+  display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--ss-alert);box-shadow:0 0 8px rgba(229,179,107,.28);
+  animation:ss-status-signal 6s ease-in-out infinite;
+}
+#mode-main-menu .ls-command-status .ls-status-detail {
+  color:#7695a3;font-weight:500;margin-left:auto;font-size:10px;
+}
+#mode-main-menu .mode-menu-grid {
+  display:grid !important;grid-template-columns:minmax(0,1fr) !important;
+  gap:9px !important;margin-top:8px !important;
+}
+#mode-main-menu .mode-menu-card {
+  display:grid !important;grid-template-columns:44px minmax(0,1fr) 104px !important;
+  grid-template-rows:auto auto !important;column-gap:15px;row-gap:3px;
+  align-items:center !important;min-height:96px !important;
+  padding:15px 17px !important;position:relative;
+  background:rgba(15,31,43,.86) !important;
+  border:1px solid rgba(120,156,164,.28) !important;
+  border-radius:3px !important;box-shadow:none !important;
+  color:var(--ss-text) !important;
+  text-align:left !important;transform:none !important;
+  transition:background-color .15s ease,border-color .15s ease !important;
+}
+#mode-main-menu .mode-menu-card::before {
+  width:2px !important;background:var(--ss-signal) !important;
+}
+#mode-main-menu #mode-story-button::before {background:var(--ss-alert) !important;}
+#mode-main-menu .mode-menu-card:hover:not(:disabled),
+#mode-main-menu .mode-menu-card:focus-visible {
+  background:rgba(27,48,61,.98) !important;
+  border-color:rgba(93,184,200,.70) !important;box-shadow:none !important;
+  transform:none !important;
+}
+#mode-main-menu .mode-menu-icon {
+  grid-column:1;grid-row:1 / span 2;
+  width:44px !important;height:44px !important;margin:0 !important;
+  border-radius:2px !important;
+  background:#112b3a !important;border:1px solid rgba(93,184,200,.32) !important;
+  color:var(--ss-signal) !important;font-size:21px !important;
+  box-shadow:none !important;
+}
+#mode-main-menu #mode-story-button .mode-menu-icon {
+  border-color:rgba(229,179,107,.35) !important;color:var(--ss-alert) !important;
+}
+#mode-main-menu .mode-menu-card-title {
+  grid-column:2;grid-row:1;
+  font:700 clamp(20px,2.4vw,27px)/1.1 'Rajdhani',sans-serif !important;
+  color:var(--ss-text) !important;letter-spacing:.035em;
+}
+#mode-main-menu .mode-menu-card-desc {
+  grid-column:2;grid-row:2;margin:0 !important;
+  color:#a5b8c0 !important;font:400 11px/1.45 'Inter',sans-serif !important;
+}
+#mode-main-menu .mode-menu-card-action {
+  grid-column:3;grid-row:1 / span 2;align-self:center;
+  max-width:104px;min-width:0;margin:0 !important;padding:0 !important;
+  color:var(--ss-signal) !important;
+  font:700 10px/1.5 'Rajdhani',sans-serif !important;
+  letter-spacing:.08em !important;text-align:right;
+}
+#mode-main-menu #mode-story-button .mode-menu-card-action {color:var(--ss-alert) !important;}
+#mode-main-menu .mode-menu-tools {
+  display:flex !important;flex-wrap:wrap !important;
+  justify-content:flex-start !important;gap:7px !important;
+  margin-top:15px !important;
+}
+#mode-main-menu .ls-v10-tools,
+#mode-main-menu .ls-v11-tools {display:flex;flex-wrap:wrap;gap:7px;}
+#mode-main-menu .mode-menu-tool {
+  flex:0 1 auto;min-width:0;min-height:43px;
+  padding:9px 12px !important;
+  border:1px solid rgba(122,154,164,.31) !important;
+  border-radius:3px !important;
+  background:rgba(12,25,35,.94) !important;
+  color:#b9cbd0 !important;
+  font:600 11px/1.35 'Rajdhani',sans-serif !important;
+  letter-spacing:.045em;box-shadow:none !important;
+  text-align:left;
+}
+#mode-main-menu .mode-menu-tool:hover,
+#mode-main-menu .mode-menu-tool:focus-visible {
+  background:#193442 !important;color:var(--ss-text) !important;
+  border-color:var(--ss-signal) !important;
+}
+#mode-main-menu .mode-menu-tool i {color:var(--ss-signal) !important;font-size:13px;}
+#mode-main-menu .mode-menu-tool-label {white-space:nowrap;}
+#mode-main-menu .mode-menu-footer {
+  margin-top:17px !important;padding-top:13px;
+  border-top:1px solid rgba(127,159,166,.2);
+  font:500 10px/1.5 'Rajdhani',sans-serif !important;
+  letter-spacing:.12em;text-align:left !important;color:#7d98a6 !important;
+}
+/* Background instrument callout appears only when the right-hand viewport has space. */
+#mode-main-menu .ls-command-viewport-label {
+  position:fixed;right:clamp(20px,5vw,90px);bottom:clamp(20px,5vh,70px);
+  display:flex;flex-direction:column;gap:5px;z-index:0;pointer-events:none;
+  border-left:1px solid var(--ss-alert);padding-left:13px;
+  color:#9bbac1;font:600 11px/1.35 'Rajdhani',sans-serif;letter-spacing:.17em;
+  text-shadow:0 2px 4px #02050b;
+}
+#mode-main-menu .ls-command-viewport-label strong {
+  color:var(--ss-alert);font:700 16px/1.2 'Rajdhani',sans-serif;letter-spacing:.12em;
+}
+
+/* Shared station hardware: compact readable HUD, no diffuse neon bloom. */
+#main-body > header,
+#upgrade-drawer,
+#hud-hp-card,#hud-wave-card,#hud-quick-stats,#hud-bottom-controls,
+#main-body .story-battle-panel,
+#main-body .ls-v10-panel,#main-body .ls-v11-panel {
+  border-color:var(--ss-edge) !important;
+  border-radius:4px !important;
+  background-color:rgba(13,27,39,.97) !important;
+  box-shadow:0 5px 20px rgba(0,0,0,.19) !important;
+  backdrop-filter:none !important;
+}
+#hud-hp-card,#hud-wave-card {
+  border-left:2px solid var(--ss-signal) !important;
+}
+#hud-hp-card.hud-critical {border-left-color:#d47b72 !important;}
+#hud-top-bar {gap:6px !important;}
+#hud-top-bar,#hud-quick-stats,#hud-bottom-controls {
+  font-variant-numeric:tabular-nums;
+}
+#main-body #battle-moment .battle-frame {
+  background:rgba(11,24,34,.97) !important;
+  border:1px solid rgba(111,162,172,.38) !important;
+  border-left:3px solid var(--ss-signal) !important;
+  border-radius:3px !important;box-shadow:0 12px 30px rgba(0,0,0,.26) !important;
+  backdrop-filter:none !important;
+}
+#main-body #battle-moment[data-kind="boss"] .battle-frame {border-left-color:#d98578 !important;}
+#main-body #battle-moment[data-kind="clear"] .battle-frame {border-left-color:var(--ss-alert) !important;}
+#battle-moment .battle-kicker {color:var(--ss-signal) !important;}
+#battle-moment .battle-title {text-shadow:none !important;letter-spacing:.08em !important;}
+#battle-moment .battle-subtitle {color:#a3b8c1 !important;}
+#battle-sfx-toggle,#ls-sound-optin {
+  border:1px solid var(--ss-edge) !important;border-radius:3px !important;
+  color:var(--ss-muted) !important;background:rgba(13,27,39,.96) !important;
+  box-shadow:none !important;
+}
+/* Piko — a housed holographic projector, not a floating neon badge. */
+#game-mascot {
+  border-radius:7px 7px 13px 13px !important;
+  border:1px solid rgba(105,174,188,.45) !important;
+  background:linear-gradient(145deg,rgba(12,28,41,.98),rgba(17,42,53,.95)) !important;
+  box-shadow:0 5px 15px rgba(0,0,0,.35),inset 0 0 0 2px rgba(6,15,24,.65) !important;
+  filter:drop-shadow(0 2px 2px rgba(0,0,0,.25)) !important;
+  animation:ss-piko-breathe 6.5s ease-in-out infinite !important;
+}
+#game-mascot.is-dragging {animation:none !important;}
+#game-mascot-face {filter:saturate(.65) contrast(1.04) !important;}
+#game-mascot-face .piko-aura {opacity:.10 !important;animation:none !important;}
+#game-mascot-face .piko-core {animation:ss-core-light 4.6s ease-in-out infinite !important;}
+#game-mascot-bubble {
+  border-radius:4px 4px 0 4px !important;
+  border:1px solid rgba(105,170,181,.45) !important;
+  border-left:3px solid var(--ss-signal) !important;
+  background:rgba(10,25,37,.97) !important;
+  color:var(--ss-text) !important;
+  box-shadow:0 12px 24px rgba(0,0,0,.33) !important;
+  font:500 12px/1.5 'Inter',sans-serif !important;
+}
+.story-companion-chip,.story-dialogue,#main-body .story-battle-panel {
+  border-color:rgba(103,168,178,.32) !important;
+}
+.story-hologram-wrap,.story-companion-core {
+  filter:saturate(.7);
+}
+#main-body .ls-v10-panel,#main-body .ls-v11-panel {
+  color:var(--ss-text);
+}
+/* Focus must remain visible on both touchscreen and keyboard. */
+#main-body button:focus-visible,#main-body [role="button"]:focus-visible {
+  outline:2px solid var(--ss-alert) !important;outline-offset:3px !important;
+}
+@keyframes ss-status-signal {0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes ss-piko-breathe {0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes ss-core-light {0%,100%{opacity:.65}50%{opacity:1}}
+@media (max-width:900px) {
+  #mode-main-menu {background-position:64% 50% !important;}
+  #mode-main-menu .mode-menu-inner {margin:0 auto !important;width:min(650px,100%) !important;}
+  #mode-main-menu .ls-command-viewport-label {display:none;}
+}
+@media (max-width:560px) {
+  #mode-main-menu {align-items:flex-start !important;padding:12px !important;
+    padding-top:max(12px,env(safe-area-inset-top)) !important;
+    padding-bottom:max(12px,env(safe-area-inset-bottom)) !important;}
+  #mode-main-menu .mode-menu-inner {margin:0 auto !important;padding:21px 16px !important;}
+  #mode-main-menu .mode-menu-inner::before {margin-bottom:13px;font-size:9px;}
+  #mode-main-menu .mode-menu-title {font-size:clamp(37px,10.3vw,53px) !important;}
+  #mode-main-menu .mode-menu-subtitle {font-size:12px !important;}
+  #mode-main-menu .ls-command-status {font-size:9px;letter-spacing:.08em;}
+  #mode-main-menu .ls-command-status .ls-status-detail {margin-left:0;}
+  #mode-main-menu .mode-menu-card {
+    grid-template-columns:38px minmax(0,1fr) !important;
+    min-height:0 !important;padding:12px !important;column-gap:11px;
+  }
+  #mode-main-menu .mode-menu-icon {width:38px !important;height:38px !important;font-size:18px !important;}
+  #mode-main-menu .mode-menu-card-title {font-size:21px !important;}
+  #mode-main-menu .mode-menu-card-desc {font-size:10px !important;}
+  #mode-main-menu .mode-menu-card-action {
+    grid-column:2;grid-row:3;max-width:none;margin-top:4px !important;text-align:left;
+  }
+  #mode-main-menu .mode-menu-tool {min-height:40px;padding:8px 10px !important;font-size:10px !important;}
+  #mode-main-menu .mode-menu-footer {font-size:9px !important;}
+  body:has(#mode-main-menu:not(.menu-hidden)) #game-mascot {
+    width:50px;height:50px;right:max(8px,env(safe-area-inset-right));
+    bottom:max(8px,env(safe-area-inset-bottom));
+  }
+}
+@media (max-height:520px) and (min-width:561px) {
+  #mode-main-menu {align-items:flex-start !important;}
+  #mode-main-menu .mode-menu-inner {padding:17px 22px !important;}
+  #mode-main-menu .mode-menu-title {font-size:44px !important;}
+  #mode-main-menu .mode-menu-card {min-height:74px !important;padding:10px 13px !important;}
+}
+@media (prefers-reduced-motion:reduce) {
+  #mode-main-menu .ls-status-light,#game-mascot,#game-mascot-face *,
+  #main-body .mode-menu-card {animation:none !important;transition:none !important;}
+}
