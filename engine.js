@@ -872,6 +872,7 @@ function fireTowerProjectile(startX, startY, target, barrelIdx = 0, totalBarrels
     const skinDef = SKIN_DATABASE[game.activeSkin] || SKIN_DATABASE.default_cyber;
     const projColor = isCrit ? (skinDef.critColor || '#c084fc') : (skinDef.projColor || '#60a5fa');
 
+    if (window.TowerCombatV12) window.TowerCombatV12.shot(spawnX, spawnY, projColor, isCrit);
     projectiles.push({
         x: spawnX, y: spawnY,
         vx: Math.cos(aimAngle) * speed, vy: Math.sin(aimAngle) * speed,
@@ -988,6 +989,7 @@ function getClosestEnemy(x, y, maxDist) {
 function dealDamageToEnemy(enemy, amount, isCrit = false, color = '#ffffff', applyLS = false) {
     if (!enemies.includes(enemy)) return;
     enemy.hp -= amount; enemy.hitFlash = 1;
+    if (window.TowerCombatV12) window.TowerCombatV12.hit(enemy.x, enemy.y, color, isCrit, enemy.type === 'boss');
     if (typeof playBattleCue === 'function') playBattleCue(isCrit ? 'critical' : 'impact');
     addFloatingText(enemy.x, enemy.y, formatNumber(amount) + (isCrit ? '!' : ''), color, isCrit ? 14 : 11);
 
@@ -998,6 +1000,7 @@ function dealDamageToEnemy(enemy, amount, isCrit = false, color = '#ffffff', app
 function killEnemy(enemy) {
     const idx = enemies.indexOf(enemy); if (idx === -1) return;
     enemies.splice(idx, 1);
+    if (window.TowerCombatV12) window.TowerCombatV12.death(enemy.x, enemy.y, enemy.color, enemy.type === 'boss');
 
     const goldEarned = Math.max(1, Math.round(enemy.gold)); game.gold += goldEarned;
     addFloatingText(enemy.x, enemy.y - 10, `+${formatNumber(goldEarned)} 🪙`, '#fbbf24', 11);
@@ -1055,7 +1058,7 @@ function damageTower(rawDamage, attacker) {
 
     let rem = reduced;
     if (tower.shield > 0) { if (tower.shield >= rem) { tower.shield -= rem; rem = 0; } else { rem -= tower.shield; tower.shield = 0; } }
-    if (rem > 0) { tower.hp -= rem; createParticles(tower.x, tower.y, '#ef4444', 5, 50); if (typeof playBattleCue === 'function') playBattleCue('towerHit'); }
+    if (rem > 0) { tower.hp -= rem; if (window.TowerCombatV12) window.TowerCombatV12.incoming(tower.x, tower.y, '#e5b36b'); createParticles(tower.x, tower.y, '#ef4444', 5, 50); if (typeof playBattleCue === 'function') playBattleCue('towerHit'); }
     if (tower.hp <= 0) { tower.hp = 0; triggerTowerDefeat(); }
 }
 
