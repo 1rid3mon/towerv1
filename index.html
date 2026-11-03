@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kule Savunma: Sonsuz Döngü | v2.0.0</title>
+    <title>LOST SIGNAL — TowerV1</title>
+    <meta name="theme-color" content="#080d16">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -737,14 +738,16 @@
 <link rel="stylesheet" href="station-records-v9.css">
 <link rel="stylesheet" href="hard-v10.css">
 <link rel="stylesheet" href="overhaul-v11.css">
+<link rel="stylesheet" href="silent-station-art.css">
 </head>
 <body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-pc color-pastel" id="main-body">
 
 <div id="mode-main-menu" role="dialog" aria-modal="true" aria-labelledby="mode-menu-title">
     <div class="mode-menu-inner text-center">
-        <div class="mode-menu-eyebrow">SAVUNMA PROTOKOLÜ · 01</div>
-        <h1 id="mode-menu-title" class="mode-menu-title mt-4">KULE SAVUNMA</h1>
-        <p id="mode-menu-subtitle" class="mode-menu-subtitle">Nasıl bir mücadeleye hazırsın, komutan? Bir dünyayı kurtar ya da sınırlarını sonsuza kadar zorla.</p>
+        <div class="mode-menu-eyebrow">ARES / KOMUTA ARAYÜZÜ</div>
+        <h1 id="mode-menu-title" class="mode-menu-title mt-4">LOST SIGNAL</h1>
+        <p id="mode-menu-subtitle" class="mode-menu-subtitle">Bir sinyal kayboldu. İstasyon hâlâ dinliyor. Komuta sende.</p>
+        <div class="ls-command-status" aria-label="İstasyon teması: bağlantı kayıp"><span class="ls-status-light" aria-hidden="true"></span><span>BAĞLANTI / SİNYAL KAYIP</span><span class="ls-status-detail">TOWER-01 · STANDBY</span></div>
         <div class="mode-menu-grid">
             <button type="button" id="mode-story-button" class="mode-menu-card border-violet-400/30 bg-gradient-to-br from-violet-950/65 via-slate-900 to-slate-900" onclick="openStoryMode()">
                 <span class="mode-menu-icon bg-violet-500/15 border border-violet-400/25 text-violet-200">✦</span>
@@ -774,8 +777,9 @@
                 <i class="fa-solid fa-list-check text-teal-300"></i><span class="mode-menu-tool-label">Görevler</span>
             </button>
         </nav>
-        <div class="mode-menu-footer">İLERLEMEN KORUNUR · SAVAŞ DENGESİ DEĞİŞMEZ</div>
+        <div class="mode-menu-footer">KOMUTA PANELİ / STANDBY · KAYITLAR KORUNUR</div>
     </div>
+    <div class="ls-command-viewport-label" aria-hidden="true"><span>EXTERNAL OBSERVATION</span><strong>NO RETURN SIGNAL</strong><span>01 / LAST CONTACT UNKNOWN</span></div>
 </div>
 
 
