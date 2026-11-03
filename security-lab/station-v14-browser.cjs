@@ -24,6 +24,9 @@ const server=http.createServer((req,res)=>{
    await page.locator('#v14-station-launch').click();
    assert.equal(await page.locator('#v14-station').evaluate(x=>x.hidden),false);
    assert.equal(await page.locator('[data-v14-room]').count(),6);
+   assert.equal(await page.locator('.v14-cell').count(),70,'seven-by-ten walkable station map');
+   await page.locator('[data-v14-move="1,0"]').click();
+   assert.equal(await page.locator('.v14-player').count(),1,'avatar moves in station corridor');
    await page.locator('[data-v14-room="hangar"]').click();
    assert.match(await page.locator('.v14-room').innerText(),/Buz|Frost/);
    await page.locator('[data-v14-room="bridge"]').click();
