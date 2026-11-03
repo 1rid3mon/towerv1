@@ -13,6 +13,7 @@ function piko(line){
  const now=Date.now();if(now-state.lastPiko<8500)return false;state.lastPiko=now;
  const bubble=document.getElementById('game-mascot-bubble');if(!bubble)return false;
  bubble.textContent=line;bubble.classList.add('is-visible');
+ if(typeof w.positionPikoBubble==='function')w.positionPikoBubble();
  clearTimeout(piko.timer);piko.timer=setTimeout(()=>bubble.classList.remove('is-visible'),4000);
  return true;
 }
