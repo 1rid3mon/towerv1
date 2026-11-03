@@ -5,7 +5,7 @@ const script=new vm.Script(code,{filename:'commanders-quarters-v13.js'});
 const store=new Map(),listeners={},elements={};
 const nav={appendChild(node){elements[node.id]=node;}};
 const root={hidden:true,innerHTML:'',querySelectorAll(){return [];}};
-const doc={readyState:'complete',body:{appendChild(n){elements[n.id]=n;}},createElement(){return {className:'',dataset:{},addEventListener(type,fn){this[type]=fn;}};},getElementById(id){return id==='cq-root'?elements[id]:elements[id]||null;},querySelector(s){return s==='.mode-menu-tools'?nav:null;},addEventListener(type,fn){listeners[type]=fn;}};
+const doc={readyState:'complete',body:{appendChild(n){elements[n.id]=n;}},createElement(){return {className:'',dataset:{},querySelectorAll(){return [];},addEventListener(type,fn){this[type]=fn;}};},getElementById(id){return id==='cq-root'?elements[id]:elements[id]||null;},querySelector(s){return s==='.mode-menu-tools'?nav:null;},addEventListener(type,fn){listeners[type]=fn;}};
 const p={};for(let i=1;i<=27;i++)p['mission'+i+'Complete']=i<=12;
 const localStorage={getItem(k){return store.get(k)||null;},setItem(k,v){store.set(k,v);}};
 const window={};
