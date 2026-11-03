@@ -745,3 +745,17 @@ Limits retained explicitly:
 - Earlier combined WebKit timeout remains recorded as cancelled; it was corrected by splitting suites, not by accepting that cancelled run or removing assertions.
 
 Result: **V11 INTEGRATION COMPLETED / MAIN MERGED / PRODUCTION GAMEPLAY VERIFIED**. This final appended record is documentation-only; no executable asset, player record or rule is changed by the documentation commit.
+
+
+### 2026-11-04 — V14 living station / daily drill candidate (NOT YET RELEASED)
+
+- [x] New branch: feature/v14-living-station-anomalies-daily-20261104, based on tested V13 Commander's Quarters PR #85 head; latest main reconciliation still required.
+- [x] station-systems-v14.js: bounded Endless anomalies every seventh non-boss wave: tower range -18%, enemy movement -18% or tower firing frequency -15%; rotating by wave. Pure deterministic UTC daily defense plan and station/Piko progression logic.
+- [x] engine.js: real Endless combat hooks for movement, tower target range, tower cooldown and anomaly banner; excludes Story runtime. No core save schema change.
+- [x] station-director-v14.js and CSS: accessible responsive six-room map, V13 quarters integration, V12 hangar mechanics, decision memory archive, three gated puzzles, optional skippable three-scene cinematic, Piko contextual dialogue, V11 sector navigation, deterministic 3-lane daily defense exercise.
+- [x] Daily drill supports 15 turns, towers, upgrades, enemies, score and local personal best. Same UTC date uses the same opponents and initial energy across players; isolated storage keys towerV1StationPuzzleV14 and towerV1DailyPracticeV14.
+- [x] index.html loads new scripts, and Node VM/Chromium/WebKit tests are added to CI.
+- [ ] CI, visual QA and current production deployment NOT YET verified at time of this note. Never call this released without evidence.
+- [ ] No global daily leaderboard: must add validated server simulation / replay or authoritative source plus Firestore rules and abuse prevention. Local scores cannot support secure global competition.
+- [ ] Walkable avatar-based station free roam, four-language localization polish, deeper cinematic camera and media, real cloud cross-device sync and physical iPad/Android tests remain beyond this patch.
+- [ ] Do not merge to main unless all Node, Chromium/WebKit, campaign, Firestore, and preview checks pass against latest main.
