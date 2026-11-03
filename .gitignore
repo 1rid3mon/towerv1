@@ -1,5 +1,11 @@
 node_modules/
 security-lab/browser-evidence/
 *-debug.log
+.firebase/
+.env
+.env.*
+!.env.example
+*service-account*.json
+*serviceAccount*.json
 
 lost-signal-v11-backup/

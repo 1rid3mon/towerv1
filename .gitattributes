@@ -1,0 +1,2 @@
+# Source-extraction regression tests use LF boundaries on every platform.
+*.js text eol=lf
