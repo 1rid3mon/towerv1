@@ -20,7 +20,6 @@ const server=http.createServer((req,res)=>{
    await page.goto('http://127.0.0.1:4180/',{waitUntil:'networkidle'});
    await page.waitForFunction(()=>typeof window.TowerCombatDirectorV12==='object'&&typeof window.TowerNarrativeV12==='object'&&typeof game==='object');
    const results=await page.evaluate(()=>{
-    assert=undefined; // no test framework required inside page
     const launcher=document.querySelector('#v12-console-launch');
     const achievements=getAchievementDefinitions();
     game.wave=5;
