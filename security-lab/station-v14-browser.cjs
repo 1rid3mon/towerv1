@@ -35,7 +35,7 @@ const server=http.createServer((req,res)=>{
    await page.locator('[data-v14-next]').click();
    assert.match(await page.locator('.v14-metrics').innerText(),/1\/15/);
    await page.locator('[data-v14-map]').click();
-   await page.locator('[data-v14-close]').first().click();
+   await page.locator('#v14-station header button[data-v14-close]').click();
    assert.equal(await page.locator('#v14-station').evaluate(x=>x.hidden),true);
    const after=await page.evaluate(()=>localStorage.getItem('towerDefenseStoryProgressV1'));
    assert.equal(after,before,'daily and hub must not modify story save');
