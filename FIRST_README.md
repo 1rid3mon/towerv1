@@ -721,3 +721,27 @@ Bu son kayıt ve sabah listesi güncellemesi **yalnızca belgedir**. Yerel Git m
 - Initial WebKit job log shows all four Story viewports AND all four V11 traversal/save cases PASS, but the combined job hit the pre-existing 10-minute job timeout immediately after the last case (run 41595803259, job 125782759748). This run is CANCELLED, not a successful release gate.
 - Moved the newly added traversal suite into independent Chromium/WebKit matrix jobs. Existing Story/campaign checks remain unchanged; traversal jobs allow 20 minutes for browser installation plus local AND production runs. Assertions, six-terminal navigation and save checks were not weakened.
 - Final CI including this scheduling correction must succeed before merge.
+
+### 2026-11-03 — V8–V11 integration completed, main and production verified
+
+This closes the V11 integration task only, not every historical TowerV1 roadmap item.
+
+- [x] V11 package version 2 (including V8–V10) integrated on `feature/lost-signal-v11-integration` against base main `11ec4b732d17bdce78a49a818848f7d2b2c8f3eb`.
+- [x] PR https://github.com/1rid3mon/towerv1/pull/79 merged only after all five candidate CI jobs passed. Tested head: `331073ce4e299ff8c79fcc927123b2d27e59b692`; candidate run https://github.com/1rid3mon/towerv1/actions/runs/41597143235.
+- [x] Game release main SHA `a6d046a8ae1c031894ccd362157317ab4d504f1c`; tree `419da8e5d42d075723f1394e735d34a3ccb00069` matches the tested candidate and local source tree exactly.
+- [x] Production deployment `dpl_D2YnhsPtRYJdSqm8xzZoMAg4WngQ` READY with that SHA and alias `https://towerv1-murex.vercel.app/`. All 31 root HTML/JS/CSS files independently compared byte-for-byte with the tested checkout: 31 matched, zero differences.
+- [x] Main CI https://github.com/1rid3mon/towerv1/actions/runs/41598121825: all five jobs SUCCESS. 251/251 JS/emulator regressions, including legacy-save migration, signatures, cloud adapters, economy and story ownership. Production Firebase rules and real user documents were not changed.
+- [x] Chromium campaign: 27/27 missions completed through real engine simulation and DOM actions, with parent Endless state preserved. The accelerated campaign is a local-server source test; live basic Story flow is separately exercised below.
+- [x] Story smoke: Chromium and WebKit, each at 390x844 phone, 844x390 landscape, 1024x1366 tablet and 1366x900 desktop, on both local source and the matching live production. Includes launch, pause/resume, speed, upgrade/mission panels, exit/replay, Endless return, and exact parent-save isolation. Live phone mission 1 uses natural combat plus explicit completion. No uncaught JS errors or horizontal overflow in checked Story views.
+- [x] V11 exploration: all three rooms and six terminals traversed with actual touch direction/action buttons in every browser/viewport, local and live. Keyboard wall collision, wave locks, module/evolution UI selection, scene cleanup, separate progress persistence and reload, and unchanged main game/save JSON all passed. Sector screenshots and post-reload Story unlock UI reviewed in Chromium and WebKit, including live phone captures.
+- [x] All eight module combinations verified through the real projectile/incoming-damage engine, with kinetic evolution stacking. Plasma chain and bastion behavior have unit coverage; real wave-completion repair stacking and loaded-module Story isolation passed.
+- [x] Fixed integration defects: V9 movement hook naming, plasma evolution restricted to tower-origin projectiles, satellite targets constrained to both satellite range and tower radar, and stale Story unlock card after accepted local/account/cloud saves load.
+- Main artifacts: Chromium Story/campaign https://github.com/1rid3mon/towerv1/actions/runs/41598121825/artifacts/13213296352 ; Chromium V11 local/live https://github.com/1rid3mon/towerv1/actions/runs/41598121825/artifacts/13212933291 ; WebKit V11 local/live https://github.com/1rid3mon/towerv1/actions/runs/41598121825/artifacts/13213571987 . The same run also stores WebKit Story evidence.
+
+Limits retained explicitly:
+- New station records/evolution/modules/exploration use the package's separate device-local keys. They are not added to Firebase cloud/account schemas and are not cross-device synchronization features. Existing core player save formats are preserved.
+- Browser contexts are disposable guests with production Firebase APIs blocked. Real Auth accounts, production cloud read/write, two-device sync and physical iPad/Android performance/audio were not exercised by this integration.
+- Sectors are independent exploration rooms; they do not switch the Endless battle arena/economy. Exploration has collision and terminals, not enemy combat or an open world.
+- Earlier combined WebKit timeout remains recorded as cancelled; it was corrected by splitting suites, not by accepting that cancelled run or removing assertions.
+
+Result: **V11 INTEGRATION COMPLETED / MAIN MERGED / PRODUCTION GAMEPLAY VERIFIED**. This final appended record is documentation-only; no executable asset, player record or rule is changed by the documentation commit.
