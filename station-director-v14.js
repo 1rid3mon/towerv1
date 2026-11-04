@@ -69,7 +69,7 @@ function walkMap(){
 }
 function enter(id){
  if(id==='quarters'){close();w.TowerCommandersQuartersV13?.open();return;}
- room=id;notice='';paint();
+ room=id;w.TowerPikoV3?.record('visit',id);notice='';paint();
 }
 function hub(){const n=completed(),stage=logic.stationStage(n);
  const stageNames=[['SESSİZ İSTASYON','SILENT STATION'],['İLK IŞIKLAR','FIRST LIGHTS'],['CANLANAN İSTASYON','REVIVING STATION'],['YENİ KOMUTA ÜSSÜ','NEW COMMAND BASE']];
