@@ -759,3 +759,10 @@ Result: **V11 INTEGRATION COMPLETED / MAIN MERGED / PRODUCTION GAMEPLAY VERIFIED
 - [ ] No global daily leaderboard: must add validated server simulation / replay or authoritative source plus Firestore rules and abuse prevention. Local scores cannot support secure global competition.
 - [ ] Walkable avatar-based station free roam, four-language localization polish, deeper cinematic camera and media, real cloud cross-device sync and physical iPad/Android tests remain beyond this patch.
 - [ ] Do not merge to main unless all Node, Chromium/WebKit, campaign, Firestore, and preview checks pass against latest main.
+
+### 2026-11-04 follow-up: V14 boss and ranking safeguards
+
+- Added real V12 phase-triggered Endless boss interference: ranged/Leviathan jam tower firing for 1.6–2.6 simulated seconds; Titan/Cryo temporarily reduce effective tower range and enemy movement for 5–7 seconds. All effects expire, are bounded, and Story is excluded.
+- Added strict UTC date checks and deterministic action-replay verification (`verifyReplay`) with tests for illegal purchases, incomplete sessions and post-finish action injection. This is a prerequisite for secure ranking, **not** an online leaderboard; do not accept scores solely from the client.
+- Earlier PR-triggered 538f5089 CI passed all five jobs; one push-triggered WebKit run timed out waiting for `networkidle` on reload. Subsequent head commits require fresh full CI before merge.
+- Latest main still needs reconciliation, preview smoke, real-device performance and Firebase security review before production. No production promotion authorized by this note.
