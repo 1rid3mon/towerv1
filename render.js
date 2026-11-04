@@ -2869,7 +2869,7 @@ function renderGame() {
             ctx.strokeText(label,0,-e.radius-29);ctx.fillText(label,0,-e.radius-29);ctx.restore();
         }
         // V17: either a complete sprite or the complete legacy body stack; never both.
-        const v17SpriteDrawn = typeof TowerEnemySpritesV17 !== "undefined" && TowerEnemySpritesV17.render(ctx, e);
+        const v17SpriteDrawn = typeof TowerEnemySpritesV17 !== "undefined" && TowerEnemySpritesV17.render(ctx, e, tx, ty);
         if (!v17SpriteDrawn) {
             drawCustomEnemy(ctx, e, tx, ty, nowCompTime);
             if (typeof TowerEnemyVisualV4 !== "undefined") TowerEnemyVisualV4.draw(ctx, e, nowCompTime, "normal");
