@@ -537,3 +537,18 @@ test("either participant can remove an accepted friendship, but outsiders cannot
   await assertFails(deleteDoc(doc(mallory, "friendRequests/alice_bob")));
   await assertSucceeds(deleteDoc(doc(bob, "friendRequests/alice_bob")));
 });
+
+test("V15 daily leaderboard rejects direct client score forgery", async () => {
+  const alice = testEnv.authenticatedContext("alice").firestore();
+  const guest = testEnv.unauthenticatedContext().firestore();
+  const path = "dailyLeaderboard/2026-11-04/scores/alice";
+  await assertFails(setDoc(doc(alice, path), { uid: "alice", score: 999999 }));
+  await assertFails(setDoc(doc(guest, path), { uid: "alice", score: 999999 }));
+  await testEnv.withSecurityRulesDisabled(async context => {
+    await setDoc(doc(context.firestore(), path), { uid: "alice", score: 100 });
+  });
+  await assertSucceeds(getDoc(doc(guest, path)));
+  await assertFails(setDoc(doc(alice, path), { uid: "alice", score: 999999 }));
+  await assertFails(deleteDoc(doc(alice, path)));
+  await assertFails(setDoc(doc(alice, "dailyScoreSubmissions/fake"), { score: 999999 }));
+});
