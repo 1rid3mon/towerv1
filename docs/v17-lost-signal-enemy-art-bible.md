@@ -101,3 +101,26 @@ The manifest above is a **proposed format**, not a reference to existing files.
 - No final iPad/device benchmark or browser screenshot has been validated yet. The previous CI baseline had failures; this iteration deliberately remains **draft-only** until review and test verification. Do not merge solely on the existence of these assets.
 
 Layer 3 passes the **first sprite preparation and wiring** checkpoint, but the visual acceptance checkpoint remains open until an in-game screenshot compares the two at true scale.
+
+
+## Layer 4 · normal enemy raster migration (prototype implementation)
+- **21 / 21 normal enemy variants have sprite art registered** in `enemy-sprite-manifest-v17.js`. No new enemy types were invented.
+- Core/Aurora: `scout`, `circuit`, `drone` use individual WebP body sprites.
+- Khan: `shield`, `raider`, `amber`, `redrunner` use individual WebP body sprites.
+- Snow / Desert / Nebula / Dream: 14 IDs share `assets/enemies/v17/atlas/late-eras.webp` using validated 56×56 atlas-frame crops in 7 columns by 2 rows.
+- The registry now stores optional `frame: [sourceX,sourceY,sourceWidth,sourceHeight]`. Source frame bounds are checked against the loaded image; failures fall back to the entire legacy drawing stack.
+- A single atlas path is cached once even when 14 separate normal identities are drawn, reducing image requests and memory.
+- **Boss status:** `tank_boss` has first-pass raster art. `ranged_boss`, `speed_boss`, `frost_boss`, `leviathan` retain legacy rendering (Layer 5).
+- These are concept-derived **raster prototype assets**, not final animation sets. The four later themes have silhouettes and palettes aligned with existing variants; close detail/retouch and real iPad-scale visual comparison are still required.
+- No combat stats, AI behavior, wave spawning, story or save keys were changed.
+- V17 remains on draft PR #90; all deployment and merge decisions remain gated by review, browser/mobile validation and CI checks.
+
+### Layer 4 verification tasks
+- [x] Register all 21 existing normal identity IDs
+- [x] Preserve correct era-to-variant identity mapping
+- [x] Use a shared raster atlas for the 14 later variants
+- [x] Keep legacy Canvas fallback for failed/missing image loads
+- [x] Preserve boss phase labels, HP bars and combat telegraphs
+- [ ] Inspect genuine V17 gameplay screenshots at normal gameplay scale and 2× device pixel ratio
+- [ ] Evaluate any faint background-edge artifacts from concept-board extractions at native size
+- [ ] Confirm Safari/iPad memory behavior and production distribution before merging
