@@ -68,7 +68,7 @@ assert.equal(atlasBytes.subarray(0,4).toString('ascii'),'RIFF');
 assert.equal(atlasBytes.subarray(8,12).toString('ascii'),'WEBP');
 assert.equal(atlasBytes.readUInt32LE(4)+8,atlasBytes.length,'atlas RIFF size');
 vm.runInNewContext(manifest,{window:root,globalThis:root});
-assert.equal(sprites.getState().registered,22,'21 normal variants + first Titan boss');
+assert.equal(sprites.getState().registered,26,'21 normal variants and all 5 boss sprites');
 const atlasImages=art.filter(img=>img.src==='assets/enemies/v17/atlas/late-eras.webp');
 assert.equal(atlasImages.length,1,'all 14 late variants share one cached image');
 atlasImages[0].naturalWidth=392;atlasImages[0].naturalHeight=112;atlasImages[0].complete=true;atlasImages[0].onload();
@@ -77,4 +77,28 @@ const tileCtx={save(){},restore(){},drawImage(...args){drawArity.push(args.lengt
 assert.equal(sprites.render(tileCtx,{type:'frost',variantId:'ice',radius:13,hitFlash:0}),true);
 assert.equal(sprites.render(tileCtx,{type:'tank',variantId:'candy',radius:20,hitFlash:0}),true);
 assert.deepEqual(drawArity,[9,9],'atlas frame must use 9-argument source crop, not full atlas');
+
+const bossAtlasBytes=fs.readFileSync(repoFile('assets/enemies/v17/atlas/bosses.webp'));
+assert.equal(bossAtlasBytes.subarray(0,4).toString('ascii'),'RIFF');
+assert.equal(bossAtlasBytes.subarray(8,12).toString('ascii'),'WEBP');
+assert.equal(bossAtlasBytes.readUInt32LE(4)+8,bossAtlasBytes.length,'boss atlas RIFF integrity');
+assert.equal(bossAtlasBytes.toString('ascii',12,16),'VP8X','boss atlas extended WebP');
+const atlasWidth=1+bossAtlasBytes.readUIntLE(24,3);
+const atlasHeight=1+bossAtlasBytes.readUIntLE(27,3);
+assert.equal(atlasWidth,320,'four boss tiles are 80px wide');
+assert.equal(atlasHeight,80);
+const ids=['ranged_boss','speed_boss','frost_boss','leviathan'];
+const bossImgs=art.filter(img=>img.src==='assets/enemies/v17/atlas/bosses.webp');
+assert.equal(bossImgs.length,1,'all four boss identities share a single atlas cache entry');
+bossImgs[0].naturalWidth=320;bossImgs[0].naturalHeight=80;
+bossImgs[0].complete=true;bossImgs[0].onload();
+const bossCalls=[];
+const bossCtx={filter:'none',save(){},restore(){},drawImage(...args){bossCalls.push({args,filter:this.filter});}};
+ids.forEach((id,slot)=>{
+ assert.equal(sprites.render(bossCtx,{type:'boss',subType:id,radius:30,hitFlash:0,v12Combat:{phase:2}}),true,id+' phase 2 draws');
+ assert.equal(bossCalls[slot].args.length,9,'boss atlas must use source crop');
+ assert.equal(bossCalls[slot].args[1],slot*80,'correct atlas tile');
+ assert.match(bossCalls[slot].filter,/^brightness\(1\./,'phase intensity visual treatment applied');
+});
+assert.equal(sprites.render(bossCtx,{type:'boss',subType:'leviathan',radius:32,hitFlash:0,v12Combat:{phase:3}}),true,'phase 3 draws');
 console.log('V17 sprite registry/loader/fallback and raster assets checks passed');
