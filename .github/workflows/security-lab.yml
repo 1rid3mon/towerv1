@@ -113,6 +113,8 @@ jobs:
         run: node security-lab/station-v14.test.cjs
       - name: Verify V15 daily replay ranking contract
         run: node security-lab/daily-ranking-v15.test.cjs && node security-lab/boss-cinema-v15.test.cjs && node security-lab/boss-hud-rearm-v15.test.cjs
+      - name: Verify V16 responsive fluidity and QTE timer
+        run: node security-lab/fluidity-v16.test.cjs
       - name: Verify V12 boss phases, combos and narrative branching
         run: node security-lab/v12-expansion.test.cjs
 
