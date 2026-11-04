@@ -13,4 +13,8 @@
    pivot:[0.5,0.5],facing:'down',scale:1.13
  });
  sprites.preload(['scout','tank_boss']);
+ // Non-invasive side-by-side comparison on mobile: append ?enemyArt=legacy.
+ if(root.location && /(?:[?&])enemyArt=legacy(?:&|$)/.test(root.location.search||'')){
+   sprites.setEnabled(false);
+ }
 })(typeof window!=='undefined'?window:globalThis);
