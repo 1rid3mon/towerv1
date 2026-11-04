@@ -766,3 +766,11 @@ Result: **V11 INTEGRATION COMPLETED / MAIN MERGED / PRODUCTION GAMEPLAY VERIFIED
 - Added strict UTC date checks and deterministic action-replay verification (`verifyReplay`) with tests for illegal purchases, incomplete sessions and post-finish action injection. This is a prerequisite for secure ranking, **not** an online leaderboard; do not accept scores solely from the client.
 - Earlier PR-triggered 538f5089 CI passed all five jobs; one push-triggered WebKit run timed out waiting for `networkidle` on reload. Subsequent head commits require fresh full CI before merge.
 - Latest main still needs reconciliation, preview smoke, real-device performance and Firebase security review before production. No production promotion authorized by this note.
+
+### 2026-11-04 — V14 CI verification (release deliberately deferred)
+
+- PR #87 head `1afb3361d15b1fad4068acf28f51511ed101a524` passed both GitHub Actions runs: PR run `41783870867` and push run `41783863681`.
+- All five jobs passed in each run: Chromium overhaul browser, WebKit overhaul browser, Firestore emulator, browser smoke and WebKit smoke (10/10 job results).
+- PR was reported mergeable/clean against main `ff7b66e5ee04f3352b211723a0d5b84e1b38681d` when checked. Vercel preview of this head was READY, but production deployment and real-device QA are not implied by CI.
+- Per owner's instruction, keep PR #87 in draft; DO NOT merge main or promote/deploy to Vercel production until the later consolidated release. Existing production stays unchanged.
+- Outstanding: secure server-authoritative leaderboard, real account/cloud and physical-device QA, final consolidated release review.
