@@ -46,3 +46,24 @@ assert.ok(api.score(s)>=0);
 const finished=api.advance(s);
 assert.equal(finished,s,'no turn after finished');
 console.log('PASS V14: anomaly isolation, deterministic daily scenario, immutable combat turns, Piko profiles, station progression');
+
+
+const directorSource=fs.readFileSync(path.join(__dirname,'..','combat-director-v12.js'),'utf8');
+const combatContext=vm.createContext({window:{document:{body:{dataset:{gameMode:'endless'}}}},Date,Math,Number,Object,Array});
+new vm.Script(directorSource,{filename:'combat-director-v12.js'}).runInContext(combatContext);
+const combat=combatContext.window.TowerCombatDirectorV12;
+const boss={type:'boss',subType:'leviathan',hp:100,maxHp:100,speed:2,attackInterval:2,x:40,y:40,radius:15};
+assert.equal(combat.spawn(boss),true);
+boss.hp=60;combat.tick(boss,.1,{});
+assert.equal(boss.v12Combat.phase,2);
+assert.ok(combat.interference([boss]).rate<1,'phase 2 boss jams tower fire');
+combat.tick(boss,3,{});
+assert.equal(combat.interference([boss]).rate,1,'jamming expires');
+boss.hp=20;combat.tick(boss,.1,{});
+assert.equal(boss.v12Combat.phase,3);
+assert.ok(combat.interference([boss]).rate<=.5,'phase 3 has stronger interference');
+const titan={type:'boss',subType:'tank_boss',hp:50,maxHp:100,speed:1,attackInterval:3,x:0,y:0,radius:16};
+combat.spawn(titan);combat.tick(titan,.1,{});
+assert.ok(combat.interference([titan]).range<1,'boss temporarily alters combat terrain');
+combat.tick(titan,8,{});
+assert.equal(combat.interference([titan]).range,1,'terrain returns to normal');
