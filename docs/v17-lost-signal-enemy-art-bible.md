@@ -79,3 +79,13 @@ The manifest above is a **proposed format**, not a reference to existing files.
 - [x] Define prototype acceptance criteria; first sprite artwork and visual approval belong to Layer 2/3.
 
 **Layer 1 design audit complete.** Layer 2 may start on this branch. Capture the actual baseline screenshots before approving new sprite artwork. Next: loader/manifest and explicit no-double-draw fallback.
+
+
+## Layer 2 implementation status
+- `enemy-sprites-v17.js`: 21 variant IDs and 5 confirmed bosses in registry; `register` validates local PNG/WebP asset paths and optional boss phase/hit images.
+- `Image` loader uses a bounded 64-path cache. An absent/loading/failed image returns `false` so legacy rendering remains visible. A ready phase image is preferred, then the ready body image.
+- `render.js`: calls `TowerEnemySpritesV17.render(ctx,e)` and skips **both** legacy body and legacy variant/detail passes only after successful sprite drawing. Health bars, boss phase labels, telegraphs, hit feedback and gameplay are untouched.
+- `index.html`: includes the adapter after the existing art files. No assets registered yet, so every enemy intentionally uses legacy art in this stage.
+- `security-lab/enemy-sprites-v17.test.cjs`: Node regression cases for invalid paths, loading state, cache, ready sprite, boss phase fallback, opt-out and render integration; added to GitHub Actions.
+- **No gameplay image baseline screenshots or actual sprite assets yet.** Both are art acceptance work for Layer 3, not evidence of finished image designs.
+- **CI result pending** until GitHub Actions reports a completed run for the latest branch head.
