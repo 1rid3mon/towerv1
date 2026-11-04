@@ -20,7 +20,7 @@ const PUZZLES=[
  {id:'orbit',at:18,clue:['Koordinat: A1 · C3 · E5 · ?','Coordinate: A1 · C3 · E5 · ?'],options:['G7','F6','H8'],answer:0,log:['Sinyal arşivin derin katlarına yöneldi.','The signal points to the archive depths.']},
  {id:'echo',at:27,clue:['Piko: Önce yankı, sonra kaynak. Kod: 3 · 6 · 12 · ?','Piko: Echo before origin. Code: 3 · 6 · 12 · ?'],options:['18','21','24'],answer:2,log:['Kayıt çözüldü: Kaynak istasyonun içinde.','Record decoded: The origin is inside the station.']}
 ];
-let isOpen=false,room='bridge',avatar={x:1,y:1},run=null,notice='',cineTimer=null,lastAnomaly='';
+let isOpen=false,room='bridge',avatar={x:1,y:1},run=null,notice='',cineTimer=null,lastAnomaly='',routeTimer=null;
 const GRID=['##########','#B...H...#','#..##....#','#Q......L#','#....##..#','#A....O..#','##########'];
 const DOOR_CODES={B:'bridge',H:'hangar',Q:'quarters',L:'lab',A:'archive',O:'observatory'};
 function progress(){try{return typeof getStoryProgress==='function'?getStoryProgress():{};}catch(_){return {};}}
@@ -57,6 +57,31 @@ function walk(dx,dy){
  if(id){enter(id);return true;}
  paint();return true;
 }
+function cancelRoute(){if(routeTimer!==null)clearTimeout(routeTimer);routeTimer=null;}
+function navigateTo(x,y){
+ cancelRoute();
+ if(!isOpen||room!=='map'||!GRID[y]||!GRID[y][x]||GRID[y][x]==='#')return false;
+ const targetDoor=DOOR_CODES[GRID[y][x]],targetDef=ROOMS.find(r=>r.id===targetDoor);
+ if(targetDef&&completed()<targetDef.at){notice=t('Kapı kilitli. Önce hikâyede ilerle.','Door locked. Continue the story first.');paint();return false;}
+ const progressCount=completed();
+ const path=w.TowerStationNavigationV16?.findPath(GRID,avatar,{x,y},(ch,cx,cy)=>{
+  const door=DOOR_CODES[ch],def=ROOMS.find(r=>r.id===door);
+  return !door||(cx===x&&cy===y&&!!def&&progressCount>=def.at);
+ });
+ if(!path){notice=t('Bu koridora ulaşamıyoruz. Başka bir yol seç.','That corridor is blocked. Choose another route.');paint();return false;}
+ if(!path.length){if(targetDoor)enter(targetDoor);return true;}
+ const reduced=!!w.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+ if(reduced){avatar={x,y};if(targetDoor)enter(targetDoor);else{notice='';paint();}return true;}
+ const step=()=>{
+  routeTimer=null;
+  if(!isOpen||room!=='map'||!path.length)return;
+  const next=path.shift();
+  if(!walk(next.x-avatar.x,next.y-avatar.y))return;
+  if(path.length&&room==='map')routeTimer=setTimeout(step,105);
+ };
+ step();
+ return true;
+}
 function walkMap(){
  const n=completed();
  const pikoPos=w.TowerPikoV3?.companionPosition?.(GRID,avatar);
@@ -65,11 +90,13 @@ function walkMap(){
   const pikoHere=!!pikoPos&&pikoPos.x===x&&pikoPos.y===y&&!here;
   const label=here?'●':pikoHere?'✦':ch==='#'?'':id?ch:'·';
   const clazz='v14-cell'+(ch==='#'?' v14-wall':'')+(id?' v14-cell-door':'')+(here?' v14-player':'')+(pikoHere?' v15-piko-marker':'')+(def&&n<def.at?' v14-cell-locked':'');
-  return id?'<button type="button" class="'+clazz+'" data-v14-tile="'+x+','+y+'" aria-label="'+escapeHtml(t(...def.name))+'">'+label+'</button>':'<span class="'+clazz+'" aria-hidden="true">'+label+'</span>';
+  const cellName=id?t(...def.name):here?t('Komutan','Commander'):pikoHere?'Piko':t('Koridor','Corridor')+' '+(x+1)+','+(y+1);
+  return ch==='#'?'<span class="'+clazz+'" aria-hidden="true"></span>':'<button type="button" class="'+clazz+'" data-v14-tile="'+x+','+y+'" aria-label="'+escapeHtml(cellName)+'">'+label+'</button>';
  })).flat().join('');
  return '<div class="v14-walkmap" aria-label="'+t('Yürünebilir istasyon koridorları','Walkable station corridors')+'">'+cells+'</div><p class="v14-note">● '+t('Komutan','Commander')+' · ✦ Piko</p><div class="v14-dpad"><button type="button" data-v14-move="0,-1" aria-label="Up">↑</button><button type="button" data-v14-move="-1,0" aria-label="Left">←</button><button type="button" data-v14-move="0,1" aria-label="Down">↓</button><button type="button" data-v14-move="1,0" aria-label="Right">→</button></div>';
 }
 function enter(id){
+ cancelRoute();
  if(id==='quarters'){close();w.TowerCommandersQuartersV13?.open();return;}
  room=id;w.TowerPikoV3?.record('visit',id);notice='';paint();
 }
@@ -105,10 +132,12 @@ function paint(){
  root.hidden=!isOpen;if(!isOpen)return;
  const n=completed();
  if(ROOMS.some(x=>x.id===room&&n<x.at))room='bridge';
+ const previousScroll=root.querySelector('.v14-panel')?.scrollTop||0;
  root.innerHTML='<div class="v14-backdrop" data-v14-close="1"></div><section class="v14-panel" role="dialog" aria-modal="true" aria-label="'+t('Yaşayan Uzay İstasyonu','Living Space Station')+'"><header><span>ARES-0 / STATION DIRECTOR</span><button type="button" data-v14-close="1" aria-label="'+t('Kapat','Close')+'">✕</button></header><h2>'+t('YAŞAYAN UZAY İSTASYONU','LIVING SPACE STATION')+'</h2>'+hub()+(room==='map'?'':'<div class="v14-room"><button type="button" class="v14-back" data-v14-map="1">← '+t('Oda haritası','Room map')+'</button>'+content()+'</div>')+'<footer>'+escapeHtml(notice||t('İstasyon kararları ve tatbikatlar ana oyun kaydından ayrıdır.','Station activities are isolated from core game saves.'))+'</footer></section>';
+ const panel=root.querySelector('.v14-panel');if(panel)panel.scrollTop=previousScroll;
 }
-function show(next){isOpen=true;room=next||'map';notice='';paint();}
-function close(){isOpen=false;const el=document.getElementById('v14-station');if(el){el.hidden=true;el.innerHTML='';}stopCinema();}
+function show(next){cancelRoute();isOpen=true;room=next||'map';notice='';paint();}
+function close(){cancelRoute();isOpen=false;const el=document.getElementById('v14-station');if(el){el.hidden=true;el.innerHTML='';}stopCinema();}
 function stopCinema(){if(cineTimer)clearTimeout(cineTimer);cineTimer=null;document.getElementById('v14-cinema')?.remove();}
 function cinema(){
  stopCinema();
@@ -138,8 +167,8 @@ function onClick(e){
  if(e.target.closest('[data-v14-close]')){close();return;}
  const btn=e.target.closest('button');if(!btn)return;
  if(btn.hasAttribute('data-v14-close')){close();return;}
- if(btn.hasAttribute('data-v14-move')){if(room==='map'){const d=btn.dataset.v14Move.split(',').map(Number);walk(d[0],d[1]);}return;}
- if(btn.hasAttribute('data-v14-tile')){const v=btn.dataset.v14Tile.split(',').map(Number);const id=DOOR_CODES[GRID[v[1]]?.[v[0]]];const def=ROOMS.find(r=>r.id===id);if(!def||completed()<def.at)return;avatar={x:v[0],y:v[1]};enter(id);return;}
+ if(btn.hasAttribute('data-v14-move')){if(room==='map'){cancelRoute();const d=btn.dataset.v14Move.split(',').map(Number);walk(d[0],d[1]);}return;}
+ if(btn.hasAttribute('data-v14-tile')){const v=btn.dataset.v14Tile.split(',').map(Number);navigateTo(v[0],v[1]);return;}
  if(btn.hasAttribute('data-v14-map')){room='map';notice='';paint();return;}
  if(btn.hasAttribute('data-v14-room')){
   const id=btn.dataset.v14Room,def=ROOMS.find(x=>x.id===id);
@@ -175,7 +204,7 @@ function mount(){
   if(e.key==='Escape'){if(document.getElementById('v14-cinema'))stopCinema();else if(isOpen)close();return;}
   if(!isOpen||room!=='map'||document.getElementById('v14-cinema')||/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName||''))return;
   const d={ArrowUp:[0,-1],KeyW:[0,-1],ArrowDown:[0,1],KeyS:[0,1],ArrowLeft:[-1,0],KeyA:[-1,0],ArrowRight:[1,0],KeyD:[1,0]}[e.code];
-  if(d){e.preventDefault();e.stopPropagation();walk(d[0],d[1]);}
+  if(d){e.preventDefault();e.stopPropagation();cancelRoute();walk(d[0],d[1]);}
  });
  try{if(typeof game!=='undefined'&&game)anomaly(game.wave);}catch(_){}
 }
