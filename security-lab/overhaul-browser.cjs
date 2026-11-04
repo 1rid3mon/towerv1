@@ -67,7 +67,8 @@ async function main() {
     await page.getByRole('button',{name:'BU YOLU SEÇ',exact:true}).nth(1).click();
     await page.locator('#ls-v10-modal .ls-v10-header button').click();
     assert.deepEqual(await page.evaluate(()=>({game:JSON.stringify(game),save:localStorage.getItem(SAVE_KEY)})),before);
-    await page.reload({waitUntil:'networkidle'});
+    await page.reload({waitUntil:'domcontentloaded'});
+    await page.waitForFunction(()=>window.TowerOverhaulV11 && typeof game !== 'undefined');
     assert.equal(await page.evaluate(()=>TowerOverhaulV11.getState().completed.length),3);
     assert.equal(await page.evaluate(()=>TowerOverhaulV11.getState().modules.weapon),'focus');
     assert.equal(await page.evaluate(()=>TowerHardV10.path()),'kinetic');
