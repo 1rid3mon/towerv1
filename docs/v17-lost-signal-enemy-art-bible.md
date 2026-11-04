@@ -124,3 +124,24 @@ Layer 3 passes the **first sprite preparation and wiring** checkpoint, but the v
 - [ ] Inspect genuine V17 gameplay screenshots at normal gameplay scale and 2× device pixel ratio
 - [ ] Evaluate any faint background-edge artifacts from concept-board extractions at native size
 - [ ] Confirm Safari/iPad memory behavior and production distribution before merging
+
+
+## Layer 5 · Boss raster sprites and phase treatment
+
+All five existing boss IDs now have registered raster bodies, without touching boss selection, HP, attacks, story save keys or combat phases.
+
+| Boss | Asset | Atlas source rectangle | Phase presentation |
+| --- | --- | --- | --- |
+| `tank_boss` · Zırhlı Titan Behemoth | `tank_boss/body.webp` | dedicated image | restrained warm metal intensity in phases 2/3 |
+| `ranged_boss` · Hiperiyon Topçusu | `atlas/bosses.webp` | 0,0,80,80 | brighter artillery barrel and red sensor |
+| `speed_boss` · Kızıl Fırtına Vektörü | same | 80,0,80,80 | brighter red wings/engine |
+| `frost_boss` · Kutup Hükümdarı Kryos | same | 160,0,80,80 | brighter cyan ice core |
+| `leviathan` · Kozmik Leviathan | same | 240,0,80,80 | brighter violet signal core |
+
+The boss atlas is one 320×80 **transparent WebP** created from newly generated LOST SIGNAL concept art. These are **first-pass assets**; all four silhouettes are different and the background removed. Source artwork was from a composed concept sheet, not a direct top-down orthographic artist export.
+
+The adapter supports `phaseIntensity: [phase2,phase3]` and uses Canvas 2D material filters when supported; otherwise the same raster sprite remains visible. Existing combat phase labels, attack telegraphs and boss aura remain independent, so the player is not forced to rely on a cosmetic change to interpret a lethal attack. This does **not** implement new boss attack mechanics or fully redrawn body/armor art per phase.
+
+The source atlas rectangle is applied **only** when the selected image is the registered atlas body; a future standalone phase or hit sprite will draw as a complete image rather than incorrectly reusing the atlas rectangle.
+
+Layer 5 technical acceptance: 5/5 boss body sprites registered and available in source, four bosses share one cache entry, per-phase visual material response, old Canvas fallback, no save/balance changes. Browser/iPad image quality, animation set completeness and runtime regression remain for later acceptance and must not be misreported as validated.
