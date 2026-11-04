@@ -45,10 +45,23 @@ let cargoSpawnTimer = 45 + Math.random() * 15;
 function resizeCanvas() {
     const container = document.getElementById('canvas-container');
     if (!container) return;
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
-    tower.x = canvas.width / 2;
-    tower.y = canvas.height / 2;
+    const nextWidth = Math.round(container.clientWidth);
+    const nextHeight = Math.round(container.clientHeight);
+    // Mobile browser chrome and rotations may trigger redundant or zero-size resizes.
+    if (nextWidth <= 0 || nextHeight <= 0) return;
+    const previousWidth = canvas.width, previousHeight = canvas.height;
+    if (previousWidth === nextWidth && previousHeight === nextHeight) return;
+    // Keep enemies, projectiles, trails and combat feedback anchored to the tower
+    // instead of teleporting relative to it whenever the iPad viewport changes.
+    if (window.TowerFluidityV16 && tower.x > 0 && tower.y > 0) {
+        window.TowerFluidityV16.shiftViewport(previousWidth, previousHeight, nextWidth, nextHeight, {
+            enemies, projectiles, particles, floatingTexts, lightningBeams, rings, cargoDrones
+        });
+    }
+    canvas.width = nextWidth;
+    canvas.height = nextHeight;
+    tower.x = nextWidth / 2;
+    tower.y = nextHeight / 2;
 }
 window.addEventListener('resize', resizeCanvas);
 
@@ -1220,6 +1233,9 @@ function updateHoldWaveButton() {
 
 let lastFrameTime = performance.now();
 let lastTabCheckTime = 0;
+// Draw at most 60 FPS (24 when paused); simulation continues on each rAF.
+// Automatically reduce decorative draw load when the GPU is consistently slow.
+const combatFramePacer = window.TowerFluidityV16 ? window.TowerFluidityV16.createFramePacer() : null;
 
 const ACTIVE_TAB_KEY = 'towerDefense_activeTab';
 const TAB_ID = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -1302,7 +1318,13 @@ function gameLoop(now) {
     lastFrameTime = now;
 
     updateGame(dt);
-    renderGame();
+    if (!combatFramePacer || combatFramePacer.shouldRender(now, { paused: isPaused || isDefeated, hidden: document.hidden })) {
+        const drawStart = performance.now();
+        renderGame();
+        if (combatFramePacer && !isPaused && !isDefeated) {
+            combatFramePacer.observeRenderCost(performance.now() - drawStart);
+        }
+    }
     updateRouletteAnimation(now);
 
     if (!isDuplicateTab) requestAnimationFrame(gameLoop);
