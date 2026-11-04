@@ -2060,7 +2060,7 @@ function drawCargoDrone(c, d, nowTime) {
         c.stroke();
         c.font = "bold 10px 'Rajdhani', sans-serif";
         c.fillStyle = '#d9f99d';
-        c.fillText(progress.toFixed(1) + 's', 0, d.radius + 20);
+        c.fillText(d.qteTimer.toFixed(1) + 's', 0, d.radius + 20);
     }
 
     c.restore();
