@@ -24,6 +24,7 @@ on:
       - "*v10.js"
       - "*v11.js"
       - "*v14.js"
+      - "*v15.js"
       - "enemy-*.js"
       - "living-space.js"
       - "theme-atmosphere.js"
@@ -56,6 +57,7 @@ on:
       - "*v10.js"
       - "*v11.js"
       - "*v14.js"
+      - "*v15.js"
       - "enemy-*.js"
       - "living-space.js"
       - "theme-atmosphere.js"
@@ -105,6 +107,8 @@ jobs:
         run: node security-lab/commanders-quarters-v13.test.cjs
       - name: Verify V14 daily drill, anomaly limits and progression isolation
         run: node security-lab/station-v14.test.cjs
+      - name: Verify V15 daily replay ranking contract
+        run: node security-lab/daily-ranking-v15.test.cjs
       - name: Verify V12 boss phases, combos and narrative branching
         run: node security-lab/v12-expansion.test.cjs
 
