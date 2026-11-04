@@ -145,3 +145,33 @@ The adapter supports `phaseIntensity: [phase2,phase3]` and uses Canvas 2D materi
 The source atlas rectangle is applied **only** when the selected image is the registered atlas body; a future standalone phase or hit sprite will draw as a complete image rather than incorrectly reusing the atlas rectangle.
 
 Layer 5 technical acceptance: 5/5 boss body sprites registered and available in source, four bosses share one cache entry, per-phase visual material response, old Canvas fallback, no save/balance changes. Browser/iPad image quality, animation set completeness and runtime regression remain for later acceptance and must not be misreported as validated.
+
+
+## Layer 6 · restrained real-time motion and impact presentation
+
+The V17 sprite bodies now have **procedural micro-animation**, not animation-frame sprite sheets. The visuals remain rooted in LOST SIGNAL, with each effect deliberately small enough to retain type and silhouette readability at gameplay size.
+
+Implementation:
+- \`enemy-motion-v17.js\` evaluates only current render time and visual enemy state; normal bodies bob by at most 1.15px, fast silhouettes tilt slightly, boss bodies breathe at about 1% of sprite scale.
+- A few appropriate archetypes use **two restrained engine exhaust points behind the sprite**, instead of additive armor polygons or all-screen particle halos.
+- A hit draws a brief warm impact arc above the body, while the original legacy hit feedback and existing combat impact system remain available.
+- Phase 2/3 changes trigger a roughly 700ms **one-time boss energy pulse** using a \`WeakMap\` keyed by the enemy object; this does not mutate or delay the combat phase logic.
+- Existing death particles, shield cues, boss attack telegraphs, HP bars, rewards and chapter progress are **unchanged**, rather than double-stacked with new particles.
+- Quality mode \`auto|normal|low\` resolves reduced-motion preferences and memory hints. Low quality suppresses bob, tilt, scaling and the phase pulse. Sprites still render with the existing fallback.
+- All visual transforms live in their own Canvas \`save()/restore()\` scope and apply only to the raster body, not enemy world position or health bars.
+- The sprite drawing adapter forwards \`nowCompTime\`, preserves the boss's active material filter around effect painting, and falls back to the complete legacy stack on missing/unready/corrupt art.
+- \`security-lab/enemy-motion-v17.test.cjs\` covers visual-only isolation, reduced motion, two-thruster limit, phase pulse lifetime and script loading. The earlier sprite test checks the new render signature.
+
+Not included: directional eight-way sprite sheets, skeletal rigging, art-level retouch, new death mechanics, extra kinematic simulation, or validated iPad frame-time measurements. Those should not be implied by this procedural motion pass.
+
+### Layer 6 technical gates
+- [x] Procedural idle / motion response attached to V17 sprite renderer
+- [x] Minimal motor accents, hit response and boss phase transition effect
+- [x] Reduced-motion and low-cost visual mode
+- [x] Keep existing death, shield and combat readability cues untouched
+- [x] Add V17 motion regression test and CI step
+- [ ] Verify CI fully green on exact latest branch SHA
+- [ ] Inspect on-device 30/60 FPS frame times and actual gameplay-size silhouettes
+- [ ] Art-direct / hand-retouch body and directional sprites after visual review
+
+**Do not merge or deploy the draft PR solely because the code compiles; final CI and browser/iPad acceptance are Stage 7.**
