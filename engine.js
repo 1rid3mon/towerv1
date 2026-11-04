@@ -486,6 +486,8 @@ function updateGame(dt) {
     // V14 anomalies affect Endless only; Story combat and saves remain isolated.
     const v14Anomaly = (window.TowerStationSystemsV14 && !GameModeRuntime.isStoryActive())
         ? window.TowerStationSystemsV14.anomalyFor(game.wave, false) : null;
+    const v14BossField = window.TowerCombatDirectorV12 && !GameModeRuntime.isStoryActive()
+        ? window.TowerCombatDirectorV12.interference(enemies) : {rate:1,range:1,movement:1};
     if (typeof tickStoryFinale === 'function') tickStoryFinale(simDt);
 
     if (game.holdWave) {
@@ -589,9 +591,9 @@ function updateGame(dt) {
     const baseFrostFactor = tower.freezeTimer > 0 ? 0 : (tower.frostSlowTimer > 0 ? 0.55 : 1.0);
     const overdriveFactor = (tower.overdriveTimer && tower.overdriveTimer > 0) ? 2.0 : 1.0;
     const fireRateFactor = baseFrostFactor * overdriveFactor;
-    tower.fireCooldown -= simDt * fireRateFactor * (v14Anomaly ? v14Anomaly.rate : 1);
+    tower.fireCooldown -= simDt * fireRateFactor * (v14Anomaly ? v14Anomaly.rate : 1) * v14BossField.rate;
 
-    const range = getTowerRange() * (v14Anomaly ? v14Anomaly.range : 1);
+    const range = getTowerRange() * (v14Anomaly ? v14Anomaly.range : 1) * v14BossField.range;
     if (tower.freezeTimer <= 0 && tower.fireCooldown <= 0 && enemies.length > 0) {
         const multishot = getEffectiveMultishot();
         const inRange = getNearestEnemiesInRange(enemies, tower.x, tower.y, range, multishot);
@@ -756,7 +758,7 @@ function updateGame(dt) {
         const ang = Math.atan2(tower.y - e.y, tower.x - e.x);
 
         if (dist > targetStopDist) {
-            const step = Math.min(dist - targetStopDist, e.speed * e.slowFactor * (window.LostSignalEnemyBehaviorsV9 ? window.LostSignalEnemyBehaviorsV9.movementMultiplier(e) : 1) * (v14Anomaly ? v14Anomaly.speed : 1) * simDt);
+            const step = Math.min(dist - targetStopDist, e.speed * e.slowFactor * (window.LostSignalEnemyBehaviorsV9 ? window.LostSignalEnemyBehaviorsV9.movementMultiplier(e) : 1) * (v14Anomaly ? v14Anomaly.speed : 1) * v14BossField.movement * simDt);
             e.x += Math.cos(ang) * step;
             e.y += Math.sin(ang) * step;
         } else {
