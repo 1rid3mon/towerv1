@@ -17,6 +17,7 @@
   function spawn(e) {
     if (!endless() || !e || e.type !== 'boss' || !ALLOWED.includes(e.subType)) return false;
     e.v12Combat={phase:1, baseSpeed:e.speed,baseAttackInterval:e.attackInterval, lastPhase:1,disruption:0,terrain:0,terrainTime:0};
+    try { root.TowerBossCinemaV15?.cue(e.subType,1); } catch (_) {}
     return true;
   }
   function stage(hp,max) {
@@ -38,6 +39,7 @@
     e.speed=c.baseSpeed*(level===1?1:level===2?1.06:1.12);
     if(level!==c.lastPhase) {
       c.lastPhase=level;
+      try { root.TowerBossCinemaV15?.cue(kind,level); } catch (_) {}
       if(level>=2){
         if(kind==='ranged_boss'||kind==='leviathan')c.disruption=level===3?2.6:1.6;
         if(kind==='tank_boss'||kind==='frost_boss'){c.terrain=level===3?.72:.85;c.terrainTime=level===3?7:5;}
