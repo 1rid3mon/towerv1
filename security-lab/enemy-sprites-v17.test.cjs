@@ -101,4 +101,11 @@ ids.forEach((id,slot)=>{
  assert.match(bossCalls[slot].filter,/^brightness\(1\./,'phase intensity visual treatment applied');
 });
 assert.equal(sprites.render(bossCtx,{type:'boss',subType:'leviathan',radius:32,hitFlash:0,v12Combat:{phase:3}}),true,'phase 3 draws');
+assert.equal(sprites.idFor({type:'tank',subType:'tank',isElite:true}),'shield','elite tank uses armored sprite');
+assert.equal(sprites.idFor({type:'runner',subType:'runner',isElite:true}),'redrunner');
+assert.equal(sprites.idFor({type:'unknown',isElite:true}),null,'unknown elite keeps legacy fallback');
+const visualCtx={filter:'none',save(){},restore(){},drawImage(){}};
+assert.equal(sprites.render(visualCtx,{type:'boss',subType:'leviathan',radius:32,
+  hp:25,maxHp:100,hitFlash:0,v12Combat:{phase:3}}),true);
+assert.match(visualCtx.filter,/contrast\(1\.15\)/,'low HP changes materials, not combat stats');
 console.log('V17 sprite registry/loader/fallback and raster assets checks passed');
