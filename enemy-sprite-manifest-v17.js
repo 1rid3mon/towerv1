@@ -20,7 +20,21 @@
      pivot:[0.5,0.5],facing:'down',scale:id==='amber'?1.20:1.34
    });
  }
- sprites.preload(['scout','circuit','drone','shield','raider','amber','redrunner','tank_boss']);
+ // Layer 4: compact atlas for the remaining 14 normal identities.
+ // A frame is an explicit [x, y, width, height] tile in a 7x2, 56px WebP atlas.
+ const atlasIds=['ice','glacier','snowghost','scorpion','cactus','sand','violet',
+                 'prism','void','nebula','pulse','bubble','butterfly','candy'];
+ for(let i=0;i<atlasIds.length;i++){
+   const id=atlasIds[i];
+   sprites.register({
+     id,body:'assets/enemies/v17/atlas/late-eras.webp',
+     frame:[(i%7)*56,Math.floor(i/7)*56,56,56],
+     pivot:[0.5,0.5],facing:'down',
+     scale:id==='glacier'||id==='cactus'?1.4:1.28
+   });
+ }
+ sprites.preload(['scout','circuit','drone','shield','raider','amber','redrunner',
+                  ...atlasIds,'tank_boss']);
  // Non-invasive side-by-side comparison on mobile: append ?enemyArt=legacy.
  if(root.location && /(?:[?&])enemyArt=legacy(?:&|$)/.test(root.location.search||'')){
    sprites.setEnabled(false);
