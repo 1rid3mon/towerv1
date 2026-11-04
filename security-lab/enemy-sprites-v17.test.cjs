@@ -63,4 +63,18 @@ for(const id of activeArt){
  assert.match(manifest,new RegExp(id==='tank_boss'?id:id));
 }
 assert.equal(activeArt.length,8);
+const atlasBytes=fs.readFileSync(repoFile('assets/enemies/v17/atlas/late-eras.webp'));
+assert.equal(atlasBytes.subarray(0,4).toString('ascii'),'RIFF');
+assert.equal(atlasBytes.subarray(8,12).toString('ascii'),'WEBP');
+assert.equal(atlasBytes.readUInt32LE(4)+8,atlasBytes.length,'atlas RIFF size');
+vm.runInNewContext(manifest,{window:root,globalThis:root});
+assert.equal(sprites.getState().registered,22,'21 normal variants + first Titan boss');
+const atlasImages=art.filter(img=>img.src==='assets/enemies/v17/atlas/late-eras.webp');
+assert.equal(atlasImages.length,1,'all 14 late variants share one cached image');
+atlasImages[0].naturalWidth=392;atlasImages[0].naturalHeight=112;atlasImages[0].complete=true;atlasImages[0].onload();
+const drawArity=[];
+const tileCtx={save(){},restore(){},drawImage(...args){drawArity.push(args.length)}};
+assert.equal(sprites.render(tileCtx,{type:'frost',variantId:'ice',radius:13,hitFlash:0}),true);
+assert.equal(sprites.render(tileCtx,{type:'tank',variantId:'candy',radius:20,hitFlash:0}),true);
+assert.deepEqual(drawArity,[9,9],'atlas frame must use 9-argument source crop, not full atlas');
 console.log('V17 sprite registry/loader/fallback and raster assets checks passed');
