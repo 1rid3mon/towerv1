@@ -19,13 +19,14 @@ function valid(def){
  if(def.pivot!=null&&(!Array.isArray(def.pivot)||def.pivot.length!==2||!def.pivot.every(n=>Number.isFinite(n)&&n>=0&&n<=1)))return false;
  if(def.scale!=null&&(!Number.isFinite(def.scale)||def.scale<=0||def.scale>3))return false;
  if(def.facing!=null&&!['up','down','left','right'].includes(def.facing))return false;
+ if(def.frame!=null&&(!Array.isArray(def.frame)||def.frame.length!==4||!def.frame.every(Number.isInteger)||def.frame[0]<0||def.frame[1]<0||def.frame[2]<1||def.frame[3]<1||def.frame[2]>1024||def.frame[3]>1024))return false;
  return true;
 }
 function register(def){
  if(!valid(def))return false;
  registry.set(def.id,Object.freeze({id:def.id,body:def.body,hit:def.hit||null,
    phases:def.phases?Object.freeze([...def.phases]):null,
-   pivot:Object.freeze(def.pivot?[...def.pivot]:[0.5,0.5]),scale:def.scale||1,facing:def.facing||'up'}));
+   pivot:Object.freeze(def.pivot?[...def.pivot]:[0.5,0.5]),scale:def.scale||1,facing:def.facing||'up',frame:def.frame?Object.freeze([...def.frame]):null}));
  return true;
 }
 function imageFor(src){
@@ -72,12 +73,22 @@ function render(ctx,enemy,tx,ty){
     const base={up:-Math.PI/2,down:Math.PI/2,left:Math.PI,right:0}[def.facing]||0;
     ctx.rotate(Math.atan2(ty-enemy.y,tx-enemy.x)-base);
    }
-   ctx.drawImage(img,-size*def.pivot[0],-size*def.pivot[1],size,size);
+   // Explicit atlas crop: one WebP shared by several enemies, drawn once per frame.
+   const drawBody=()=>{
+    if(def.frame){
+      const [sx,sy,sw,sh]=def.frame;
+      if(sx+sw>img.naturalWidth||sy+sh>img.naturalHeight)throw new Error('Sprite frame outside atlas');
+      ctx.drawImage(img,sx,sy,sw,sh,-size*def.pivot[0],-size*def.pivot[1],size,size);
+    }else{
+      ctx.drawImage(img,-size*def.pivot[0],-size*def.pivot[1],size,size);
+    }
+   };
+   drawBody();
    // The legacy painter supplied a hit response; preserve a restrained one for sprites.
    if(enemy.hitFlash>0&&!hitSrc){
     ctx.globalAlpha=Math.min(.32,Math.max(0,Number(enemy.hitFlash)||0)*.32);
     ctx.globalCompositeOperation='screen';
-    ctx.drawImage(img,-size*def.pivot[0],-size*def.pivot[1],size,size);
+    drawBody();
    }
   }finally{ctx.restore();}
   return true;
