@@ -69,3 +69,7 @@
  #v14-station .v14-actions{flex-wrap:wrap}
  #v14-station .v14-actions button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
 }
+
+/* Piko follows the commander's corridor position, visual-only. */
+#v14-station .v15-piko-marker{color:#9efaff;text-shadow:0 0 10px #32d9f0,0 0 17px #4cb7ff;font-weight:900}
+@media (prefers-reduced-motion:reduce){#v14-station .v15-piko-marker{animation:none!important;transition:none!important}}
