@@ -26,6 +26,12 @@ function record(kind,id){
 function setQuiet(n){const m=read();if([0,1,2].includes(n))m.quiet=n;return save(m);}
 function shouldSpeak(kind,ordinal){const m=read();if(m.quiet===2)return false;if(kind==='critical')return true;if(m.quiet===1)return kind==='phase'&&ordinal===3;return kind==='phase'||kind==='boss';}
 function battleCue(kind,phase,lang){if(!shouldSpeak(kind,phase))return null;const en=lang==='en';if(kind==='critical')return en?'Commander, our defenses are compromised!':'Komutan, savunma hattı tehlikede!';if(kind==='phase'&&phase===3)return en?'Final phase! Watch the boss pattern.':'Son evre! Bossun saldırı düzenine dikkat.';if(kind==='phase'&&phase===2)return en?'Second phase. Adapt your defenses.':'İkinci evre. Savunmanı yeniden düzenle.';if(kind==='boss')return en?'Boss detected. I am tracking its attacks.':'Boss tespit edildi. Saldırılarını izliyorum.';return null;}
+function companionPosition(grid,avatar){
+ if(!Array.isArray(grid)||!avatar||!Number.isInteger(avatar.x)||!Number.isInteger(avatar.y))return null;
+ const options=[[0,1],[1,0],[-1,0],[0,-1]];
+ for(const [dx,dy] of options){const x=avatar.x+dx,y=avatar.y+dy;if(grid[y]?.[x]==='.')return {x,y};}
+ return null;
+}
 function reply(room,progress,stats,lang){
  const m=read(),p=progress||{},s=stats||{},en=lang==='en';
  const tr=(a,b)=>en?b:a;
@@ -41,5 +47,5 @@ function reply(room,progress,stats,lang){
  if(m.visits.bridge>3)return tr('Köprüye yine döndün. Ben buradayım, Komutan.','Back on the bridge again. I am here, Commander.');
  return tr('Komuta köprüsü hazır. İstersen konuşuruz, istemezsen sessiz kalırım.','Command bridge ready. We can talk, or I can stay quiet.');
 }
-w.TowerPikoV3=Object.freeze({read,record,setQuiet,shouldSpeak,battleCue,KEY,reply});
+w.TowerPikoV3=Object.freeze({read,record,setQuiet,shouldSpeak,battleCue,companionPosition,KEY,reply});
 })(window);
