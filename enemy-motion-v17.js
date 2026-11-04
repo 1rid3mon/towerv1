@@ -49,7 +49,9 @@ function frame(enemy,timeMs){
 }
 function under(ctx,enemy,f,size){
  if(!ctx||!f||typeof ctx.beginPath!=='function'||typeof ctx.arc!=='function'||typeof ctx.fill!=='function')return;
- const kind=enemy.type==='boss'?enemy.subType:enemy.subType||enemy.type;
+ // Boss atlas bodies already contain emissive engines; extra points obscure their silhouettes.
+ if(f.boss)return;
+ const kind=enemy.subType||enemy.type;
  const thrust=kind==='runner'||kind==='speed_boss'||kind==='ranged'||kind==='ranged_boss'||kind==='leviathan'||kind==='teleporter'||enemy.variantId==='scout'||enemy.variantId==='drone';
  if(!thrust)return;
  // Small exhaust points stay under the sprite; no large glow bloom or extra silhouettes.
