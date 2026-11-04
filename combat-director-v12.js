@@ -16,7 +16,7 @@
   }
   function spawn(e) {
     if (!endless() || !e || e.type !== 'boss' || !ALLOWED.includes(e.subType)) return false;
-    e.v12Combat={phase:1, baseSpeed:e.speed,baseAttackInterval:e.attackInterval, lastPhase:1,disruption:0,terrain:0,terrainTime:0};
+    e.v12Combat={phase:1, baseSpeed:e.speed,baseAttackInterval:e.attackInterval, lastPhase:1,disruption:0,terrain:0,terrainTime:0,pulseClock:0};
     try { root.TowerBossCinemaV15?.cue(e.subType,1); } catch (_) {}
     return true;
   }
@@ -30,6 +30,11 @@
     const c=e.v12Combat,level=stage(e.hp,e.maxHp);
     c.phase=level;
     c.disruption=Math.max(0,(c.disruption||0)-dt);
+    // Phase-three ranged bosses emit a bounded repeat interference pulse every 9 simulated seconds.
+    if(level===3&&(e.subType==='ranged_boss'||e.subType==='leviathan')){
+      c.pulseClock=(c.pulseClock||0)+Math.min(dt,1);
+      if(c.pulseClock>=9){c.pulseClock=0;c.disruption=Math.max(c.disruption,1.1);}
+    }else c.pulseClock=0;
     c.terrainTime=Math.max(0,(c.terrainTime||0)-dt);
     if(c.terrainTime===0)c.terrain=0;
     // Derive stats from original spawn values, never compound multipliers each frame.
