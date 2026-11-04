@@ -19,6 +19,7 @@ function valid(def){
  if(def.pivot!=null&&(!Array.isArray(def.pivot)||def.pivot.length!==2||!def.pivot.every(n=>Number.isFinite(n)&&n>=0&&n<=1)))return false;
  if(def.scale!=null&&(!Number.isFinite(def.scale)||def.scale<=0||def.scale>3))return false;
  if(def.facing!=null&&!['up','down','left','right'].includes(def.facing))return false;
+ if(def.phaseIntensity!=null&&(!Array.isArray(def.phaseIntensity)||def.phaseIntensity.length!==2||!def.phaseIntensity.every(n=>Number.isFinite(n)&&n>=1&&n<=1.5)))return false;
  if(def.frame!=null&&(!Array.isArray(def.frame)||def.frame.length!==4||!def.frame.every(Number.isInteger)||def.frame[0]<0||def.frame[1]<0||def.frame[2]<1||def.frame[3]<1||def.frame[2]>1024||def.frame[3]>1024))return false;
  return true;
 }
@@ -26,7 +27,7 @@ function register(def){
  if(!valid(def))return false;
  registry.set(def.id,Object.freeze({id:def.id,body:def.body,hit:def.hit||null,
    phases:def.phases?Object.freeze([...def.phases]):null,
-   pivot:Object.freeze(def.pivot?[...def.pivot]:[0.5,0.5]),scale:def.scale||1,facing:def.facing||'up',frame:def.frame?Object.freeze([...def.frame]):null}));
+   pivot:Object.freeze(def.pivot?[...def.pivot]:[0.5,0.5]),scale:def.scale||1,facing:def.facing||'up',frame:def.frame?Object.freeze([...def.frame]):null,phaseIntensity:def.phaseIntensity?Object.freeze([...def.phaseIntensity]):null}));
  return true;
 }
 function imageFor(src){
@@ -57,10 +58,10 @@ function render(ctx,enemy,tx,ty){
  const phaseSrc=def.phases&&phase>1?def.phases[phase-2]:null;
  const hitSrc=enemy.hitFlash>0?def.hit:null;
  const candidates=[hitSrc,phaseSrc,def.body].filter(Boolean);
- let entry=null;
+ let entry=null,chosenSrc=null;
  for(const src of candidates){
   const candidate=imageFor(src);
-  if(candidate&&candidate.status==='ready'){entry=candidate;break;}
+  if(candidate&&candidate.status==='ready'){entry=candidate;chosenSrc=src;break;}
  }
  if(!entry)return false;
  const img=entry.img;
@@ -73,9 +74,14 @@ function render(ctx,enemy,tx,ty){
     const base={up:-Math.PI/2,down:Math.PI/2,left:Math.PI,right:0}[def.facing]||0;
     ctx.rotate(Math.atan2(ty-enemy.y,tx-enemy.x)-base);
    }
+   // Phase shifts are material response only; never change movement or attack logic.
+   if(enemy.type==='boss'&&def.phaseIntensity&&phase>1&&typeof ctx.filter==='string'){
+    const factor=def.phaseIntensity[Math.min(phase-2,1)];
+    ctx.filter='brightness('+factor.toFixed(2)+') saturate('+Math.min(1.6,factor+0.15).toFixed(2)+')';
+   }
    // Explicit atlas crop: one WebP shared by several enemies, drawn once per frame.
    const drawBody=()=>{
-    if(def.frame){
+    if(def.frame&&chosenSrc===def.body){
       const [sx,sy,sw,sh]=def.frame;
       if(sx+sw>img.naturalWidth||sy+sh>img.naturalHeight)throw new Error('Sprite frame outside atlas');
       ctx.drawImage(img,sx,sy,sw,sh,-size*def.pivot[0],-size*def.pivot[1],size,size);
