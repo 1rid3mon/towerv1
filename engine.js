@@ -45,10 +45,23 @@ let cargoSpawnTimer = 45 + Math.random() * 15;
 function resizeCanvas() {
     const container = document.getElementById('canvas-container');
     if (!container) return;
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
-    tower.x = canvas.width / 2;
-    tower.y = canvas.height / 2;
+    const nextWidth = Math.round(container.clientWidth);
+    const nextHeight = Math.round(container.clientHeight);
+    // Mobile browser chrome and rotations may trigger redundant or zero-size resizes.
+    if (nextWidth <= 0 || nextHeight <= 0) return;
+    const previousWidth = canvas.width, previousHeight = canvas.height;
+    if (previousWidth === nextWidth && previousHeight === nextHeight) return;
+    // Keep enemies, projectiles, trails and combat feedback anchored to the tower
+    // instead of teleporting relative to it whenever the iPad viewport changes.
+    if (window.TowerFluidityV16 && tower.x > 0 && tower.y > 0) {
+        window.TowerFluidityV16.shiftViewport(previousWidth, previousHeight, nextWidth, nextHeight, {
+            enemies, projectiles, particles, floatingTexts, lightningBeams, rings, cargoDrones
+        });
+    }
+    canvas.width = nextWidth;
+    canvas.height = nextHeight;
+    tower.x = nextWidth / 2;
+    tower.y = nextHeight / 2;
 }
 window.addEventListener('resize', resizeCanvas);
 
@@ -217,12 +230,15 @@ function handleCanvasPointerDown(e) {
 
     for (let i = cargoDrones.length - 1; i >= 0; i--) {
         const d = cargoDrones[i];
-        if (Math.hypot(d.x - clickX, d.y - clickY) <= d.radius + 20) {
+        if (Math.hypot(d.x - clickX, d.y - clickY) <= d.radius + (e.pointerType === 'touch' ? 30 : 20)) {
             if (e.cancelable) e.preventDefault();
             if (!d.qteAttempted) {
                 d.qteAttempted = true;
                 d.qteActive = true;
                 d.qteTimer = 1.25;
+                // Immediate confirmation ring makes the first tap unambiguous on touch screens.
+                rings.push({ x: d.x, y: d.y, radius: d.radius + 8, color: '#a3e635', life: 0.4 });
+                if (window.TowerCommandSounds?.isEnabled()) window.TowerCommandSounds.play('confirm');
                 if (typeof showToast === 'function') showToast('⚡ REFLEKS TESTİ! 1,25 saniye içinde drona tekrar dokun: %50 daha fazla ganimet!');
             } else if (d.qteActive && d.qteTimer > 0) {
                 collectCargoDrone(i, true);
@@ -1220,6 +1236,9 @@ function updateHoldWaveButton() {
 
 let lastFrameTime = performance.now();
 let lastTabCheckTime = 0;
+// Draw at most 60 FPS (24 when paused); simulation continues on each rAF.
+// Automatically reduce decorative draw load when the GPU is consistently slow.
+const combatFramePacer = window.TowerFluidityV16 ? window.TowerFluidityV16.createFramePacer() : null;
 
 const ACTIVE_TAB_KEY = 'towerDefense_activeTab';
 const TAB_ID = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -1302,7 +1321,13 @@ function gameLoop(now) {
     lastFrameTime = now;
 
     updateGame(dt);
-    renderGame();
+    if (!combatFramePacer || combatFramePacer.shouldRender(now, { paused: isPaused || isDefeated, hidden: document.hidden })) {
+        const drawStart = performance.now();
+        renderGame();
+        if (combatFramePacer && !isPaused && !isDefeated) {
+            combatFramePacer.observeRenderCost(performance.now() - drawStart);
+        }
+    }
     updateRouletteAnimation(now);
 
     if (!isDuplicateTab) requestAnimationFrame(gameLoop);

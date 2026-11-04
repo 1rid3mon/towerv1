@@ -73,3 +73,9 @@
 /* Piko follows the commander's corridor position, visual-only. */
 #v14-station .v15-piko-marker{color:#9efaff;text-shadow:0 0 10px #32d9f0,0 0 17px #4cb7ff;font-weight:900}
 @media (prefers-reduced-motion:reduce){#v14-station .v15-piko-marker{animation:none!important;transition:none!important}}
+
+/* V16 tactile station tiles: use the whole corridor as the hit surface. */
+#v14-station button.v14-cell{cursor:pointer;touch-action:manipulation;transition:background .12s ease,box-shadow .12s ease}
+#v14-station button.v14-cell:active{background:#287b8f;box-shadow:inset 0 0 10px #7de0f5aa}
+#v14-station button.v14-cell:focus-visible{outline:2px solid #a5f3fc;outline-offset:-1px}
+@media (prefers-reduced-motion:reduce){#v14-station button.v14-cell{transition:none}}
