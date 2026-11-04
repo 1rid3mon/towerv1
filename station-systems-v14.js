@@ -13,7 +13,7 @@ function anomalyFor(wave,isStory){
  if(isStory||!Number.isInteger(n)||n<7||n%7!==0||n%5===0)return null;
  return ANOMALIES[(n/7-1)%ANOMALIES.length];
 }
-function validDate(day){return typeof day==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(day)&&new Date(day+'T00:00:00Z').toISOString().slice(0,10)===day;}
+function validDate(day){if(typeof day!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(day))return false;const date=new Date(day+'T00:00:00Z');return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===day;}
 function dailyDate(now){return (now instanceof Date?now:new Date()).toISOString().slice(0,10);}
 function seedFor(day){
  if(!validDate(day))return 1;
