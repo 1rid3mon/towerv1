@@ -116,9 +116,14 @@ function render(ctx,enemy,tx,ty,timeMs){
    };
    drawBody();
    if(animation&&motion.over){
-    // Keep gameplay indicators untouched; this draw is inside the sprite body pass.
-    if(typeof ctx.filter==='string')ctx.filter='none';
-    motion.over(ctx,enemy,animation,size);
+    // Restore the boss material filter after drawing FX, even in lightweight test contexts.
+    const materialFilter=typeof ctx.filter==='string'?ctx.filter:null;
+    try{
+     if(materialFilter!==null)ctx.filter='none';
+     motion.over(ctx,enemy,animation,size);
+    }finally{
+     if(materialFilter!==null)ctx.filter=materialFilter;
+    }
    }
    // The legacy painter supplied a hit response; preserve a restrained one for sprites.
    if(enemy.hitFlash>0&&!hitSrc){
