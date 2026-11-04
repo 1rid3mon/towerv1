@@ -35,3 +35,11 @@ assert.equal(grid[near.y][near.x],'.');
 assert.equal(piko.companionPosition(grid,{x:0,y:0}),null);
 assert.equal(piko.companionPosition(grid,{x:2.5,y:1}),null);
 console.log('PASS V15 Piko corridor marker positioning and invalid-coordinate fallback');
+
+assert.equal(rank.validDay('2026-02-30'),false,'impossible dates rejected');
+assert.equal(rank.validDay('2026-11-04'),true);
+assert.equal(rank.validate({...base,actions:[{type:'next',score:9999}]},day).reason,'invalid_actions');
+assert.equal(rank.validate({...base,actions:Array(81).fill({type:'next'})},day).reason,'invalid_actions');
+assert.equal(rank.validate({...base,actions:[{type:'buy',lane:0,energy:9999}]},day).reason,'invalid_actions');
+assert.equal(rank.validate({...base,day:'2026-02-30'},'2026-02-30').reason,'day_mismatch');
+console.log('PASS V15 strict action schema, length cap and real calendar dates');
