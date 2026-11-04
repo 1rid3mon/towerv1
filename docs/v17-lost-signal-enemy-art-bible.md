@@ -21,7 +21,28 @@ Status: Art audit and visual rules defined. **No enemy sprite assets have been s
 | Nebula | violet, prism, void, nebula, pulse | orbit, crystal, blades, shield, orbit | violet, lavender, purple, indigo, pink |
 | Dream | bubble, butterfly, candy | orbit, wings, crystal | pastel pink, blue, magenta |
 
-Bosses use separate `subType` logic in `drawCustomEnemy`; enumerate their actual subtypes and boss phases before producing boss sprite sheets. Do not invent or rename enemies.
+## Confirmed boss inventory (engine.js / render.js)
+
+| subType | Existing name | radius | Combat silhouette / telegraph | Existing palette |
+| --- | --- | ---: | --- | --- |
+| tank_boss | Zırhlı Titan Behemoth | 40 | Heavy armor, close-range wind-up warning ring | amber / pale yellow |
+| ranged_boss | Hiperiyon Topçusu | 30 | Long-range triple-shot battery | pink / pale pink |
+| speed_boss | Kızıl Fırtına Vektörü | 24 | Compact high-speed dash attacker | red / pale red |
+| frost_boss | Kutup Hükümdarı Kryos | 33 | Frost projectile and slow/freeze telegraph | sky / ice |
+| leviathan | Kozmik Leviathan | 32 | Cosmic multi-projectile threat | inherited boss palette |
+
+The renderer also has a generic `boss` fallback drawing case. Boss combat phases are displayed as `BOSS / FAZ 2` and `BOSS / FAZ 3` when `v12Combat.phase > 1`. New artwork must not obscure these phase cues or tank wind-up warning. The five named boss subtypes are chosen from the actual `bossPool`, not an invented roster.
+
+## Reproducible baseline capture (before Layer 2 integration)
+
+The repository does not include verified screenshots of representative old enemies. **No screenshots are claimed to have been captured.** Record side-by-side baseline images in a browser at identical canvas dimensions, device pixel ratio and zoom, with reduced motion off/on:
+
+1. Standard enemy: `scout` (`green` archetype), first-wave core theme, idle and hit flash, at native in-game size.
+2. Boss: `tank_boss`, native radius 40, normal phase and attack wind-up ring.
+3. Optional: `ranged_boss` with ranged attack telegraph to verify phase labels and projectile visibility.
+4. Save screenshots and a small metadata note (browser, viewport, DPR, zoom, branch SHA) as reference artifacts before judging prototype fidelity. Do not confuse illustrative concept art with actual gameplay screenshots.
+
+Baseline comparison is a **Layer 2 acceptance prerequisite**; art inventory and code audit can be complete without pretending browser screenshots exist.
 
 ## LOST SIGNAL art contract
 1. **Readable at actual size.** Silhouette must distinguish runner, tank, ranged, teleporter and boss before small interior details.
@@ -53,8 +74,8 @@ The manifest above is a **proposed format**, not a reference to existing files.
 - [x] Inventory all 21 variant IDs, eras and legacy render passes.
 - [x] Lock silhouette, materials, palette and readability constraints.
 - [x] Define single-source sprite / legacy fallback rule.
-- [ ] Enumerate all boss subtypes and existing phase art before boss production.
-- [ ] Capture in-game old-render reference screenshots for a representative standard enemy and boss.
-- [ ] Approve a first sprite prototype against actual in-game scale.
+- [x] Enumerate five actual boss subtypes, names, palettes, sizes and existing combat/phase telegraphs.
+- [x] Specify reproducible baseline capture cases for a standard enemy and boss; actual captures are still outstanding.
+- [x] Define prototype acceptance criteria; first sprite artwork and visual approval belong to Layer 2/3.
 
-Next: Layer 2 — loader/manifest and explicit no-double-draw fallback, on this branch only.
+**Layer 1 design audit complete.** Layer 2 may start on this branch. Capture the actual baseline screenshots before approving new sprite artwork. Next: loader/manifest and explicit no-double-draw fallback.
