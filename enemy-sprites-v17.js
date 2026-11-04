@@ -58,7 +58,7 @@ function idFor(enemy){
  }
  return null;
 }
-function render(ctx,enemy,tx,ty){
+function render(ctx,enemy,tx,ty,timeMs){
  if(!enabled||!ctx||!enemy||!Number.isFinite(enemy.radius)||enemy.radius<=0)return false;
  const def=registry.get(idFor(enemy));
  if(!def||!def.body)return false;
@@ -74,6 +74,8 @@ function render(ctx,enemy,tx,ty){
  if(!entry)return false;
  const img=entry.img;
  const scale=def.scale||1, size=enemy.radius*2*scale;
+ const motion=root.TowerEnemyMotionV17;
+ const animation=motion&&typeof motion.frame==='function'?motion.frame(enemy,timeMs):null;
  try{
   ctx.save();
   try{
@@ -81,6 +83,13 @@ function render(ctx,enemy,tx,ty){
    if(Number.isFinite(tx)&&Number.isFinite(ty)&&Number.isFinite(enemy.x)&&Number.isFinite(enemy.y)){
     const base={up:-Math.PI/2,down:Math.PI/2,left:Math.PI,right:0}[def.facing]||0;
     ctx.rotate(Math.atan2(ty-enemy.y,tx-enemy.x)-base);
+   }
+   // Small, deterministic movement applies only to sprites (not gameplay coordinates).
+   if(animation){
+    if(animation.bob&&typeof ctx.translate==='function')ctx.translate(0,animation.bob);
+    if(animation.tilt&&typeof ctx.rotate==='function')ctx.rotate(animation.tilt);
+    if(animation.scale!==1&&typeof ctx.scale==='function')ctx.scale(animation.scale,animation.scale);
+    if(motion.under)motion.under(ctx,enemy,animation,size);
    }
    // Phase shifts are material response only; never change movement or attack logic.
    if(typeof ctx.filter==='string'){
@@ -106,6 +115,11 @@ function render(ctx,enemy,tx,ty){
     }
    };
    drawBody();
+   if(animation&&motion.over){
+    // Keep gameplay indicators untouched; this draw is inside the sprite body pass.
+    if(typeof ctx.filter==='string')ctx.filter='none';
+    motion.over(ctx,enemy,animation,size);
+   }
    // The legacy painter supplied a hit response; preserve a restrained one for sprites.
    if(enemy.hitFlash>0&&!hitSrc){
     ctx.globalAlpha=Math.min(.32,Math.max(0,Number(enemy.hitFlash)||0)*.32);
