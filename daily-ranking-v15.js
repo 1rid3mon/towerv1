@@ -5,7 +5,7 @@
 if(root.TowerDailyRankingV15)return;
 const logic=root.TowerStationSystemsV14;
 const ID=/^[A-Za-z0-9_-]{8,64}$/;
-const DAY=/^\\d{4}-\\d{2}-\\d{2}$/;
+const DAY=/^\d{4}-\d{2}-\d{2}$/;
 function validDay(day){if(typeof day!=='string'||!DAY.test(day))return false;const d=new Date(day+'T00:00:00Z');return Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===day;}
 function validActions(actions){return Array.isArray(actions)&&actions.length>0&&actions.length<=80&&actions.every(a=>a&&typeof a==='object'&&!Array.isArray(a)&&Object.keys(a).length===(a.type==='buy'?2:1)&&(a.type==='next'||(a.type==='buy'&&Number.isInteger(a.lane)&&a.lane>=0&&a.lane<=2)));}
 function validate(candidate,serverDay){
