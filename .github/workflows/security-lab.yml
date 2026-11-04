@@ -112,7 +112,7 @@ jobs:
       - name: Verify V14 daily drill, anomaly limits and progression isolation
         run: node security-lab/station-v14.test.cjs
       - name: Verify V15 daily replay ranking contract
-        run: node security-lab/daily-ranking-v15.test.cjs
+        run: node security-lab/daily-ranking-v15.test.cjs && node security-lab/boss-cinema-v15.test.cjs
       - name: Verify V12 boss phases, combos and narrative branching
         run: node security-lab/v12-expansion.test.cjs
 
