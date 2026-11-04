@@ -230,12 +230,15 @@ function handleCanvasPointerDown(e) {
 
     for (let i = cargoDrones.length - 1; i >= 0; i--) {
         const d = cargoDrones[i];
-        if (Math.hypot(d.x - clickX, d.y - clickY) <= d.radius + 20) {
+        if (Math.hypot(d.x - clickX, d.y - clickY) <= d.radius + (e.pointerType === 'touch' ? 30 : 20)) {
             if (e.cancelable) e.preventDefault();
             if (!d.qteAttempted) {
                 d.qteAttempted = true;
                 d.qteActive = true;
                 d.qteTimer = 1.25;
+                // Immediate confirmation ring makes the first tap unambiguous on touch screens.
+                rings.push({ x: d.x, y: d.y, radius: d.radius + 8, color: '#a3e635', life: 0.4 });
+                if (window.TowerCommandSounds?.isEnabled()) window.TowerCommandSounds.play('confirm');
                 if (typeof showToast === 'function') showToast('⚡ REFLEKS TESTİ! 1,25 saniye içinde drona tekrar dokun: %50 daha fazla ganimet!');
             } else if (d.qteActive && d.qteTimer > 0) {
                 collectCargoDrone(i, true);
