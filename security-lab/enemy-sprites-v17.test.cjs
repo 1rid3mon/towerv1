@@ -53,4 +53,14 @@ for(const name of binaryAssets){
 }
 const manifest=fs.readFileSync(repoFile('enemy-sprite-manifest-v17.js'),'utf8');
 assert.match(manifest,/sprites\.register\(/);
+const activeArt=['scout','circuit','drone','shield','raider','amber','redrunner','tank_boss'];
+for(const id of activeArt){
+ const asset=fs.readFileSync(repoFile('assets/enemies/v17/'+id+'/body.webp'));
+ assert.equal(asset.subarray(0,4).toString('ascii'),'RIFF',id+' RIFF signature');
+ assert.equal(asset.subarray(8,12).toString('ascii'),'WEBP',id+' WEBP signature');
+ assert.equal(asset.readUInt32LE(4)+8,asset.length,id+' exact RIFF byte length');
+ assert(asset.length>100,id+' nonempty compressed art');
+ assert.match(manifest,new RegExp(id==='tank_boss'?id:id));
+}
+assert.equal(activeArt.length,8);
 console.log('V17 sprite registry/loader/fallback and raster assets checks passed');
