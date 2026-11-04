@@ -24,6 +24,7 @@ function cue(type,phase){
  const reduced=!!w.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
  node.style.transition=reduced?'none':'opacity .22s';
  node.style.cssText+=';padding:13px 16px;border:1px solid '+(phase===3?'#f59e0b':'#22d3ee')+';border-radius:12px;background:rgba(5,13,30,.94);box-shadow:0 0 28px rgba(34,211,238,.26);opacity:1';
+ node.style.opacity='1';
  if(timer)w.clearTimeout(timer);const id=++token;
  timer=w.setTimeout(()=>{if(id===token&&host)host.style.opacity='0';},phase===1?2400:1900);
  return true;
