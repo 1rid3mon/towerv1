@@ -41,3 +41,10 @@ Base: PR #87 V14 + Piko 3.0 + Boss V15 at df402084. This branch is **not** a pro
 - Piko phase/boss alerts wired to the existing nonblocking boss HUD with quiet/balanced/chatty preferences; tests added.
 - Mobile station touch target and safe-area CSS adjustments added; real-device verification still pending.
 - All new work stays in stacked draft PR #88. CI and production deployment are not assumed successful.
+
+## 2026-11-04 security increment (pre-release)
+- Strict calendar dates and replay action shape/length validation added to candidate ranking.
+- Firestore `dailyLeaderboard/{day}/scores/{userId}` is public-readable but client-write-denied; `dailyScoreSubmissions/{id}` is client-inaccessible. No server writer is deployed.
+- Emulator regression checks cover forged score creation, modification and deletion; test results remain pending.
+- **Security boundary:** client-side `validate` is not proof against cheating. Trusted backend must derive identity from verified auth, validate day against server time, replay actions server-side, enforce per-user/day idempotency and rate limits, and only then write ranked scores.
+- Keep all changes in draft PR #88, no merge and no production deployment.
