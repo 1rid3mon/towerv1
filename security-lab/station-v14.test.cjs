@@ -99,3 +99,17 @@ piko.record('visit','__proto__');assert.equal(piko.read().visits.bridge,2,'unkno
 pikoStore.set(piko.KEY,'{bad json');assert.equal(piko.read().talks,0,'corrupt memory is isolated');
 assert.ok(!pikoStore.has('towerDefenseStoryProgressV1'),'Piko never touches core save');
 console.log('PASS Piko V3: bounded memory, story-aware dialogue, quiet mode and corrupted-save recovery');
+
+const bossCues=[];
+const cinematicWindow={document:{body:{dataset:{gameMode:'endless'}}},TowerBossCinemaV15:{cue:(kind,phase)=>bossCues.push([kind,phase])}};
+const cinemaCombatContext=vm.createContext({window:cinematicWindow,Date,Math,Number,Object,Array});
+new vm.Script(directorSource).runInContext(cinemaCombatContext);
+const cinemaCombat=cinematicWindow.TowerCombatDirectorV12;
+const cinematicBoss={type:'boss',subType:'ranged_boss',hp:100,maxHp:100,speed:2,attackInterval:2,x:10,y:10,radius:12};
+assert.equal(cinemaCombat.spawn(cinematicBoss),true);
+cinematicBoss.hp=60;cinemaCombat.tick(cinematicBoss,.1,{});
+cinematicBoss.hp=20;cinemaCombat.tick(cinematicBoss,.1,{});
+assert.equal(JSON.stringify(bossCues),JSON.stringify([['ranged_boss',1],['ranged_boss',2],['ranged_boss',3]]));
+cinemaCombatContext.window.document.body.dataset.gameMode='story';
+assert.equal(cinemaCombat.spawn({type:'boss',subType:'leviathan'}),false,'cinematic hooks must not alter story');
+console.log('PASS Boss V15: introduction, phase cues and story isolation');
