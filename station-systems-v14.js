@@ -13,7 +13,7 @@ function anomalyFor(wave,isStory){
  if(isStory||!Number.isInteger(n)||n<7||n%7!==0||n%5===0)return null;
  return ANOMALIES[(n/7-1)%ANOMALIES.length];
 }
-function validDate(day){return typeof day==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(day)&&!Number.isNaN(Date.parse(day+'T00:00:00Z'));}
+function validDate(day){return typeof day==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(day)&&new Date(day+'T00:00:00Z').toISOString().slice(0,10)===day;}
 function dailyDate(now){return (now instanceof Date?now:new Date()).toISOString().slice(0,10);}
 function seedFor(day){
  if(!validDate(day))return 1;
@@ -63,6 +63,25 @@ function advance(run){
  return next;
 }
 function score(run){return !run?0:Math.max(0,run.kills*100+run.turn*15-run.leaks*60);}
+function verifyReplay(day,actions){
+ if(!validDate(day)||!Array.isArray(actions)||actions.length>80)return {valid:false,reason:'invalid_input'};
+ let run=newRun(day),turns=0;
+ for(const action of actions){
+  if(run.finished)return {valid:false,reason:'after_finish'};
+  if(!action||typeof action!=='object')return {valid:false,reason:'invalid_action'};
+  if(action.type==='buy'){
+   if(!Number.isInteger(action.lane)||action.lane<0||action.lane>2)return {valid:false,reason:'invalid_lane'};
+   const next=buy(run,action.lane);
+   if(next===run)return {valid:false,reason:'illegal_purchase'};
+   run=next;
+  }else if(action.type==='next'){
+   if(turns>=15)return {valid:false,reason:'turn_limit'};
+   run=advance(run);turns++;
+  }else return {valid:false,reason:'invalid_action'};
+ }
+ if(!run.finished)return {valid:false,reason:'incomplete'};
+ return {valid:true,score:score(run),kills:run.kills,leaks:run.leaks,turns:run.turn};
+}
 function stationStage(completed){
  const n=Math.min(27,Math.max(0,Math.floor(Number(completed)||0)));
  return n>=27?3:n>=18?2:n>=9?1:0;
@@ -75,5 +94,5 @@ function pikoProfile(progress,stats){
  if(p.mission12Complete)return 'curious';
  return 'rookie';
 }
-root.TowerStationSystemsV14=Object.freeze({ANOMALIES,anomalyFor,dailyDate,seedFor,planFor,newRun,buy,advance,score,stationStage,pikoProfile});
+root.TowerStationSystemsV14=Object.freeze({ANOMALIES,anomalyFor,dailyDate,seedFor,planFor,newRun,buy,advance,score,verifyReplay,stationStage,pikoProfile});
 })(window);
