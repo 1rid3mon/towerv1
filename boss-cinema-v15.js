@@ -10,7 +10,7 @@ function mount(){if(!w.document?.body)return null;if(host?.isConnected)return ho
 function cue(type,phase){
  if(!enabled||!NAMES[type]||![1,2,3].includes(phase))return false;
  try{if(w.document?.body?.dataset?.gameMode==='story')return false;if(typeof GameModeRuntime!=='undefined'&&(GameModeRuntime.isStoryActive()||GameModeRuntime.isIsolatedStoryRuntime()))return false;}catch(_){return false;}
- if(lastCue&&lastCue.type===type&&lastCue.phase===phase)return false;
+ if(lastCue&&lastCue.type===type&&lastCue.phase===phase&&host?.style?.opacity==='1')return false;
  const node=mount();if(!node)return false;
  const name=NAMES[type],title=phase===1?label('TEHDİT ALGILANDI','THREAT DETECTED'):phase===2?label('İKİNCİ EVRE','SECOND PHASE'):label('SON EVRE','FINAL PHASE');
  const TACTICS={tank_boss:[['Zırh güçleniyor · Menzil düşebilir','Armor strengthens · Range may drop'],['Alan baskısı artıyor','Area pressure intensifies']],ranged_boss:[['Kule atışları kesintiye uğrayabilir','Tower fire may be jammed'],['Sinyal darbeleri tekrarlanacak','Signal pulses will repeat']],speed_boss:[['Atılma aralıkları kısalıyor','Dash intervals shorten'],['Hızlı atılmalara dikkat','Watch for rapid dashes']],frost_boss:[['Soğuk alanı menzili daraltabilir','Cold field may reduce range'],['Buz baskısı güçleniyor','Cryo pressure intensifies']],leviathan:[['Sinyal bozucu etkin','Signal jammer active'],['Güçlü bozucu darbeler geliyor','Strong jamming pulses incoming']]};
