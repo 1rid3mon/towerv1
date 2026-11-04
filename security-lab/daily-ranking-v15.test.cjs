@@ -17,3 +17,13 @@ assert.equal(rank.validate({...base,actions:[...actions,{type:'next'}]},day).acc
 const rows=rank.rank([ok,{...ok,score:ok.score-1},{...ok,playerId:'player_456',score:ok.score+100}],10);
 assert.equal(rows.length,2);assert.equal(rows[0].playerId,'player_456');
 console.log('PASS V15 daily ranking: deterministic replay, forged scores, date isolation, deduplication');
+
+const pikoStorage=new Map(),pikoWindow={localStorage:{getItem:k=>pikoStorage.get(k)||null,setItem:(k,v)=>pikoStorage.set(k,v)}};
+new vm.Script(fs.readFileSync(path.join(__dirname,'..','piko-companion-v3.js'),'utf8')).runInContext(vm.createContext({window:pikoWindow,Number,Object,Array,Math,JSON,String}));
+const piko=pikoWindow.TowerPikoV3;
+assert.equal(piko.battleCue('phase',2,'tr'),null,'balanced mode avoids mid-phase chatter');
+assert.match(piko.battleCue('phase',3,'tr'),/Son evre/);
+piko.setQuiet(0);assert.match(piko.battleCue('boss',1,'en'),/Boss detected/);
+piko.setQuiet(2);assert.equal(piko.battleCue('critical',3,'tr'),null,'quiet mode silences all Piko warnings');
+assert.equal(piko.read().quiet,2);
+console.log('PASS V15 Piko battle cue preferences');
