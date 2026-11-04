@@ -18,9 +18,10 @@ function validate(candidate,serverDay){
  if(candidate.score!==undefined&&candidate.score!==result.score)return {accepted:false,reason:'score_mismatch'};
  return {accepted:true,day:candidate.day,playerId:candidate.playerId,score:result.score,kills:result.kills,leaks:result.leaks,turns:result.turns};
 }
-function rank(rows,limit){
+function rank(rows,limit,day){
  const best=new Map(),max=Number.isInteger(limit)?Math.max(1,Math.min(100,limit)):25;
  for(const row of Array.isArray(rows)?rows:[]){
+  if(day!==undefined&&(!validDay(day)||row?.day!==day))continue;
   if(!row||row.accepted!==true||typeof row.playerId!=='string'||!ID.test(row.playerId)||!Number.isSafeInteger(row.score)||row.score<0)continue;
   const prev=best.get(row.playerId);
   if(!prev||row.score>prev.score)best.set(row.playerId,{playerId:row.playerId,score:row.score});
