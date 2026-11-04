@@ -5,7 +5,7 @@
 const VARIANTS=['scout','circuit','drone','shield','raider','amber','violet','prism','ice','glacier','snowghost','redrunner','scorpion','cactus','sand','void','nebula','pulse','bubble','butterfly','candy'];
 const BOSSES=['tank_boss','ranged_boss','speed_boss','frost_boss','leviathan'];
 const ids=new Set([...VARIANTS,...BOSSES]);
-const registry=new Map([...ids].map(id=>[id,Object.freeze({id,body:null,hit:null,phases:null,pivot:[0.5,0.5],scale:1})]));
+const registry=new Map([...ids].map(id=>[id,Object.freeze({id,body:null,hit:null,phases:null,pivot:[0.5,0.5],scale:1,facing:'up'})]));
 const images=new Map();
 const MAX_CACHE=64;
 let enabled=true;
@@ -18,13 +18,14 @@ function valid(def){
  if(def.phases!=null&&(!Array.isArray(def.phases)||def.phases.length>4||!def.phases.every(safeAsset)))return false;
  if(def.pivot!=null&&(!Array.isArray(def.pivot)||def.pivot.length!==2||!def.pivot.every(n=>Number.isFinite(n)&&n>=0&&n<=1)))return false;
  if(def.scale!=null&&(!Number.isFinite(def.scale)||def.scale<=0||def.scale>3))return false;
+ if(def.facing!=null&&!['up','down','left','right'].includes(def.facing))return false;
  return true;
 }
 function register(def){
  if(!valid(def))return false;
  registry.set(def.id,Object.freeze({id:def.id,body:def.body,hit:def.hit||null,
    phases:def.phases?Object.freeze([...def.phases]):null,
-   pivot:Object.freeze(def.pivot?[...def.pivot]:[0.5,0.5]),scale:def.scale||1}));
+   pivot:Object.freeze(def.pivot?[...def.pivot]:[0.5,0.5]),scale:def.scale||1,facing:def.facing||'up'}));
  return true;
 }
 function imageFor(src){
@@ -47,7 +48,7 @@ function idFor(enemy){
  if(!enemy)return null;
  return enemy.type==='boss'?(enemy.subType||'leviathan'):enemy.variantId||null;
 }
-function render(ctx,enemy){
+function render(ctx,enemy,tx,ty){
  if(!enabled||!ctx||!enemy||!Number.isFinite(enemy.radius)||enemy.radius<=0)return false;
  const def=registry.get(idFor(enemy));
  if(!def||!def.body)return false;
@@ -66,7 +67,18 @@ function render(ctx,enemy){
  try{
   ctx.save();
   try{
+   // Orient a baked sprite towards the same target used by legacy combat art.
+   if(Number.isFinite(tx)&&Number.isFinite(ty)&&Number.isFinite(enemy.x)&&Number.isFinite(enemy.y)){
+    const base={up:-Math.PI/2,down:Math.PI/2,left:Math.PI,right:0}[def.facing]||0;
+    ctx.rotate(Math.atan2(ty-enemy.y,tx-enemy.x)-base);
+   }
    ctx.drawImage(img,-size*def.pivot[0],-size*def.pivot[1],size,size);
+   // The legacy painter supplied a hit response; preserve a restrained one for sprites.
+   if(enemy.hitFlash>0&&!hitSrc){
+    ctx.globalAlpha=Math.min(.32,Math.max(0,Number(enemy.hitFlash)||0)*.32);
+    ctx.globalCompositeOperation='screen';
+    ctx.drawImage(img,-size*def.pivot[0],-size*def.pivot[1],size,size);
+   }
   }finally{ctx.restore();}
   return true;
  }catch(_){return false;}
