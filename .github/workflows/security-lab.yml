@@ -1,5 +1,10 @@
 name: Security lab tests
 
+# Collapse obsolete runs on the same source branch, including push and PR duplicates.
+concurrency:
+  group: security-lab-${{ github.event.pull_request.head.ref || github.ref_name }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     paths:
