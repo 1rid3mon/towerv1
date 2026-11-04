@@ -89,3 +89,15 @@ The manifest above is a **proposed format**, not a reference to existing files.
 - `security-lab/enemy-sprites-v17.test.cjs`: Node regression cases for invalid paths, loading state, cache, ready sprite, boss phase fallback, opt-out and render integration; added to GitHub Actions.
 - **No gameplay image baseline screenshots or actual sprite assets yet.** Both are art acceptance work for Layer 3, not evidence of finished image designs.
 - **CI result pending** until GitHub Actions reports a completed run for the latest branch head.
+
+
+## Layer 3 · first two raster game assets (prototype, not full production art)
+- `assets/enemies/v17/scout/body.webp`: 96×96 transparent WebP, cyan mechanical scout silhouette, registered as the `scout` variant with `facing: 'down'` and `scale: 1.24`.
+- `assets/enemies/v17/tank_boss/body.webp`: 144×144 transparent WebP, armoured amber/red Titan, registered as `tank_boss` with `facing: 'down'` and `scale: 1.13`.
+- Both visuals were extracted and alpha-cleaned from a newly generated LOST SIGNAL concept board; they are practical **first-pass prototypes**, not final sprite sheets or full animation sets.
+- Manifest: `enemy-sprite-manifest-v17.js` opts these two into the new loader and preloads their body sprites. All other variants and bosses retain existing legacy Canvas drawing.
+- The renderer rotates these pre-rendered assets toward the current tower target, supplies a restrained hit flash and continues to draw health bars, attack telegraphs and boss phase cues as before.
+- To compare on a preview deployment, append `?enemyArt=legacy` to disable prototype sprites **for that page session**. This does not touch save keys or gameplay logic.
+- No final iPad/device benchmark or browser screenshot has been validated yet. The previous CI baseline had failures; this iteration deliberately remains **draft-only** until review and test verification. Do not merge solely on the existence of these assets.
+
+Layer 3 passes the **first sprite preparation and wiring** checkpoint, but the visual acceptance checkpoint remains open until an in-game screenshot compares the two at true scale.
