@@ -162,6 +162,15 @@ service cloud.firestore {
    allow create, update: if isOwner(userId) && validStoryProgress();
    allow delete: if isOwner(userId);
   }
+  // V15 daily rankings are server-authoritative. Client writes remain forbidden
+  // until authenticated replay verification is deployed on a trusted backend.
+  match /dailyLeaderboard/{day}/scores/{userId}{
+   allow read: if true;
+   allow write: if false;
+  }
+  match /dailyScoreSubmissions/{submissionId}{
+   allow read, write: if false;
+  }
   match /users/{userId}{
    allow read: if isOwner(userId);
    allow create,update: if isOwner(userId)&&validUserDoc();
