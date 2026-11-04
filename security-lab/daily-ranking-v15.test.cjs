@@ -27,3 +27,11 @@ piko.setQuiet(0);assert.match(piko.battleCue('boss',1,'en'),/Boss detected/);
 piko.setQuiet(2);assert.equal(piko.battleCue('critical',3,'tr'),null,'quiet mode silences all Piko warnings');
 assert.equal(piko.read().quiet,2);
 console.log('PASS V15 Piko battle cue preferences');
+
+const grid=['#####','#...#','#...#','#####'];
+const near=piko.companionPosition(grid,{x:2,y:1});
+assert.equal(near.x,2);assert.equal(near.y,2);
+assert.equal(grid[near.y][near.x],'.');
+assert.equal(piko.companionPosition(grid,{x:0,y:0}),null);
+assert.equal(piko.companionPosition(grid,{x:2.5,y:1}),null);
+console.log('PASS V15 Piko corridor marker positioning and invalid-coordinate fallback');
