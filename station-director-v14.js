@@ -67,7 +67,7 @@ function walkMap(){
   const clazz='v14-cell'+(ch==='#'?' v14-wall':'')+(id?' v14-cell-door':'')+(here?' v14-player':'')+(pikoHere?' v15-piko-marker':'')+(def&&n<def.at?' v14-cell-locked':'');
   return id?'<button type="button" class="'+clazz+'" data-v14-tile="'+x+','+y+'" aria-label="'+escapeHtml(t(...def.name))+'">'+label+'</button>':'<span class="'+clazz+'" aria-hidden="true">'+label+'</span>';
  })).flat().join('');
- return '<div class="v14-walkmap" aria-label="'+t('Yürünebilir istasyon koridorları','Walkable station corridors')+'">'+cells+'</div><div class="v14-dpad"><button type="button" data-v14-move="0,-1" aria-label="Up">↑</button><button type="button" data-v14-move="-1,0" aria-label="Left">←</button><button type="button" data-v14-move="0,1" aria-label="Down">↓</button><button type="button" data-v14-move="1,0" aria-label="Right">→</button></div>';
+ return '<div class="v14-walkmap" aria-label="'+t('Yürünebilir istasyon koridorları','Walkable station corridors')+'">'+cells+'</div><p class="v14-note">● '+t('Komutan','Commander')+' · ✦ Piko</p><div class="v14-dpad"><button type="button" data-v14-move="0,-1" aria-label="Up">↑</button><button type="button" data-v14-move="-1,0" aria-label="Left">←</button><button type="button" data-v14-move="0,1" aria-label="Down">↓</button><button type="button" data-v14-move="1,0" aria-label="Right">→</button></div>';
 }
 function enter(id){
  if(id==='quarters'){close();w.TowerCommandersQuartersV13?.open();return;}
