@@ -121,6 +121,8 @@ jobs:
         run: node security-lab/fluidity-v16.test.cjs && node security-lab/station-navigation-v16.test.cjs
       - name: Verify V17 enemy sprites and legacy render fallback
         run: node security-lab/enemy-sprites-v17.test.cjs
+      - name: Verify V17 motion and boss phase visuals
+        run: node security-lab/enemy-motion-v17.test.cjs
       - name: Verify V12 boss phases, combos and narrative branching
         run: node security-lab/v12-expansion.test.cjs
 
