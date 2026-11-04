@@ -42,7 +42,7 @@ art[2].naturalWidth=128;art[2].naturalHeight=128;art[2].onload();
 assert.equal(sprites.render(ctx,{type:'boss',subType:'tank_boss',radius:40,v12Combat:{phase:2}}),true,'phase error falls back to ready base sprite');
 const render=fs.readFileSync(repoFile('render.js'),'utf8');
 assert.match(render,/if \(!v17SpriteDrawn\) \{\s*drawCustomEnemy\(/);
-assert.match(render,/TowerEnemySpritesV17\.render\(ctx, e, tx, ty\)/);
+assert.match(render,/TowerEnemySpritesV17\.render\(ctx, e, tx, ty, nowCompTime\)/);
 const index=fs.readFileSync(repoFile('index.html'),'utf8');
 assert(index.indexOf('enemy-sprites-v17.js')>index.indexOf('enemy-visual-v4.js'));
 const binaryAssets=['scout','tank_boss'];
