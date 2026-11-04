@@ -71,6 +71,55 @@ async function main() {
         const frame = page.frames().find(frame => frame.url().includes('runtime=story'));
         assert.ok(frame, 'Story must run in its own frame');
         await frame.waitForFunction(() => typeof GameModeRuntime !== 'undefined' && GameModeRuntime.storySession.active);
+        // V17 art acceptance: capture actual Canvas sprite render for all 26 IDs, not concept posters.
+        if (size.name === 'tablet') {
+          await frame.waitForFunction(() => window.TowerEnemySpritesV17?.getState().registered === 26);
+          const art = await frame.evaluate(async () => {
+            const sprites = window.TowerEnemySpritesV17;
+            const sources = [
+              ...['scout','circuit','drone','shield','raider','amber','redrunner','tank_boss'].map(id => 'assets/enemies/v17/'+id+'/body.webp'),
+              'assets/enemies/v17/atlas/late-eras.webp',
+              'assets/enemies/v17/atlas/bosses.webp'
+            ];
+            await Promise.all(sources.map(async src => {
+              const img = new Image(); img.src = src;
+              if (img.decode) await img.decode();
+              else await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;});
+              if (!img.naturalWidth || !img.naturalHeight) throw new Error('V17 raster failed: '+src);
+            }));
+            const ids = [...sprites.VARIANTS, ...sprites.BOSSES];
+            const sheet = document.createElement('canvas');
+            sheet.width = 6*120; sheet.height = 5*124;
+            const out = sheet.getContext('2d');
+            out.fillStyle='#080d16';out.fillRect(0,0,sheet.width,sheet.height);
+            const results = [];
+            for(let index=0;index<ids.length;index++){
+              const id=ids[index],boss=sprites.BOSSES.includes(id);
+              const cell=document.createElement('canvas');cell.width=110;cell.height=92;
+              const ctx=cell.getContext('2d');
+              ctx.save();ctx.translate(55,45);
+              const enemy={type:boss?'boss':'green',subType:boss?id:'normal',variantId:id,
+                radius:boss?31:17,x:0,y:0,hp:100,maxHp:100,hitFlash:0,
+                v12Combat:boss?{phase:2}:undefined};
+              const ok=sprites.render(ctx,enemy,0,100,performance.now());
+              ctx.restore();
+              const data=ctx.getImageData(0,0,110,92).data;
+              let visible=0;
+              for(let j=3;j<data.length;j+=4)if(data[j]>20)visible++;
+              if(!ok||visible<20)throw new Error('V17 sprite blank at gameplay scale: '+id+' pixels='+visible);
+              const x=(index%6)*120+5,y=Math.floor(index/6)*124+6;
+              out.drawImage(cell,x,y);
+              out.fillStyle='#c4d3df';out.font='11px sans-serif';
+              out.fillText(id,x+3,y+108);
+              results.push({id,visible});
+            }
+            return {png:sheet.toDataURL('image/png').split(',')[1],results};
+          });
+          assert.equal(art.results.length,26,'all 21 normal identities + 5 bosses render actual raster pixels');
+          fs.writeFileSync(path.join(evidence,'v17-sprites-tablet.png'),Buffer.from(art.png,'base64'));
+          results.push({target,browser:browserName,viewport:'tablet-v17-art',status:'passed',sprites:art.results.length,
+            minOpaquePixels:Math.min(...art.results.map(s=>s.visible))});
+        }
         assert.equal(await frame.evaluate(() => game.wave), 1);
         assert.equal(await frame.evaluate(() => getStoryProgress().mission1Complete), false);
         assert.equal(await frame.locator('#gameCanvas').isVisible(), true);
