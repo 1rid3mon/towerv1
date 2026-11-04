@@ -7,7 +7,7 @@ let run=game.newRun(day);const actions=[];
 for(let i=0;i<15&&!run.finished;i++){if(i===0){run=game.buy(run,0);actions.push({type:'buy',lane:0});}run=game.advance(run);actions.push({type:'next'});}
 const base={day,playerId:'player_123',actions};
 const ok=rank.validate(base,day);
-assert.equal(ok.accepted,true);
+assert.equal(ok.accepted,true,'valid replay rejected: '+JSON.stringify(ok));
 assert.equal(ok.score,game.score(run));
 assert.equal(rank.validate({...base,score:999999},day).reason,'score_mismatch');
 assert.equal(rank.validate(base,'2026-11-05').reason,'day_mismatch');
