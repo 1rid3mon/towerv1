@@ -58,3 +58,14 @@
 #v14-station .v14-dpad button:nth-child(4){grid-column:3;grid-row:2}
 @media(max-width:680px){#v14-station .v14-panel{width:100vw;margin:0;max-height:100dvh;min-height:100dvh;border-radius:0;padding:13px}#v14-station .v14-map{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:8px}#v14-station .v14-door{min-height:95px}#v14-station .v14-door strong{font-size:11px}#v14-station .v14-lanes{grid-template-columns:1fr}#v14-station .v14-lanes>div{min-height:80px}#v14-anomaly{top:4px;width:90vw}}
 @media(prefers-reduced-motion:reduce){#v14-station *,#v14-cinema *{animation:none!important;transition:none!important}}
+
+/* V15 touch/safe-area hardening: only station controls, never core combat HUD. */
+@media (pointer:coarse){
+ #v14-station button{min-height:44px;touch-action:manipulation}
+ #v14-station .v14-panel{scroll-padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch}
+}
+@media (max-width:650px){
+ #v14-station .v14-panel{width:100vw;max-width:100vw;max-height:100dvh;height:100dvh;margin:0;border-radius:0;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(20px + env(safe-area-inset-bottom,0px));}
+ #v14-station .v14-actions{flex-wrap:wrap}
+ #v14-station .v14-actions button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+}
