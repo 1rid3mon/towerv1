@@ -48,7 +48,15 @@ function imageFor(src){
 }
 function idFor(enemy){
  if(!enemy)return null;
- return enemy.type==='boss'?(enemy.subType||'leviathan'):enemy.variantId||null;
+ if(enemy.type==='boss')return enemy.subType||'leviathan';
+ if(enemy.variantId)return enemy.variantId;
+ // Elites intentionally skip diversity.decorate(); reuse an existing body sprite,
+ // while the gameplay's gold elite marker remains independently visible.
+ if(enemy.isElite){
+  const family={green:'scout',tank:'shield',runner:'redrunner',ranged:'drone',teleporter:'amber',frost:'ice'};
+  return family[enemy.subType]||family[enemy.type]||null;
+ }
+ return null;
 }
 function render(ctx,enemy,tx,ty){
  if(!enabled||!ctx||!enemy||!Number.isFinite(enemy.radius)||enemy.radius<=0)return false;
@@ -75,9 +83,17 @@ function render(ctx,enemy,tx,ty){
     ctx.rotate(Math.atan2(ty-enemy.y,tx-enemy.x)-base);
    }
    // Phase shifts are material response only; never change movement or attack logic.
-   if(enemy.type==='boss'&&def.phaseIntensity&&phase>1&&typeof ctx.filter==='string'){
-    const factor=def.phaseIntensity[Math.min(phase-2,1)];
-    ctx.filter='brightness('+factor.toFixed(2)+') saturate('+Math.min(1.6,factor+0.15).toFixed(2)+')';
+   if(typeof ctx.filter==='string'){
+    const effects=[];
+    if(enemy.type==='boss'&&def.phaseIntensity&&phase>1){
+     const factor=def.phaseIntensity[Math.min(phase-2,1)];
+     effects.push('brightness('+factor.toFixed(2)+') saturate('+Math.min(1.6,factor+0.15).toFixed(2)+')');
+    }
+    if(enemy.isElite)effects.push('brightness(1.12) saturate(1.14)');
+    if(enemy.type==='boss'&&Number(enemy.maxHp)>0&&Number(enemy.hp)/enemy.maxHp<0.35){
+     effects.push('contrast(1.15) saturate(0.90)');
+    }
+    if(effects.length)ctx.filter=effects.join(' ');
    }
    // Explicit atlas crop: one WebP shared by several enemies, drawn once per frame.
    const drawBody=()=>{
