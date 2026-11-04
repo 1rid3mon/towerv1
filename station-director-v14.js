@@ -35,6 +35,8 @@ function saveBest(r){
  if(value>current)try{localStorage.setItem(BEST_KEY,JSON.stringify({day:r.date,score:value}));}catch(_){}
 }
 function pikoLine(){
+ const companion=w.TowerPikoV3;
+ if(companion)return companion.reply(room,progress(),stats(),typeof getGameLanguage==='function'?getGameLanguage():'tr');
  const p=progress(),profile=logic.pikoProfile(p,stats());
  const lines={
  echo:['Echo: Komutan, beni seçtiğin adı unutmadım.','Echo: Commander, I remember the name you chose.'],
@@ -73,7 +75,8 @@ function hub(){const n=completed(),stage=logic.stationStage(n);
  const stageNames=[['SESSİZ İSTASYON','SILENT STATION'],['İLK IŞIKLAR','FIRST LIGHTS'],['CANLANAN İSTASYON','REVIVING STATION'],['YENİ KOMUTA ÜSSÜ','NEW COMMAND BASE']];
  return '<div class="v14-status"><strong>'+escapeHtml(t(...stageNames[stage]))+'</strong><span>'+n+'/27 '+escapeHtml(t('görev tamamlandı','missions completed'))+'</span></div>'+ (room==='map'?walkMap():'')+'<div class="v14-map v14-stage-'+stage+'">'+ROOMS.map(r=>itemMarkup(r,n)).join('')+'</div><p class="v14-note">'+escapeHtml(t('Koridorlarda yön tuşları / WASD ile yürü, kapılara ulaş veya doğrudan kapıya dokun.','Walk using arrow keys / WASD, approach a door or tap it directly.'))+'</p>';
 }
-function bridge(){return '<h3>'+t('Komuta Köprüsü','Command Bridge')+'</h3><p>'+escapeHtml(pikoLine())+'</p><div class="v14-actions"><button data-v14-piko="1">'+t('Piko ile konuş','Talk to Piko')+'</button><button data-v14-daily="1">'+t('Günlük savunma tatbikatı','Daily defense drill')+'</button><button data-v14-sector="1">'+t('Keşif sektörleri','Exploration sectors')+'</button></div>';}
+function pikoControls(){const m=w.TowerPikoV3?.read();if(!m)return '';return '<div class="v14-actions"><button type="button" data-v14-quiet="0">'+t('Konuşkan','Chatty')+(m.quiet===0?' ✓':'')+'</button><button type="button" data-v14-quiet="1">'+t('Dengeli','Balanced')+(m.quiet===1?' ✓':'')+'</button><button type="button" data-v14-quiet="2">'+t('Sessiz','Quiet')+(m.quiet===2?' ✓':'')+'</button></div><p class="v14-note">'+t('Piko hafızası bu cihazda tutulur; hikâye kayıtlarını değiştirmez.','Piko memory stays on this device and never changes story saves.')+'</p>';}
+function bridge(){return '<h3>'+t('Komuta Köprüsü','Command Bridge')+'</h3><p>'+escapeHtml(pikoLine())+'</p><div class="v14-actions"><button data-v14-piko="1">'+t('Piko ile konuş','Talk to Piko')+'</button><button data-v14-daily="1">'+t('Günlük savunma tatbikatı','Daily defense drill')+'</button><button data-v14-sector="1">'+t('Keşif sektörleri','Exploration sectors')+'</button></div>'+pikoControls();}
 function hangar(){return '<h3>'+t('Savunma Hangarı','Defense Hangar')+'</h3><p>'+t('Gerçek savaşta etkin V12 kombinasyonları:','V12 combinations active in real combat:')+'</p><div class="v14-logs"><p>❄ '+t('Buz + Lazer/Plazma: kırılma hasarı','Frost + Laser/Plasma: shatter damage')+'</p><p>⚡ '+t('Plazma işareti + Füze: ek hasar','Plasma mark + Missile: bonus damage')+'</p><p>⬡ '+t('Bosslar %65 ve %28 can eşiklerinde faz değiştirir','Bosses change phase at 65% and 28% health')+'</p></div><p class="v14-note">'+t('Kombolar gerçek yoldaşların açılmış olmasını gerektirir. Bu ekran savaş gücü veya kaynak eklemez.','Combos require unlocked companions. This room grants no power or resources.')+'</p>';}
 function archive(){
  const p=progress();
@@ -143,12 +146,13 @@ function onClick(e){
  }
  if(btn.hasAttribute('data-v14-sector')){close();w.TowerOverhaulV11?.sectorsUI();return;}
  if(btn.hasAttribute('data-v14-daily')){room='daily';notice='';paint();return;}
- if(btn.hasAttribute('data-v14-piko')){notice=pikoLine();paint();return;}
+ if(btn.hasAttribute('data-v14-quiet')){w.TowerPikoV3?.setQuiet(Number(btn.dataset.v14Quiet));notice=t('Piko konuşma tercihini kaydetti.','Piko saved your conversation preference.');paint();return;}
+ if(btn.hasAttribute('data-v14-piko')){w.TowerPikoV3?.record('talk',room);notice=pikoLine();paint();return;}
  if(btn.hasAttribute('data-v14-cinema')){cinema();return;}
  if(btn.hasAttribute('data-v14-puzzle')){
   const p=PUZZLES.find(x=>x.id===btn.dataset.v14Puzzle),answer=Number(btn.dataset.v14Answer);
   if(!p||completed()<p.at||readSolved().includes(p.id))return;
-  if(answer===p.answer){solve(p.id);notice=t('Sinyal çözüldü!','Signal decoded!');}else notice=t('Yanlış frekans. Tekrar dene.','Wrong frequency. Try again.');
+  if(answer===p.answer){solve(p.id);w.TowerPikoV3?.record('puzzle',p.id);notice=t('Sinyal çözüldü!','Signal decoded!');}else notice=t('Yanlış frekans. Tekrar dene.','Wrong frequency. Try again.');
   paint();return;
  }
  if(btn.hasAttribute('data-v14-buy')){run=logic.buy(run,Number(btn.dataset.v14Buy));paint();return;}
