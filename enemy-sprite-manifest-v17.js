@@ -12,7 +12,15 @@
    id:'tank_boss',body:'assets/enemies/v17/tank_boss/body.webp',
    pivot:[0.5,0.5],facing:'down',scale:1.13
  });
- sprites.preload(['scout','tank_boss']);
+ // Layer 4: first two complete enemy families. Every other identity keeps legacy art.
+ const earlyVariantIds=['circuit','drone','shield','raider','amber','redrunner'];
+ for(const id of earlyVariantIds){
+   sprites.register({
+     id,body:'assets/enemies/v17/'+id+'/body.webp',
+     pivot:[0.5,0.5],facing:'down',scale:id==='amber'?1.20:1.34
+   });
+ }
+ sprites.preload(['scout','circuit','drone','shield','raider','amber','redrunner','tank_boss']);
  // Non-invasive side-by-side comparison on mobile: append ?enemyArt=legacy.
  if(root.location && /(?:[?&])enemyArt=legacy(?:&|$)/.test(root.location.search||'')){
    sprites.setEnabled(false);
