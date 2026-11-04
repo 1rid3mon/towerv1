@@ -67,3 +67,18 @@ combat.spawn(titan);combat.tick(titan,.1,{});
 assert.ok(combat.interference([titan]).range<1,'boss temporarily alters combat terrain');
 combat.tick(titan,8,{});
 assert.equal(combat.interference([titan]).range,1,'terrain returns to normal');
+
+assert.equal(api.verifyReplay('not-a-date',[]).valid,false);
+assert.equal(api.verifyReplay('2026-02-30',[]).valid,false);
+assert.equal(api.verifyReplay(day,[{type:'buy',lane:9}]).valid,false);
+assert.equal(api.verifyReplay(day,[{type:'next'}]).valid,false,'unfinished replays cannot be ranked');
+const legal=[];
+let replay=api.newRun(day);
+for(let i=0;i<15&&!replay.finished;i++){
+ if(i===0){replay=api.buy(replay,0);legal.push({type:'buy',lane:0});}
+ replay=api.advance(replay);legal.push({type:'next'});
+}
+const verified=api.verifyReplay(day,legal);
+assert.equal(verified.valid,true);
+assert.equal(verified.score,api.score(replay));
+assert.equal(api.verifyReplay(day,[...legal,{type:'next'}]).valid,false,'post-finish injection rejected');
