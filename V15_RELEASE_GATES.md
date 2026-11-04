@@ -35,3 +35,9 @@ Base: PR #87 V14 + Piko 3.0 + Boss V15 at df402084. This branch is **not** a pro
 - [ ] All stage checks green on a frozen final SHA, manual review, backup/rollback plan.
 - [ ] Merge integration once, then verify Vercel production SHA and live URL.
 - [ ] Never promote preview merely because Vercel says READY.
+
+## 2026-11-04 implementation increment
+- Replay-validated candidate ranking module and deterministic negative-case unit tests added; **no public score submission endpoint exists**.
+- Piko phase/boss alerts wired to the existing nonblocking boss HUD with quiet/balanced/chatty preferences; tests added.
+- Mobile station touch target and safe-area CSS adjustments added; real-device verification still pending.
+- All new work stays in stacked draft PR #88. CI and production deployment are not assumed successful.
