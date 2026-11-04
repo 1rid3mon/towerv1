@@ -113,6 +113,7 @@ assert.equal(JSON.stringify(bossCues),JSON.stringify([['ranged_boss',1],['ranged
 cinemaCombatContext.window.document.body.dataset.gameMode='story';
 assert.equal(cinemaCombat.spawn({type:'boss',subType:'leviathan'}),false,'cinematic hooks must not alter story');
 console.log('PASS Boss V15: introduction, phase cues and story isolation');
+cinemaCombatContext.window.document.body.dataset.gameMode='endless';
 
 cinematicBoss.v12Combat.disruption=0;
 for(let i=0;i<9;i++)cinemaCombat.tick(cinematicBoss,1,{});
