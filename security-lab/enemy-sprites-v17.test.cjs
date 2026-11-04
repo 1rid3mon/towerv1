@@ -52,5 +52,5 @@ for(const name of binaryAssets){
  assert.equal(asset.subarray(8,12).toString('ascii'),'WEBP');
 }
 const manifest=fs.readFileSync(repoFile('enemy-sprite-manifest-v17.js'),'utf8');
-assert.match(manifest,/sprites\\.register\\(/);
+assert.match(manifest,/sprites\.register\(/);
 console.log('V17 sprite registry/loader/fallback and raster assets checks passed');
