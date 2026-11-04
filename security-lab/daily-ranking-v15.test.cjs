@@ -43,3 +43,10 @@ assert.equal(rank.validate({...base,actions:Array(81).fill({type:'next'})},day).
 assert.equal(rank.validate({...base,actions:[{type:'buy',lane:0,energy:9999}]},day).reason,'invalid_actions');
 assert.equal(rank.validate({...base,day:'2026-02-30'},'2026-02-30').reason,'day_mismatch');
 console.log('PASS V15 strict action schema, length cap and real calendar dates');
+
+const otherDay={...ok,day:'2026-11-05',playerId:'player_999',score:ok.score+999};
+const scoped=rank.rank([ok,otherDay],25,day);
+assert.equal(scoped.length,1,'different-day scores never enter a scoped daily table');
+assert.equal(scoped[0].playerId,'player_123');
+assert.equal(rank.rank([ok],25,'2026-02-30').length,0,'invalid day returns no ranking');
+console.log('PASS V15 day-scoped leaderboard sorting');
