@@ -15,7 +15,8 @@ function cue(type,phase){
  const TACTICS={tank_boss:[['Zırh güçleniyor · Menzil düşebilir','Armor strengthens · Range may drop'],['Alan baskısı artıyor','Area pressure intensifies']],ranged_boss:[['Kule atışları kesintiye uğrayabilir','Tower fire may be jammed'],['Sinyal darbeleri tekrarlanacak','Signal pulses will repeat']],speed_boss:[['Atılma aralıkları kısalıyor','Dash intervals shorten'],['Hızlı atılmalara dikkat','Watch for rapid dashes']],frost_boss:[['Soğuk alanı menzili daraltabilir','Cold field may reduce range'],['Buz baskısı güçleniyor','Cryo pressure intensifies']],leviathan:[['Sinyal bozucu etkin','Signal jammer active'],['Güçlü bozucu darbeler geliyor','Strong jamming pulses incoming']]};
  const tactic=TACTICS[type]?.[phase===3?1:0];
  const subtitle=phase===1?label('Savunma düzenini koru','Hold your defenses'):tactic?label(...tactic):label('Kritik tehdit','Critical threat');
- node.textContent=title+' · '+name[english()?1:0]+' — '+subtitle;
+ const piko=w.TowerPikoV3?.battleCue(phase===1?'boss':'phase',phase,english()?'en':'tr');
+ node.textContent=title+' · '+name[english()?1:0]+' — '+subtitle+(piko?' | PIKO: '+piko:'');
  node.dataset.phase=String(phase);
  node.dataset.boss=type;
  const reduced=!!w.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
