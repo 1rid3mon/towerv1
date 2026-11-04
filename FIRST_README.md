@@ -745,3 +745,32 @@ Limits retained explicitly:
 - Earlier combined WebKit timeout remains recorded as cancelled; it was corrected by splitting suites, not by accepting that cancelled run or removing assertions.
 
 Result: **V11 INTEGRATION COMPLETED / MAIN MERGED / PRODUCTION GAMEPLAY VERIFIED**. This final appended record is documentation-only; no executable asset, player record or rule is changed by the documentation commit.
+
+
+### 2026-11-04 — V14 living station / daily drill candidate (NOT YET RELEASED)
+
+- [x] New branch: feature/v14-living-station-anomalies-daily-20261104, based on tested V13 Commander's Quarters PR #85 head; latest main reconciliation still required.
+- [x] station-systems-v14.js: bounded Endless anomalies every seventh non-boss wave: tower range -18%, enemy movement -18% or tower firing frequency -15%; rotating by wave. Pure deterministic UTC daily defense plan and station/Piko progression logic.
+- [x] engine.js: real Endless combat hooks for movement, tower target range, tower cooldown and anomaly banner; excludes Story runtime. No core save schema change.
+- [x] station-director-v14.js and CSS: accessible responsive six-room map, V13 quarters integration, V12 hangar mechanics, decision memory archive, three gated puzzles, optional skippable three-scene cinematic, Piko contextual dialogue, V11 sector navigation, deterministic 3-lane daily defense exercise.
+- [x] Daily drill supports 15 turns, towers, upgrades, enemies, score and local personal best. Same UTC date uses the same opponents and initial energy across players; isolated storage keys towerV1StationPuzzleV14 and towerV1DailyPracticeV14.
+- [x] index.html loads new scripts, and Node VM/Chromium/WebKit tests are added to CI.
+- [ ] CI, visual QA and current production deployment NOT YET verified at time of this note. Never call this released without evidence.
+- [ ] No global daily leaderboard: must add validated server simulation / replay or authoritative source plus Firestore rules and abuse prevention. Local scores cannot support secure global competition.
+- [ ] Walkable avatar-based station free roam, four-language localization polish, deeper cinematic camera and media, real cloud cross-device sync and physical iPad/Android tests remain beyond this patch.
+- [ ] Do not merge to main unless all Node, Chromium/WebKit, campaign, Firestore, and preview checks pass against latest main.
+
+### 2026-11-04 follow-up: V14 boss and ranking safeguards
+
+- Added real V12 phase-triggered Endless boss interference: ranged/Leviathan jam tower firing for 1.6–2.6 simulated seconds; Titan/Cryo temporarily reduce effective tower range and enemy movement for 5–7 seconds. All effects expire, are bounded, and Story is excluded.
+- Added strict UTC date checks and deterministic action-replay verification (`verifyReplay`) with tests for illegal purchases, incomplete sessions and post-finish action injection. This is a prerequisite for secure ranking, **not** an online leaderboard; do not accept scores solely from the client.
+- Earlier PR-triggered 538f5089 CI passed all five jobs; one push-triggered WebKit run timed out waiting for `networkidle` on reload. Subsequent head commits require fresh full CI before merge.
+- Latest main still needs reconciliation, preview smoke, real-device performance and Firebase security review before production. No production promotion authorized by this note.
+
+### 2026-11-04 — V14 CI verification (release deliberately deferred)
+
+- PR #87 head `1afb3361d15b1fad4068acf28f51511ed101a524` passed both GitHub Actions runs: PR run `41783870867` and push run `41783863681`.
+- All five jobs passed in each run: Chromium overhaul browser, WebKit overhaul browser, Firestore emulator, browser smoke and WebKit smoke (10/10 job results).
+- PR was reported mergeable/clean against main `ff7b66e5ee04f3352b211723a0d5b84e1b38681d` when checked. Vercel preview of this head was READY, but production deployment and real-device QA are not implied by CI.
+- Per owner's instruction, keep PR #87 in draft; DO NOT merge main or promote/deploy to Vercel production until the later consolidated release. Existing production stays unchanged.
+- Outstanding: secure server-authoritative leaderboard, real account/cloud and physical-device QA, final consolidated release review.
