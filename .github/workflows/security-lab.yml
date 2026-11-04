@@ -31,6 +31,7 @@ on:
       - "*v14.js"
       - "*v15.js"
       - "*v16.js"
+      - "*v17.js"
       - "enemy-*.js"
       - "living-space.js"
       - "theme-atmosphere.js"
@@ -64,6 +65,7 @@ on:
       - "*v14.js"
       - "*v15.js"
       - "*v16.js"
+      - "*v17.js"
       - "enemy-*.js"
       - "living-space.js"
       - "theme-atmosphere.js"
@@ -117,6 +119,10 @@ jobs:
         run: node security-lab/daily-ranking-v15.test.cjs && node security-lab/boss-cinema-v15.test.cjs && node security-lab/boss-hud-rearm-v15.test.cjs
       - name: Verify V16 responsive fluidity and QTE timer
         run: node security-lab/fluidity-v16.test.cjs && node security-lab/station-navigation-v16.test.cjs
+      - name: Verify V17 enemy sprites and legacy render fallback
+        run: node security-lab/enemy-sprites-v17.test.cjs
+      - name: Verify V17 motion and boss phase visuals
+        run: node security-lab/enemy-motion-v17.test.cjs
       - name: Verify V12 boss phases, combos and narrative branching
         run: node security-lab/v12-expansion.test.cjs
 

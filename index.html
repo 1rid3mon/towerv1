@@ -910,7 +910,7 @@
             <div class="flex flex-col">
                 <div class="hidden sm:flex items-center gap-2">
                     <h1 class="font-tech font-bold text-sm sm:text-xl text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 tracking-wider">KULE SAVUNMA</h1>
-                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 2.3.0 yeniliklerini göster" class="rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[10px] font-bold tracking-wide text-cyan-300 hover:bg-cyan-500/20 transition">v2.3.0</button>
+                    <button type="button" onclick="openUpdateNotesModal()" aria-label="LOST SIGNAL V17 sürüm ve yeniliklerini göster" class="rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[10px] font-bold tracking-wide text-cyan-300 hover:bg-cyan-500/20 transition">LOST SIGNAL · V17</button>
                 </div>
                 <div class="flex items-center space-x-3 sm:space-x-4 mt-0.5">
                     <div class="flex items-center gap-1.5" title="Altın">
@@ -925,7 +925,7 @@
                         <i class="fa-solid fa-fire text-[10px] sm:text-sm text-purple-400 neon-text-purple"></i>
                         <div id="ui-souls" class="font-tech font-bold text-xs sm:text-base text-purple-400 neon-text-purple leading-tight">0</div>
                     </div>
-                    <button type="button" onclick="openUpdateNotesModal()" aria-label="Sürüm 2.3.0 yeniliklerini göster" class="sm:hidden rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[9px] font-bold tracking-wide text-cyan-300">v2.3.0</button>
+                    <button type="button" onclick="openUpdateNotesModal()" aria-label="LOST SIGNAL V17 sürüm ve yeniliklerini göster" class="sm:hidden rounded-md border border-cyan-400/40 bg-cyan-500/10 px-1.5 py-0.5 font-tech text-[9px] font-bold tracking-wide text-cyan-300">LOST SIGNAL · V17</button>
                 </div>
             </div>
         </div>
@@ -1673,18 +1673,23 @@
         </div>
     </div>
 
-    <!-- v2.0.0 season update notes -->
+    <!-- Historical V2.3 release notes retained; current release branding is LOST SIGNAL. -->
     <div id="update-notes-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md items-center justify-center p-4 z-[70]" role="dialog" aria-modal="true" aria-labelledby="update-notes-title" onclick="if(event.target === this) closeUpdateNotesModal()">
         <div class="w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-2xl border border-teal-400/25 bg-slate-900 p-5 shadow-2xl">
             <div class="flex items-start justify-between gap-3">
                 <div>
                     <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-teal-300">BÜYÜK SEZON GÜNCELLEMESİ</div>
-                    <h2 id="update-notes-title" class="mt-1 font-tech text-2xl font-bold text-white">Kule Savunma <span class="text-teal-300">v2.3.0</span></h2>
+                    <h2 id="update-notes-title" class="mt-1 font-tech text-2xl font-bold text-white">Kule Savunma <span class="text-teal-300">LOST SIGNAL</span></h2>
                     <p class="mt-1 text-xs text-slate-400">Savaş anları • Boss girişi • Özgün ses efektleri</p>
+                    <p class="mt-1 text-[10px] text-slate-500">Önceki sezon arşivi: v2.0.0 · v2.3.0</p>
                 </div>
                 <button type="button" onclick="closeUpdateNotesModal()" aria-label="Yenilikler penceresini kapat" class="rounded-lg bg-slate-800 px-3 py-2 text-slate-300 hover:bg-slate-700">✕</button>
             </div>
             <div class="mt-5 space-y-3">
+                <div class="flex gap-3 rounded-xl border border-cyan-400/30 bg-cyan-500/10 p-3">
+                    <i class="fa-solid fa-robot mt-0.5 text-cyan-300"></i>
+                    <div><div class="text-sm font-semibold text-white">V17 • LOST SIGNAL: Düşmanların Yeni Görünümü</div><p class="mt-1 text-xs leading-relaxed text-slate-300">21 düşman ve 5 boss için raster sprite görselleri; daha okunaklı siluetler, hafif motor/hasar animasyonları ve boss fazı görsel tepkileri. Düşman dengesi, ekonomi, hikâye ve kayıtlar değişmez. Görsel yüklenmezse mevcut çizim kullanılır.</p></div>
+                </div>
                 <div class="flex gap-3 rounded-xl border border-rose-400/25 bg-rose-500/5 p-3">
                     <i class="fa-solid fa-tower-broadcast mt-0.5 text-rose-300"></i>
                     <div><div class="text-sm font-semibold text-white">V2.3 • Savaşın ritmi</div><p class="mt-1 text-xs leading-relaxed text-slate-300">Dalga başında taktik çağrı, boss geldiğinde özel tehdit kartı ve dalga bitince altın/kristal ödül özeti. Gösterimler gerçek oyun olaylarına bağlıdır; ödülleri veya düşman dengesini değiştirmez.</p></div>
@@ -1803,6 +1808,9 @@
 <script src="engine.js"></script>
 <script src="lost-signal-art.js"></script>
 <script src="enemy-visual-v4.js"></script>
+<script src="enemy-motion-v17.js"></script>
+<script src="enemy-sprites-v17.js"></script>
+<script src="enemy-sprite-manifest-v17.js"></script>
 <script src="enemy-diversity.js"></script>
 <script src="command-sounds.js"></script>
 <script src="lost-signal-towers.js"></script>

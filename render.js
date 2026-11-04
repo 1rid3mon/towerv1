@@ -2868,9 +2868,13 @@ function renderGame() {
             const label='BOSS / FAZ '+e.v12Combat.phase;
             ctx.strokeText(label,0,-e.radius-29);ctx.fillText(label,0,-e.radius-29);ctx.restore();
         }
-        drawCustomEnemy(ctx, e, tx, ty, nowCompTime);
-        if (typeof TowerEnemyVisualV4 !== "undefined") TowerEnemyVisualV4.draw(ctx, e, nowCompTime, "normal");
-        if (typeof TowerLostSignalArt !== "undefined") TowerLostSignalArt.drawEnemyDetails(ctx, e, nowCompTime);
+        // V17: either a complete sprite or the complete legacy body stack; never both.
+        const v17SpriteDrawn = typeof TowerEnemySpritesV17 !== "undefined" && TowerEnemySpritesV17.render(ctx, e, tx, ty, nowCompTime);
+        if (!v17SpriteDrawn) {
+            drawCustomEnemy(ctx, e, tx, ty, nowCompTime);
+            if (typeof TowerEnemyVisualV4 !== "undefined") TowerEnemyVisualV4.draw(ctx, e, nowCompTime, "normal");
+            if (typeof TowerLostSignalArt !== "undefined") TowerLostSignalArt.drawEnemyDetails(ctx, e, nowCompTime);
+        }
 
         if (e.hp < e.maxHp || e.type === 'boss' || e.isElite) {
             const isBoss = e.type === 'boss';
