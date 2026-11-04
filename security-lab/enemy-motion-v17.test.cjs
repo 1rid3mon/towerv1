@@ -35,6 +35,9 @@ const ctx={
 };
 fx.under(ctx,{type:'runner',radius:14,subType:'runner'},fx.frame({type:'runner',radius:14},100),28);
 assert.equal(calls.filter(c=>c==='fill').length,2,'at most two exhaust points per body');
+const bossThrusterStart=calls.length;
+fx.under(ctx,boss,fx.frame(boss,1300),66);
+assert.equal(calls.length,bossThrusterStart,'bosses use authored engines without duplicate thruster dots');
 fx.over(ctx,boss,next,66);
 assert(calls.includes('stroke'),'phase transition ring drawn');
 const count=calls.length;
