@@ -3,7 +3,7 @@
   "private": true,
   "description": "Firestore Emulator regression tests for the versioned root firestore.rules candidate. Emulator-only; does not deploy production rules.",
   "scripts": {
-    "test": "firebase emulators:exec --config ../firebase.json --only auth,firestore --project demo-towerv1-security-lab \"node --test\""
+    "test": "firebase emulators:exec --config ../firebase.json --only firestore --project demo-towerv1-security-lab \"node --test\""
   },
   "devDependencies": {
     "playwright": "1.62.1",

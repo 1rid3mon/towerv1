@@ -1,10 +1,5 @@
 # Isolated Firestore Security Lab
 
-See [Firebase setup and live verification status](../FIREBASE_SETUP.md) for
-project selection, production access requirements, and safe local testing.
-`npm test` now starts both Auth and Firestore. The integration test uses real
-local Auth tokens to verify save ownership and second-client restoration.
-
 This folder is a **test harness only**. File `firestore.rules.snapshot` preserves the rules shared by the project owner in chat on 2026-10-22. File `firestore.rules` is a **candidate policy** for isolated emulator tests, with a persistent per-user rate-limit record. Neither file proves what is currently deployed, and nothing here deploys to Firebase.
 
 ## Run

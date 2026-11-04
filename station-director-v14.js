@@ -59,13 +59,15 @@ function walk(dx,dy){
 }
 function walkMap(){
  const n=completed();
+ const pikoPos=w.TowerPikoV3?.companionPosition?.(GRID,avatar);
  const cells=GRID.map((row,y)=>Array.from(row,(ch,x)=>{
   const id=DOOR_CODES[ch],def=ROOMS.find(r=>r.id===id),here=avatar.x===x&&avatar.y===y;
-  const label=here?'●':ch==='#'?'':id?ch:'·';
-  const clazz='v14-cell'+(ch==='#'?' v14-wall':'')+(id?' v14-cell-door':'')+(here?' v14-player':'')+(def&&n<def.at?' v14-cell-locked':'');
+  const pikoHere=!!pikoPos&&pikoPos.x===x&&pikoPos.y===y&&!here;
+  const label=here?'●':pikoHere?'✦':ch==='#'?'':id?ch:'·';
+  const clazz='v14-cell'+(ch==='#'?' v14-wall':'')+(id?' v14-cell-door':'')+(here?' v14-player':'')+(pikoHere?' v15-piko-marker':'')+(def&&n<def.at?' v14-cell-locked':'');
   return id?'<button type="button" class="'+clazz+'" data-v14-tile="'+x+','+y+'" aria-label="'+escapeHtml(t(...def.name))+'">'+label+'</button>':'<span class="'+clazz+'" aria-hidden="true">'+label+'</span>';
  })).flat().join('');
- return '<div class="v14-walkmap" aria-label="'+t('Yürünebilir istasyon koridorları','Walkable station corridors')+'">'+cells+'</div><div class="v14-dpad"><button type="button" data-v14-move="0,-1" aria-label="Up">↑</button><button type="button" data-v14-move="-1,0" aria-label="Left">←</button><button type="button" data-v14-move="0,1" aria-label="Down">↓</button><button type="button" data-v14-move="1,0" aria-label="Right">→</button></div>';
+ return '<div class="v14-walkmap" aria-label="'+t('Yürünebilir istasyon koridorları','Walkable station corridors')+'">'+cells+'</div><p class="v14-note">● '+t('Komutan','Commander')+' · ✦ Piko</p><div class="v14-dpad"><button type="button" data-v14-move="0,-1" aria-label="Up">↑</button><button type="button" data-v14-move="-1,0" aria-label="Left">←</button><button type="button" data-v14-move="0,1" aria-label="Down">↓</button><button type="button" data-v14-move="1,0" aria-label="Right">→</button></div>';
 }
 function enter(id){
  if(id==='quarters'){close();w.TowerCommandersQuartersV13?.open();return;}

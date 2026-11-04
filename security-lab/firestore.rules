@@ -1,32 +1,12 @@
 rules_version = '2';
-// Prototype policy for TowerV1's existing Standard/Native (default) database.
-// users/{uid}: private username:string<=60, saveData:JSON string<=200000,
-// highestWave:number 1..5000, updatedAt:client milliseconds. All required.
-// leaderboard/{uid}: public gameplay fields only; owner writes an atomic batch
-// with leaderboardRateLimits/{uid} (uid, highestWave, server updatedAt).
-// Existing public leaderboard reads are preserved for the game's guest UI.
-// usernameRegistry/{normalizedName}: uid, username, updatedAt; authenticated lookup.
-// friendRequests/{fromUid}_{toUid}: participant-only, bounded names/UIDs,
-// server timestamps, pending -> accepted/rejected; sender may retry rejection.
-// storyProgress/{uid}: private typed mission flags/choices, including finale 22-27.
-// Existing unknown legacy save/score fields are immutable, not deleted or exposed.
-// No document field grants administrative privileges. Unmatched paths are denied.
-// Client-reported currency/scores remain untrusted; rules cannot verify gameplay.
 service cloud.firestore {
  match /databases/{database}/documents {
   function maxWave(){return 5000;}
   function isOwner(userId){return request.auth != null && request.auth.uid == userId;}
   function validNum(v,lo,hi){return v is number && v>=lo && v<=hi;}
-  function validWritableFields(allowed){
-   return request.method == 'create'
-    ? request.resource.data.keys().hasOnly(allowed)
-    : request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowed);
-  }
   function validUserDoc(){
    let d=request.resource.data;
    return d.keys().size()<=20
-    && d.keys().hasAll(['username','saveData','highestWave','updatedAt'])
-    && validWritableFields(['username','saveData','highestWave','updatedAt'])
     && d.get('username','x') is string
     && d.get('username','x').size()<=60
     && d.get('saveData','') is string
@@ -37,8 +17,6 @@ service cloud.firestore {
   function validBoardDoc(userId){
    let d=request.resource.data;
    return d.keys().size()<=20
-    && d.keys().hasAll(['uid','username','highestWave','wave','damage','prestiges','activeSkin','updatedAt'])
-    && validWritableFields(['uid','username','highestWave','wave','damage','prestiges','activeSkin','updatedAt'])
     && d.get('uid',userId)==userId
     && d.get('username','x') is string
     && d.get('username','x').size()>=1
@@ -108,22 +86,9 @@ service cloud.firestore {
    allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
   }
   match /friendRequests/{requestId} {
-   function validFriendRequestData() {
-    let d = request.resource.data;
-    return d.keys().hasAll(['fromUid','toUid','fromUsername','toUsername','status','createdAt','updatedAt'])
-     && d.keys().hasOnly(['fromUid','toUid','fromUsername','toUsername','status','createdAt','updatedAt'])
-     && d.fromUid is string && d.fromUid.size()>=1 && d.fromUid.size()<=128
-     && d.toUid is string && d.toUid.size()>=1 && d.toUid.size()<=128
-     && d.fromUid != d.toUid && requestId == d.fromUid + '_' + d.toUid
-     && d.fromUsername is string && d.fromUsername.matches('^[a-z0-9_.-]{3,18}$')
-     && d.toUsername is string && d.toUsername.matches('^[a-z0-9_.-]{3,18}$')
-     && d.status in ['pending','accepted','rejected']
-     && d.createdAt is timestamp && d.updatedAt is timestamp;
-   }
    function validFriendRequest() {
     let d = request.resource.data;
-    return validFriendRequestData()
-     && d.keys().hasOnly(['fromUid','toUid','fromUsername','toUsername','status','createdAt','updatedAt'])
+    return d.keys().hasOnly(['fromUid','toUid','fromUsername','toUsername','status','createdAt','updatedAt'])
      && d.fromUid is string && d.toUid is string
      && d.fromUid != d.toUid
      && requestId == d.fromUid + '_' + d.toUid
@@ -138,20 +103,12 @@ service cloud.firestore {
    }
    allow read: if request.auth != null
     && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
-   // The web transaction reads both directions before the first request exists.
-   // Only a participant in a generated Firebase UID pair may read absence;
-   // existing documents and all queries still require actual participant fields.
-   allow get: if request.auth != null
-    && !exists(/databases/$(database)/documents/friendRequests/$(requestId))
-    && requestId.split('_').size() == 2
-    && request.auth.uid in requestId.split('_');
    allow create: if request.auth != null
     && request.resource.data.fromUid == request.auth.uid
     && validFriendRequest()
     && (!exists(/databases/$(database)/documents/friendRequests/$(request.resource.data.toUid + '_' + request.resource.data.fromUid))
       || get(/databases/$(database)/documents/friendRequests/$(request.resource.data.toUid + '_' + request.resource.data.fromUid)).data.status == 'rejected');
    allow update: if request.auth != null
-    && validFriendRequestData()
     && request.resource.data.fromUid == resource.data.fromUid
     && request.resource.data.toUid == resource.data.toUid
     && request.resource.data.fromUsername == resource.data.fromUsername
