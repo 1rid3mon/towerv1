@@ -2649,9 +2649,9 @@ function renderGame() {
         const star = Math.min(5, Math.max(1, st.level || 1));
         ctx.save();
         ctx.translate(st.x, st.y);
-        // Companion gameplay footprint is unchanged. Scale all on-field skins only,
+        // Companion gameplay footprint is unchanged. Scale all on-field skins to 48% of the previous 65% size,
         // including Echo, collectibles and the legacy fallback; UI previews stay readable.
-        ctx.scale(0.65, 0.65);
+        ctx.scale(0.312, 0.312);
         // Shared LOST SIGNAL chassis for the default ally family; owned custom skins remain intact.
         const unifiedAlly = window.TowerUnifiedCharactersV17 &&
             window.TowerUnifiedCharactersV17.drawCompanion(ctx, activeCompSkin, key, star, st.angle || 0, nowCompTime);
