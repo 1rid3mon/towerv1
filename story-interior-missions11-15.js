@@ -8,7 +8,7 @@ let vw=0,vh=0,last=0,phase=0,dialog=false,complete=false,combat=false,round=0,hp
 function wall(x,y,w,h){walls.push({x,y,w,h})}function gate(x,y,w,h,openPhase){gates.push({x,y,w,h,openPhase})}function station(x,y,type,name){stations.push({x,y,type,name})}
 function build(){wall(25,25,1050,15);wall(25,550,1050,15);wall(25,25,15,540);wall(1060,25,15,540);wall(348,40,20,220);wall(348,336,20,214);wall(706,40,20,220);wall(706,336,20,214);
 gate(348,260,20,76,mission===11?1:mission===14?1:0);
-gate(706,260,20,76,mission===11?2:mission===14?4:0);
+gate(706,260,20,76,mission===11?1:mission===14?2:0);
 if(mission===11){station(162,135,'brief','İSTASYON HARİTASI');station(460,130,'relay','RÖLE ALFA');station(558,449,'relay','RÖLE BETA');station(865,128,'relay','RÖLE GAMA');station(982,446,'exit','ALT AĞ KAPISI')}
 if(mission===12){station(170,129,'clue','ARŞİV 01');station(265,458,'clue','ARŞİV 02');station(466,137,'clue','ARŞİV 03');station(859,130,'deduce','KRONOLOJİ');station(970,448,'exit','ARŞİV ÇIKIŞI')}
 if(mission===13){station(164,129,'clue','İNSAN SESİ');station(261,457,'clue','GÜVENLİK SESİ');station(466,136,'clue','PİKO SESİ');station(844,130,'deduce','SES ANALİZİ');station(972,448,'exit','KARAR KAYDI')}
