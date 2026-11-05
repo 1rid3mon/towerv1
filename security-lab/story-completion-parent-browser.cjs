@@ -19,13 +19,18 @@ try{
    await iframe.waitFor({state:'detached',timeout:4500});
    assert.equal(await page.evaluate(m=>getStoryProgress()['mission'+m+'Complete']===true,mission),true,'completion not saved '+mission+' diagnostics='+JSON.stringify(await page.evaluate(()=>({raw:localStorage.getItem(STORY_PROGRESS_KEY),owner:localStorage.getItem(STORY_PROGRESS_OWNER_KEY),session:GameModeRuntime.storySession?.active,sessionOwner:GameModeRuntime.storySession?.ownerUid,currentUser:typeof currentUser==='undefined'?'undefined':currentUser?.uid,origin:location.origin}))));
    assert.equal(await page.evaluate(m=>document.getElementById('story-start-mission'+(m+1))?.disabled,mission),false,'next mission blocked '+mission);
-   await page.evaluate(()=>startStoryMission(1));
-   await page.locator('iframe[title^="LOST SIGNAL · İç İstasyon"]').waitFor({state:'visible',timeout:4500});
-   await page.locator('iframe[title^="LOST SIGNAL · İç İstasyon"]').evaluate(el=>el.contentWindow.postMessage({type:'___unused'},'*'));
-   await page.evaluate(()=>document.querySelector('iframe[title^="LOST SIGNAL · İç İstasyon"]')?.contentWindow?.postMessage({type:'lost-signal-interior-close'},location.origin));
-   // Close messages must originate in the child; use actual iframe execution for the close path.
-   const fr=page.frames().find(f=>f.url().includes('story-interior-mission01.html'));if(fr)await fr.evaluate(()=>parent.postMessage({type:'lost-signal-interior-close'},location.origin)).catch(()=>{});
-   await page.locator('iframe[title^="LOST SIGNAL · İç İstasyon"]').waitFor({state:'detached',timeout:4500});
+   // The actual unlocked board button must launch the next mission and the frame must close.
+   if(mission<20){
+     await page.evaluate(m=>document.getElementById('story-start-mission'+(m+1)).click(),mission);
+   }else{
+     await page.evaluate(()=>startStoryMission(1));
+   }
+   const replay=page.locator('iframe[title^="LOST SIGNAL · İç İstasyon"]');
+   await replay.waitFor({state:'visible',timeout:4500});
+   const child=await (await replay.elementHandle()).contentFrame();
+   await child.waitForFunction(()=>document.readyState==='complete',{timeout:4500});
+   await child.evaluate(()=>parent.postMessage({type:'lost-signal-interior-close'},location.origin));
+   await replay.waitFor({state:'detached',timeout:4500});
    console.log('Completion/return/reopen pass:',mission);
  }
  assert.deepEqual(errors,[]);
