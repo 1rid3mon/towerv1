@@ -599,8 +599,12 @@ function startStoryMission(missionNumber = 1) {
     // The parent Endless game never borrows Story globals. Launch the mission in a
     // separate browsing context, which gets its own engine globals, timers, and canvas.
     if (!isIsolatedStoryRuntime() && missionNumber >= 1 && missionNumber <= 20 && window.LOST_SIGNAL_INTERIOR_MISSION_ONE !== false) {
-        // New top-down playable interior pilot. Preserve Endless state and existing story saves.
+        // Refuse duplicate launches. Two stacked full-screen frames leave a blocking one behind
+        // when the player finishes one mission and can feel like the whole game has frozen.
+        if (document.getElementById('lost-signal-interior-overlay')) return;
         const overlay = document.createElement('div');
+        overlay.id = 'lost-signal-interior-overlay';
+        overlay.dataset.mission = String(missionNumber);
         overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:#030b14';
         const frame = document.createElement('iframe');
         frame.src = missionNumber === 1 ? 'story-interior-mission01.html' : (missionNumber <= 5 ? 'story-interior-missions02-05.html' : missionNumber <= 10 ? 'story-interior-missions06-10.html' : missionNumber <= 15 ? 'story-interior-missions11-15.html' : 'story-interior-missions16-20.html') + '?mission=' + missionNumber + '&power=' + encodeURIComponent(progress.powerChoice || '');
