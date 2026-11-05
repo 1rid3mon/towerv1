@@ -64,6 +64,8 @@ async function main() {
           updateStoryUnlockUI();
         });
         const before = await page.evaluate(() => ({ game: JSON.stringify(game), save: localStorage.getItem(SAVE_KEY) }));
+        // Legacy story isolation assertions remain covered while the new pilot uses its own browser test.
+        await page.evaluate(() => { window.LOST_SIGNAL_INTERIOR_MISSION_ONE = false; });
         await page.locator('#mode-story-button').click();
         await page.locator('#story-skip').click();
         await page.locator('#story-start-mission1').click();
