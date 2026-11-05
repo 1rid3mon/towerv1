@@ -196,3 +196,20 @@ Source: iPad Safari screenshot of Endless wave 412, multiple enemies circled by 
 6. **Performance:** verify tablet frame times under crowded waves, and honor reduced motion. Only merge/redeploy once tests and actual screenshot review pass.
 
 **Scope:** The immediate patch is a readability fix, not the full art unification. Avoid claiming the companion and enemy designs are already artistically consistent.
+
+
+## Reference trio implementation · LOST SIGNAL Unified Characters (first code integration)
+
+The first approved art-direction experiment is implemented as local Canvas character art in \`lost-signal-characters-v17.js\`, loaded before \`render.js\`. The reference characters are not concept promises:
+
+- **Echo / owned default-tech companions** — all five companion roles share a small armored supporting-drone chassis, two-pixel digital eye expression, layered dark metal, restrained role-specific accents, micro-thrusters and a clear silhouette. Purchased alternate companion skins continue to use their unchanged existing renderer. This pass does not affect companion damage, skills, position, level or skins in saves.
+- **Cyber Scout** — a complete, newly authored compact polygonal swept-wing silhouette, centered sensor visor, dark plated chassis, bright two-tone contrast, micro-thrusters; scale floor around a 31px visual footprint. Uses the existing \`scout\` identity and target-facing direction, no new unit types or stats.
+- **Armored Titan** — a complete, newly authored broad six-mass siege silhouette, large angular shoulders, ram, layered armor and amber reactor. Three existing \`v12Combat.phase\` values affect light/core presentation only; old boss attacks, death FX, warnings and HP labels remain unchanged.
+
+All three share **LOST SIGNAL industrial materials**: deep ink \`#08111f\`, steel \`#345065\`, edge metal \`#b7ccdc\`, restrained colored signal accents and narrow identification arcs. Companions have friendly rounded visor expression, enemies use forward V-shaped geometry, bosses use oversized broad armor massing.
+
+The module is intentionally limited to three reference *silhouette families*; it does not yet redraw every normal variant or all bosses, nor does it replace custom companion skins. It is a working in-game visual candidate for review, not a completed art conversion.
+
+**Integration gates:** renderer calls the unified drawing module for these references first. If it is absent or returns false, the original V17 WebP sprite and legacy fallback stay available. The \`?enemyArt=legacy\` opt-out is retained. No gameplay state or saved data is modified by the new module.
+
+**Verification:** \`security-lab/lost-signal-characters-v17.test.cjs\` tests three draw paths, phase levels, purchased-skin fallback, opt-out, no gameplay mutation and renderer wiring. Tablet browser smoke draws the actual three references against cyber-dark and Cengiz-red fields and stores a visual \`v17-unified-reference-trio.png\` artifact for quality assessment. These checks must pass, followed by subjective on-device comparison, before merge or production deployment.
