@@ -3,7 +3,7 @@
  * A test-only local server exposes positioning hooks for accelerated playthrough.
  * It does not bypass mission state transitions or solve puzzles internally. */
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
-const {chromium}=require('playwright');
+const {chromium,webkit}=require('playwright');
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'story-interior-missions06-10.html'),'utf8');
 assert(source.includes('İÇ SEKTÖR A'), 'missing interior station map');
 const script=source.match(/<script>([\s\S]*?)<\/script>/);assert(script);new(require('node:vm').Script)(script[1]);
@@ -17,7 +17,7 @@ const server=http.createServer((req,res)=>{
 });
 async function run(){
  await new Promise(resolve=>server.listen(4195,'127.0.0.1',resolve));
- const browser=await chromium.launch({headless:true});
+ const browser=await (process.env.BROWSER_ENGINE==='webkit'?webkit:chromium).launch({headless:true});
  try{
   for(const mission of [6,7,8,9,10]){
    const page=await browser.newPage({viewport:{width:1024,height:768},hasTouch:true,deviceScaleFactor:2});
