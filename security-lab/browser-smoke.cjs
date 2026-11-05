@@ -139,7 +139,7 @@ async function main() {
                 const cell=document.createElement('canvas');cell.width=170;cell.height=133;
                 const c=cell.getContext('2d');c.save();c.translate(85,67);
                 let ok=false;
-                if(col===0)ok=maker.drawCompanion(c,'default_tech','repairDrone',3,0,1800);
+                if(col===0)ok=maker.drawCompanion(c,row===0?'default_tech':'ghost_wisp','repairDrone',3,0,1800);
                 if(col===1)ok=maker.drawEnemy(c,{type:'green',variantId:'scout',radius:12,
                    x:0,y:0,hp:90,maxHp:100,hitFlash:0},60,0,1800);
                 if(col===2)ok=maker.drawEnemy(c,{type:'boss',subType:'tank_boss',radius:35,
