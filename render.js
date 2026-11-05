@@ -2874,7 +2874,12 @@ function renderGame() {
         // V17: either a complete sprite or the complete legacy body stack; never both.
         const unifiedEnemyDrawn = window.TowerUnifiedCharactersV17 &&
             window.TowerUnifiedCharactersV17.drawEnemy(ctx, e, tx, ty, nowCompTime);
-        const v17SpriteDrawn = unifiedEnemyDrawn ||
+        // Stage 1.3: all remaining registered normal families get distinct shared-world
+        // Canvas silhouettes; dedicated Scout and Titan references take priority.
+        // A false return preserves V17 WebP and complete legacy fallbacks.
+        const unifiedFamilyDrawn = !unifiedEnemyDrawn && window.TowerUnifiedEnemyFamiliesV17 &&
+            window.TowerUnifiedEnemyFamiliesV17.drawEnemy(ctx, e, tx, ty, nowCompTime);
+        const v17SpriteDrawn = unifiedEnemyDrawn || unifiedFamilyDrawn ||
             (typeof TowerEnemySpritesV17 !== "undefined" && TowerEnemySpritesV17.render(ctx, e, tx, ty, nowCompTime));
         if (!v17SpriteDrawn) {
             drawCustomEnemy(ctx, e, tx, ty, nowCompTime);
