@@ -45,7 +45,8 @@ assert(art.drawEnemy(ctx,titan,0,0,1400),'reduce-motion user can still draw Tita
 const render=read('render.js'),index=read('index.html');
 assert.match(render,/TowerUnifiedCharactersV17\.drawEnemy\(ctx, e, tx, ty, nowCompTime\)/);
 assert.match(render,/TowerUnifiedCharactersV17\.drawCompanion\(ctx, activeCompSkin, key, star, st\.angle \|\| 0, nowCompTime\)/);
-assert.match(render,/if \(!unifiedAlly\) drawCustomCompanionSkin\(/,'custom-skin fallback persists');
+assert.match(render,/if \(!unifiedAlly && !collectibleAlly\)\s+drawCustomCompanionSkin\(/,
+ 'unknown legacy skins still have a fallback after both unified renderers');
 assert.match(render,/if \(!v17SpriteDrawn\) \{\s*drawCustomEnemy\(/,'missing art still uses legacy drawing');
 assert(index.indexOf('lost-signal-characters-v17.js')>0);
 assert(index.indexOf('lost-signal-characters-v17.js')<index.indexOf('render.js'),'art loaded before renderer');
