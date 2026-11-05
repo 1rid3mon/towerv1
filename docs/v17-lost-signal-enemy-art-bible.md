@@ -285,3 +285,25 @@ Renderer priority: Stage 1.5 boss module -> Stage 1.1 reference renderer (includ
 Automated tests: security-lab/lost-signal-bosses-v17.test.cjs checks all five canonical boss IDs, 15 separate visual phase variants, changed polygon anatomy across phases, distinct geometry for each boss, enemy-state immutability, reduced-motion, hit cues, legacy opt-out and render wiring. Browser-smoke captures the real Canvas asset in v17-stage-15-five-bosses-three-phases.png (five bosses x three phases x two backgrounds: cyber-dark and saturated Cengiz red) at native 1x size with painted-pixel and silhouette-width assertions.
 
 Scope and release gate: this is a fully wired initial Canvas redesign, not final hand-painted high-res character assets or new gameplay attack phases. Full CI and iPad 1x heavy-wave/performance and visual acceptability still gate the draft PR #91. Main and production intentionally remain untouched.
+
+
+## Stage 1.6 · Piko + tower + combat visual unification (2026-11-05)
+
+### Piko
+- Existing inline game-mascot-face SVG gains authored external helmet/shoulder panel edges, instrument cabling, chassis marks and neutral metal/cyan/amber signal markers; two eyes, facial expression, reactor core, drag/tap behaviour, Piko 3.0 dialogue/memory and accessibility labels remain unchanged.
+- New last-loaded lost-signal-stage16.css coordinates Piko with the same ink/steel palette, reduces excessive aura, preserves reaction animations and adds responsive speech-bubble wrapping/contrast. Reduced-motion continues to disable decorative movement.
+
+### Tower
+- Expanded lost-signal-towers.js from a single generic disc to a recognizable layered octagonal station chassis: dark base, beveled plate, four armor locks, compact reactor and high-contrast perimeter.
+- The in-game drawCustomTowerSkin still paints each existing owned special tower costume, stats, recoil, barrels and visual silhouette. A thin drawAccent pass adds common mechanical tracking brackets and limited era hue around every outfit; skin database, rarity, cosmetic ownership, collision radius, projectile paths, acquisition and save keys are unchanged.
+
+### Combat signals
+- Added lost-signal-combat-art-v17.js as a presentation-only bounded 2D painter for projectiles, boss ice bolts, history streaks and beam lines. It uses dark backing, thin white edge and class color; trail segments are capped at six and disappear with reduced motion/low quality. It reads projectile data without modifying position, speed, history, hitbox or damage.
+- render.js selects the new painter once and falls back to the complete original if it returns false. Separate existing warning/charge/elite/boss rings, overdrive, HP bars, player shields, frozen states and combat damage cues are retained.
+- Updated combat-v12.js visual ripples from full neon circles to shorter segmented hardware signal arcs. Its cap stays at 46, existing triggers and lifetime are unchanged, and reduced-motion/low-quality suppression remains.
+
+### Acceptance and remaining gates
+- security-lab/lost-signal-art-stage16.test.cjs verifies every existing tower skin receives the chassis and overlay; no projectile mutation; trail bounds, frost bolt, beam, fallback, reduced motion, original Piko eyes/core and bubble wrapping.
+- Browser smoke includes a native 1x sheet of Piko + four representative tower outfits + two combat effects on cyber-dark and Cengiz-red fields, saving v17-stage-16-piko-tower-combat.png.
+- Code art is initially complete, but the release still requires fully green exact-head CI, an actual device/iPad 400+ wave comparison and frame-time/perceptual art acceptance. These have not been replaced with synthetic screenshots.
+- Main/production deployment intentionally untouched. PR #91 remains draft.
