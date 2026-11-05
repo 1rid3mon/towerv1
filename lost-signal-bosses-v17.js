@@ -48,11 +48,11 @@ function path(c,pts,stroke=EDGE,width=1.3){
  c.strokeStyle=stroke;c.lineWidth=width;c.stroke();
 }
 function backing(c,r,color){
- circle(c,0,0,r*.94,'rgba(2,8,18,0.94)');
+ circle(c,0,0,r*.81,'rgba(2,8,18,0.94)');
  c.strokeStyle='rgba(232,245,255,0.9)';c.lineWidth=1.75;
- c.beginPath();c.arc(0,0,r*.965,PI*.68,PI*1.82);c.stroke();
+ c.beginPath();c.arc(0,0,r*.88,PI*.68,PI*1.82);c.stroke();
  c.strokeStyle=color;c.lineWidth=2;
- c.beginPath();c.arc(0,0,r*.99,-.56,.56);c.stroke();
+ c.beginPath();c.arc(0,0,r*.94,-.56,.56);c.stroke();
 }
 function core(c,r,color,phase,flash,t){
  circle(c,-r*.02,0,r*.29,INK,color,phase===3?2.6:1.9);
