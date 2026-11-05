@@ -1399,8 +1399,17 @@ function revealLootboxCards() {
                     drawCustomTowerSkin(cCtx, entry.data.id, 0, 0, 1, performance.now());
                 } else if (typeof drawCustomCompanionSkin === 'function') {
                     cCtx.translate(cEl.width / 2, cEl.height / 2);
-                    cCtx.scale(2.1, 2.1);
-                    drawCustomCompanionSkin(cCtx, entry.data.id, 'laserDrone', 5, -Math.PI / 2, performance.now());
+                    // Match the live Stage 1.4 costume renderer rather than showing old
+                    // emoji-like sprites in loot previews. Fit the 76px canvas safely.
+                    cCtx.scale(1.22, 1.22);
+                    const skinId = entry.data.id;
+                    const when = performance.now();
+                    const referenceDrawn = window.TowerUnifiedCharactersV17 &&
+                        window.TowerUnifiedCharactersV17.drawCompanion(cCtx, skinId, 'laserDrone', 5, -Math.PI / 2, when);
+                    const collectibleDrawn = !referenceDrawn && window.TowerCompanionSkinsV17 &&
+                        window.TowerCompanionSkinsV17.drawCompanion(cCtx, skinId, 'laserDrone', 5, -Math.PI / 2, when);
+                    if (!referenceDrawn && !collectibleDrawn)
+                        drawCustomCompanionSkin(cCtx, skinId, 'laserDrone', 5, -Math.PI / 2, when);
                 }
                 cCtx.restore();
             }
