@@ -11,6 +11,8 @@ const qa='window.__qa={player,stations,gates,foes,handle,interact,get phase(){re
 assert(source.includes('})();\n</script>'));
 const html=source.replace('})();\n</script>',qa+'\n})();\n</script>');
 const server=http.createServer((req,res)=>{
+ if(new URL(req.url,'http://localhost').pathname==='/story-interior-completion.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(fs.readFileSync(path.join(root,'story-interior-completion.js'),'utf8'));return}
+
  const name=new URL(req.url,'http://127.0.0.1').pathname;
  if(name!=='/story-interior-missions06-10.html'){res.writeHead(404);res.end();return}
  res.setHeader('Content-Type','text/html; charset=utf-8');res.end(html);
