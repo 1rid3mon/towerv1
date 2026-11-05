@@ -164,6 +164,9 @@ jobs:
       - name: Verify V14 station and daily drill in desktop and mobile Chromium
         working-directory: security-lab
         run: node station-v14-browser.cjs
+      - name: Verify playable interior missions 2 through 5 on iPad-sized Chromium
+        working-directory: security-lab
+        run: node story-interior-browser.cjs
       - name: Test Story in desktop and mobile Chromium
         working-directory: security-lab
         run: node browser-smoke.cjs
