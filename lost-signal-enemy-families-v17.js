@@ -52,11 +52,11 @@ function mirrored(c,points,fill,stroke=EDGE,w=1.35){
 function backing(c,r,accent){
  // Each silhouette has an opaque dark contrast shield and a neutral light edge;
  // this avoids red-on-red and blue-on-blue disappearances at native game zoom.
- disc(c,0,0,r*0.90,'rgba(3,9,20,0.91)');
+ disc(c,0,0,r*0.72,'rgba(3,9,20,0.91)');
  c.strokeStyle='rgba(231,246,255,0.90)';c.lineWidth=1.55;
- c.beginPath();c.arc(0,0,r*0.92,PI*0.73,PI*1.88);c.stroke();
+ c.beginPath();c.arc(0,0,r*0.83,PI*0.73,PI*1.88);c.stroke();
  c.strokeStyle=accent;c.lineWidth=1.85;
- c.beginPath();c.arc(0,0,r*0.94,-0.58,0.51);c.stroke();
+ c.beginPath();c.arc(0,0,r*0.88,-0.58,0.51);c.stroke();
 }
 function hull(c,r,accent){
  path(c,[[-r*.70,0],[-r*.38,-r*.45],[r*.37,-r*.48],[r*.73,0],
