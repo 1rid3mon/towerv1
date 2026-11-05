@@ -5,7 +5,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium}=require('playwright');
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'story-interior-missions06-10.html'),'utf8');
-assert(source.includes('story-interior'), 'missing interior map');
+assert(source.includes('İÇ SEKTÖR A'), 'missing interior station map');
 const script=source.match(/<script>([\s\S]*?)<\/script>/);assert(script);new(require('node:vm').Script)(script[1]);
 const qa='window.__qa={player,stations,gates,foes,handle,interact,get phase(){return phase},get round(){return round},get shield(){return shield},get combat(){return combat},collisions,projection};';
 assert(source.includes('})();\n</script>'));
