@@ -186,7 +186,11 @@ function saveStoryProgress(patch) {
             clearTimeout(storyCloudSaveTimer);
             storyCloudSaveTimer = setTimeout(() => pushStoryProgressToCloud(true), 1200);
         }
-    } catch (_) {}
+        return true;
+    } catch (error) {
+        console.warn('Story save failed:', error);
+        return false;
+    }
 }
 function getValidatedStoryProgress(source) {
     let previous = null;
@@ -604,28 +608,55 @@ function startStoryMission(missionNumber = 1) {
         frame.style.cssText = 'width:100%;height:100%;border:0';
         overlay.appendChild(frame);
         document.body.appendChild(overlay);
-        const cleanup = () => { window.removeEventListener('message', onMessage); overlay.remove(); updateStoryMissionBoard(); };
-        const onMessage = (event) => {
+        let completionPending = false;
+        const cleanup = () => {
+            window.removeEventListener('message', onMessage);
+            overlay.remove();
+            updateStoryMissionBoard();
+            const next = document.getElementById('story-start-mission' + (missionNumber + 1));
+            if (next && !next.disabled) next.focus({ preventScroll: true });
+        };
+        const onMessage = event => {
             if (event.origin !== window.location.origin || event.source !== frame.contentWindow || !event.data) return;
-            if (event.data.type === 'lost-signal-interior-close') { cleanup(); return; }
-            if (event.data.type === 'lost-signal-interior-mission-complete' && event.data.mission === missionNumber) {
-                const patch = { introSeen: true, chapter: missionNumber >= 19 ? 3 : missionNumber >= 10 ? 2 : 1 };
-                patch['mission' + missionNumber + 'Complete'] = true;
-                if (missionNumber === 4 && (event.data.choice === 'shield' || event.data.choice === 'weapon')) {
-                    patch.powerChoice = event.data.choice;
-                }
-                if (missionNumber === 13 && (event.data.trustChoice === 'human' || event.data.trustChoice === 'piko')) {
-                    patch.trustChoice = event.data.trustChoice;
-                }
-                if (missionNumber === 17 && ['echo','piko'].includes(event.data.callSignChoice)) {
-                    patch.callSignChoice = event.data.callSignChoice;
-                }
-                saveStoryProgress(patch);
+            if (event.data.type === 'lost-signal-interior-close') {
+                if (!completionPending) cleanup();
+                return;
+            }
+            if (event.data.type !== 'lost-signal-interior-mission-complete' ||
+                event.data.mission !== missionNumber || completionPending) return;
+            completionPending = true;
+            const patch = { introSeen: true, chapter: missionNumber >= 19 ? 3 : missionNumber >= 10 ? 2 : 1 };
+            patch['mission' + missionNumber + 'Complete'] = true;
+            if (missionNumber === 4 && ['shield', 'weapon'].includes(event.data.choice)) {
+                patch.powerChoice = event.data.choice;
+            }
+            if (missionNumber === 13 && ['human', 'piko'].includes(event.data.trustChoice)) {
+                patch.trustChoice = event.data.trustChoice;
+            }
+            if (missionNumber === 17 && ['echo', 'piko'].includes(event.data.callSignChoice)) {
+                patch.callSignChoice = event.data.callSignChoice;
+            }
+            const saved = saveStoryProgress(patch) === true &&
+                getStoryProgress()['mission' + missionNumber + 'Complete'] === true;
+            if (!saved) {
+                completionPending = false;
+                frame.contentWindow?.postMessage({
+                    type: 'lost-signal-interior-save-failed', mission: missionNumber
+                }, window.location.origin);
+                showToast('Görev kaydedilemedi. Lütfen tekrar dene veya çıkış yap.');
+                return;
+            }
+            frame.contentWindow?.postMessage({
+                type: 'lost-signal-interior-save-confirmed', mission: missionNumber
+            }, window.location.origin);
+            // Unmount after the current message turn to avoid detaching a running iframe click handler.
+            setTimeout(() => {
+                if (!overlay.isConnected) return;
                 cleanup();
                 showToast(storyLanguage() === 'en'
                     ? 'Mission ' + missionNumber + ' complete. Station progress saved.'
                     : missionNumber + '. görev tamamlandı. İstasyon ilerlemesi kaydedildi.');
-            }
+            }, 50);
         };
         window.addEventListener('message', onMessage);
         return;
