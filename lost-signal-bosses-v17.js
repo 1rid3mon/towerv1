@@ -14,6 +14,18 @@ const BOSSES=Object.freeze({
  leviathan:{name:'Cosmic Leviathan',color:'#d3abff',kind:'abyss'}
 });
 const IDS=Object.freeze(Object.keys(BOSSES));
+// Presentation-only transient state; never touches the enemy object/save payload.
+const phaseVisuals=new WeakMap();
+function enterPhase(e,phase,ms){
+ const now=Number.isFinite(ms)?ms:0;
+ const previous=phaseVisuals.get(e);
+ if(!previous){phaseVisuals.set(e,{phase,since:-100000});return 1;}
+ if(previous.phase!==phase){
+  phaseVisuals.set(e,{phase,since:now});
+  return 0;
+ }
+ return Math.min(1,Math.max(0,(now-previous.since)/680));
+}
 function poly(c,pts,fill,stroke=EDGE,width=1.5){
  c.beginPath();c.moveTo(pts[0][0],pts[0][1]);
  for(let i=1;i<pts.length;i++)c.lineTo(pts[i][0],pts[i][1]);
@@ -180,6 +192,9 @@ function drawEnemy(c,e,tx,ty,ms){
  // Bounds protect frame time and prevent an oversized image impersonating a hitbox.
  const r=Math.min(82,Math.max(29,e.radius*1.07));
  const t=motionTime(ms);
+ const reducedMotion=t===0;
+ const deployment=enterPhase(e,phase,ms);
+ const progress=reducedMotion?1:deployment;
  const facing=Number.isFinite(tx)&&Number.isFinite(ty)&&
   Number.isFinite(e.x)&&Number.isFinite(e.y)?Math.atan2(ty-e.y,tx-e.x):0;
  c.save();
@@ -187,7 +202,21 @@ function drawEnemy(c,e,tx,ty,ms){
   c.rotate(facing);
   c.translate(0,Math.sin(t*1.65)*.34);
   backing(c,r,cfg.color);
-  PAINTERS[cfg.kind](c,r,cfg.color,phase,Number(e.hitFlash)>0,t);
+  // Mechanical unfold lasts 680ms after a real phase change. The background
+  // plate remains stable; only visible armor silhouette expands on Canvas.
+  c.save();
+  try{
+   c.scale(1,.82+.18*progress);
+   PAINTERS[cfg.kind](c,r,cfg.color,phase,Number(e.hitFlash)>0,t);
+  }finally{c.restore();}
+  if(phase>1&&progress<1){
+   c.save();
+   try{
+    c.globalAlpha=(1-progress)*.58;
+    c.strokeStyle=cfg.color;c.lineWidth=1.5;
+    c.beginPath();c.arc(0,0,r*(.45+.51*progress),-PI*.74,PI*.58);c.stroke();
+   }finally{c.restore();}
+  }
  }finally{c.restore();}
  return true;
 }
