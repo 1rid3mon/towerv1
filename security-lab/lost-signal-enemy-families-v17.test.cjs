@@ -50,8 +50,10 @@ for(const id of canonical.filter(x=>x!=='scout')){
 assert(palette.size>=12,'family identities preserve independent era accents');
 const elite=paint('shield',{radius:7,isElite:true});
 assert(elite.drawn,'elite family art available');
-assert(elite.calls.some(x=>x.name==='arc'&&x.args[2]>=17),
- 'elite gets presentation-only footprint while its radius stays seven');
+assert(elite.calls.some(x=>x.name==='arc'&&x.args[2]>=15.6) &&
+ elite.calls.some(x=>['moveTo','lineTo'].includes(x.name) &&
+   (Math.abs(x.args[0])>=15||Math.abs(x.args[1])>=16)),
+ 'elite keeps a 32px-plus real plated silhouette, with a slimmer non-dominant guide disc');
 const flash=paint('redrunner',{hitFlash:1});
 assert(flash.calls.filter(x=>x.name==='arc').length>=3,'hit response exists');
 assert.equal(paint('scout').drawn,false,'existing reference Scout has priority');
