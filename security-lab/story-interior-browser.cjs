@@ -12,7 +12,8 @@ for(const file of files){
  assert(html.includes('touch-action:none'),file+' touch support');
 }
 const story=fs.readFileSync(path.join(root,'story.js'),'utf8');
-assert(story.includes('missionNumber >= 1 && missionNumber <= 5'));
+assert(story.includes('missionNumber >= 1 && missionNumber <= 10'));
+assert(story.includes('story-interior-missions06-10.html'))
 assert(story.includes("patch['mission' + missionNumber + 'Complete'] = true"));
 assert(story.includes("patch.powerChoice = event.data.choice"));
 const server=http.createServer((req,res)=>{
