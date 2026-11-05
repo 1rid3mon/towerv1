@@ -34,8 +34,8 @@ function screws(c,r){
   c.beginPath();c.arc(-r*0.49,y,0.85,0,TAU);c.fill();
  }
 }
-function echo(c,compKey,star,angle,ms){
- const color=ACCENT[compKey]||'#8ddfe9',t=motionTime(ms);
+function echo(c,compKey,star,angle,ms,ghostSkin){
+ const color=ghostSkin?'#c4b5fd':(ACCENT[compKey]||'#8ddfe9'),t=motionTime(ms);
  const k=1+Math.min(5,Math.max(1,star||1))*0.035;
  c.save();
  try{
@@ -54,13 +54,21 @@ function echo(c,compKey,star,angle,ms){
    PLATE,'#517183',0.8);
   // Protective faceplate: a warmer, more approachable variant of the enemy sensor visor.
   polygon(c,[[0,-5],[6,-3],[6,4],[0,6],[-3,4],[-3,-3]],'#092436',color,1.2);
-  c.fillStyle='#dff8ff';
+  c.fillStyle=ghostSkin?'#f5f0ff':'#dff8ff';
   c.fillRect(1,-2.5,2.3,1.7);c.fillRect(1,2,2.3,1.7);
   c.strokeStyle=color;c.lineWidth=1.25;c.beginPath();c.moveTo(-1,4.4);c.lineTo(2,5.1);c.stroke();
   // Antenna + technical plate seams make Echo belong to the same station hardware family.
   c.strokeStyle=EDGE;c.lineWidth=1.1;c.beginPath();c.moveTo(-2,-10);c.lineTo(-3,-13);c.stroke();
   c.fillStyle=color;c.beginPath();c.arc(-3,-13,1.5,0,TAU);c.fill();
   screws(c,10);
+  // Ghost Wisp is still a collectible hologram skin, not an old emoji silhouette.
+  // Preserve spectral fins and violet signal haze while sharing the armored chassis.
+  if(ghostSkin){
+   c.save();c.globalAlpha=0.72;
+   polygon(c,[[-5,8],[-9,13],[-2,11],[0,15],[5,9]],'rgba(169,145,247,0.42)','#d8c6ff',0.85);
+   c.strokeStyle='#d8b4fe';c.lineWidth=1.15;c.beginPath();
+   c.arc(0,0,16.1,-1.8,-0.38);c.stroke();c.restore();
+  }
   if(star>=4){
    c.strokeStyle=color;c.globalAlpha=0.44;c.lineWidth=1;
    c.beginPath();c.arc(0,0,17.5,t,t+PI*0.65);c.stroke();
@@ -151,8 +159,8 @@ function drawEnemy(c,e,tx,ty,ms){
  return false;
 }
 function drawCompanion(c,skinId,key,star,angle,ms){
- if(!c||skinId!=='default_tech'||!Object.prototype.hasOwnProperty.call(ACCENT,key))return false;
- return echo(c,key,star,angle,ms);
+ if(!c||!['default_tech','ghost_wisp'].includes(skinId)||!Object.prototype.hasOwnProperty.call(ACCENT,key))return false;
+ return echo(c,key,star,angle,ms,skinId==='ghost_wisp');
 }
 root.TowerUnifiedCharactersV17=Object.freeze({
  drawEnemy,drawCompanion,
