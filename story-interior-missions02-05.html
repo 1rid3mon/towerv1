@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>LOST SIGNAL | İç İstasyon</title>
+<style>
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#060e19;color:#d8f4ff;font:14px system-ui;touch-action:none}canvas{width:100%;height:100%;display:block;touch-action:none}#hud{position:fixed;left:10px;top:10px;right:10px;display:flex;justify-content:space-between;align-items:start;gap:9px;pointer-events:none}#objective{padding:12px;border:1px solid #4d9eb0;background:#071827e8;border-radius:12px;max-width:510px;line-height:1.5}button{cursor:pointer;font:inherit}#leave{pointer-events:auto;background:#193044;border:1px solid #79bfd0;color:#f1fbff;padding:11px;border-radius:10px}#pad{position:fixed;left:22px;bottom:23px;width:130px;height:130px;border:2px solid #59a3b8;background:#16435777;border-radius:50%;touch-action:none}#knob{position:absolute;left:42px;top:42px;width:42px;height:42px;border:2px solid #d1f9ff;background:#45bcd6aa;border-radius:50%}#interact{position:fixed;right:22px;bottom:34px;width:98px;height:98px;border:2px solid #b8f5ff;border-radius:50%;background:#15667c;color:white;font-weight:700}#modal{position:fixed;inset:0;background:#020811de;display:none;align-items:center;justify-content:center;padding:18px;overflow:auto}#modal.open{display:flex}#panel{background:#102537;border:1px solid #5ab8c7;border-radius:17px;padding:23px;width:min(530px,100%);max-height:92vh;overflow:auto}#panel h2{margin:0 0 9px}#panel p{line-height:1.6;color:#c7dde8}#panel button{background:#17465c;border:1px solid #62bfd0;color:white;padding:12px;margin:5px;border-radius:9px;min-height:45px}#panel button.selected{background:#326d54;border-color:#a7ffbf}#panel button:disabled{opacity:.4}#health{color:#ffcb8e}#hint{font-size:12px;color:#a6d9e8;margin-top:6px}@media(max-width:600px){#hud{left:5px;top:5px;right:5px}#objective{font-size:11px;max-width:78%;padding:8px}#pad{left:10px;bottom:13px}#interact{right:12px;bottom:22px}}</style></head>
+<body><canvas id="world"></canvas><div id="hud"><div id="objective"></div><button id="leave" type="button">ÇIKIŞ</button></div><div id="pad"><div id="knob"></div></div><button id="interact">ETKİLEŞ</button><div id="modal" role="dialog" aria-modal="true"><div id="panel"></div></div>
+<script>
+(()=>{'use strict';
+const mission=Number(new URLSearchParams(location.search).get('mission')), VALID=[2,3,4,5];
+if(!VALID.includes(mission)){document.body.textContent='Geçersiz görev';return}
+const cv=document.getElementById('world'),c=cv.getContext('2d'),obj=document.getElementById('objective'),modal=document.getElementById('modal'),panel=document.getElementById('panel'),pad=document.getElementById('pad'),knob=document.getElementById('knob');
+let W=0,H=0,dpr=1,last=0,locked=false,finished=false,phase=0,alarmT=0,shots=0,shield=18,feedback='',powerChoice=null,placed=0;
+const keys=new Set(),stick={x:0,y:0,id:null},p={x:mission===2?135:mission===3?140:mission===4?170:145,y:mission===2?260:mission===3?260:mission===4?260:250,r:12};
+const width=1080,height=570,obstacles=[],nodes=[],foes=[];
+const pos=(x,y)=>({x,y});
+const inRange=n=>Math.hypot(p.x-n.x,p.y-n.y)<67;
+const titles={2:'İLK TEMAS',3:'ANTEN DİZİSİ',4:'GÜÇ DAĞITIMI',5:'KIRIK HAT'};
+function size(){W=innerWidth;H=innerHeight;dpr=Math.min(devicePixelRatio||1,2);cv.width=W*dpr;cv.height=H*dpr;c.setTransform(dpr,0,0,dpr,0,0)}addEventListener('resize',size);size();
+function wall(x,y,w,h){obstacles.push({x,y,w,h})}
+function node(x,y,label,type){nodes.push({x,y,label,type})}
+function init(){
+wall(35,35,1010,16);wall(35,519,1010,16);wall(35,35,16,500);wall(1029,35,16,500);
+if(mission===2){wall(345,51,18,215);wall(345,328,18,192);wall(700,51,18,215);wall(700,328,18,192);node(185,137,'TARAMA A','scan');node(512,430,'TARAMA B','scan');node(873,129,'TARAMA C','scan');node(910,416,'GÜVENLİK TERMİNALİ','exit');foes.push({x:510,y:190,hp:3},{x:825,y:305,hp:3},{x:930,y:220,hp:3})}
+if(mission===3){wall(315,51,18,305);wall(315,415,18,104);wall(573,197,18,322);wall(573,51,18,93);wall(818,51,18,305);wall(818,415,18,104);node(160,130,'ANTEN GİRİŞİ','anten');node(450,115,'GÜÇ RÖLESİ','relay');node(675,425,'SİNYAL FİLTRESİ','filter');node(942,145,'VERİ TERMİNALİ','terminal');node(948,457,'ÇIKIŞ','exit')}
+if(mission===4){wall(340,51,18,295);wall(340,410,18,109);wall(690,51,18,295);wall(690,410,18,109);node(185,135,'REAKTÖR','reactor');node(525,155,'DAĞITIM PANELİ','power');node(912,410,'MERKEZİ KAPI','exit')}
+if(mission===5){wall(330,51,18,230);wall(330,345,18,174);wall(660,51,18,230);wall(660,345,18,174);node(170,160,'GÜVENLİK','security');node(512,440,'KULE TERMİNALİ','turret');node(927,150,'SİNYAL RÖLESİ','relay');node(945,446,'ÇIKIŞ','exit');foes.push({x:935,y:255,hp:4},{x:875,y:300,hp:4},{x:800,y:245,hp:4},{x:930,y:360,hp:4})}
+}
+init();
+function ui(){const tasks={
+2:['Koridordaki üç iz noktasını bul.','Devriyeyi güvenlik terminalinden durdur.','Üç farklı izi tara ve terminalden raporla.','İzler kaydedildi; görev tamamlanabilir.'],
+3:['Anten girişindeki terminali bul.','Güç rölesini etkinleştir.','Sinyal filtresinin frekansını eşleştir.','Veri terminalinden anten rotasını çöz.','Çıkışa ilerle.'],
+4:['Reaktörün gücünü kontrol et.','Dağıtım panelinde bir sistemi seç.','Seçimi onayla ve merkezi kapıdan çık.'],
+5:['Güvenlik konsolunu incele.','Kule terminalini etkinleştir ve saldırıyı durdur.','Koridorun sonundaki röleyi kapat.','Çıkışa ilerle.']};obj.innerHTML='<b>GÖREV '+String(mission).padStart(2,'0')+' · '+titles[mission]+'</b><div>'+tasks[mission][Math.min(phase,tasks[mission].length-1)]+'</div><div id="hint">WASD / oklar · E veya ETKİLEŞ · iPad joystick</div>'+(phase===1&&mission===5?'<div id="health">Reaktör: '+shield+' · Tehdit: '+foes.filter(e=>e.hp>0).length+'</div>':'')}
+ui();
+function show(html){locked=true;modal.classList.add('open');panel.innerHTML=html}
+function hide(){locked=false;modal.classList.remove('open')}
+function optionButtons(choices,callback){const wrap=document.createElement('div');for(const [label,val] of choices){const b=document.createElement('button');b.textContent=label;b.onclick=()=>callback(val);wrap.appendChild(b)}panel.appendChild(wrap)}
+function message(head,body){show('<h2>'+head+'</h2><p>'+body+'</p><button id="ok">DEVAM</button>');document.getElementById('ok').onclick=hide}
+function finish(extra){if(finished)return;finished=true;show('<h2>GÖREV '+String(mission).padStart(2,'0')+' TAMAMLANDI</h2><p>'+extra+'</p><p>İstasyonun içindeki ilerleme bir sonraki bölümde devam edecek.</p><button id="done">GÖREV PANOSUNA DÖN</button>');document.getElementById('done').onclick=()=>parent.postMessage({type:'lost-signal-interior-mission-complete',mission,choice:powerChoice},location.origin)}
+const scanned=new Set();let tuned=false,defenseUnlocked=false,alarmStarted=false;
+function interact(){
+if(locked||finished)return;
+const n=nodes.filter(inRange).sort((a,b)=>Math.hypot(p.x-a.x,p.y-a.y)-Math.hypot(p.x-b.x,p.y-b.y))[0];if(!n)return;
+if(mission===2){
+if(n.type==='scan'){if(scanned.has(n.label)){message('TARAMA TAMAMLANDI','Bu iz zaten kaydedildi.');return}if(foes.some(e=>e.hp>0)&&scanned.size===0){message('TEHLİKE','Önce güvenlik terminalinden devriyeyi durdur.');return}scanned.add(n.label);message(n.label,'Farklı frekansta bir sinyal izi bulundu: '+['bakım hattı','güvenlik hattı','kaynağı belirsiz yankı'][scanned.size-1]+'.');if(scanned.size===3){phase=3;ui()}return}
+if(n.type==='exit'){if(scanned.size===3&&foes.every(e=>e.hp<=0)){finish('Üç sinyal izi bulundu. Son kayıt, istasyonun tanımadığı bir frekanstan geliyor.');return}if(!alarmStarted){alarmStarted=true;phase=1;ui();message('GÜVENLİK DEVREDE','Devriyeyi durdur: kırmızı düşmanlara dokunarak savunma kulesini hedefle.');return}message('GÜVENLİK TERMİNALİ','Düşmanlar: '+foes.filter(e=>e.hp>0).length+' · Taranan izler: '+scanned.size+'/3.');return}
+}
+if(mission===3){
+if(n.type==='anten'&&phase===0){phase=1;ui();message('ANTEN DİZİSİ','Üç aşamalı güç zinciri eksik: röle, filtre ve veri terminali.');return}
+if(n.type==='relay'&&phase===1){phase=2;ui();message('RÖLE AKTİF','Enerji koridordan anten filtresine yönlendirildi.');return}
+if(n.type==='filter'&&phase===2){show('<h2>SİNYAL FİLTRESİ</h2><p>Piko: Kaynak sinyalin dizisi <b>2 → 4 → 1</b>. Üç kanalı doğru sırada seç.</p><div id="tones"></div><p id="err"></p><button id="cancel">KAPAT</button>');document.getElementById('cancel').onclick=hide;let seq=[];const draw=()=>{const wrap=document.getElementById('tones');if(!wrap)return;wrap.innerHTML='';for(let i=1;i<=4;i++){const b=document.createElement('button');b.textContent='KANAL '+i;b.onclick=()=>{seq.push(i);if(seq[seq.length-1]!==[2,4,1][seq.length-1]){seq=[];document.getElementById('err').textContent='Parazit! Dizi sıfırlandı.'}else if(seq.length===3){tuned=true;phase=3;ui();message('FİLTRE AYARLANDI','Sinyal yönü çözüldü. Veri terminaline ulaş.');return}draw()};wrap.appendChild(b)}};draw();return}
+if(n.type==='terminal'&&phase===3){phase=4;ui();message('ANTEN VERİSİ','Bulunan yön istasyonun alt katlarını işaret ediyor. Şimdi çıkışa ulaş.');return}
+if(n.type==='exit'&&phase===4){finish('Anten dizisi yeniden çalışıyor. Sinyalin kaynağı kulenin altında.');return}
+}
+if(mission===4){
+if(n.type==='reactor'&&phase===0){phase=1;ui();message('ENERJİ REZERVİ','Reaktör yalnızca bir kritik sistemi tam kapasiteyle besleyebilir. Kararın sonraki görevin savunmasını değiştirecek.');return}
+if(n.type==='power'&&phase===1){show('<h2>GÜÇ DAĞITIMI</h2><p>Enerjiyi nereye yönlendireceksin?</p><p><b>KALKAN:</b> sonraki koridor savunmasına +8 dayanıklılık.</p><p><b>SİLAH:</b> düşmanları etkisizleştirmek için daha az isabet gerekir.</p>');optionButtons([['KALKANI GÜÇLENDİR','shield'],['SİLAHLARI KALİBRE ET','weapon']],v=>{powerChoice=v;phase=2;ui();message('GÜÇ YÖNLENDİRİLDİ',v==='shield'?'Savunma çekirdeği güçlendirildi.':'Kule silah sistemleri kalibre edildi.');});return}
+if(n.type==='exit'&&phase===2){finish('Enerji seçimi kayıt altına alındı. Bir sonraki koridor bu kararın sonuçlarını gösterecek.');return}
+}
+if(mission===5){
+if(n.type==='security'&&phase===0){phase=1;ui();message('KIRIK HAT','Güvenlik kapıları yeniden açıldı. Kule terminaline erişip yaklaşan düşmanları durdur.');return}
+if(n.type==='turret'&&phase===1){if(foes.some(e=>e.hp>0)){alarmStarted=true;message('SAVUNMA TERMINALİ','Düşmanları kırmızı işaretlerinden hedefle. Reaktör sıfırlanırsa savunmayı yeniden deneyeceğiz.');return}phase=2;ui();message('SAVUNMA BAŞARILI','Sinyal rölesi artık korumasız. Devre dışı bırak.');return}
+if(n.type==='relay'&&phase===2){show('<h2>RÖLEYİ DEVRE DIŞI BIRAK</h2><p>Röle kodu: <b>GÜVENLİK → ENERJİ → ANTEN</b>. Doğru sırayı uygula.</p><div id="order"></div><p id="err"></p><button id="cancel">KAPAT</button>');document.getElementById('cancel').onclick=hide;let entries=[];const draw=()=>{const wrap=document.getElementById('order');if(!wrap)return;wrap.innerHTML='';[['GÜVENLİK','security'],['ANTEN','anten'],['ENERJİ','energy']].forEach(([label,val])=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>{entries.push(val);if(entries[entries.length-1]!==['security','energy','anten'][entries.length-1]){entries=[];document.getElementById('err').textContent='Sıralama hatalı, devre sıfırlandı.'}else if(entries.length===3){phase=3;ui();message('RÖLE KAPATILDI','İzinsiz yayın kesildi. Koridor güvenli.');return}draw()};wrap.appendChild(b)})};draw();return}
+if(n.type==='exit'&&phase===3){finish('Röle devre dışı. Ancak yayın kesilirken başka bir kapının arkasından cevap geldi.');return}
+}
+message('TERMİNAL KİLİTLİ','Önce mevcut hedefi tamamla.');
+}
+function collision(nx,ny){return obstacles.some(o=>nx+p.r>o.x&&nx-p.r<o.x+o.w&&ny+p.r>o.y&&ny-p.r<o.y+o.h)}
+function move(dt){if(locked)return;let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'))+stick.x,dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'))+stick.y;let l=Math.hypot(dx,dy);if(l<.03)return;dx/=Math.max(1,l);dy/=Math.max(1,l);const nx=p.x+dx*205*dt,ny=p.y+dy*205*dt;if(!collision(nx,p.y))p.x=nx;if(!collision(p.x,ny))p.y=ny}
+function restart(){shield=mission===5?(new URLSearchParams(location.search).get('power')==='shield'?26:18):18;foes.forEach(e=>e.hp=mission===5?(new URLSearchParams(location.search).get('power')==='weapon'?2:4):3);alarmT=0;alarmStarted=false;phase=mission===5?1:1;ui();message('YENİDEN DENE','Savunma sıfırlandı. Tüm ilerleme kaybolmadı.')}
+if(mission===5){shield=new URLSearchParams(location.search).get('power')==='shield'?26:18;foes.forEach(e=>e.hp=new URLSearchParams(location.search).get('power')==='weapon'?2:4)}
+function draw(){
+const scale=Math.min(W/740,H/450,1.55),ox=Math.max(0,Math.min(width-W/scale,p.x-W/scale/2)),oy=Math.max(0,Math.min(height-H/scale,p.y-H/scale/2));c.fillStyle='#040b13';c.fillRect(0,0,W,H);c.save();c.scale(scale,scale);c.translate(-ox,-oy);c.fillStyle='#152636';c.fillRect(35,35,width-70,height-70);
+c.strokeStyle='#254257';c.lineWidth=1;for(let x=35;x<width;x+=40){c.beginPath();c.moveTo(x,35);c.lineTo(x,535);c.stroke()}for(let y=35;y<height;y+=40){c.beginPath();c.moveTo(35,y);c.lineTo(1045,y);c.stroke()}
+for(const o of obstacles){c.fillStyle='#526879';c.fillRect(o.x,o.y,o.w,o.h);c.fillStyle='#8eaec0';c.fillRect(o.x,o.y,o.w,3)}
+for(const n of nodes){const active=inRange(n);c.fillStyle=active?'#3ba6a8':'#206075';c.fillRect(n.x-22,n.y-20,44,40);c.strokeStyle=active?'#deffb5':'#94e1f0';c.lineWidth=active?3:1.5;c.strokeRect(n.x-22,n.y-20,44,40);c.font='12px system-ui';c.textAlign='center';c.fillStyle='#effaff';c.fillText(n.label,n.x,n.y-30);if(active){c.fillStyle='#d5ff9f';c.fillText('ETKİLEŞ',n.x,n.y+37)}}
+for(const e of foes.filter(e=>e.hp>0)){c.fillStyle='#e67b83';c.fillRect(e.x-15,e.y-15,30,30);c.strokeStyle='#ffdfce';c.strokeRect(e.x-15,e.y-15,30,30);c.fillStyle='#fff';c.font='13px system-ui';c.fillText(String(e.hp),e.x,e.y-23)}
+c.beginPath();c.arc(p.x,p.y,p.r,0,Math.PI*2);c.fillStyle='#70e4f5';c.fill();c.strokeStyle='#f1feff';c.lineWidth=2;c.stroke();c.fillStyle='#092238';c.fillRect(p.x-4,p.y-5,8,10);c.restore();
+}
+function pointWorld(e){const sc=Math.min(W/740,H/450,1.55),ox=Math.max(0,Math.min(width-W/sc,p.x-W/sc/2)),oy=Math.max(0,Math.min(height-H/sc,p.y-H/sc/2));return{x:e.clientX/sc+ox,y:e.clientY/sc+oy}}
+cv.addEventListener('pointerdown',e=>{if(locked||finished)return;const combat=(mission===2&&alarmStarted)||(mission===5&&phase===1&&alarmStarted);if(!combat)return;const q=pointWorld(e),foe=foes.find(z=>z.hp>0&&Math.hypot(z.x-q.x,z.y-q.y)<32);if(foe){foe.hp--;shots++;if(foes.every(z=>z.hp<=0)){alarmStarted=false;alarmT=0;message('TEHDİT ETKİSİZ',mission===2?'Artık sinyal izlerini araştırabilirsin.':'Kule terminaline dön ve savunma kayıtlarını onayla.')}}});
+function tick(t){const dt=Math.min((t-last)/1000||0,.05);last=t;move(dt);if(!locked&&((mission===2&&alarmStarted)||(mission===5&&phase===1&&alarmStarted))){alarmT+=dt;if(alarmT>3.4){alarmT=0;shield-=mission===5?3:1;ui();if(shield<=0){restart()}}}draw();requestAnimationFrame(tick)}
+requestAnimationFrame(tick);
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys.add(k);if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)interact()});addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>keys.clear());document.getElementById('interact').onclick=interact;document.getElementById('leave').onclick=()=>parent.postMessage({type:'lost-signal-interior-close'},location.origin);
+function touch(e){const b=pad.getBoundingClientRect(),dx=e.clientX-b.left-b.width/2,dy=e.clientY-b.top-b.height/2,mag=Math.max(1,Math.hypot(dx,dy)),r=Math.min(1,mag/43);stick.x=dx/mag*r;stick.y=dy/mag*r;knob.style.transform='translate('+(stick.x*38)+'px,'+(stick.y*38)+'px)'}
+pad.addEventListener('pointerdown',e=>{stick.id=e.pointerId;pad.setPointerCapture(e.pointerId);touch(e)});pad.addEventListener('pointermove',e=>{if(stick.id===e.pointerId)touch(e)});function end(e){if(e.pointerId!==stick.id)return;stick.id=null;stick.x=stick.y=0;knob.style.transform=''}pad.addEventListener('pointerup',end);pad.addEventListener('pointercancel',end);
+})();
+</script></body></html>
