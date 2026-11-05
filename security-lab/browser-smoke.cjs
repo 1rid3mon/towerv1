@@ -210,6 +210,59 @@ async function main() {
             minPaintedPixels:Math.min(...familiesArt.results.map(x=>x.opaque)),
             minWidth:Math.min(...familiesArt.results.map(x=>x.width))});
 
+          // Stage 1.4: draw all ten *actual runtime* skins at native gameplay scale
+          // over two saturated arena backgrounds (not generated reference posters).
+          const companionArt = await frame.evaluate(() => {
+            const first=window.TowerUnifiedCharactersV17;
+            const more=window.TowerCompanionSkinsV17;
+            const ids=['default_tech','origami_crane','cyber_prism','ghost_wisp',
+              'shadow_kunai','crimson_sand','drama_mask','valkyrie_halo',
+              'eclipse_crescent','kurt_spirit'];
+            if(!first||!more||more.IDS.length!==8)throw new Error('Stage 1.4 costume renderer missing');
+            const sheet=document.createElement('canvas');
+            sheet.width=5*112;sheet.height=4*112;
+            const panel=sheet.getContext('2d'),result=[];
+            for(let theme=0;theme<2;theme++){
+              for(let n=0;n<ids.length;n++){
+                const id=ids[n],x=(n%5)*112,y=(theme*2+Math.floor(n/5))*112;
+                panel.fillStyle=theme===0?'#10253b':'#813232';
+                panel.fillRect(x,y,112,112);
+                const tile=document.createElement('canvas');
+                tile.width=76;tile.height=76;
+                const c=tile.getContext('2d');
+                c.save();c.translate(38,38);
+                const ok=first.drawCompanion(c,id,'laserDrone',5,0,1900) ||
+                  more.drawCompanion(c,id,'laserDrone',5,0,1900);
+                c.restore();
+                const px=c.getImageData(0,0,76,76).data;
+                let opaque=0,minX=76,maxX=0,minY=76,maxY=0;
+                for(let p=3;p<px.length;p+=4){
+                  if(px[p]>25){
+                    opaque++;const x0=(p>>2)%76,y0=Math.floor((p>>2)/76);
+                    minX=Math.min(minX,x0);maxX=Math.max(maxX,x0);
+                    minY=Math.min(minY,y0);maxY=Math.max(maxY,y0);
+                  }
+                }
+                if(!ok||opaque<260||maxX-minX<29||maxY-minY<29)
+                  throw new Error('Unreadable 1x companion '+id+' theme='+theme+
+                    ' pixels='+opaque+' width='+(maxX-minX)+' height='+(maxY-minY));
+                panel.drawImage(tile,x+18,y+5);
+                panel.fillStyle='#f0f9ff';panel.font='10px sans-serif';
+                panel.fillText(id,x+4,y+101);
+                result.push({id,theme:theme?'Cengiz red':'Cyber dark',opaque,
+                  width:maxX-minX,height:maxY-minY});
+              }
+            }
+            return {png:sheet.toDataURL('image/png').split(',')[1],result};
+          });
+          assert.equal(companionArt.result.length,20,'ten canonical companion skins across two contrasting arenas');
+          fs.writeFileSync(path.join(evidence,'v17-stage-14-companion-skins.png'),
+            Buffer.from(companionArt.png,'base64'));
+          results.push({target,browser:browserName,viewport:'tablet-stage-14-companions',
+            status:'passed',variants:companionArt.result.length,
+            minPaintedPixels:Math.min(...companionArt.result.map(x=>x.opaque))});
+
+
         }
         assert.equal(await frame.evaluate(() => game.wave), 1);
         assert.equal(await frame.evaluate(() => getStoryProgress().mission1Complete), false);
