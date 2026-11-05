@@ -170,6 +170,9 @@ jobs:
       - name: Play all 27 campaign missions and switch all four languages
         working-directory: security-lab
         run: node campaign-browser.cjs
+      - name: Stage 1.7 iPad-size high-density battle visual QA (Chromium)
+        working-directory: security-lab
+        run: node stage17-visual-browser.cjs
       - name: Test the matching live production assets with a disposable guest
         if: github.ref == 'refs/heads/main'
         working-directory: security-lab
@@ -207,6 +210,9 @@ jobs:
       - name: Test Story phone, landscape, tablet and desktop in WebKit
         working-directory: security-lab
         run: node browser-smoke.cjs
+      - name: Stage 1.7 iPad-size high-density battle visual QA (WebKit)
+        working-directory: security-lab
+        run: node stage17-visual-browser.cjs
       - name: Test matching production assets and flows in WebKit
         if: github.ref == 'refs/heads/main'
         working-directory: security-lab
