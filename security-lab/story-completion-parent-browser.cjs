@@ -17,7 +17,7 @@ try{
    const frame=await iframe.elementHandle();
    await frame.contentFrame().then(f=>f.evaluate(m=>window.parent.postMessage({type:'lost-signal-interior-mission-complete',mission:m},location.origin),mission));
    await iframe.waitFor({state:'detached',timeout:4500});
-   assert.equal(await page.evaluate(m=>getStoryProgress()['mission'+m+'Complete']===true),true,'completion not saved '+mission);
+   assert.equal(await page.evaluate(m=>getStoryProgress()['mission'+m+'Complete']===true),true,'completion not saved '+mission+' diagnostics='+JSON.stringify(await page.evaluate(()=>({raw:localStorage.getItem(STORY_PROGRESS_KEY),owner:localStorage.getItem(STORY_PROGRESS_OWNER_KEY),session:GameModeRuntime.storySession?.active,sessionOwner:GameModeRuntime.storySession?.ownerUid,currentUser:typeof currentUser==='undefined'?'undefined':currentUser?.uid,origin:location.origin}))));
    assert.equal(await page.evaluate(m=>document.getElementById('story-start-mission'+(m+1))?.disabled),false,'next mission blocked '+mission);
    await page.evaluate(()=>startStoryMission(1));
    await page.locator('iframe[title^="LOST SIGNAL · İç İstasyon"]').waitFor({state:'visible',timeout:4500});
