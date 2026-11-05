@@ -242,3 +242,25 @@ Automated verification: the new Node regression test checks exact 20 canonical I
 Not included: the other four boss redesigns (Stage 1.5), remaining companion skins (1.4), Piko, tower, or final image-artist sign-off.
 
 Release control: Stage 1.3 remains in draft PR #91; production and main unchanged.
+
+
+## Stage 1.4 · All ten collectible companion appearances (2026-11-05)
+
+Canonical inventory from COMPANION_SKIN_DATABASE in data.js: 10 skin IDs. Two existing Stage 1.1 references (default_tech and ghost_wisp) retain their armoured Echo chassis. Stage 1.4 adds lost-signal-companion-skins-v17.js for the other eight:
+
+- origami_crane: articulated origami metal wings and compact drone core
+- cyber_prism: faceted quantum sensor crystal with industrial framing
+- shadow_kunai: rotating four-fin shuriken armor and bright sensor
+- crimson_sand: tactical chronometer with unmistakable red hourglass
+- drama_mask: paired tragedy/comedy ceramic visor plates
+- valkyrie_halo: symmetrical protection wings with restrained amber halo
+- eclipse_crescent: distinct golden crescent and dark eclipse sensor
+- kurt_spirit: blue mechanized wolf totem with two ears and dual bright eyes
+
+All ten draw via the same dark metal / pale edge / limited glow material language, with per-costume identity distinct from the original emoji-like legacy bodies. The five role-specific accent colors remain recognizable across costumes. Visual footprints are approximately comparable to Echo at native Canvas scale and are not gameplay hitbox or range changes.
+
+Render priority: Stage 1.1 Echo/ghost -> Stage 1.4 other eight -> previous drawCustomCompanionSkin fallback. The 76px lootbox/reward Canvas preview now uses this same renderer selection, with a reduced local preview scale to prevent clipping. This pass does not alter game.ownedCompanionSkins, game.activeCompanionSkin, lootbox odds, shop pricing, companions' unlocked status, combat stats, or save format.
+
+Unit tests: security-lab/lost-signal-companion-skins-v17.test.cjs checks the 10 canonical database entries, all 5 roles, distinct geometry, 1x contrast, reduced motion, restored Canvas state, unknown-skin fallback, and in-game/reward renderer wiring. Browser smoke creates v17-stage-14-companion-skins.png comparing all ten against cyber-dark and saturated Cengiz red at native 1x scale, checking minimum silhouette size and painted pixels.
+
+Deployment gate: Draft PR #91 only. Until CI is fully green and iPad real-game 400+ wave screenshots and frame-rate review are accepted, do not merge or deploy. These are code-based Canvas designs, not artist-retouched 3D or sprite-sheet assets.
