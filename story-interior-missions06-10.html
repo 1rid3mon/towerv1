@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>LOST SIGNAL — İç İstasyon 06–10</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050c17;color:#d9eff9;font:14px system-ui;touch-action:none}canvas{display:block;width:100%;height:100%;touch-action:none}button{font:inherit;color:white;cursor:pointer}#hud{position:fixed;top:10px;left:10px;right:10px;display:flex;gap:10px;justify-content:space-between;align-items:start;pointer-events:none}#objective{max-width:530px;background:#071d2deb;border:1px solid #4a91ad;padding:12px;border-radius:12px;line-height:1.5}#quit{pointer-events:auto;background:#1c3549;border:1px solid #80c6d2;border-radius:10px;padding:11px}#pad{position:fixed;bottom:20px;left:19px;width:130px;height:130px;border-radius:50%;border:2px solid #4eacc6;background:#0a3c5066;touch-action:none}#knob{position:absolute;top:42px;left:42px;width:42px;height:42px;border-radius:50%;border:2px solid #b9ffff;background:#48bdd2ac}#act{position:fixed;right:22px;bottom:34px;width:104px;height:104px;border-radius:50%;border:2px solid #b0efff;background:#176479;font-weight:800}#modal{position:fixed;inset:0;background:#010813e5;display:none;align-items:center;justify-content:center;padding:18px}#modal.open{display:flex}#panel{width:min(540px,100%);max-height:90vh;overflow:auto;border:1px solid #5ad0db;border-radius:17px;background:#10283b;padding:23px}#panel h2{margin:0 0 9px;font-size:21px}#panel p{line-height:1.65;color:#c4dfeb}#panel button{background:#1b4c61;border:1px solid #75cfe1;padding:11px;margin:5px;border-radius:9px;min-height:45px}#panel button:focus-visible{outline:3px solid #f8eab1}#panel .error{color:#ffc6ab}#panel .success{color:#b7fcca}#feedback{min-height:20px}#label{font-size:12px;color:#b4d6e6}#mapinfo{display:block;font-size:12px;color:#98dbea;margin-top:5px}@media(max-width:600px){#hud{top:4px;left:4px;right:4px}#objective{font-size:11px;max-width:79%;padding:8px}#quit{padding:9px}#pad{left:10px;bottom:11px}#act{right:12px;bottom:22px}}
+</style></head><body>
+<canvas id="view" aria-label="İstasyon keşif sahnesi"></canvas><div id="hud"><div id="objective" aria-live="polite"></div><button id="quit">ÇIKIŞ</button></div><div id="pad"><div id="knob"></div></div><button id="act">ETKİLEŞ</button><div id="modal" role="dialog" aria-modal="true"><div id="panel"></div></div>
+<script>
+(()=>{'use strict';
+const mission=Number(new URLSearchParams(location.search).get('mission'));if(![6,7,8,9,10].includes(mission)){document.body.textContent='Bilinmeyen görev';return}
+const canvas=document.getElementById('view'),ctx=canvas.getContext('2d'),objective=document.getElementById('objective'),modal=document.getElementById('modal'),panel=document.getElementById('panel'),pad=document.getElementById('pad'),knob=document.getElementById('knob');
+const MAP_W=1120,MAP_H=610,player={x:132,y:300,r:12},keys=new Set(),joy={x:0,y:0,id:null};
+let width=0,height=0,dpr=1,previous=0,phase=0,dialog=false,finished=false,gateOpen=false,switches=0,seq=[],shield=20,attackTime=0,combat=false,round=0,beam=null;
+const visited=new Set(),logs=new Set(),walls=[],gates=[],stations=[],foes=[],hazards=[];
+const power=new URLSearchParams(location.search).get('power');
+const names={6:'BÖLMENİN ÖTESİNDE',7:'SİNYAL BÜKÜLÜYOR',8:'TANIDIK ODA',9:'UYANMAYI SEÇMEK',10:'AŞAĞIDAKİ KAPI'};
+const objectives={
+6:['Bakım panosunu incele ve güvenli güzergâhı öğren.','Su basmış sektördeki üç bağlantıyı onar.','Bakım terminalinde enerji akışını dengele.','Servis çıkışına ulaş.'],
+7:['Parazit kayıtlarını bul ve yükselticiyi ayarla.','Yükselticiden yayın frekansını çöz.','Güvenlik konsolundan savunmayı başlat.','Dışarıdan gelmeyen sinyalin kaynağını doğrula.','Çıkışa ulaş.'],
+8:['Başlangıç odasındaki üç farklı fiziksel kanıtı bul.','Kanıt arşivinde tutarsızlığı çöz.','Çelişkiyi kayıt altına almak için çıkış terminaline git.'],
+9:['Savunma planını incele ve enerji çekirdeğine ulaş.','İlk saldırı dalgasını savun.','Kalkanı onar ve ikinci saldırıya hazırlan.','İkinci dalgayı durdur.','Kontrol odasında bilinmeyen sinyali çöz.','Asansör geçidine ulaş.'],
+10:['Gizli kapıdaki hasar izlerini incele.','Birinci gömülü düğümü keşfet ve aç.','İkinci gömülü düğümü keşfet ve aç.','Kapı üzerindeki güvenlik kodunu çöz.','Alt istasyona inişi etkinleştir.']
+};
+function resize(){width=innerWidth;height=innerHeight;dpr=Math.min(devicePixelRatio||1,2);canvas.width=width*dpr;canvas.height=height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}addEventListener('resize',resize);resize();
+function wall(x,y,w,h){walls.push({x,y,w,h})}function hazard(x,y,w,h){hazards.push({x,y,w,h})}function gate(x,y,w,h,opens){gates.push({x,y,w,h,opens})}function station(x,y,label,kind,need=0){stations.push({x,y,label,kind,need})}
+function init(){
+ wall(25,25,1070,16);wall(25,569,1070,16);wall(25,25,16,560);wall(1079,25,16,560);
+ // A large complex, three connected wings; each phase can unlock the bulkhead.
+ wall(355,41,20,224);wall(355,337,20,232);wall(710,41,20,224);wall(710,337,20,232);
+ gate(355,265,20,72,mission===6?1:mission===7?1:mission===8?0:mission===9?1:1);
+ gate(710,265,20,72,mission===6?1:mission===7?3:mission===8?2:mission===9?4:3);
+ if(mission===6){
+ hazard(400,320,78,84);hazard(565,170,100,80);hazard(798,337,82,90);
+ station(155,123,'BAKIM PLANI','brief');station(468,125,'HAT A','repair');station(590,469,'HAT B','repair');station(797,145,'HAT C','repair');station(925,455,'DENGELEME','balance');station(1040,115,'SERVİS ÇIKIŞI','exit');
+ }
+ if(mission===7){
+ station(158,139,'GÜRÜLTÜ KAYDI','record');station(260,465,'ANTEN KAYDI','record');station(495,135,'YÜKSELTİCİ','amplifier');station(603,459,'SAVUNMA','defense');station(892,146,'SİNYAL ANALİZİ','analysis');station(995,468,'ÇIKIŞ','exit');
+ }
+ if(mission===8){
+ station(145,132,'TOZ İZİ','clue');station(255,471,'KAPANIŞ KAYDI','clue');station(492,123,'MAVİ YANKI','clue');station(550,459,'KANIT ARŞİVİ','deduce');station(936,308,'GERİ DÖNÜŞ','exit');
+ }
+ if(mission===9){
+ station(163,135,'SAVUNMA PLANI','brief');station(495,300,'ÇEKİRDEK','core');station(540,466,'KALKAN MODÜLÜ','shield');station(900,130,'KOMUTA KAYDI','analysis');station(998,465,'ALT GEÇİT','exit');
+ }
+ if(mission===10){
+ station(160,130,'HARİTA DIŞI KAPI','brief');station(455,146,'GÖMÜLÜ DÜĞÜM 1','node1');station(585,459,'GÖMÜLÜ DÜĞÜM 2','node2');station(904,144,'KİLİT KONSOLU','lock');station(987,456,'ASANSÖR','exit');
+ }
+}
+init();
+function remaining(){return foes.filter(e=>e.hp>0)}
+function drawHud(){objective.innerHTML='<b>GÖREV '+mission+' · '+names[mission]+'</b><div>'+objectives[mission][Math.min(phase,objectives[mission].length-1)]+'</div><span id="mapinfo">WASD / oklar · E veya ETKİLEŞ · iPad joystick</span>'+(combat?'<div>Çekirdek: '+shield+' · Düşman: '+remaining().length+' · Dalga: '+round+'</div>':'')+(mission===8?'<div>Bulunan kanıt: '+logs.size+'/3</div>':'')};drawHud();
+function show(h){dialog=true;modal.classList.add('open');panel.innerHTML=h}
+function hide(){dialog=false;modal.classList.remove('open')}
+function message(title,body){show('<h2>'+title+'</h2><p>'+body+'</p><button id="continue">DEVAM</button>');document.getElementById('continue').onclick=hide}
+function choices(title,body,options,onSelect){show('<h2>'+title+'</h2><p>'+body+'</p><div id="options"></div><p id="feedback" role="status"></p><button id="back">KAPAT</button>');document.getElementById('back').onclick=hide;const target=document.getElementById('options');options.forEach(([label,value])=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>onSelect(value);target.appendChild(b)})}
+function error(s){const el=document.getElementById('feedback');if(el)el.textContent=s}
+function near(n){return Math.hypot(n.x-player.x,n.y-player.y)<72}
+function finish(body){if(finished)return;finished=true;combat=false;show('<h2>GÖREV '+mission+' TAMAMLANDI</h2><p>'+body+'</p><button id="done">GÖREV PANOSUNA DÖN</button>');document.getElementById('done').onclick=()=>parent.postMessage({type:'lost-signal-interior-mission-complete',mission},location.origin)}
+function waves(count,hp){round++;combat=true;foes.length=0;for(let k=0;k<count;k++){foes.push({x:780+(k%2)*34,y:140+k*66,hp,maxHp:hp,speed:18+Math.floor(k/2)*3})}attackTime=0;drawHud()}
+function fightHelp(){message('SAVUNMA','Düşmanların üstüne dokunarak veya tıklayarak kuleleri hedefle. Reaktör hasar alırsa saldırıyı yeniden dene.')}
+function failFight(){combat=false;shield=mission===9?(power==='shield'?30:22):18;foes.length=0;const lost=round;round--;show('<h2>ÇEKİRDEK HASAR ALDI</h2><p>'+lost+'. dalga başarısız. Kanıtlar ve önceki adımlar kaybolmadı.</p><button id="retry">YENİDEN DENE</button>');document.getElementById('retry').onclick=()=>{hide();waves(lost===1?3:5,lost===1?3:4)}}
+function handle(n){
+ if(mission===6){
+ if(n.kind==='brief'&&phase===0){phase=1;drawHud();message('BAKIM PLANI','Enerji güvenli geçişi açtı. Elektrikli su birikintileri mavi renkte işaretli. Kabloları sırayla topraklama, soğutma ve güç olarak çalıştır.');return}
+ if(n.kind==='repair'&&phase===1){if(visited.has(n.label)){message('ONARILDI',n.label+' çalışıyor.');return}
+ const order=['HAT A','HAT B','HAT C'],expected=['earth','cool','power'];
+ const index=order.indexOf(n.label);
+ choices(n.label,'Enerji sırası: önce topraklama (A), sonra soğutma (B), en son güç (C). Önceki hat doğru bağlanmadan sonraki hat çalışmaz.',[['YEŞİL · TOPRAKLAMA','earth'],['SARI · GÜÇ','power'],['MAVİ · SOĞUTMA','cool']],v=>{
+ if(visited.size!==index){error('Önce '+order[visited.size]+' terminalini onarmalısın.');return}
+ if(v!==expected[index]){error('Hatalı bağlantı. Devre korunmak için açılmadı, kaydı tekrar incele.');return}
+ visited.add(n.label);if(visited.size===3){phase=2;drawHud()}
+ message('HAT ONARILDI',n.label+' bağlandı. '+visited.size+'/3 bağlantı tamam.');});return}
+ if(n.kind==='balance'&&phase===2){choices('AKIŞ DENGESİ','Üç bağlantı onarıldı. Kaynak gerilimi 12 V, iki yükün ihtiyacı 6 V ve 6 V. Hangisi dengeli?', [['6 V + 6 V','yes'],['9 V + 6 V','no'],['12 V + 12 V','no']],v=>{if(v==='yes'){phase=3;drawHud();message('DENGELENDİ','Akım stabil. Servis çıkışı açıldı.')}else error('Toplam gerilim kaynakla uyuşmuyor.')});return}
+ if(n.kind==='exit'&&phase===3){finish('Bakım bölümü onarıldı; istasyonun altındaki yayın güç almaya devam ediyor.');return}
+ }
+ if(mission===7){
+ if(n.kind==='record'&&phase===0){logs.add(n.label);message(n.label,n.label==='GÜRÜLTÜ KAYDI'?'Parazit her 3 saniyede bir tekrarlanıyor.':'Tekrarın tepe noktası 120 Hz olarak işaretlenmiş.');if(logs.size===2){phase=1;drawHud()}return}
+ if(n.kind==='amplifier'&&phase===1){choices('YÜKSELTİCİ','İki kaydın gösterdiği eşleşme nedir?', [['120 Hz / 3 saniye','yes'],['30 Hz / 6 saniye','no'],['120 Hz / 9 saniye','no']],v=>{if(v==='yes'){phase=2;drawHud();message('YAYIN EŞLEŞTİ','Güvenlik konsolu açıldı; tekrarlanan sinyal bir savunma alarmını tetikledi.')}else error('Kayıtlarla uyuşmuyor. İki kaydı tekrar karşılaştır.')});return}
+ if(n.kind==='defense'&&phase===2){if(remaining().length===0&&!combat&&round>0){phase=3;drawHud();message('SAVUNMA BİTTİ','Sinyal analiz terminalinde yeni bir iz var.');return}if(!combat){waves(3,3);fightHelp()}else fightHelp();return}
+ if(n.kind==='analysis'&&phase===3){choices('SİNYAL ANALİZİ','Sinyal antenin dışından değil, iç devresinden başlayıp tekrar antene dönüyor. Doğru sonuç?', [['ANTEN SİNYALİ TEKRAR YAYIYOR','yes'],['UZAKTAN İLK KEZ GELİYOR','no']],v=>{if(v==='yes'){phase=4;drawHud();message('KAYNAK SAPTANDI','Anten yalnızca tekrarlayıcıymış. Sinyal kule içinde üretiliyor.')}else error('Kaynak ve hedef aynı fiziksel hat üzerinde. Yeniden değerlendir.')});return}
+ if(n.kind==='exit'&&phase===4){finish('İçeriden gelen döngüyü kaydettin. Başlangıç odasının eski kayıtları artık şüpheli.');return}
+ }
+ if(mission===8){
+ if(n.kind==='clue'&&phase===0){if(logs.has(n.label)){message('KAYDEDİLDİ',n.label+' daha önce incelendi.');return}logs.add(n.label);const clues={'TOZ İZİ':'Zemindeki 02:08 tarihli ayak izleri yeni, kapalı dönemde oluşmuş.','KAPANIŞ KAYDI':'Oda 02:00–03:00 arasında kilitli ve hareketsiz kaydedilmiş.','MAVİ YANKI':'Komutanın sesine benzeyen yankı kayıtlarda 02:08 tarihinde duyuluyor.'};message(n.label,clues[n.label]);if(logs.size===3){phase=1;drawHud()}return}
+ if(n.kind==='deduce'&&phase===1){choices('KANIT KARŞILAŞTIR','Güvenlik kaydı 02:00–03:00 arası hareket olmadığını iddia ediyor. Oysa 02:08 ayak izi ve yankı var. En makul çıkarım?', [['KAPANIŞ KAYDI EKSİK VEYA YANLIŞ','yes'],['ÜÇ KAYIT BİRBİRİNİ DOĞRULUYOR','no'],['YANKI KESİNLİKLE DIŞ UZAYDAN','no']],v=>{if(v==='yes'){phase=2;drawHud();message('ÇELİŞKİ ÇÖZÜLDÜ','Boş oda kaydı güvenilir değil. Komutanın uyanışından önce burada biri bulunmuş olabilir.')}else error('Bu çıkarım mevcut fiziksel kanıtlarla desteklenmiyor. Yeniden dene.')});return}
+ if(n.kind==='exit'&&phase===2){finish('Tanıdık odada birinin hareket ettiği kanıtlandı, fakat kimliği hâlâ bilinmiyor.');return}
+ }
+ if(mission===9){
+ if(n.kind==='brief'&&phase===0){phase=1;drawHud();message('SAVUNMA PLANI','Kalkan ve silah kapasitesi, 4. görevdeki enerji seçimine göre değişiyor. Çekirdeğe yaklaş ve ilk savunmayı başlat.');return}
+ if(n.kind==='core'&&phase===1){if(!combat){waves(3,power==='weapon'?2:3);fightHelp()}else fightHelp();return}
+ if(n.kind==='shield'&&phase===2){choices('KALKAN MODÜLÜ','Çekirdeğin rezervleri tehlikeli düzeyde. İkinci dalga için hangi sistemi önceliklendireceksin?', [['KALKAN YENİDEN ŞARJ','shield'],['SİLAH HIZLANDIRMA','weapon']],v=>{shield+=v==='shield'?12:5;if(v==='weapon')switches=1;phase=3;drawHud();message('İKİNCİ SAVUNMA','Reaktör hazır. Çekirdek terminaline dön.')});return}
+ if(n.kind==='core'&&phase===3){if(!combat){waves(5,switches?2:4);fightHelp()}else fightHelp();return}
+ if(n.kind==='analysis'&&phase===4){choices('KOMUTA KAYDI','Bilinmeyen sinyal, kule içi alt bölümünün koordinatlarını taşıyor. Haritada bunun karşılığı nedir?', [['GİZLİ ALT KAT','yes'],['DIŞ GALAKSİ','no']],v=>{if(v==='yes'){phase=5;drawHud();message('İZİN VERİLDİ','Acil durum asansörü etkin. Altta ikinci bir istasyon kompleksi görünüyor.')}else error('Koordinatlar yerel istasyon ağına ait. Tekrar incele.')});return}
+ if(n.kind==='exit'&&phase===5){finish('Çekirdek korundu. Komutan, gizli alt kata iniş yetkisi kazandı.');return}
+ }
+ if(mission===10){
+ if(n.kind==='brief'&&phase===0){phase=1;drawHud();message('HARİTA DIŞI KAPI','Sistemde listelenmeyen bir kat bulundu. Kapı şifresi eski görevlerdeki kanıt sayılarına bağlı. İki gizli düğümü bularak ilerle.');return}
+ if(n.kind==='node1'&&phase===1){choices('DÜĞÜM 1','Kapıdaki üç basamak sırasıyla görev 6\'da onarılan hatları, görev 7\'de incelenen kayıtları ve görev 8\'de bulunan ipuçlarını sayıyor. Kod nedir?', [['323','yes'],['332','no'],['233','no']],v=>{if(v==='yes'){phase=2;drawHud();message('DÜĞÜM 1 AKTİF','İkinci düğümün enerji hattı açıldı.')}else error('Düğüm yanıt vermiyor. Eşitliği tekrar kontrol et.')});return}
+ if(n.kind==='node2'&&phase===2){choices('DÜĞÜM 2','Kayıt: kapı frekansı, antenin bulduğu kaynağa bağlı. Anten dışarıdan mı, içeriden mi sinyal yayıyordu?', [['İÇERİDEN','yes'],['DIŞARIDAN','no']],v=>{if(v==='yes'){phase=3;drawHud();message('DÜĞÜM 2 AKTİF','Güvenlik konsoluna erişildi.')}else error('Görev 7 sinyal analiziyle çelişiyor.')});return}
+ if(n.kind==='lock'&&phase===3){choices('KİLİT KONSOLU','İki düğüm aktif; güvenli giriş için doğru protokolü seç.', [['ÖNCE BASINÇ DENGESİ, SONRA KAPI','yes'],['DOĞRUDAN KAPIYI AÇ','no']],v=>{if(v==='yes'){phase=4;drawHud();message('KAPI AÇILDI','Basınç dengelendi. Asansör inişe hazır.')}else error('Ani basınç farkı tehlikeli. Önce ortamı dengele.')});return}
+ if(n.kind==='exit'&&phase===4){finish('Kayıp sektör açıldı. Aşağıda istasyonun bilinmeyen ikinci bir katmanı uzanıyor.');return}
+ }
+ message('ERİŞİM KİLİTLİ','Önce görev takipçisindeki hedefi tamamla.');
+}
+function interact(){if(dialog||finished)return;const n=stations.filter(near).sort((a,b)=>Math.hypot(a.x-player.x,a.y-player.y)-Math.hypot(b.x-player.x,b.y-player.y))[0];if(n)handle(n)}
+function collisions(x,y){return walls.concat(gates.filter(g=>phase<g.opens),hazards).some(w=>x+player.r>w.x&&x-player.r<w.x+w.w&&y+player.r>w.y&&y-player.r<w.y+w.h)}
+function movement(dt){if(dialog)return;let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'))+joy.x,dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'))+joy.y;let l=Math.hypot(dx,dy);if(l<.03)return;dx/=Math.max(1,l);dy/=Math.max(1,l);const nextX=player.x+dx*190*dt,nextY=player.y+dy*190*dt;if(!collisions(nextX,player.y))player.x=nextX;if(!collisions(player.x,nextY))player.y=nextY}
+function projection(){const scale=Math.min(width/760,height/460,1.6),ox=Math.max(0,Math.min(MAP_W-width/scale,player.x-width/scale/2)),oy=Math.max(0,Math.min(MAP_H-height/scale,player.y-height/scale/2));return{scale,ox,oy}}
+function draw(time){
+ ctx.fillStyle='#030813';ctx.fillRect(0,0,width,height);
+ const {scale,ox,oy}=projection();ctx.save();ctx.scale(scale,scale);ctx.translate(-ox,-oy);
+ ctx.fillStyle='#102436';ctx.fillRect(25,25,1070,560);
+ for(let k=0;k<3;k++){const x=48+k*351;ctx.fillStyle=['#162a3c','#182f41','#1b293b'][k];ctx.fillRect(x,45,330,520);ctx.strokeStyle='#315a6e';ctx.strokeRect(x+8,55,314,492);
+ ctx.fillStyle='#79a6bb';ctx.font='bold 16px system-ui';ctx.textAlign='center';ctx.fillText(['İÇ SEKTÖR A','İÇ SEKTÖR B','İÇ SEKTÖR C'][k],x+165,90)}
+ ctx.strokeStyle='#29465a';ctx.lineWidth=1;for(let x=40;x<1090;x+=40){ctx.beginPath();ctx.moveTo(x,40);ctx.lineTo(x,565);ctx.stroke()}for(let y=40;y<570;y+=40){ctx.beginPath();ctx.moveTo(40,y);ctx.lineTo(1090,y);ctx.stroke()}
+ for(let i=0;i<13;i++){ctx.fillStyle='#79dce7';ctx.globalAlpha=.07+.045*Math.sin(time/690+i);ctx.fillRect(70+i*76,51+(i%2)*491,28,11)}ctx.globalAlpha=1;
+ for(const w of walls){ctx.fillStyle='#657d91';ctx.fillRect(w.x,w.y,w.w,w.h);ctx.fillStyle='#aac6d4';ctx.fillRect(w.x,w.y,w.w,3)}
+ for(const g of gates){ctx.fillStyle=phase<g.opens?'#ae534a':'#2d7568';ctx.fillRect(g.x,g.y,g.w,g.h);ctx.strokeStyle=phase<g.opens?'#ffc2a9':'#a1ffdf';ctx.lineWidth=2;ctx.strokeRect(g.x,g.y,g.w,g.h)}
+ for(const h of hazards){ctx.fillStyle='rgba(23,121,169,0.58)';ctx.fillRect(h.x,h.y,h.w,h.h);ctx.strokeStyle='#7ce9ff';ctx.lineWidth=2;ctx.strokeRect(h.x,h.y,h.w,h.h);ctx.strokeStyle='#ecf9ac';for(let k=0;k<3;k++){ctx.beginPath();ctx.moveTo(h.x+6+k*h.w/3,h.y+12);ctx.lineTo(h.x+15+k*h.w/3,h.y+h.h-13);ctx.stroke()}}
+ for(const s of stations){const available=near(s);ctx.fillStyle=available?'#3c9a9b':'#28617c';ctx.fillRect(s.x-23,s.y-19,46,38);ctx.strokeStyle=available?'#f2fca9':'#9edfe9';ctx.lineWidth=available?3:1;ctx.strokeRect(s.x-23,s.y-19,46,38);ctx.fillStyle='#e6f8ff';ctx.textAlign='center';ctx.font='11px system-ui';ctx.fillText(s.label,s.x,s.y-28);if(available){ctx.fillStyle='#e2ffc2';ctx.fillText('ETKİLEŞ',s.x,s.y+35)}}
+ for(const f of remaining()){ctx.fillStyle='#d76579';ctx.fillRect(f.x-16,f.y-16,32,32);ctx.strokeStyle='#ffc2ba';ctx.strokeRect(f.x-16,f.y-16,32,32);ctx.fillStyle='#fff';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText('●'.repeat(f.hp),f.x,f.y-24)}
+ if(beam&&time<beam.until){ctx.strokeStyle='#b0fbff';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(475,300);ctx.lineTo(beam.x,beam.y);ctx.stroke()}
+ ctx.fillStyle='#60d7f3';ctx.globalAlpha=.14;ctx.beginPath();ctx.arc(player.x,player.y,43,0,7);ctx.fill();ctx.globalAlpha=1;
+ ctx.fillStyle='#73e4f7';ctx.beginPath();ctx.arc(player.x,player.y,player.r,0,7);ctx.fill();ctx.strokeStyle='#ebffff';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#09384b';ctx.fillRect(player.x-5,player.y-5,10,10);
+ ctx.restore();
+}
+canvas.addEventListener('pointerdown',e=>{if(dialog||!combat||finished)return;const {scale,ox,oy}=projection(),x=e.clientX/scale+ox,y=e.clientY/scale+oy;const target=remaining().find(z=>Math.hypot(z.x-x,z.y-y)<36);if(!target)return;target.hp--;beam={x:target.x,y:target.y,until:performance.now()+180};if(remaining().length===0){combat=false;if(mission===7){phase=3}else if(mission===9){phase=round===1?2:4}drawHud();message('SALDIRI DURDURULDU',mission===9&&round===1?'İlk dalga durdu. Kalkan modülüne yaklaş.':'Çekirdek korundu. Görev hedefini takip et.')}else drawHud()});
+function tick(t){const dt=Math.min((t-previous)/1000||0,.04);previous=t;movement(dt);if(combat&&!dialog){attackTime+=dt;for(const f of remaining()){const vx=490-f.x,vy=308-f.y,m=Math.hypot(vx,vy)||1;f.x+=vx/m*f.speed*dt;f.y+=vy/m*f.speed*dt}if(attackTime>3.5){attackTime=0;shield-=mission===9?4:3;if(shield<=0)failFight();drawHud()}}draw(t);requestAnimationFrame(tick)}requestAnimationFrame(tick);
+addEventListener('keydown',e=>{const key=e.key.toLowerCase();keys.add(key);if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(key))e.preventDefault();if((key==='e'||key===' ')&&!e.repeat)interact()});addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>keys.clear());
+document.getElementById('act').onclick=interact;document.getElementById('quit').onclick=()=>parent.postMessage({type:'lost-signal-interior-close'},location.origin);
+function joystick(e){const box=pad.getBoundingClientRect(),x=e.clientX-box.left-box.width/2,y=e.clientY-box.top-box.height/2,mag=Math.max(1,Math.hypot(x,y)),amount=Math.min(1,mag/44);joy.x=x/mag*amount;joy.y=y/mag*amount;knob.style.transform='translate('+(joy.x*37)+'px,'+(joy.y*37)+'px)'}
+pad.addEventListener('pointerdown',e=>{joy.id=e.pointerId;pad.setPointerCapture(e.pointerId);joystick(e)});pad.addEventListener('pointermove',e=>{if(joy.id===e.pointerId)joystick(e)});
+function release(e){if(joy.id!==e.pointerId)return;joy.id=null;joy.x=joy.y=0;knob.style.transform=''}pad.addEventListener('pointerup',release);pad.addEventListener('pointercancel',release);
+})();
+</script></body></html>
