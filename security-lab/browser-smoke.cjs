@@ -318,6 +318,78 @@ async function main() {
             status:'passed',states:bossArt.results.length,
             minPaintedPixels:Math.min(...bossArt.results.map(x=>x.opaque))});
 
+          // Stage 1.6: live Piko SVG, actual tower skins, artillery and beam painters
+          // on both dark and saturated Cengiz fields. Native 1x/real game code only.
+          const finalArt = await frame.evaluate(async () => {
+            const painter=window.TowerCombatArtV17;
+            const towerArt=window.TowerLostSignalTowers;
+            const piko=document.querySelector('#game-mascot-face');
+            if(!painter||!towerArt||!piko||
+              !piko.querySelector('.piko-v17-armor')||
+              !piko.querySelector('.piko-eye')||
+              !piko.querySelector('.piko-core'))
+              throw new Error('Stage 1.6 Piko/tower/combat artwork unavailable');
+            if(typeof drawCustomTowerSkin!=='function')
+              throw new Error('Original tower costume renderer unavailable');
+            const serialized=new XMLSerializer().serializeToString(piko);
+            const svgImage=new Image();
+            svgImage.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(serialized);
+            if(svgImage.decode)await svgImage.decode();
+            else await new Promise((resolve,reject)=>{
+              svgImage.onload=resolve;svgImage.onerror=reject;
+            });
+            const width=140,height=130;
+            const sheet=document.createElement('canvas');
+            sheet.width=7*width;sheet.height=2*height;
+            const c=sheet.getContext('2d'),results=[];
+            const ids=['default_cyber','kurt_kaan','black_hole','fighter_jet',
+              'plasma-bolt','frost-beam','piko'];
+            for(let theme=0;theme<2;theme++){
+              for(let i=0;i<ids.length;i++){
+                const id=ids[i],x=i*width,y=theme*height;
+                c.fillStyle=theme?'#813232':'#10253b';
+                c.fillRect(x,y,width,height);
+                const tile=document.createElement('canvas');
+                tile.width=130;tile.height=102;
+                const b=tile.getContext('2d');
+                if(i<4){
+                  b.save();b.translate(65,50);
+                  drawCustomTowerSkin(b,id,0,0,3,1500);b.restore();
+                }else if(id==='plasma-bolt'){
+                  const p={x:65,y:45,radius:5,vx:18,vy:1,color:'#7dd3fc',
+                    history:[{x:54,y:43},{x:43,y:42},{x:32,y:41}]};
+                  if(!painter.drawProjectile(b,p))throw new Error('Projectile not drawn');
+                }else if(id==='frost-beam'){
+                  if(!painter.drawBeam(b,{x1:10,y1:50,x2:114,y2:50,color:'#a5f3fc'}))
+                    throw new Error('Beam not drawn');
+                  if(!painter.drawProjectile(b,{x:80,y:50,radius:5,vx:20,vy:0,
+                    color:'#9deafa',fromEnemy:true,isBossFrost:true}))
+                    throw new Error('Frost projectile not drawn');
+                }else{
+                  b.drawImage(svgImage,17,2,96,96);
+                }
+                const pixels=b.getImageData(0,0,130,102).data;
+                let count=0;
+                for(let p=3;p<pixels.length;p+=4)if(pixels[p]>25)count++;
+                const min=id==='plasma-bolt'?60:id==='frost-beam'?150:500;
+                if(count<min)throw new Error('Stage 1.6 empty '+id+
+                  ' theme='+theme+' opaque='+count);
+                c.drawImage(tile,x+5,y+4);
+                c.fillStyle='#eff6ff';c.font='10px sans-serif';
+                c.fillText(id,x+5,y+119);
+                results.push({id,theme:theme?'Cengiz red':'Cyber dark',opaque:count});
+              }
+            }
+            return {png:sheet.toDataURL('image/png').split(',')[1],results};
+          });
+          assert.equal(finalArt.results.length,14,'Piko + 4 tower skins + 2 combat forms on 2 fields');
+          fs.writeFileSync(path.join(evidence,'v17-stage-16-piko-tower-combat.png'),
+            Buffer.from(finalArt.png,'base64'));
+          results.push({target,browser:browserName,viewport:'tablet-stage-16-piko-tower-combat',
+            status:'passed',states:finalArt.results.length,
+            minPaintedPixels:Math.min(...finalArt.results.map(x=>x.opaque))});
+
+
 
 
         }
