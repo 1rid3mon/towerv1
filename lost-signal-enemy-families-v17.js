@@ -203,7 +203,14 @@ function paintFamily(c,kind,r,a){
 const SPRITE_CACHE=new Map(),CACHE_LIMIT=96;
 let cacheHits=0,cacheMisses=0;
 function cachedBody(c,id,def,r){
- if(!root.document||typeof root.document.createElement!=='function'||
+ // WebKit on iPad exhibited costly deferred Canvas-to-Canvas blits in QA.
+ // Preserve its stable native vector path; Chromium safely uses the 2x cache.
+ const ua=root.navigator&&typeof root.navigator.userAgent==='string'?
+    root.navigator.userAgent:'';
+ const safariWebKit=/AppleWebKit/i.test(ua)&&
+    !/(?:Chrome|Chromium|Edg)\//i.test(ua);
+ if(safariWebKit||!root.document||
+    typeof root.document.createElement!=='function'||
     typeof c.drawImage!=='function')return false;
  const resolution=Math.round(r*10)/10;
  const key=id+':'+resolution;
