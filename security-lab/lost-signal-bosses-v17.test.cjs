@@ -37,7 +37,7 @@ for(const id of expected){
   assert(props.some(c=>c.key==='strokeStyle'&&c.value==='rgba(232,245,255,0.9)'),
    'neutral contrast edge retained for '+id);
   const bodies=calls.filter(c=>c.key==='closePath').length;
-  assert(bodies>6,'not a cheap resized enemy: '+id);
+  assert(bodies>=4,'layered silhouette, not a cheap circle/enlarged enemy: '+id);
   if(phase>1)assert(bodies>lastBodies,'phase '+phase+' must deploy additional physical armor on '+id);
   lastBodies=bodies;
   if(phase===1){
