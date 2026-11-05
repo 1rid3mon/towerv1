@@ -68,6 +68,7 @@ async function play(){
     await close();await station('exit');
    }
    await page.locator(mission===1?'#complete':'#done').click();
+   await page.waitForFunction(m=>window.__completion?.mission===m,mission,{timeout:3000});
    const completion=await page.evaluate(()=>window.__completion);
    assert.equal(completion?.mission,mission,'mission completion message');
    if(mission===4)assert.equal(completion.choice,'shield');
