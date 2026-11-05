@@ -5,7 +5,9 @@ new vm.Script(raw);
 const hook="window.__qa={player,stations,gates,enemies,interact,collides,camera,get phase(){return phase},get combat(){return combat},get round(){return round}};";
 const script=raw.replace(/\}\)\(\);\s*$/,hook+'\n})();');assert.notEqual(script,raw,'QA hook missing');
 const shell=fs.readFileSync(path.join(root,'story-interior-missions16-20.html'),'utf8');
-const server=http.createServer((req,res)=>{const p=new URL(req.url,'http://localhost').pathname;if(p==='/story-interior-missions16-20.html'){res.setHeader('Content-Type','text/html');res.end(shell)}else if(p==='/story-interior-missions16-20.js'){res.setHeader('Content-Type','text/javascript');res.end(script)}else{res.writeHead(404);res.end()}});
+const server=http.createServer((req,res)=>{
+ if(new URL(req.url,'http://localhost').pathname==='/story-interior-completion.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(fs.readFileSync(path.join(root,'story-interior-completion.js'),'utf8'));return}
+const p=new URL(req.url,'http://localhost').pathname;if(p==='/story-interior-missions16-20.html'){res.setHeader('Content-Type','text/html');res.end(shell)}else if(p==='/story-interior-missions16-20.js'){res.setHeader('Content-Type','text/javascript');res.end(script)}else{res.writeHead(404);res.end()}});
 async function play(){
  await new Promise(r=>server.listen(4203,'127.0.0.1',r));
  const browser=await (process.env.BROWSER_ENGINE==='webkit'?webkit:chromium).launch({headless:true});
