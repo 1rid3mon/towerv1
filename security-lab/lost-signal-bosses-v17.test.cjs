@@ -56,6 +56,30 @@ assert(paint('speed_boss',3,{radius:24}).ok,'small speed boss stays visible');
 assert.equal(paint('invented_boss',1).ok,false,'unknown boss uses original renderer');
 assert.equal(paint('tank_boss',1,{type:'runner'}).ok,false,'not a boss');
 assert.equal(paint('tank_boss',1,{radius:0}).ok,false,'invalid radius falls back');
+// The same boss object must deploy armor progressively *after* combat phase changes,
+ // without writing presentation state into gameplay or save data.
+const scaleCalls=[];
+const moveCtx=new Proxy({},{
+ get(_,key){return (...args)=>{if(key==='scale')scaleCalls.push(args);};},
+ set(){return true;}
+});
+const movingBoss={type:'boss',subType:'tank_boss',radius:40,x:1,y:2,
+ hp:800,maxHp:900,hitFlash:0,v12Combat:{phase:1}};
+assert(art.drawEnemy(moveCtx,movingBoss,80,0,1000));
+movingBoss.v12Combat.phase=2;
+scaleCalls.length=0;
+assert(art.drawEnemy(moveCtx,movingBoss,80,0,1200));
+assert(scaleCalls.some(pair=>pair[0]===1&&Math.abs(pair[1]-.82)<.01),
+ 'a new visual phase starts with compressed armor');
+scaleCalls.length=0;
+assert(art.drawEnemy(moveCtx,movingBoss,80,0,1600));
+assert(scaleCalls.some(pair=>pair[0]===1&&pair[1]>.9&&pair[1]<1),
+ 'armor unfolds gradually during visual-only 680ms transition');
+scaleCalls.length=0;
+assert(art.drawEnemy(moveCtx,movingBoss,80,0,1900));
+assert(scaleCalls.some(pair=>pair[0]===1&&pair[1]===1),
+ 'visual transition settles without delaying any combat');
+
 root.location.search='?enemyArt=legacy';
 assert.equal(paint('tank_boss',2).ok,false,'opt-out preserves original WebP/legacy art');
 root.location.search='';
@@ -64,6 +88,11 @@ const reduced=paint('leviathan',3);
 assert(reduced.ok,'reduced motion still shows phase 3');
 assert(reduced.calls.some(c=>c.key==='translate'&&c.args[1]===0),
  'reduced motion disables bobbing');
+movingBoss.v12Combat.phase=3;
+scaleCalls.length=0;
+assert(art.drawEnemy(moveCtx,movingBoss,80,0,2000));
+assert(scaleCalls.some(pair=>pair[0]===1&&pair[1]===1),
+ 'prefers-reduced-motion disables new phase unfolding');
 const render=read('render.js'),html=read('index.html');
 assert(html.indexOf('lost-signal-bosses-v17.js')>=0 &&
  html.indexOf('lost-signal-bosses-v17.js')<html.indexOf('render.js'),
