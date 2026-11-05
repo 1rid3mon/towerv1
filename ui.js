@@ -1677,8 +1677,15 @@ function buildInventoryUI() {
                     pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
                     pCtx.save();
                     pCtx.translate(pCanvas.width / 2, pCanvas.height / 2);
-                    pCtx.scale(1.65, 1.65);
-                    drawCustomCompanionSkin(pCtx, cSkin.id, 'laserDrone', 5, -Math.PI / 2, 0);
+                    // Native 52px inventory thumbnail: same Stage 1.4 drawing as battle
+                    // and lootbox, scaled down so no wings/masks clip at the corners.
+                    pCtx.scale(0.91, 0.91);
+                    const refDrawn = window.TowerUnifiedCharactersV17 &&
+                        window.TowerUnifiedCharactersV17.drawCompanion(pCtx, cSkin.id, 'laserDrone', 5, -Math.PI / 2, 0);
+                    const altDrawn = !refDrawn && window.TowerCompanionSkinsV17 &&
+                        window.TowerCompanionSkinsV17.drawCompanion(pCtx, cSkin.id, 'laserDrone', 5, -Math.PI / 2, 0);
+                    if (!refDrawn && !altDrawn)
+                        drawCustomCompanionSkin(pCtx, cSkin.id, 'laserDrone', 5, -Math.PI / 2, 0);
                     pCtx.restore();
                 }
             });
