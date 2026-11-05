@@ -264,3 +264,24 @@ Render priority: Stage 1.1 Echo/ghost -> Stage 1.4 other eight -> previous drawC
 Unit tests: security-lab/lost-signal-companion-skins-v17.test.cjs checks the 10 canonical database entries, all 5 roles, distinct geometry, 1x contrast, reduced motion, restored Canvas state, unknown-skin fallback, and in-game/reward renderer wiring. Browser smoke creates v17-stage-14-companion-skins.png comparing all ten against cyber-dark and saturated Cengiz red at native 1x scale, checking minimum silhouette size and painted pixels.
 
 Deployment gate: Draft PR #91 only. Until CI is fully green and iPad real-game 400+ wave screenshots and frame-rate review are accepted, do not merge or deploy. These are code-based Canvas designs, not artist-retouched 3D or sprite-sheet assets.
+
+
+## Stage 1.5 · Boss anatomical and three-phase visual conversion (2026-11-05)
+
+Implementation: lost-signal-bosses-v17.js renders the five actual boss IDs through the same near-black chassis, pale edge, restrained emissive accents and hard-surface plating language as Stage 1.1–1.4. It is presentation-only Canvas art rather than new boss mechanics.
+
+| Existing ID | Distinct silhouette | Phase 2 visual change | Phase 3 visual change |
+| --- | --- | --- | --- |
+| tank_boss | Wide siege shoulders, thick ram, armored reactor | Deploys outer shoulder armor | Heavy flank prongs and brighter ram plating |
+| ranged_boss | Dual rear artillery pods and twin forward barrels | Opens raised battery armor | Extra visible rail armor and forward gun casing |
+| speed_boss | Narrow arrowhead predator and swept wings | Opens secondary interceptor fins | Broad outer wing blades and aggressive nose plate |
+| frost_boss | Six-sided ice fortress, angular cryo plating | Deploys frost shield armor | Extended cryo crown and ice spear nose |
+| leviathan | Split cosmic shell, asymmetrical arm segments, large reactor | Opens secondary tendrils | Unfolds outer signal fins and forward abyss projection |
+
+Phase visual state is read from existing v12Combat.phase (1, 2 or 3), not derived from damage guesses and never written back. All bosses are drawn using a shared contrasting backing and at most local, subtle oscillation; prefers-reduced-motion disables that oscillation. Hit feedback is still visible via a bright core when hitFlash > 0. All existing attack telegraphs, boss phase labels, shield cues, HP bars, collision/targeting radius, loot, progression, death and save format remain unchanged.
+
+Renderer priority: Stage 1.5 boss module -> Stage 1.1 reference renderer (including old Titan fallback) -> Stage 1.3 normal families -> V17 raster atlas -> complete original legacy body. Only one branch paints the body, so no multiplied effects. The enemyArt=legacy URL switch keeps the prior gameplay visuals for A/B comparisons. Unsupported boss IDs revert to V17/legacy.
+
+Automated tests: security-lab/lost-signal-bosses-v17.test.cjs checks all five canonical boss IDs, 15 separate visual phase variants, changed polygon anatomy across phases, distinct geometry for each boss, enemy-state immutability, reduced-motion, hit cues, legacy opt-out and render wiring. Browser-smoke captures the real Canvas asset in v17-stage-15-five-bosses-three-phases.png (five bosses x three phases x two backgrounds: cyber-dark and saturated Cengiz red) at native 1x size with painted-pixel and silhouette-width assertions.
+
+Scope and release gate: this is a fully wired initial Canvas redesign, not final hand-painted high-res character assets or new gameplay attack phases. Full CI and iPad 1x heavy-wave/performance and visual acceptability still gate the draft PR #91. Main and production intentionally remain untouched.
