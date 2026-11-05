@@ -26,8 +26,8 @@ function init(){
  wall(25,25,1070,16);wall(25,569,1070,16);wall(25,25,16,560);wall(1079,25,16,560);
  // A large complex, three connected wings; each phase can unlock the bulkhead.
  wall(355,41,20,224);wall(355,337,20,232);wall(710,41,20,224);wall(710,337,20,232);
- gate(355,265,20,72,mission===6?1:mission===7?1:mission===8?1:mission===9?1:2);
- gate(710,265,20,72,mission===6?2:mission===7?2:mission===8?1:mission===9?4:3);
+ gate(355,265,20,72,mission===6?1:mission===7?1:mission===8?0:mission===9?1:1);
+ gate(710,265,20,72,mission===6?1:mission===7?3:mission===8?2:mission===9?4:3);
  if(mission===6){
  station(155,123,'BAKIM PLANI','brief');station(468,125,'HAT A','repair');station(590,469,'HAT B','repair');station(797,145,'HAT C','repair');station(925,455,'DENGELEME','balance');station(1040,115,'SERVİS ÇIKIŞI','exit');
  }
