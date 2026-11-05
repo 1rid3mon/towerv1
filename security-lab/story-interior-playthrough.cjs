@@ -55,7 +55,9 @@ async function play(){
     assert.equal(await page.evaluate(()=>{const q=__qa,g=q.gates[0];return q.collision(g.x+g.w/2,g.y+g.h/2)}),true,'first antenna gate must be closed');
     await station('anten');await close();
     assert.equal(await page.evaluate(()=>{const q=__qa,g=q.gates[0];return q.collision(g.x+g.w/2,g.y+g.h/2)}),false,'first antenna gate opens');
-    await station('relay');await close();await station('filter');
+    await station('relay');await close();
+    for(const name of ['BAKIM KAYDI','SPEKTRUM KAYDI','YANKI KAYDI']){await named(name);await close()}
+    await station('filter');
     for(const i of [2,4,1])await page.locator('#tones button').filter({hasText:'KANAL '+i}).click();
     await close();await station('terminal');await close();await station('exit');
    }else if(mission===4){
