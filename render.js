@@ -2877,14 +2877,18 @@ function renderGame() {
             ctx.strokeText(label,0,-e.radius-29);ctx.fillText(label,0,-e.radius-29);ctx.restore();
         }
         // V17: either a complete sprite or the complete legacy body stack; never both.
-        const unifiedEnemyDrawn = window.TowerUnifiedCharactersV17 &&
+        // Stage 1.5: all five existing bosses get distinct body/phase art first.
+        // Their combat warning rings, HP labels and projectiles remain outside this path.
+        const bossFamilyDrawn = window.TowerBossFamiliesV17 &&
+            window.TowerBossFamiliesV17.drawEnemy(ctx, e, tx, ty, nowCompTime);
+        const unifiedEnemyDrawn = !bossFamilyDrawn && window.TowerUnifiedCharactersV17 &&
             window.TowerUnifiedCharactersV17.drawEnemy(ctx, e, tx, ty, nowCompTime);
         // Stage 1.3: all remaining registered normal families get distinct shared-world
         // Canvas silhouettes; dedicated Scout and Titan references take priority.
         // A false return preserves V17 WebP and complete legacy fallbacks.
         const unifiedFamilyDrawn = !unifiedEnemyDrawn && window.TowerUnifiedEnemyFamiliesV17 &&
             window.TowerUnifiedEnemyFamiliesV17.drawEnemy(ctx, e, tx, ty, nowCompTime);
-        const v17SpriteDrawn = unifiedEnemyDrawn || unifiedFamilyDrawn ||
+        const v17SpriteDrawn = bossFamilyDrawn || unifiedEnemyDrawn || unifiedFamilyDrawn ||
             (typeof TowerEnemySpritesV17 !== "undefined" && TowerEnemySpritesV17.render(ctx, e, tx, ty, nowCompTime));
         if (!v17SpriteDrawn) {
             drawCustomEnemy(ctx, e, tx, ty, nowCompTime);
