@@ -133,12 +133,18 @@ async function main(){
       game.settings.showRange=original.range;isPaused=original.paused;
      }
      if(JSON.stringify(game)!==original.game)throw new Error('Render stress mutated game state');
+     const cache=window.TowerUnifiedEnemyFamiliesV17.getState();
+     if(cache.cacheEntries<20||cache.cacheEntries>cache.cacheLimit||
+        cache.cacheHits<100||cache.cacheMisses<20)
+       throw new Error('Industrial normal-enemy cache was not populated or bounded: '+
+        JSON.stringify(cache));
      const piko=document.querySelector('#game-mascot');
      const bubble=document.querySelector('#game-mascot-bubble');
      const overflow=document.documentElement.scrollWidth>innerWidth+1;
      const bubbleStyle=bubble?getComputedStyle(bubble):null;
      return {resolutions,
       canvas:{width:canvas.width,height:canvas.height},
+      cache:{entries:cache.cacheEntries,hits:cache.cacheHits,misses:cache.cacheMisses},
       pikoPresent:!!(piko&&piko.querySelector('.piko-v17-armor')),
       speechWrap:bubbleStyle?bubbleStyle.overflowWrap:'missing',
       screenOverflow:overflow,themeRestored:game.settings.activeTheme===original.theme};
