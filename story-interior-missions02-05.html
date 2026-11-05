@@ -36,7 +36,7 @@ function ui(){const tasks={
 ui();
 function show(html){locked=true;modal.classList.add('open');panel.innerHTML=html}
 function hide(){locked=false;modal.classList.remove('open')}
-function optionButtons(choices,callback){const wrap=document.createElement('div');for(const [label,val] of choices){const b=document.createElement('button');b.textContent=label;b.onclick=()=>callback(val);wrap.appendChild(b)}panel.appendChild(wrap)}
+function optionButtons(choices,callback){const wrap=document.createElement('div');for(const [label,val] of choices){const b=document.createElement('button');b.textContent=label;b.onclick=()=>callback(val);wrap.appendChild(b)}(document.getElementById('deduction')||panel).appendChild(wrap)}
 function message(head,body){show('<h2>'+head+'</h2><p>'+body+'</p><button id="ok">DEVAM</button>');document.getElementById('ok').onclick=hide}
 function finish(extra){if(finished)return;finished=true;show('<h2>GÖREV '+String(mission).padStart(2,'0')+' TAMAMLANDI</h2><p>'+extra+'</p><p>İstasyonun içindeki ilerleme bir sonraki bölümde devam edecek.</p><button id="done">GÖREV PANOSUNA DÖN</button>');document.getElementById('done').onclick=()=>parent.postMessage({type:'lost-signal-interior-mission-complete',mission,choice:powerChoice},location.origin)}
 const scanned=new Set(),antennaLogs=new Set();let tuned=false,defenseUnlocked=false,alarmStarted=false;
