@@ -2504,6 +2504,9 @@ function renderGame() {
     }
 
     for (const p of projectiles) {
+        // Stage 1.6: draw precisely one projectile body. Missing/unready art
+        // retains the complete frost, history and old pellet renderer below.
+        if (window.TowerCombatArtV17 && window.TowerCombatArtV17.drawProjectile(ctx, p)) continue;
         // Frost boss bolts carry a crystalline shard silhouette and icy wake.
         if (p.fromEnemy && p.isBossFrost) {
             ctx.save();
@@ -2658,7 +2661,11 @@ function renderGame() {
         ctx.restore();
     }
 
-    for (const b of lightningBeams) { ctx.save(); ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2); ctx.strokeStyle = b.color; ctx.lineWidth = 2.5; ctx.stroke(); ctx.restore(); }
+    for (const b of lightningBeams) {
+        if (window.TowerCombatArtV17 && window.TowerCombatArtV17.drawBeam(ctx, b)) continue;
+        ctx.save(); ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2);
+        ctx.strokeStyle = b.color; ctx.lineWidth = 2.5; ctx.stroke(); ctx.restore();
+    }
 
     ctx.save(); ctx.translate(tx, ty);
     // V2.4 reactor underglow: low-intensity light and segmented telemetry ring beneath the tower skin.
