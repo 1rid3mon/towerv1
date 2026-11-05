@@ -6,6 +6,8 @@ const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium}=require('playwright'),root=path.resolve(__dirname,'..');
 const instruments='window.__qa={p,stations:typeof nodes==="undefined"?stations:nodes,foes:typeof foes==="undefined"?enemies:foes,interact,phase:()=>phase,gates:typeof gates==="undefined"?[]:gates,collision:typeof collision==="undefined"?()=>false:collision};';
 const server=http.createServer((req,res)=>{
+ if(new URL(req.url,'http://localhost').pathname==='/story-interior-completion.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(fs.readFileSync(path.join(root,'story-interior-completion.js'),'utf8'));return}
+
  const u=new URL(req.url,'http://localhost'),name=path.basename(u.pathname);
  if(!['story-interior-mission01.html','story-interior-missions02-05.html'].includes(name)){res.writeHead(404);res.end();return}
  let html=fs.readFileSync(path.join(root,name),'utf8');
