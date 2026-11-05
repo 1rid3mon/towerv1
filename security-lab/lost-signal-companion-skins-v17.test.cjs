@@ -85,4 +85,10 @@ assert.match(ui,/TowerCompanionSkinsV17\.drawCompanion\(cCtx, skinId, 'laserDron
 assert.match(ui,/if \(!referenceDrawn && !collectibleDrawn\)\s+drawCustomCompanionSkin\(/);
 assert.match(ui,/cCtx\.scale\(1\.22, 1\.22\)/,
  're-sized 76px lootbox preview prevents clipping');
+assert.match(ui,/pCtx\.scale\(0\.91, 0\.91\)/,
+ '52px inventory thumbnails use clipped-safe presentation scale');
+assert.match(ui,/TowerUnifiedCharactersV17\.drawCompanion\(pCtx, cSkin\.id, 'laserDrone', 5/);
+assert.match(ui,/TowerCompanionSkinsV17\.drawCompanion\(pCtx, cSkin\.id, 'laserDrone', 5/);
+assert.match(ui,/if \(!refDrawn && !altDrawn\)\s+drawCustomCompanionSkin\(/,
+ 'inventory still falls back to legacy safely');
 console.log('Stage 1.4: 10/10 canonical skins, 5 roles, art identity, reduced-motion, Canvas isolation, owned skin and preview fallbacks passed');
