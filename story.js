@@ -605,7 +605,7 @@ function startStoryMission(missionNumber = 1) {
         overlay.appendChild(frame);
         document.body.appendChild(overlay);
         const cleanup = () => { window.removeEventListener('message', onMessage); overlay.remove(); updateStoryMissionBoard(); };
-        function onMessage(event) {
+        const onMessage = (event) => {
             if (event.origin !== window.location.origin || event.source !== frame.contentWindow || !event.data) return;
             if (event.data.type === 'lost-signal-interior-close') { cleanup(); return; }
             if (event.data.type === 'lost-signal-interior-mission-complete' && event.data.mission === missionNumber) {
@@ -620,7 +620,7 @@ function startStoryMission(missionNumber = 1) {
                     ? 'Mission ' + missionNumber + ' complete. Station progress saved.'
                     : missionNumber + '. görev tamamlandı. İstasyon ilerlemesi kaydedildi.');
             }
-        }
+        };
         window.addEventListener('message', onMessage);
         return;
     }
