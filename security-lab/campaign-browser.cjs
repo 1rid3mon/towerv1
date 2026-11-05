@@ -25,6 +25,8 @@ async function main() {
   try {
     await page.goto('http://127.0.0.1:4174/',{waitUntil:'networkidle'});
     await page.evaluate(()=>{ game.wave=game.highestWave=26;window._syncShadow();saveGame(true);clearInterval(gameSaveTimer);updateStoryUnlockUI(); });
+    // Keep this existing 27-mission regression on legacy mechanics while the new pilot covers 1–5 separately.
+    await page.evaluate(()=>{ window.LOST_SIGNAL_INTERIOR_MISSION_ONE = false; });
     const parentBefore = await page.evaluate(()=>JSON.stringify(game));
     await page.locator('#mode-story-button').click(); await page.locator('#story-skip').click();
     const controls = {
