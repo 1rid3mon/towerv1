@@ -262,6 +262,63 @@ async function main() {
             status:'passed',variants:companionArt.result.length,
             minPaintedPixels:Math.min(...companionArt.result.map(x=>x.opaque))});
 
+          // Stage 1.5: 5 real boss bodies x 3 existing combat phases x 2 arena hues.
+          // 30-cell screenshot is rendered by the actual game module at native 1x,
+          // with no asset scaling, Photoshop compositing or concept-board substitution.
+          const bossArt = await frame.evaluate(() => {
+            const painter=window.TowerBossFamiliesV17;
+            const IDs=['tank_boss','ranged_boss','speed_boss','frost_boss','leviathan'];
+            const radii=[40,30,24,33,32];
+            if(!painter||painter.IDS.length!==5||painter.getState().phaseCount!==3)
+              throw new Error('Stage 1.5 boss renderer missing');
+            const sheet=document.createElement('canvas');
+            sheet.width=5*150;sheet.height=6*155;
+            const sheetCtx=sheet.getContext('2d'),results=[];
+            for(let arena=0;arena<2;arena++){
+              for(let phase=1;phase<=3;phase++){
+                for(let index=0;index<IDs.length;index++){
+                  const id=IDs[index],x=index*150,y=(arena*3+phase-1)*155;
+                  sheetCtx.fillStyle=arena===0?'#10253b':'#813232';
+                  sheetCtx.fillRect(x,y,150,155);
+                  const unit=document.createElement('canvas');
+                  unit.width=140;unit.height=126;
+                  const c=unit.getContext('2d');
+                  c.save();c.translate(70,63);
+                  const ok=painter.drawEnemy(c,{type:'boss',subType:id,
+                    radius:radii[index],x:0,y:0,hp:700,maxHp:1000,
+                    hitFlash:0,v12Combat:{phase}},110,0,1800);
+                  c.restore();
+                  const px=c.getImageData(0,0,140,126).data;
+                  let occupied=0,minX=140,maxX=0,minY=126,maxY=0;
+                  for(let j=3;j<px.length;j+=4){
+                    if(px[j]>25){
+                      occupied++;
+                      const xx=(j>>2)%140,yy=Math.floor((j>>2)/140);
+                      minX=Math.min(minX,xx);maxX=Math.max(maxX,xx);
+                      minY=Math.min(minY,yy);maxY=Math.max(maxY,yy);
+                    }
+                  }
+                  if(!ok||occupied<600||maxX-minX<38||maxY-minY<34)
+                    throw new Error('Unreadable Stage 1.5 boss '+id+' phase='+phase+
+                      ' theme='+arena+' opaque='+occupied+' width='+(maxX-minX));
+                  sheetCtx.drawImage(unit,x+5,y+5);
+                  sheetCtx.fillStyle='#f1f5f9';sheetCtx.font='11px sans-serif';
+                  sheetCtx.fillText(id+' / P'+phase,x+5,y+144);
+                  results.push({id,phase,arena:arena?'Cengiz red':'Cyber dark',
+                    opaque:occupied,width:maxX-minX,height:maxY-minY});
+                }
+              }
+            }
+            return {png:sheet.toDataURL('image/png').split(',')[1],results};
+          });
+          assert.equal(bossArt.results.length,30,'5 bosses * 3 phases * 2 themes');
+          fs.writeFileSync(path.join(evidence,'v17-stage-15-five-bosses-three-phases.png'),
+            Buffer.from(bossArt.png,'base64'));
+          results.push({target,browser:browserName,viewport:'tablet-stage-15-bosses',
+            status:'passed',states:bossArt.results.length,
+            minPaintedPixels:Math.min(...bossArt.results.map(x=>x.opaque))});
+
+
 
         }
         assert.equal(await frame.evaluate(() => game.wave), 1);
