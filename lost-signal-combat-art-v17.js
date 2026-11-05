@@ -12,8 +12,12 @@ function reduced(){
  try{return !!(root.matchMedia&&root.matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(_){return false;}
 }
 function low(){
- try{return !!(root.game&&root.game.settings&&['low','off',0].includes(
- root.game.settings.visualQuality??root.game.settings.graphicsQuality??root.game.settings.quality));}
+ try{
+  // In gameplay `game` is a lexical binding, not necessarily window.game.
+  const state=typeof game!=='undefined'?game:root.game;
+  return !!(state&&state.settings&&['low','off',0].includes(
+    state.settings.visualQuality??state.settings.graphicsQuality??state.settings.quality));
+ }
  catch(_){return false;}
 }
 function color(p){
