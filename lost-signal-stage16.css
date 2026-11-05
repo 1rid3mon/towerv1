@@ -1,0 +1,46 @@
+/* LOST SIGNAL Stage 1.6 · Piko, tower and combat visual alignment.
+   Only presentation. Never change pointer targets, state, save keys or UI events. */
+:root{--ls16-ink:#08111f;--ls16-steel:#365267;--ls16-edge:#d8ecf5;
+      --ls16-cyan:#80cbd9;--ls16-amber:#e5b36b}
+#game-mascot{
+  border:1px solid rgba(167,204,216,.65)!important;
+  border-radius:6px 6px 12px 12px!important;
+  background:linear-gradient(145deg,#0a1827,#1b3242 60%,#0c1b29)!important;
+  box-shadow:0 5px 14px rgba(0,0,0,.35),inset 0 0 0 2px #091521,
+    inset 0 1px 0 rgba(216,236,245,.12)!important;
+  filter:drop-shadow(0 3px 2px rgba(0,0,0,.38))!important;
+}
+#game-mascot-face{
+  filter:saturate(.70) contrast(1.12)!important;
+  overflow:visible;
+}
+#game-mascot-face .piko-v17-armor{
+  stroke-linecap:square;pointer-events:none;
+}
+#game-mascot-face .piko-aura{
+  opacity:.10!important;animation:none!important;
+}
+#game-mascot-face .piko-core{
+  filter:drop-shadow(0 0 1px rgba(125,217,231,.20))!important;
+}
+#game-mascot-bubble{
+  box-sizing:border-box!important;
+  max-width:min(270px,calc(100vw - 24px))!important;
+  min-width:0!important;
+  overflow-wrap:anywhere!important;
+  white-space:normal!important;
+  background:rgba(9,23,34,.98)!important;
+  border:1px solid rgba(151,192,205,.55)!important;
+  border-left:3px solid var(--ls16-cyan)!important;
+  border-radius:4px 4px 0 4px!important;
+  color:#e0edf4!important;
+  box-shadow:0 8px 20px rgba(0,0,0,.35)!important;
+  text-shadow:none!important;
+}
+#game-mascot.mascot-react{
+  border-color:var(--ls16-amber)!important;
+}
+@media(prefers-reduced-motion:reduce){
+ #game-mascot,#game-mascot.mascot-react,#game-mascot-face *,
+ #game-mascot-bubble{animation:none!important;transition:none!important}
+}
