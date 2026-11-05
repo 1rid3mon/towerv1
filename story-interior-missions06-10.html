@@ -54,7 +54,7 @@ function choices(title,body,options,onSelect){show('<h2>'+title+'</h2><p>'+body+
 function error(s){const el=document.getElementById('feedback');if(el)el.textContent=s}
 function near(n){return Math.hypot(n.x-player.x,n.y-player.y)<72}
 function finish(body){if(finished)return;finished=true;combat=false;show('<h2>GÖREV '+mission+' TAMAMLANDI</h2><p>'+body+'</p><button id="done">GÖREV PANOSUNA DÖN</button>');document.getElementById('done').onclick=()=>parent.postMessage({type:'lost-signal-interior-mission-complete',mission},location.origin)}
-function waves(count,hp){round++;combat=true;foes.length=0;for(let k=0;k<count;k++){foes.push({x:1022+(k%2)*35,y:144+k*65,hp,maxHp:hp,speed:15+Math.floor(k/2)*3})}attackTime=0;drawHud()}
+function waves(count,hp){round++;combat=true;foes.length=0;for(let k=0;k<count;k++){foes.push({x:780+(k%2)*34,y:140+k*66,hp,maxHp:hp,speed:18+Math.floor(k/2)*3})}attackTime=0;drawHud()}
 function fightHelp(){message('SAVUNMA','Düşmanların üstüne dokunarak veya tıklayarak kuleleri hedefle. Reaktör hasar alırsa saldırıyı yeniden dene.')}
 function failFight(){combat=false;shield=mission===9?(power==='shield'?30:22):18;foes.length=0;const lost=round;round--;show('<h2>ÇEKİRDEK HASAR ALDI</h2><p>'+lost+'. dalga başarısız. Kanıtlar ve önceki adımlar kaybolmadı.</p><button id="retry">YENİDEN DENE</button>');document.getElementById('retry').onclick=()=>{hide();waves(lost===1?3:5,lost===1?3:4)}}
 function handle(n){
