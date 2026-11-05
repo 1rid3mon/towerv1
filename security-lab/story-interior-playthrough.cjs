@@ -40,6 +40,7 @@ async function play(){
     await close();
    };
    if(mission===1){
+    await page.evaluate(()=>{const q=__qa;for(const n of q.stations.filter(x=>x.kind==='log')){q.p.x=n.x;q.p.y=n.y;q.interact();const btn=document.getElementById('ok');if(btn)btn.click()}});
     await station('console');
     for(const i of [0,1,2])await page.locator('#fuse button[data-i="'+i+'"]').click();
     await close();await station('door');await close();await station('defense');await close();
