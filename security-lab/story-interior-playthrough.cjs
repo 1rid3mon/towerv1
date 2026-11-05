@@ -27,7 +27,7 @@ async function play(){
    await page.evaluate(()=>{window.addEventListener('message',e=>{if(e.data?.type==='lost-signal-interior-mission-complete')window.__completion=e.data})});
    const station=async type=>page.evaluate(k=>{const q=window.__qa;const n=q.stations.find(z=>z.kind===k||z.type===k);if(!n)throw Error('No station '+k);q.p.x=n.x;q.p.y=n.y;q.interact();},type);
    const named=async label=>page.evaluate(k=>{const q=window.__qa;const n=q.stations.find(z=>z.label===k);if(!n)throw Error('No node '+k);q.p.x=n.x;q.p.y=n.y;q.interact();},label);
-   const close=async()=>{if(await page.locator('#ok').count())await page.locator('#ok').click();else if(await page.locator('#cancel').count())await page.locator('#cancel').click();else if(await page.locator('#leave').count())await page.locator('#leave').click();else throw Error('No close button in mission '+mission)};
+   const close=async()=>{if(await page.locator('#modal.open #ok').count())await page.locator('#modal.open #ok').click();else if(await page.locator('#modal.open #cancel').count())await page.locator('#modal.open #cancel').click();else if(await page.locator('#modal.open #leave').count())await page.locator('#modal.open #leave').click();else throw Error('No active dialog to close in mission '+mission+' at '+await page.locator('#objective').innerText())};
    const defeat=async()=>{
     const list=await page.evaluate(()=>window.__qa.foes.map(z=>({x:z.x,y:z.y,hp:z.hp})));
     for(let k=0;k<list.length;k++){
