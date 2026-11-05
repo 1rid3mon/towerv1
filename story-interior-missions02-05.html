@@ -44,8 +44,12 @@ function interact(){
 if(locked||finished)return;
 const n=nodes.filter(inRange).sort((a,b)=>Math.hypot(p.x-a.x,p.y-a.y)-Math.hypot(p.x-b.x,p.y-b.y))[0];if(!n)return;
 if(mission===2){
-if(n.type==='scan'){if(scanned.has(n.label)){message('TARAMA TAMAMLANDI','Bu iz zaten kaydedildi.');return}if(foes.some(e=>e.hp>0)&&scanned.size===0){message('TEHLİKE','Önce güvenlik terminalinden devriyeyi durdur.');return}scanned.add(n.label);message(n.label,'Farklı frekansta bir sinyal izi bulundu: '+['bakım hattı','güvenlik hattı','kaynağı belirsiz yankı'][scanned.size-1]+'.');if(scanned.size===3){phase=3;ui()}return}
-if(n.type==='exit'){if(scanned.size===3&&foes.every(e=>e.hp<=0)){finish('Üç sinyal izi bulundu. Son kayıt, istasyonun tanımadığı bir frekanstan geliyor.');return}if(!alarmStarted){alarmStarted=true;phase=1;ui();message('GÜVENLİK DEVREDE','Devriyeyi durdur: kırmızı düşmanlara dokunarak savunma kulesini hedefle.');return}message('GÜVENLİK TERMİNALİ','Düşmanlar: '+foes.filter(e=>e.hp>0).length+' · Taranan izler: '+scanned.size+'/3.');return}
+if(n.type==='scan'){if(scanned.has(n.label)){message('TARAMA TAMAMLANDI','Bu iz zaten kaydedildi.');return}if(foes.some(e=>e.hp>0)&&scanned.size===0){message('TEHLİKE','Önce güvenlik terminalinden devriyeyi durdur.');return}scanned.add(n.label);const evidence={
+'TARAMA A':'Bakım günlüğü: anten gücü 02:03 tarihinde kapatıldı.',
+'TARAMA B':'Güvenlik günlüğü: dışarıdan alınan ilk sinyal 02:14 olarak işaretlendi.',
+'TARAMA C':'Yankı kaydı: aynı sinyalin istasyonda duyulduğu zaman 01:58.'};
+message(n.label,evidence[n.label]);if(scanned.size===3){phase=3;ui()}return}
+if(n.type==='exit'){if(scanned.size===3&&foes.every(e=>e.hp<=0)){show('<h2>KANITLARI KARŞILAŞTIR</h2><p>Bakım günlüğü: 02:03 enerji kesildi. Güvenlik günlüğü: ilk sinyal 02:14. Yankı kaydı: ses 01:58.</p><p><b>Hangi kayıt mevcut zaman çizelgesiyle çelişiyor?</b></p><div id="deduction"></div><p id="deduction-feedback" aria-live="polite"></p><button id="cancel">KANITLARA DÖN</button>');document.getElementById('cancel').onclick=hide;const answers=[['Anten 02:03\'te kapatıldı.','wrong1'],['Yankı, ilk sinyalden önce duyuldu.','correct'],['Güvenlik raporu ilk sinyali 02:14 yazıyor.','wrong2']];optionButtons(answers,answer=>{if(answer==='correct'){finish('Zaman çizelgesindeki çelişkiyi çözdün: yankı, istasyonun aldığı ilk sinyalden önce duyulmuş.')}else{document.getElementById('deduction-feedback').textContent='Bu tek başına çelişki değil. Üç kaydın zamanını karşılaştırıp yeniden dene.'}});return}if(!alarmStarted){alarmStarted=true;phase=1;ui();message('GÜVENLİK DEVREDE','Devriyeyi durdur: kırmızı düşmanlara dokunarak savunma kulesini hedefle.');return}message('GÜVENLİK TERMİNALİ','Düşmanlar: '+foes.filter(e=>e.hp>0).length+' · Taranan izler: '+scanned.size+'/3.');return}
 }
 if(mission===3){
 if(n.type==='anten'&&phase===0){phase=1;ui();message('ANTEN DİZİSİ','Üç aşamalı güç zinciri eksik: röle, filtre ve veri terminali.');return}
