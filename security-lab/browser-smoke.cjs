@@ -119,6 +119,49 @@ async function main() {
           fs.writeFileSync(path.join(evidence,'v17-sprites-tablet.png'),Buffer.from(art.png,'base64'));
           results.push({target,browser:browserName,viewport:'tablet-v17-art',status:'passed',sprites:art.results.length,
             minOpaquePixels:Math.min(...art.results.map(s=>s.visible))});
+          // Test the *actual* shared character renderer in contrasting arena colors.
+          // Generated screenshots let us compare the same Echo, Scout and Titan code,
+          // including the red Cengiz-theme visibility case, rather than reference posters.
+          const trio = await frame.evaluate(() => {
+            const maker=window.TowerUnifiedCharactersV17;
+            if(!maker)throw new Error('Shared LOST SIGNAL art missing');
+            const out=document.createElement('canvas');
+            out.width=690;out.height=380;
+            const panel=out.getContext('2d');
+            const results=[];
+            for(let row=0;row<2;row++){
+              const background=row===0?'#10253b':'#813232';
+              const border=row===0?'#526a80':'#a5746b';
+              for(let col=0;col<3;col++){
+                const x=col*230,y=row*190;
+                panel.fillStyle=background;panel.fillRect(x,y,230,190);
+                panel.strokeStyle=border;panel.lineWidth=1;panel.strokeRect(x+5,y+5,220,180);
+                const cell=document.createElement('canvas');cell.width=170;cell.height=133;
+                const c=cell.getContext('2d');c.save();c.translate(85,67);
+                let ok=false;
+                if(col===0)ok=maker.drawCompanion(c,'default_tech','repairDrone',3,0,1800);
+                if(col===1)ok=maker.drawEnemy(c,{type:'green',variantId:'scout',radius:12,
+                   x:0,y:0,hp:90,maxHp:100,hitFlash:0},60,0,1800);
+                if(col===2)ok=maker.drawEnemy(c,{type:'boss',subType:'tank_boss',radius:35,
+                   x:0,y:0,hp:90,maxHp:100,hitFlash:0,v12Combat:{phase:row===0?1:3}},60,0,1800);
+                c.restore();
+                const pixels=c.getImageData(0,0,170,133).data;
+                let occupied=0;
+                for(let i=3;i<pixels.length;i+=4)if(pixels[i]>20)occupied++;
+                if(!ok||occupied<250)throw new Error('Unreadable unified asset '+col+' on theme '+row+': '+occupied);
+                panel.drawImage(cell,x+30,y+10);
+                panel.fillStyle='#e0f2fe';panel.font='bold 15px sans-serif';
+                const name=['ECHO · companion','SCOUT · enemy','TITAN · boss'][col];
+                panel.fillText(name,x+20,y+165);
+                results.push({name,theme:row?'Cengiz red':'Cyber dark',occupied});
+              }
+            }
+            return {png:out.toDataURL('image/png').split(',')[1],results};
+          });
+          assert.equal(trio.results.length,6,'three reference characters in two high-contrast themes');
+          fs.writeFileSync(path.join(evidence,'v17-unified-reference-trio.png'),Buffer.from(trio.png,'base64'));
+          results.push({target,browser:browserName,viewport:'tablet-unified-trio',status:'passed',
+            variants:trio.results.length,minPaintedPixels:Math.min(...trio.results.map(x=>x.occupied))});
         }
         assert.equal(await frame.evaluate(() => game.wave), 1);
         assert.equal(await frame.evaluate(() => getStoryProgress().mission1Complete), false);
