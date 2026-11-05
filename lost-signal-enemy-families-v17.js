@@ -197,6 +197,43 @@ function paintFamily(c,kind,r,a){
  }
  return true;
 }
+// Stage 1.7: cache static industrial chassis at 2x source resolution.
+// Each frame only translates/rotates its body; identity, active hit cues and
+// combat-state references remain live. FIFO cap prevents long-session growth.
+const SPRITE_CACHE=new Map(),CACHE_LIMIT=96;
+let cacheHits=0,cacheMisses=0;
+function cachedBody(c,id,def,r){
+ if(!root.document||typeof root.document.createElement!=='function'||
+    typeof c.drawImage!=='function')return false;
+ const resolution=Math.round(r*10)/10;
+ const key=id+':'+resolution;
+ let sprite=SPRITE_CACHE.get(key);
+ if(sprite){
+  cacheHits++;
+ }else{
+  try{
+   const padding=Math.ceil(resolution*1.28+4),ratio=2;
+   const canvas=root.document.createElement('canvas');
+   const size=padding*2*ratio;
+   canvas.width=size;canvas.height=size;
+   const cc=canvas.getContext('2d');
+   if(!cc)return false;
+   cc.scale(ratio,ratio);cc.translate(padding,padding);
+   backing(cc,resolution,def.accent);
+   paintFamily(cc,def.kind,resolution,def.accent);
+   sprite={canvas,padding};
+   if(SPRITE_CACHE.size>=CACHE_LIMIT)
+    SPRITE_CACHE.delete(SPRITE_CACHE.keys().next().value);
+   SPRITE_CACHE.set(key,sprite);
+   cacheMisses++;
+  }catch(_){return false;}
+ }
+ try{
+  c.drawImage(sprite.canvas,-sprite.padding,-sprite.padding,
+   sprite.padding*2,sprite.padding*2);
+  return true;
+ }catch(_){return false;}
+}
 function drawEnemy(c,e,tx,ty,ms){
  if(!c||!e||e.type==='boss'||!Number.isFinite(e.radius)||e.radius<=0)return false;
  if(root.location&&/(?:[?&])enemyArt=legacy(?:&|$)/.test(root.location.search||''))return false;
@@ -217,8 +254,12 @@ function drawEnemy(c,e,tx,ty,ms){
  try{
   c.rotate(targetFacing);
   c.translate(0,Math.sin(time*3.2+phase)*0.32);
-  backing(c,radius,def.accent);
-  paintFamily(c,def.kind,radius,def.accent);
+  // Always preserve complete vector geometry as a safe fallback (test doubles,
+  // older Canvas implementations or a failed offscreen allocation).
+  if(!cachedBody(c,id,def,radius)){
+   backing(c,radius,def.accent);
+   paintFamily(c,def.kind,radius,def.accent);
+  }
   // A small warm hit marker; never substitute this for the game's damage feedback.
   if(Number(e.hitFlash)>0){
    c.strokeStyle='#fff4db';c.lineWidth=1.9;
@@ -229,7 +270,8 @@ function drawEnemy(c,e,tx,ty,ms){
 }
 root.TowerUnifiedEnemyFamiliesV17=Object.freeze({
  drawEnemy,IDS,
- getState(){return {familyCount:IDS.length,styles:'lost-signal-industrial-v1.3',
+ getState(){return {familyCount:IDS.length,styles:'lost-signal-industrial-v1.7-cached',
+  cacheEntries:SPRITE_CACHE.size,cacheLimit:CACHE_LIMIT,cacheHits,cacheMisses,
   eras:Object.freeze(['core','khan','snow','desert','nebula','dream'])};}
 });
 })(typeof window!=='undefined'?window:globalThis);
