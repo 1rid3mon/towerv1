@@ -162,6 +162,54 @@ async function main() {
           fs.writeFileSync(path.join(evidence,'v17-unified-reference-trio.png'),Buffer.from(trio.png,'base64'));
           results.push({target,browser:browserName,viewport:'tablet-unified-trio',status:'passed',
             variants:trio.results.length,minPaintedPixels:Math.min(...trio.results.map(x=>x.occupied))});
+
+          // Stage 1.3: inspect every new *runtime* family at actual 1x gameplay pixel size,
+          // not a concept image. The same 20 shapes face dark and saturated Cengiz red.
+          const familiesArt = await frame.evaluate(() => {
+            const renderer=window.TowerUnifiedEnemyFamiliesV17;
+            if(!renderer||renderer.IDS.length!==20)throw new Error('Stage 1.3 families not loaded');
+            const canvas=document.createElement('canvas');
+            canvas.width=5*124;canvas.height=8*115;
+            const c=canvas.getContext('2d'),results=[];
+            for(let theme=0;theme<2;theme++){
+              const bg=theme===0?'#10253b':'#813232';
+              for(let i=0;i<renderer.IDS.length;i++){
+                const id=renderer.IDS[i];
+                const x=i%5*124,y=(theme*4+Math.floor(i/5))*115;
+                c.fillStyle=bg;c.fillRect(x,y,124,115);
+                const tile=document.createElement('canvas');
+                tile.width=110;tile.height=84;
+                const ctx=tile.getContext('2d');
+                ctx.save();ctx.translate(55,42);
+                const enemy={type:'green',variantId:id,radius:11,x:0,y:0,
+                  hp:100,maxHp:100,hitFlash:0};
+                const ok=renderer.drawEnemy(ctx,enemy,80,0,1500);
+                ctx.restore();
+                const pixels=ctx.getImageData(0,0,110,84).data;
+                let count=0,minX=110,maxX=0;
+                for(let p=3;p<pixels.length;p+=4){
+                  if(pixels[p]>26){count++;const xx=(p>>2)%110;
+                    if(xx<minX)minX=xx;if(xx>maxX)maxX=xx;}
+                }
+                if(!ok||count<250||maxX-minX<28)throw new Error(
+                  'Stage 1.3 unreadable '+id+' on '+(theme?'Cengiz':'dark')+
+                  ': opaque='+count+', width='+(maxX-minX));
+                c.drawImage(tile,x+7,y+5);
+                c.fillStyle='#eff6ff';c.font='bold 11px sans-serif';
+                c.fillText(id,x+7,y+106);
+                results.push({id,theme:theme?'Cengiz red':'Cyber dark',opaque:count,width:maxX-minX});
+              }
+            }
+            return {png:canvas.toDataURL('image/png').split(',')[1],results};
+          });
+          assert.equal(familiesArt.results.length,40,'20 normal enemy families on two real theme backgrounds');
+          fs.writeFileSync(path.join(evidence,'v17-stage-13-normal-families.png'),
+            Buffer.from(familiesArt.png,'base64'));
+          results.push({target,browser:browserName,viewport:'tablet-stage-13-enemy-families',status:'passed',
+            variants:familiesArt.results.length,
+            minPaintedPixels:Math.min(...familiesArt.results.map(x=>x.opaque)),
+            minWidth:Math.min(...familiesArt.results.map(x=>x.width))});
+
         }
         assert.equal(await frame.evaluate(() => game.wave), 1);
         assert.equal(await frame.evaluate(() => getStoryProgress().mission1Complete), false);
