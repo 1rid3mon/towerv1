@@ -10,7 +10,7 @@ const mission=Number(new URLSearchParams(location.search).get('mission'));if(![6
 const canvas=document.getElementById('view'),ctx=canvas.getContext('2d'),objective=document.getElementById('objective'),modal=document.getElementById('modal'),panel=document.getElementById('panel'),pad=document.getElementById('pad'),knob=document.getElementById('knob');
 const MAP_W=1120,MAP_H=610,player={x:132,y:300,r:12},keys=new Set(),joy={x:0,y:0,id:null};
 let width=0,height=0,dpr=1,previous=0,phase=0,dialog=false,finished=false,gateOpen=false,switches=0,seq=[],shield=20,attackTime=0,combat=false,round=0,beam=null;
-const visited=new Set(),logs=new Set(),walls=[],gates=[],stations=[],foes=[];
+const visited=new Set(),logs=new Set(),walls=[],gates=[],stations=[],foes=[],hazards=[];
 const power=new URLSearchParams(location.search).get('power');
 const names={6:'BÖLMENİN ÖTESİNDE',7:'SİNYAL BÜKÜLÜYOR',8:'TANIDIK ODA',9:'UYANMAYI SEÇMEK',10:'AŞAĞIDAKİ KAPI'};
 const objectives={
@@ -21,7 +21,7 @@ const objectives={
 10:['Gizli kapıdaki hasar izlerini incele.','Birinci gömülü düğümü keşfet ve aç.','İkinci gömülü düğümü keşfet ve aç.','Kapı üzerindeki güvenlik kodunu çöz.','Alt istasyona inişi etkinleştir.']
 };
 function resize(){width=innerWidth;height=innerHeight;dpr=Math.min(devicePixelRatio||1,2);canvas.width=width*dpr;canvas.height=height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}addEventListener('resize',resize);resize();
-function wall(x,y,w,h){walls.push({x,y,w,h})}function gate(x,y,w,h,opens){gates.push({x,y,w,h,opens})}function station(x,y,label,kind,need=0){stations.push({x,y,label,kind,need})}
+function wall(x,y,w,h){walls.push({x,y,w,h})}function hazard(x,y,w,h){hazards.push({x,y,w,h})}function gate(x,y,w,h,opens){gates.push({x,y,w,h,opens})}function station(x,y,label,kind,need=0){stations.push({x,y,label,kind,need})}
 function init(){
  wall(25,25,1070,16);wall(25,569,1070,16);wall(25,25,16,560);wall(1079,25,16,560);
  // A large complex, three connected wings; each phase can unlock the bulkhead.
@@ -29,6 +29,7 @@ function init(){
  gate(355,265,20,72,mission===6?1:mission===7?1:mission===8?0:mission===9?1:1);
  gate(710,265,20,72,mission===6?1:mission===7?3:mission===8?2:mission===9?4:3);
  if(mission===6){
+ hazard(400,320,78,84);hazard(565,170,100,80);hazard(798,337,82,90);
  station(155,123,'BAKIM PLANI','brief');station(468,125,'HAT A','repair');station(590,469,'HAT B','repair');station(797,145,'HAT C','repair');station(925,455,'DENGELEME','balance');station(1040,115,'SERVİS ÇIKIŞI','exit');
  }
  if(mission===7){
@@ -59,9 +60,15 @@ function fightHelp(){message('SAVUNMA','Düşmanların üstüne dokunarak veya t
 function failFight(){combat=false;shield=mission===9?(power==='shield'?30:22):18;foes.length=0;const lost=round;round--;show('<h2>ÇEKİRDEK HASAR ALDI</h2><p>'+lost+'. dalga başarısız. Kanıtlar ve önceki adımlar kaybolmadı.</p><button id="retry">YENİDEN DENE</button>');document.getElementById('retry').onclick=()=>{hide();waves(lost===1?3:5,lost===1?3:4)}}
 function handle(n){
  if(mission===6){
- if(n.kind==='brief'&&phase===0){phase=1;drawHud();message('BAKIM PLANI','Enerji güvenli geçişi açtı. Üç ayrı sektörde arızalı kablo var. Sulu bölgelerin mavi çizgilerine basmadan terminallere ulaş.');return}
+ if(n.kind==='brief'&&phase===0){phase=1;drawHud();message('BAKIM PLANI','Enerji güvenli geçişi açtı. Elektrikli su birikintileri mavi renkte işaretli. Kabloları sırayla topraklama, soğutma ve güç olarak çalıştır.');return}
  if(n.kind==='repair'&&phase===1){if(visited.has(n.label)){message('ONARILDI',n.label+' çalışıyor.');return}
- choices(n.label,'Kablolardaki işaretleri incele: yeşil hat topraklama, mavi soğutma, sarı güç hattı. Önce güvenli hattı seç.',[['YEŞİL · TOPRAKLAMA','earth'],['SARI · GÜÇ','power'],['MAVİ · SOĞUTMA','cool']],v=>{if(v!=='earth'){error('Riskli bağlantı! Güvenlik kilidi sıfırlandı. İlk önce topraklama yapılmalı.');return}visited.add(n.label);if(visited.size===3){phase=2;drawHud()}message('HAT ONARILDI',n.label+' bağlandı. '+visited.size+'/3 bağlantı tamam.');});return}
+ const order=['HAT A','HAT B','HAT C'],expected=['earth','cool','power'];
+ const index=order.indexOf(n.label);
+ choices(n.label,'Enerji sırası: önce topraklama (A), sonra soğutma (B), en son güç (C). Önceki hat doğru bağlanmadan sonraki hat çalışmaz.',[['YEŞİL · TOPRAKLAMA','earth'],['SARI · GÜÇ','power'],['MAVİ · SOĞUTMA','cool']],v=>{
+ if(visited.size!==index){error('Önce '+order[visited.size]+' terminalini onarmalısın.');return}
+ if(v!==expected[index]){error('Hatalı bağlantı. Devre korunmak için açılmadı, kaydı tekrar incele.');return}
+ visited.add(n.label);if(visited.size===3){phase=2;drawHud()}
+ message('HAT ONARILDI',n.label+' bağlandı. '+visited.size+'/3 bağlantı tamam.');});return}
  if(n.kind==='balance'&&phase===2){choices('AKIŞ DENGESİ','Üç bağlantı onarıldı. Kaynak gerilimi 12 V, iki yükün ihtiyacı 6 V ve 6 V. Hangisi dengeli?', [['6 V + 6 V','yes'],['9 V + 6 V','no'],['12 V + 12 V','no']],v=>{if(v==='yes'){phase=3;drawHud();message('DENGELENDİ','Akım stabil. Servis çıkışı açıldı.')}else error('Toplam gerilim kaynakla uyuşmuyor.')});return}
  if(n.kind==='exit'&&phase===3){finish('Bakım bölümü onarıldı; istasyonun altındaki yayın güç almaya devam ediyor.');return}
  }
@@ -73,8 +80,8 @@ function handle(n){
  if(n.kind==='exit'&&phase===4){finish('İçeriden gelen döngüyü kaydettin. Başlangıç odasının eski kayıtları artık şüpheli.');return}
  }
  if(mission===8){
- if(n.kind==='clue'&&phase===0){if(logs.has(n.label)){message('KAYDEDİLDİ',n.label+' daha önce incelendi.');return}logs.add(n.label);const clues={'TOZ İZİ':'Zemin hareket izleri istasyon kapanışından sonraya ait.','KAPANIŞ KAYDI':'Oda 02:00 itibarıyla tamamen boş ilan edilmiş.','MAVİ YANKI':'Komutanın sesine benzeyen yankı kayıtlarda 02:08 tarihinde duyuluyor.'};message(n.label,clues[n.label]);if(logs.size===3){phase=1;drawHud()}return}
- if(n.kind==='deduce'&&phase===1){choices('KANIT KARŞILAŞTIR','Kayıt 02:00\'de odayı boş gösteriyor; ardından hareket izi ve komutanın yankısı var. En makul çıkarım?', [['KAPANIŞ KAYDI EKSİK VEYA YANLIŞ','yes'],['ÜÇ KAYIT BİRBİRİNİ DOĞRULUYOR','no'],['YANKI KESİNLİKLE DIŞ UZAYDAN','no']],v=>{if(v==='yes'){phase=2;drawHud();message('ÇELİŞKİ ÇÖZÜLDÜ','Boş oda kaydı güvenilir değil. Komutanın uyanışından önce burada biri bulunmuş olabilir.')}else error('Bu çıkarım mevcut fiziksel kanıtlarla desteklenmiyor. Yeniden dene.')});return}
+ if(n.kind==='clue'&&phase===0){if(logs.has(n.label)){message('KAYDEDİLDİ',n.label+' daha önce incelendi.');return}logs.add(n.label);const clues={'TOZ İZİ':'Zemindeki 02:08 tarihli ayak izleri yeni, kapalı dönemde oluşmuş.','KAPANIŞ KAYDI':'Oda 02:00–03:00 arasında kilitli ve hareketsiz kaydedilmiş.','MAVİ YANKI':'Komutanın sesine benzeyen yankı kayıtlarda 02:08 tarihinde duyuluyor.'};message(n.label,clues[n.label]);if(logs.size===3){phase=1;drawHud()}return}
+ if(n.kind==='deduce'&&phase===1){choices('KANIT KARŞILAŞTIR','Güvenlik kaydı 02:00–03:00 arası hareket olmadığını iddia ediyor. Oysa 02:08 ayak izi ve yankı var. En makul çıkarım?', [['KAPANIŞ KAYDI EKSİK VEYA YANLIŞ','yes'],['ÜÇ KAYIT BİRBİRİNİ DOĞRULUYOR','no'],['YANKI KESİNLİKLE DIŞ UZAYDAN','no']],v=>{if(v==='yes'){phase=2;drawHud();message('ÇELİŞKİ ÇÖZÜLDÜ','Boş oda kaydı güvenilir değil. Komutanın uyanışından önce burada biri bulunmuş olabilir.')}else error('Bu çıkarım mevcut fiziksel kanıtlarla desteklenmiyor. Yeniden dene.')});return}
  if(n.kind==='exit'&&phase===2){finish('Tanıdık odada birinin hareket ettiği kanıtlandı, fakat kimliği hâlâ bilinmiyor.');return}
  }
  if(mission===9){
@@ -86,8 +93,8 @@ function handle(n){
  if(n.kind==='exit'&&phase===5){finish('Çekirdek korundu. Komutan, gizli alt kata iniş yetkisi kazandı.');return}
  }
  if(mission===10){
- if(n.kind==='brief'&&phase===0){phase=1;drawHud();message('HARİTA DIŞI KAPI','Sistemde listelenmeyen bir kat bulundu. Kapı kilidinde iki gizli düğüm var; önce onları bul.');return}
- if(n.kind==='node1'&&phase===1){choices('DÜĞÜM 1','Sinyal darbesi gösterge sırasını açığa çıkardı. İstasyon şemasındaki denge: 2 + 3 = ?', [['5','yes'],['4','no'],['6','no']],v=>{if(v==='yes'){phase=2;drawHud();message('DÜĞÜM 1 AKTİF','İkinci düğümün enerji hattı açıldı.')}else error('Düğüm yanıt vermiyor. Eşitliği tekrar kontrol et.')});return}
+ if(n.kind==='brief'&&phase===0){phase=1;drawHud();message('HARİTA DIŞI KAPI','Sistemde listelenmeyen bir kat bulundu. Kapı şifresi eski görevlerdeki kanıt sayılarına bağlı. İki gizli düğümü bularak ilerle.');return}
+ if(n.kind==='node1'&&phase===1){choices('DÜĞÜM 1','Kapıdaki üç basamak sırasıyla görev 6\'da onarılan hatları, görev 7\'de incelenen kayıtları ve görev 8\'de bulunan ipuçlarını sayıyor. Kod nedir?', [['323','yes'],['332','no'],['233','no']],v=>{if(v==='yes'){phase=2;drawHud();message('DÜĞÜM 1 AKTİF','İkinci düğümün enerji hattı açıldı.')}else error('Düğüm yanıt vermiyor. Eşitliği tekrar kontrol et.')});return}
  if(n.kind==='node2'&&phase===2){choices('DÜĞÜM 2','Kayıt: kapı frekansı, antenin bulduğu kaynağa bağlı. Anten dışarıdan mı, içeriden mi sinyal yayıyordu?', [['İÇERİDEN','yes'],['DIŞARIDAN','no']],v=>{if(v==='yes'){phase=3;drawHud();message('DÜĞÜM 2 AKTİF','Güvenlik konsoluna erişildi.')}else error('Görev 7 sinyal analiziyle çelişiyor.')});return}
  if(n.kind==='lock'&&phase===3){choices('KİLİT KONSOLU','İki düğüm aktif; güvenli giriş için doğru protokolü seç.', [['ÖNCE BASINÇ DENGESİ, SONRA KAPI','yes'],['DOĞRUDAN KAPIYI AÇ','no']],v=>{if(v==='yes'){phase=4;drawHud();message('KAPI AÇILDI','Basınç dengelendi. Asansör inişe hazır.')}else error('Ani basınç farkı tehlikeli. Önce ortamı dengele.')});return}
  if(n.kind==='exit'&&phase===4){finish('Kayıp sektör açıldı. Aşağıda istasyonun bilinmeyen ikinci bir katmanı uzanıyor.');return}
@@ -95,7 +102,7 @@ function handle(n){
  message('ERİŞİM KİLİTLİ','Önce görev takipçisindeki hedefi tamamla.');
 }
 function interact(){if(dialog||finished)return;const n=stations.filter(near).sort((a,b)=>Math.hypot(a.x-player.x,a.y-player.y)-Math.hypot(b.x-player.x,b.y-player.y))[0];if(n)handle(n)}
-function collisions(x,y){return walls.concat(gates.filter(g=>phase<g.opens)).some(w=>x+player.r>w.x&&x-player.r<w.x+w.w&&y+player.r>w.y&&y-player.r<w.y+w.h)}
+function collisions(x,y){return walls.concat(gates.filter(g=>phase<g.opens),hazards).some(w=>x+player.r>w.x&&x-player.r<w.x+w.w&&y+player.r>w.y&&y-player.r<w.y+w.h)}
 function movement(dt){if(dialog)return;let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'))+joy.x,dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'))+joy.y;let l=Math.hypot(dx,dy);if(l<.03)return;dx/=Math.max(1,l);dy/=Math.max(1,l);const nextX=player.x+dx*190*dt,nextY=player.y+dy*190*dt;if(!collisions(nextX,player.y))player.x=nextX;if(!collisions(player.x,nextY))player.y=nextY}
 function projection(){const scale=Math.min(width/760,height/460,1.6),ox=Math.max(0,Math.min(MAP_W-width/scale,player.x-width/scale/2)),oy=Math.max(0,Math.min(MAP_H-height/scale,player.y-height/scale/2));return{scale,ox,oy}}
 function draw(time){
@@ -108,6 +115,7 @@ function draw(time){
  for(let i=0;i<13;i++){ctx.fillStyle='#79dce7';ctx.globalAlpha=.07+.045*Math.sin(time/690+i);ctx.fillRect(70+i*76,51+(i%2)*491,28,11)}ctx.globalAlpha=1;
  for(const w of walls){ctx.fillStyle='#657d91';ctx.fillRect(w.x,w.y,w.w,w.h);ctx.fillStyle='#aac6d4';ctx.fillRect(w.x,w.y,w.w,3)}
  for(const g of gates){ctx.fillStyle=phase<g.opens?'#ae534a':'#2d7568';ctx.fillRect(g.x,g.y,g.w,g.h);ctx.strokeStyle=phase<g.opens?'#ffc2a9':'#a1ffdf';ctx.lineWidth=2;ctx.strokeRect(g.x,g.y,g.w,g.h)}
+ for(const h of hazards){ctx.fillStyle='rgba(23,121,169,0.58)';ctx.fillRect(h.x,h.y,h.w,h.h);ctx.strokeStyle='#7ce9ff';ctx.lineWidth=2;ctx.strokeRect(h.x,h.y,h.w,h.h);ctx.strokeStyle='#ecf9ac';for(let k=0;k<3;k++){ctx.beginPath();ctx.moveTo(h.x+6+k*h.w/3,h.y+12);ctx.lineTo(h.x+15+k*h.w/3,h.y+h.h-13);ctx.stroke()}}
  for(const s of stations){const available=near(s);ctx.fillStyle=available?'#3c9a9b':'#28617c';ctx.fillRect(s.x-23,s.y-19,46,38);ctx.strokeStyle=available?'#f2fca9':'#9edfe9';ctx.lineWidth=available?3:1;ctx.strokeRect(s.x-23,s.y-19,46,38);ctx.fillStyle='#e6f8ff';ctx.textAlign='center';ctx.font='11px system-ui';ctx.fillText(s.label,s.x,s.y-28);if(available){ctx.fillStyle='#e2ffc2';ctx.fillText('ETKİLEŞ',s.x,s.y+35)}}
  for(const f of remaining()){ctx.fillStyle='#d76579';ctx.fillRect(f.x-16,f.y-16,32,32);ctx.strokeStyle='#ffc2ba';ctx.strokeRect(f.x-16,f.y-16,32,32);ctx.fillStyle='#fff';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText('●'.repeat(f.hp),f.x,f.y-24)}
  if(beam&&time<beam.until){ctx.strokeStyle='#b0fbff';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(475,300);ctx.lineTo(beam.x,beam.y);ctx.stroke()}
