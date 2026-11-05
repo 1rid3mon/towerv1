@@ -216,6 +216,9 @@ jobs:
       - name: Verify V14 station and daily drill in WebKit tablet and mobile
         working-directory: security-lab
         run: node station-v14-browser.cjs
+      - name: Play Story 6–10 on WebKit for iPad compatibility
+        working-directory: security-lab
+        run: node story-interior-06-10-playthrough.cjs
       - name: Test Story phone, landscape, tablet and desktop in WebKit
         working-directory: security-lab
         run: node browser-smoke.cjs
