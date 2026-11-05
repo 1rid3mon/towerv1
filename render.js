@@ -2644,7 +2644,12 @@ function renderGame() {
         // Shared LOST SIGNAL chassis for the default ally family; owned custom skins remain intact.
         const unifiedAlly = window.TowerUnifiedCharactersV17 &&
             window.TowerUnifiedCharactersV17.drawCompanion(ctx, activeCompSkin, key, star, st.angle || 0, nowCompTime);
-        if (!unifiedAlly) drawCustomCompanionSkin(ctx, activeCompSkin, key, star, st.angle || 0, nowCompTime);
+        // Stage 1.4: the other eight owned costume silhouettes share the same
+        // LOST SIGNAL steel/ink art family. Unknown IDs safely use legacy art.
+        const collectibleAlly = !unifiedAlly && window.TowerCompanionSkinsV17 &&
+            window.TowerCompanionSkinsV17.drawCompanion(ctx, activeCompSkin, key, star, st.angle || 0, nowCompTime);
+        if (!unifiedAlly && !collectibleAlly)
+            drawCustomCompanionSkin(ctx, activeCompSkin, key, star, st.angle || 0, nowCompTime);
         ctx.restore();
     }
 
