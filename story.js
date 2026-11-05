@@ -594,12 +594,12 @@ function startStoryMission(missionNumber = 1) {
     // checking a second, potentially stale cloud/local snapshot in the child iframe.
     // The parent Endless game never borrows Story globals. Launch the mission in a
     // separate browsing context, which gets its own engine globals, timers, and canvas.
-    if (!isIsolatedStoryRuntime() && missionNumber >= 1 && missionNumber <= 10 && window.LOST_SIGNAL_INTERIOR_MISSION_ONE !== false) {
+    if (!isIsolatedStoryRuntime() && missionNumber >= 1 && missionNumber <= 15 && window.LOST_SIGNAL_INTERIOR_MISSION_ONE !== false) {
         // New top-down playable interior pilot. Preserve Endless state and existing story saves.
         const overlay = document.createElement('div');
         overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:#030b14';
         const frame = document.createElement('iframe');
-        frame.src = missionNumber === 1 ? 'story-interior-mission01.html' : (missionNumber <= 5 ? 'story-interior-missions02-05.html' : 'story-interior-missions06-10.html') + '?mission=' + missionNumber + '&power=' + encodeURIComponent(progress.powerChoice || '');
+        frame.src = missionNumber === 1 ? 'story-interior-mission01.html' : (missionNumber <= 5 ? 'story-interior-missions02-05.html' : missionNumber <= 10 ? 'story-interior-missions06-10.html' : 'story-interior-missions11-15.html') + '?mission=' + missionNumber + '&power=' + encodeURIComponent(progress.powerChoice || '');
         frame.title = 'LOST SIGNAL · İç İstasyon · Görev ' + missionNumber;
         frame.style.cssText = 'width:100%;height:100%;border:0';
         overlay.appendChild(frame);
@@ -613,6 +613,9 @@ function startStoryMission(missionNumber = 1) {
                 patch['mission' + missionNumber + 'Complete'] = true;
                 if (missionNumber === 4 && (event.data.choice === 'shield' || event.data.choice === 'weapon')) {
                     patch.powerChoice = event.data.choice;
+                }
+                if (missionNumber === 13 && (event.data.trustChoice === 'human' || event.data.trustChoice === 'piko')) {
+                    patch.trustChoice = event.data.trustChoice;
                 }
                 saveStoryProgress(patch);
                 cleanup();
