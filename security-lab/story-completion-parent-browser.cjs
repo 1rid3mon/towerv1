@@ -1,7 +1,17 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict');
 const {chromium,webkit}=require('playwright'),root=path.resolve(__dirname,'..');
-const server=http.createServer((req,res)=>{const url=new URL(req.url,'http://localhost');const file=path.resolve(root,'.'+(url.pathname==='/'?'/index.html':url.pathname));if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){res.writeHead(404);res.end();return}res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript; charset=utf-8':file.endsWith('.css')?'text/css; charset=utf-8':'text/html; charset=utf-8');fs.createReadStream(file).pipe(res)});
+const server=http.createServer((req,res)=>{const url=new URL(req.url,'http://localhost');const file=path.resolve(root,'.'+(url.pathname==='/'?'/index.html':url.pathname));if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){res.writeHead(404);res.end();return}res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript; charset=utf-8':file.endsWith('.css')?'text/css; charset=utf-8':'text/html; charset=utf-8');if(/story-interior-missions(?:02-05|06-10)\.html$/.test(file)){
+ let content=fs.readFileSync(file,'utf8');
+ content=content.replace('})();\n</script>','window.__qaFinish=()=>finish("QA completion");\n})();\n</script>');
+ res.end(content);return;
+}
+if(/story-interior-missions(?:11-15|16-20)\.js$/.test(file)){
+ let content=fs.readFileSync(file,'utf8');
+ content=content.replace(/\}\)\(\);\s*$/,'window.__qaFinish=()=>finish("QA completion");\n})();');
+ res.end(content);return;
+}
+fs.createReadStream(file).pipe(res)});
 async function main(){
 await new Promise(resolve=>server.listen(4202,'127.0.0.1',resolve));const browser=await (process.env.BROWSER_ENGINE==='webkit'?webkit:chromium).launch({headless:true});
 try{
@@ -14,8 +24,10 @@ try{
    await page.evaluate(m=>{const data={introSeen:true,chapter:m>=19?3:m>=10?2:1};for(let i=1;i<m;i++)data['mission'+i+'Complete']=true;localStorage.setItem(STORY_PROGRESS_KEY,JSON.stringify(data));updateStoryMissionBoard();startStoryMission(m)},mission);
    const iframe=page.locator('iframe[title^="LOST SIGNAL · İç İstasyon"]');
    await iframe.waitFor({state:'visible',timeout:4500});
-   const frame=await iframe.elementHandle();
-   await frame.contentFrame().then(f=>f.evaluate(m=>window.parent.postMessage({type:'lost-signal-interior-mission-complete',mission:m},location.origin),mission));
+   const frame=await (await iframe.elementHandle()).contentFrame();
+   await frame.waitForFunction(()=>typeof window.__qaFinish==='function',{timeout:4500});
+   await frame.evaluate(()=>window.__qaFinish());
+   await frame.locator('#done').click({timeout:4500});
    await iframe.waitFor({state:'detached',timeout:4500});
    assert.equal(await page.evaluate(m=>getStoryProgress()['mission'+m+'Complete']===true,mission),true,'completion not saved '+mission+' diagnostics='+JSON.stringify(await page.evaluate(()=>({raw:localStorage.getItem(STORY_PROGRESS_KEY),owner:localStorage.getItem(STORY_PROGRESS_OWNER_KEY),session:GameModeRuntime.storySession?.active,sessionOwner:GameModeRuntime.storySession?.ownerUid,currentUser:typeof currentUser==='undefined'?'undefined':currentUser?.uid,origin:location.origin}))));
    assert.equal(await page.evaluate(m=>document.getElementById('story-start-mission'+(m+1))?.disabled,mission),false,'next mission blocked '+mission);
