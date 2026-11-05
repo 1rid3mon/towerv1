@@ -182,8 +182,8 @@ Not included: directional eight-way sprite sheets, skeletal rigging, art-level r
 Source: iPad Safari screenshot of Endless wave 412, multiple enemies circled by the player. The player reports that small silhouettes, especially red enemies against the **Cengiz** theme, are hard to see. Allies/companions use much larger friendly outlined icon silhouettes than enemy raster sprites, so the combat field has two competing art languages.
 
 ### Immediate readability patch (separate branch)
-- Minimum **visual** sprite size of 27px normal / 31px elite / 44px boss, limited to 1.65x of the current raster draw size so tiny enemies don't turn into giant hitbox impostors.
-- One dark ink backing disc, thin colored HUD identification arc, and white top tracking notch, inspired by the ally marker treatment. Orange-coral rim on fast/red units, icy cyan by default, otherwise the authored enemy color.
+- Stage 1.2 targets **28px normal / 34px elite / 46px boss** visual sprite sizes, with a strict 1.9x bound relative to the original raster draw. Very small hitboxes can remain below the target; the dark identification plate stays visible without changing collisions.
+- Stage 1.2 uses a near-black backing disc and neutral bright rim, icy cyan around red/fast units so they remain distinct on Cengiz red; their warm identity stays in the body and tracking notch. Elites have a pale-gold identification edge.
 - Entirely Canvas-rendered within sprite \`save/restore\`. No changes to \`enemy.radius\`, collision, targeting, damage, movement, economy, progression, or saves.
 - Remains compatible with \`?enemyArt=legacy\` fallback. Needs real Cengiz-theme screenshot and iPad frame-time review before deployment.
 
@@ -202,9 +202,9 @@ Source: iPad Safari screenshot of Endless wave 412, multiple enemies circled by 
 
 The first approved art-direction experiment is implemented as local Canvas character art in \`lost-signal-characters-v17.js\`, loaded before \`render.js\`. The reference characters are not concept promises:
 
-- **Echo / owned default-tech companions** — all five companion roles share a small armored supporting-drone chassis, two-pixel digital eye expression, layered dark metal, restrained role-specific accents, micro-thrusters and a clear silhouette. The equipped `ghost_wisp` collectible appearance is also updated with translucent spectral fins and violet signal arcs on the same chassis; other purchased alternate skins retain the original renderer. This pass does not affect companion damage, skills, position, level or skins in saves.
-- **Cyber Scout** — a complete, newly authored compact polygonal swept-wing silhouette, centered sensor visor, dark plated chassis, bright two-tone contrast, micro-thrusters; scale floor around a 31px visual footprint. Uses the existing \`scout\` identity and target-facing direction, no new unit types or stats.
-- **Armored Titan** — a complete, newly authored broad six-mass siege silhouette, large angular shoulders, ram, layered armor and amber reactor. Three existing \`v12Combat.phase\` values affect light/core presentation only; old boss attacks, death FX, warnings and HP labels remain unchanged.
+- **Echo / owned default-tech companions** — Stage 1.2 applies a 1.30x render-space size increase (roughly 40–50px overall), while all five companion roles share a small armored supporting-drone chassis, two-pixel digital eye expression, layered dark metal, restrained role-specific accents, micro-thrusters and a clear silhouette. The equipped `ghost_wisp` collectible appearance is also updated with translucent spectral fins and violet signal arcs on the same chassis; other purchased alternate skins retain the original renderer. This pass does not affect companion damage, skills, position, level or skins in saves.
+- **Cyber Scout** — a compact swept-wing V silhouette, centered sensor visor, dark armored chassis and bright nose locator. Stage 1.2 increases the minimum geometry width to about 36px without changing enemy.radius. Uses the existing \`scout\` identity and target-facing direction, no new unit types or stats.
+- **Armored Titan** — a six-mass siege silhouette, broad shoulders, ram, armor and amber reactor. Phase 3 now adds two large shoulder indicators alongside the reactor treatment. Existing \`v12Combat.phase\` values affect presentation only; attacks, death FX, warnings and HP labels remain unchanged.
 
 All three share **LOST SIGNAL industrial materials**: deep ink \`#08111f\`, steel \`#345065\`, edge metal \`#b7ccdc\`, restrained colored signal accents and narrow identification arcs. Companions have friendly rounded visor expression, enemies use forward V-shaped geometry, bosses use oversized broad armor massing.
 
@@ -213,3 +213,10 @@ The module is intentionally limited to three reference *silhouette families*; it
 **Integration gates:** renderer calls the unified drawing module for these references first. If it is absent or returns false, the original V17 WebP sprite and legacy fallback stay available. The \`?enemyArt=legacy\` opt-out is retained. No gameplay state or saved data is modified by the new module.
 
 **Verification:** \`security-lab/lost-signal-characters-v17.test.cjs\` tests three draw paths, phase levels, purchased-skin fallback, opt-out, no gameplay mutation and renderer wiring. Tablet browser smoke draws the actual three references against cyber-dark and Cengiz-red fields and stores a visual \`v17-unified-reference-trio.png\` artifact for quality assessment. These checks must pass, followed by subjective on-device comparison, before merge or production deployment.
+
+
+### Stage 1.2 implementation record (2026-11-05)
+- Completed on the PR branch: shared high-contrast neutral rim, 1.30x Echo chassis scale, minimum 36px Scout silhouette, Titan phase-3 shoulder signal, stronger bounded WebP size floors and cool rim for warm/red enemies.
+- Deliberately unchanged: radius/hitbox, combat targeting, animation tick rate, economy, existing player saves and production deployment.
+- CI JavaScript syntax, V17 sprite tests and unified-reference unit tests passed on the Stage 1.2 head; full browser/WebKit matrix and real 1x iPad crowded-wave evaluation remain the merge gate.
+- This visual-readability milestone does not imply the remaining companion costumes, enemy families, Piko or tower have been artistically converted.
