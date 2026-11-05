@@ -220,3 +220,25 @@ The module is intentionally limited to three reference *silhouette families*; it
 - Deliberately unchanged: radius/hitbox, combat targeting, animation tick rate, economy, existing player saves and production deployment.
 - CI JavaScript syntax, V17 sprite tests and unified-reference unit tests passed on the Stage 1.2 head; full browser/WebKit matrix and real 1x iPad crowded-wave evaluation remain the merge gate.
 - This visual-readability milestone does not imply the remaining companion costumes, enemy families, Piko or tower have been artistically converted.
+
+
+## Stage 1.3 · Normal enemy family conversion (2026-11-05)
+
+Source: lost-signal-enemy-families-v17.js. The 20 remaining normal enemy IDs now receive distinct top-down Canvas chassis, while Scout remains the first shared reference.
+
+- Core: circuit (circuit guard), drone (rotor).
+- Khan: shield (bulwark), raider (razor), amber (orbiter), redrunner (dart).
+- Snow: ice (blade crystal), glacier (heavy ice shield), snowghost (spectral hardware).
+- Desert: scorpion (claws/tail), cactus (spiked hull), sand (crawler).
+- Nebula: violet (phase blades), prism (facets), void (dark shell), nebula (twin wings), pulse (coil).
+- Dream: bubble (armored spheres), butterfly (moth drone), candy (corrupted crystal).
+
+Each family has an opaque neutral dark backing, a near-white identification edge and restrained family-color sensor. Distinct silhouettes distinguish types before fine details. Small and elite visual bodies have bounded presentation-space sizes; no game radius, hitboxes, movement, targeting, attacks, economy, save keys, progression or player costumes change.
+
+Renderer priority: the first Scout/Titan renderer, then Stage 1.3 normal families, then existing V17 WebP, then complete legacy painting. Only one body pipeline draws each enemy. The enemyArt=legacy URL flag still opts out of unified Canvas art.
+
+Automated verification: the new Node regression test checks exact 20 canonical IDs, distinct geometry, six era palettes, shared contrast, no enemy state mutation, fallback and reduced-motion. Tablet browser smoke captures all 20 at native 1x size across cyber-dark and Cengiz-red backgrounds and verifies a minimum painted area and width. Real iPad 400+ wave performance and visual direction require separate review before merge.
+
+Not included: the other four boss redesigns (Stage 1.5), remaining companion skins (1.4), Piko, tower, or final image-artist sign-off.
+
+Release control: Stage 1.3 remains in draft PR #91; production and main unchanged.
