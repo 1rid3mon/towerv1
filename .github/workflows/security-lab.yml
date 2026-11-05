@@ -127,6 +127,8 @@ jobs:
         run: node security-lab/lost-signal-characters-v17.test.cjs
       - name: Verify LOST SIGNAL 20 normal enemy families
         run: node security-lab/lost-signal-enemy-families-v17.test.cjs
+      - name: Verify LOST SIGNAL all 10 companion skins
+        run: node security-lab/lost-signal-companion-skins-v17.test.cjs
       - name: Verify V12 boss phases, combos and narrative branching
         run: node security-lab/v12-expansion.test.cjs
 
