@@ -73,7 +73,12 @@ function render(ctx,enemy,tx,ty,timeMs){
  }
  if(!entry)return false;
  const img=entry.img;
- const scale=def.scale||1, size=enemy.radius*2*scale;
+ // Display-only footprint: prevent transparent atlas margins and dark skins
+ // from making small enemies disappear. Hitbox/pathing remain enemy.radius.
+ const boss=enemy.type==='boss';
+ const minBody=boss?44:enemy.isElite?31:27;
+ const baseSize=enemy.radius*2*(def.scale||1);
+ const size=Math.max(baseSize,Math.min(minBody,baseSize*1.65));
  const motion=root.TowerEnemyMotionV17;
  const animation=motion&&typeof motion.frame==='function'?motion.frame(enemy,timeMs):null;
  try{
@@ -103,6 +108,30 @@ function render(ctx,enemy,tx,ty,timeMs){
      effects.push('contrast(1.15) saturate(0.90)');
     }
     if(effects.length)ctx.filter=effects.join(' ');
+   }
+   // LOST SIGNAL visual language: dark tactical backing + thin colored
+   // signature rim. Draw BEFORE sprite, never over enemy detail or hit indicators.
+   // High contrast even in the saturated Cengiz/red environment.
+   if(typeof ctx.beginPath==='function'&&typeof ctx.arc==='function'&&typeof ctx.fill==='function'){
+    ctx.save();
+    try{
+     const tone=(enemy.type==='runner'||idFor(enemy)==='redrunner'||idFor(enemy)==='amber')
+       ?'#ffb36b':(enemy.color||'#7dd3fc');
+     const rim=Math.max(11,size*0.40);
+     ctx.fillStyle='rgba(4,10,21,0.78)';
+     ctx.beginPath();ctx.arc(0,0,rim,0,Math.PI*2);ctx.fill();
+     if(typeof ctx.stroke==='function'){
+      ctx.strokeStyle=tone;
+      ctx.globalAlpha=0.85;
+      ctx.lineWidth=Math.max(1.15,Math.min(1.8,size*0.045));
+      ctx.beginPath();ctx.arc(0,0,rim+1.1,-Math.PI*0.92,Math.PI*0.66);ctx.stroke();
+     }
+     // A single tiny white tracking notch reads like the allied HUD markers.
+     if(typeof ctx.fillRect==='function'){
+      ctx.globalAlpha=0.88;ctx.fillStyle='#e2f7ff';
+      ctx.fillRect(-1.1,-rim-3.5,2.2,2.2);
+     }
+    }finally{ctx.restore();}
    }
    // Explicit atlas crop: one WebP shared by several enemies, drawn once per frame.
    const drawBody=()=>{
