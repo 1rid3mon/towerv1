@@ -2641,7 +2641,10 @@ function renderGame() {
         const star = Math.min(5, Math.max(1, st.level || 1));
         ctx.save();
         ctx.translate(st.x, st.y);
-        drawCustomCompanionSkin(ctx, activeCompSkin, key, star, st.angle || 0, nowCompTime);
+        // Shared LOST SIGNAL chassis for the default ally family; owned custom skins remain intact.
+        const unifiedAlly = window.TowerUnifiedCharactersV17 &&
+            window.TowerUnifiedCharactersV17.drawCompanion(ctx, activeCompSkin, key, star, st.angle || 0, nowCompTime);
+        if (!unifiedAlly) drawCustomCompanionSkin(ctx, activeCompSkin, key, star, st.angle || 0, nowCompTime);
         ctx.restore();
     }
 
@@ -2869,7 +2872,10 @@ function renderGame() {
             ctx.strokeText(label,0,-e.radius-29);ctx.fillText(label,0,-e.radius-29);ctx.restore();
         }
         // V17: either a complete sprite or the complete legacy body stack; never both.
-        const v17SpriteDrawn = typeof TowerEnemySpritesV17 !== "undefined" && TowerEnemySpritesV17.render(ctx, e, tx, ty, nowCompTime);
+        const unifiedEnemyDrawn = window.TowerUnifiedCharactersV17 &&
+            window.TowerUnifiedCharactersV17.drawEnemy(ctx, e, tx, ty, nowCompTime);
+        const v17SpriteDrawn = unifiedEnemyDrawn ||
+            (typeof TowerEnemySpritesV17 !== "undefined" && TowerEnemySpritesV17.render(ctx, e, tx, ty, nowCompTime));
         if (!v17SpriteDrawn) {
             drawCustomEnemy(ctx, e, tx, ty, nowCompTime);
             if (typeof TowerEnemyVisualV4 !== "undefined") TowerEnemyVisualV4.draw(ctx, e, nowCompTime, "normal");
