@@ -173,6 +173,9 @@ jobs:
       - name: Play story missions 6–10 to completion in Chromium
         working-directory: security-lab
         run: node story-interior-06-10-playthrough.cjs
+      - name: Complete missions 11–15 in Chromium
+        working-directory: security-lab
+        run: node story-interior-11-15-playthrough.cjs
       - name: Test Story in desktop and mobile Chromium
         working-directory: security-lab
         run: node browser-smoke.cjs
@@ -219,6 +222,9 @@ jobs:
       - name: Play Story 6–10 on WebKit for iPad compatibility
         working-directory: security-lab
         run: node story-interior-06-10-playthrough.cjs
+      - name: Complete missions 11–15 in WebKit
+        working-directory: security-lab
+        run: node story-interior-11-15-playthrough.cjs
       - name: Test Story phone, landscape, tablet and desktop in WebKit
         working-directory: security-lab
         run: node browser-smoke.cjs
