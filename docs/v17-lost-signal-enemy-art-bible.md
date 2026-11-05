@@ -175,3 +175,24 @@ Not included: directional eight-way sprite sheets, skeletal rigging, art-level r
 - [ ] Art-direct / hand-retouch body and directional sprites after visual review
 
 **Do not merge or deploy the draft PR solely because the code compiles; final CI and browser/iPad acceptance are Stage 7.**
+
+
+## Post-V17 player feedback · gameplay visibility and unified LOST SIGNAL art
+
+Source: iPad Safari screenshot of Endless wave 412, multiple enemies circled by the player. The player reports that small silhouettes, especially red enemies against the **Cengiz** theme, are hard to see. Allies/companions use much larger friendly outlined icon silhouettes than enemy raster sprites, so the combat field has two competing art languages.
+
+### Immediate readability patch (separate branch)
+- Minimum **visual** sprite size of 27px normal / 31px elite / 44px boss, limited to 1.65x of the current raster draw size so tiny enemies don't turn into giant hitbox impostors.
+- One dark ink backing disc, thin colored HUD identification arc, and white top tracking notch, inspired by the ally marker treatment. Orange-coral rim on fast/red units, icy cyan by default, otherwise the authored enemy color.
+- Entirely Canvas-rendered within sprite \`save/restore\`. No changes to \`enemy.radius\`, collision, targeting, damage, movement, economy, progression, or saves.
+- Remains compatible with \`?enemyArt=legacy\` fallback. Needs real Cengiz-theme screenshot and iPad frame-time review before deployment.
+
+### Follow-up unified art pass (not claimed implemented)
+1. **Shared silhouette language:** enemies, companions, bosses, Piko and tower share restrained outer stroke thickness, shape clarity, shadow/backplate materials and emissive light values. Differentiate friendly/enemy by geometry and warm/cool accents, not by entirely unrelated drawing styles.
+2. **Shared size grammar:** normal enemies readable at gameplay zoom, elites distinctly stronger, bosses largest; allies retain a clear but not cartoon-disconnected identity. Calibrate with real 1x iPad screenshots and at wave 400+.
+3. **Theme-aware contrast:** evaluate Cengiz, frost, cyber, desert and bubblegum with enemy palettes. Maintain a consistent minimum foreground/background contrast independent of arena color.
+4. **Asset pass:** replace or hand-retouch overly transparent, thin and blurry concept-derived WebP art; use consistent authored rim lighting, silhouette fills and compact sprite framing.
+5. **Combat readability:** avoid extra halos masking bullets, boss warnings, HP bars and companion targeting.
+6. **Performance:** verify tablet frame times under crowded waves, and honor reduced motion. Only merge/redeploy once tests and actual screenshot review pass.
+
+**Scope:** The immediate patch is a readability fix, not the full art unification. Avoid claiming the companion and enemy designs are already artistically consistent.
