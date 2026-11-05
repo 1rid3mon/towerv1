@@ -167,6 +167,9 @@ jobs:
       - name: Verify playable interior missions 2 through 5 on iPad-sized Chromium
         working-directory: security-lab
         run: node story-interior-browser.cjs
+      - name: Play all five interior missions to completion and verify gates / deduction
+        working-directory: security-lab
+        run: node story-interior-playthrough.cjs
       - name: Test Story in desktop and mobile Chromium
         working-directory: security-lab
         run: node browser-smoke.cjs
