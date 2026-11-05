@@ -21,7 +21,7 @@ try{
  await page.goto('http://127.0.0.1:4202/',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>typeof startStoryMission==='function'&&typeof game!=='undefined');
  await page.evaluate(()=>{game.wave=26;game.highestWave=26;window._syncShadow?.();saveGame(true);updateStoryUnlockUI()});
  for(const mission of [2,3,5,6,9,10,11,13,15,16,20]){
-   await page.evaluate(m=>{const data={introSeen:true,chapter:m>=19?3:m>=10?2:1};for(let i=1;i<m;i++)data['mission'+i+'Complete']=true;localStorage.setItem(STORY_PROGRESS_KEY,JSON.stringify(data));updateStoryMissionBoard();startStoryMission(m)},mission);
+   await page.evaluate(m=>{const assertSingleOverlay=()=>{if(document.querySelectorAll('#lost-signal-interior-overlay').length!==1)throw Error('Duplicate mission overlay detected')};const data={introSeen:true,chapter:m>=19?3:m>=10?2:1};for(let i=1;i<m;i++)data['mission'+i+'Complete']=true;localStorage.setItem(STORY_PROGRESS_KEY,JSON.stringify(data));updateStoryMissionBoard();startStoryMission(m);startStoryMission(m);assertSingleOverlay()},mission);
    const iframe=page.locator('iframe[title^="LOST SIGNAL · İç İstasyon"]');
    await iframe.waitFor({state:'visible',timeout:4500});
    const frame=await (await iframe.elementHandle()).contentFrame();
