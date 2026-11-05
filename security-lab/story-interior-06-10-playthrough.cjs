@@ -52,7 +52,7 @@ async function run(){
    assert.equal(gates.length,2,'expected bulkhead gates');
    if(mission===6){
     await visit('brief');await close();
-    for(const label of ['HAT A','HAT B','HAT C']){await visit('repair',label);await choose('YEŞİL');await close()}
+    for(const [label,choice] of [['HAT A','YEŞİL'],['HAT B','MAVİ'],['HAT C','SARI']]){await visit('repair',label);await choose(choice);await close()}
     assert.equal(await page.evaluate(()=>__qa.phase),2);
     await visit('balance');await choose('6 V + 6 V');await close();
     await visit('exit');
@@ -78,7 +78,7 @@ async function run(){
     await visit('analysis');await choose('GİZLİ ALT KAT');await close();await visit('exit');
    }
    if(mission===10){
-    await visit('brief');await close();await visit('node1');await choose('5');await close();
+    await visit('brief');await close();await visit('node1');await choose('323');await close();
     await visit('node2');await choose('İÇERİDEN');await close();
     await visit('lock');await choose('ÖNCE BASINÇ DENGESİ');await close();await visit('exit');
    }
