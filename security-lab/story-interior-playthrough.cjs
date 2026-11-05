@@ -32,7 +32,7 @@ async function play(){
     const list=await page.evaluate(()=>window.__qa.foes.map(z=>({x:z.x,y:z.y,hp:z.hp})));
     for(let k=0;k<list.length;k++){
      for(let j=0;j<list[k].hp;j++){
-      const pt=await page.evaluate(k=>{const q=window.__qa,foe=q.foes[k];q.p.x=foe.x;q.p.y=foe.y;const w=innerWidth,h=innerHeight,one=document.querySelector('#world')?false:true;const sc=Math.min(w/(one?650:740),h/(one?380:450),one?1.5:1.55),mapWidth=one?1000:1080,mapHeight=one?500:570;const ox=Math.max(0,Math.min(mapWidth-w/sc,q.p.x-w/sc/2)),oy=Math.max(0,Math.min(mapHeight-h/sc,q.p.y-h/sc/2));return{x:(foe.x-ox)*sc,y:(foe.y-oy)*sc}},k);
+      const pt=await page.evaluate(k=>{const q=window.__qa,foe=q.foes[k];q.p.x=foe.x;q.p.y=foe.y;const w=innerWidth,h=innerHeight,one=location.pathname.includes('mission01');const sc=Math.min(w/(one?650:740),h/(one?380:450),one?1.5:1.55),mapWidth=one?1000:1080,mapHeight=one?500:570;const ox=Math.max(0,Math.min(mapWidth-w/sc,q.p.x-w/sc/2)),oy=Math.max(0,Math.min(mapHeight-h/sc,q.p.y-h/sc/2));return{x:(foe.x-ox)*sc,y:(foe.y-oy)*sc}},k);
       await page.mouse.click(pt.x,pt.y);
      }
     }
