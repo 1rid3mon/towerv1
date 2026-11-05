@@ -768,6 +768,11 @@ function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
             break;
         }
     }
+    // Stage 1.6: a thin shared tactical perimeter ties every owned skin to
+    // the same LOST SIGNAL chassis without painting over its unique body.
+    if (typeof TowerLostSignalTowers !== 'undefined' &&
+        typeof TowerLostSignalTowers.drawAccent === 'function')
+        TowerLostSignalTowers.drawAccent(c, skinId, angle, nowTime);
 }
 
 function drawCustomCompanionSkin(c, skinId, compKey, star, angle, nowTime) {
