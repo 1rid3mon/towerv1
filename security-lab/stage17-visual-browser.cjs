@@ -111,7 +111,7 @@ async function main(){
        // Avoid counting initial JIT/Canvas warmup; report render costs, not FPS.
        for(let i=0;i<2;i++)renderGame();
        const timings=[];
-       for(let frame=0;frame<12;frame++){
+       for(let frame=0;frame<24;frame++){
         const start=performance.now();renderGame();timings.push(performance.now()-start);
        }
        const screenshot=canvas.toDataURL('image/png').split(',')[1];
@@ -134,10 +134,16 @@ async function main(){
      }
      if(JSON.stringify(game)!==original.game)throw new Error('Render stress mutated game state');
      const cache=window.TowerUnifiedEnemyFamiliesV17.getState();
-     if(cache.cacheEntries<20||cache.cacheEntries>cache.cacheLimit||
-        cache.cacheHits<100||cache.cacheMisses<20)
-       throw new Error('Industrial normal-enemy cache was not populated or bounded: '+
+     const ua=window.navigator.userAgent||'';
+     const webKitSafari=/AppleWebKit/i.test(ua)&&
+       !/(?:Chrome|Chromium|Edg)\//i.test(ua);
+     if(webKitSafari){
+       if(cache.cacheEntries!==0)throw new Error('Safari must use stable native vector path');
+     }else if(cache.cacheEntries<20||cache.cacheEntries>cache.cacheLimit||
+        cache.cacheHits<100||cache.cacheMisses<20){
+       throw new Error('Chromium offscreen cache not populated or bounded: '+
         JSON.stringify(cache));
+     }
      const piko=document.querySelector('#game-mascot');
      const bubble=document.querySelector('#game-mascot-bubble');
      const overflow=document.documentElement.scrollWidth>innerWidth+1;
@@ -158,7 +164,9 @@ async function main(){
     for(const sample of report.resolutions){
      assert.equal(sample.virtualWave,450);
      assert(sample.enemies>=100&&sample.projectiles>=35);
-     assert(sample.p95Ms<300,'catastrophic 1x render stall >300ms p95');
+     assert(sample.p95Ms<(engine==='webkit'?120:100),
+       'pathological synthetic render stall at p95: '+engine+
+       ' '+viewport.name+' '+sample.theme+' '+sample.p95Ms+'ms');
      const out=path.join(evidence,viewport.name+'-'+sample.theme+'-'+sample.enemies+'-wave450.png');
      fs.writeFileSync(out,Buffer.from(sample.screenshot,'base64'));
      delete sample.screenshot;
