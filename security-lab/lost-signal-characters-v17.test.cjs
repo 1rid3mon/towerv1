@@ -17,8 +17,10 @@ const ctx=new Proxy({}, {get(_target,name){
 const echo={key:'repairDrone',star:4,angle:0.8};
 assert.equal(art.drawCompanion(ctx,'default_tech',echo.key,echo.star,echo.angle,1000),true);
 assert(calls.filter(x=>x.name==='fill').length>=7,'Echo receives a complete armored body and face');
-assert.equal(art.drawCompanion(ctx,'ghost_wisp','laserDrone',1,0,1000),false,
- 'purchased custom skins must preserve their drawing');
+assert.equal(art.drawCompanion(ctx,'ghost_wisp','laserDrone',1,0,1000),true,
+ 'existing Ghost Wisp skin receives coherent holographic Echo chassis');
+assert.equal(art.drawCompanion(ctx,'origami_crane','laserDrone',1,0,1000),false,
+ 'unconverted collectible skins retain their original renderers');
 assert.equal(art.drawCompanion(ctx,'default_tech','unknown',1,0,1000),false);
 const scout={type:'green',variantId:'scout',radius:11,x:2,y:5,hp:15,maxHp:15,hitFlash:0};
 const before=JSON.stringify(scout),count=calls.length;
