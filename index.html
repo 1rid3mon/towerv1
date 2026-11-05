@@ -739,6 +739,7 @@
 <link rel="stylesheet" href="hard-v10.css">
 <link rel="stylesheet" href="overhaul-v11.css">
 <link rel="stylesheet" href="silent-station-art.css">
+<link rel="stylesheet" href="lost-signal-stage16.css">
 </head>
 <body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-pc color-pastel" id="main-body">
 
@@ -1773,9 +1774,16 @@
             <circle cx="40" cy="35" r="1.1" fill="#fff"/><circle cx="56" cy="35" r="1.1" fill="#fff"/>
             <path d="M41 44q7 5 14 0" fill="none" stroke="#67e8f9" stroke-width="2" stroke-linecap="round"/>
             <path d="M35 49l-3 4m29-4 3 4" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/>
-            <!-- Tiny cheek lights and hover sparks -->
-            <circle cx="33" cy="41" r="1.5" fill="#fb7185" opacity=".85"/><circle cx="63" cy="41" r="1.5" fill="#fb7185" opacity=".85"/>
-            <path d="M14 62l2 4 4 1-4 2-2 4-2-4-4-2 4-1zM80 28l1.7 3.2 3.3 1.1-3.3 1.1L80 37l-1.7-3.6-3.3-1.1 3.3-1.1z" fill="#a5f3fc" opacity=".9"/>
+            <!-- Tiny cheek status lamps and worn industrial Piko frame -->
+            <circle cx="33" cy="41" r="1.3" fill="#e5b36b" opacity=".90"/><circle cx="63" cy="41" r="1.3" fill="#e5b36b" opacity=".90"/>
+            <g class="piko-v17-armor" aria-hidden="true">
+                <path d="M26 26l-8-7-6 8 3 13 8 3m47-17 8-7 6 8-3 13-8 3" fill="none" stroke="#d5e7f0" stroke-width="1.45" stroke-linejoin="bevel"/>
+                <path d="M33 23l7-5m23 5-7-5M31 48l-8 7 2 9m40-16 8 7-2 9" fill="none" stroke="#648ba1" stroke-width="1.6" stroke-linecap="square"/>
+                <path d="M34 72l6 5h16l6-5M34 79h28" fill="none" stroke="#d3e8ee" stroke-width="1.45" opacity=".9"/>
+                <path d="M15 53h8m50 0h8M42 89h12" fill="none" stroke="#7dd3e3" stroke-width="1.7" stroke-linecap="square"/>
+                <path d="M27 24h5m32 0h5M30 57l5-3m31 3-5-3" fill="none" stroke="#e5b36b" stroke-width="1.3"/>
+                <circle cx="21" cy="53" r="1.9" fill="#dceff5"/><circle cx="75" cy="53" r="1.9" fill="#dceff5"/>
+            </g>
         </svg>
     </button>
 
@@ -1803,6 +1811,11 @@
 <script src="story-finale.js"></script>
 <script src="living-space.js"></script>
 <script src="theme-atmosphere.js"></script>
+<script src="lost-signal-characters-v17.js"></script>
+<script src="lost-signal-companion-skins-v17.js"></script>
+<script src="lost-signal-enemy-families-v17.js"></script>
+<script src="lost-signal-bosses-v17.js"></script>
+<script src="lost-signal-combat-art-v17.js"></script>
 <script src="render.js"></script>
 <script src="fluidity-v16.js"></script>
 <script src="engine.js"></script>

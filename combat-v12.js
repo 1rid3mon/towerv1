@@ -39,19 +39,26 @@
     for(let i=effects.length-1;i>=0;i--) {
       const e=effects[i];e.life-=step*(e.type==='boss'?1.2:2.6);
       if(e.life<=0){effects.splice(i,1);continue;}
-      const progress=1-e.life, radius=(e.type==='boss'?15:4)+progress*(e.type==='boss'?65:22)*e.scale;
+      // Stage 1.6: bounded hardware signal ripples; retain the existing timing and
+      // CAP so effects cannot bury attack telegraphs in a 400+ wave battle.
+      const progress=1-e.life;
+      const radius=Math.min(e.type==='boss'?74:24,
+        ((e.type==='boss'?15:4)+progress*(e.type==='boss'?42:14)*e.scale));
       ctx.save();
-      ctx.globalAlpha=Math.min(.76,e.life*.76);
+      ctx.globalAlpha=Math.min(.68,e.life*.68);
       ctx.strokeStyle=e.color;
-      ctx.lineWidth=(e.type==='boss'?3:1.8)*e.life+.35;
+      ctx.lineWidth=(e.type==='boss'?2.35:1.55)*e.life+.4;
       ctx.beginPath();
       if(e.type==='muzzle'){
-        ctx.moveTo(e.x-radius*.5,e.y-radius*.5);
-        ctx.lineTo(e.x+radius*.5,e.y+radius*.5);
-        ctx.moveTo(e.x-radius*.5,e.y+radius*.5);
-        ctx.lineTo(e.x+radius*.5,e.y-radius*.5);
+        ctx.moveTo(e.x-radius*.48,e.y-radius*.48);
+        ctx.lineTo(e.x+radius*.48,e.y+radius*.48);
+        ctx.moveTo(e.x-radius*.48,e.y+radius*.48);
+        ctx.lineTo(e.x+radius*.48,e.y-radius*.48);
       } else {
-        ctx.arc(e.x,e.y,radius,0,Math.PI*2);
+        // Two broken segments, like the character and tower tracking arcs.
+        ctx.arc(e.x,e.y,radius,-.72,1.16);
+        ctx.moveTo(e.x+Math.cos(2.34)*radius,e.y+Math.sin(2.34)*radius);
+        ctx.arc(e.x,e.y,radius,2.34,4.63);
       }
       ctx.stroke();
       if(e.type==='critical'||e.type==='tower'){

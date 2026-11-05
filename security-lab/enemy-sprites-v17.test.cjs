@@ -108,4 +108,19 @@ const visualCtx={filter:'none',save(){},restore(){},drawImage(){}};
 assert.equal(sprites.render(visualCtx,{type:'boss',subType:'leviathan',radius:32,
   hp:25,maxHp:100,hitFlash:0,v12Combat:{phase:3}}),true);
 assert.match(visualCtx.filter,/contrast\(1\.15\)/,'low HP changes materials, not combat stats');
+// Readability pass must not change the hitbox or enemy coordinates.
+const tiny={type:'runner',variantId:'redrunner',radius:7,x:0,y:0,hp:10,maxHp:10,hitFlash:0};
+const original=JSON.stringify(tiny);
+const tinyImg=art.find(img=>img.src==='assets/enemies/v17/redrunner/body.webp');
+assert(tinyImg,'red runner asset preloaded');
+tinyImg.naturalWidth=80;tinyImg.naturalHeight=80;tinyImg.complete=true;tinyImg.onload();
+const smallDraw=[];
+const readableCtx={save(){},restore(){},rotate(){},translate(){},scale(){},
+ beginPath(){},arc(){},fill(){},stroke(){},fillRect(){},
+ drawImage(...args){smallDraw.push(args)}};
+assert.equal(sprites.render(readableCtx,tiny,0,0,0),true,'tiny red enemy draws on dark/red themes');
+assert(smallDraw.length>0,'raster drawn');
+const last=smallDraw[smallDraw.length-1];
+assert(last[3]>=23,'tiny enemy display footprint is enlarged');
+assert.equal(JSON.stringify(tiny),original,'readability does not change gameplay hitbox or stats');
 console.log('V17 sprite registry/loader/fallback and raster assets checks passed');

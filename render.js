@@ -768,6 +768,11 @@ function drawCustomTowerSkin(c, skinId, angle, recoil, barrelCount, nowTime) {
             break;
         }
     }
+    // Stage 1.6: a thin shared tactical perimeter ties every owned skin to
+    // the same LOST SIGNAL chassis without painting over its unique body.
+    if (typeof TowerLostSignalTowers !== 'undefined' &&
+        typeof TowerLostSignalTowers.drawAccent === 'function')
+        TowerLostSignalTowers.drawAccent(c, skinId, angle, nowTime);
 }
 
 function drawCustomCompanionSkin(c, skinId, compKey, star, angle, nowTime) {
@@ -2499,6 +2504,9 @@ function renderGame() {
     }
 
     for (const p of projectiles) {
+        // Stage 1.6: draw precisely one projectile body. Missing/unready art
+        // retains the complete frost, history and old pellet renderer below.
+        if (window.TowerCombatArtV17 && window.TowerCombatArtV17.drawProjectile(ctx, p)) continue;
         // Frost boss bolts carry a crystalline shard silhouette and icy wake.
         if (p.fromEnemy && p.isBossFrost) {
             ctx.save();
@@ -2641,11 +2649,23 @@ function renderGame() {
         const star = Math.min(5, Math.max(1, st.level || 1));
         ctx.save();
         ctx.translate(st.x, st.y);
-        drawCustomCompanionSkin(ctx, activeCompSkin, key, star, st.angle || 0, nowCompTime);
+        // Shared LOST SIGNAL chassis for the default ally family; owned custom skins remain intact.
+        const unifiedAlly = window.TowerUnifiedCharactersV17 &&
+            window.TowerUnifiedCharactersV17.drawCompanion(ctx, activeCompSkin, key, star, st.angle || 0, nowCompTime);
+        // Stage 1.4: the other eight owned costume silhouettes share the same
+        // LOST SIGNAL steel/ink art family. Unknown IDs safely use legacy art.
+        const collectibleAlly = !unifiedAlly && window.TowerCompanionSkinsV17 &&
+            window.TowerCompanionSkinsV17.drawCompanion(ctx, activeCompSkin, key, star, st.angle || 0, nowCompTime);
+        if (!unifiedAlly && !collectibleAlly)
+            drawCustomCompanionSkin(ctx, activeCompSkin, key, star, st.angle || 0, nowCompTime);
         ctx.restore();
     }
 
-    for (const b of lightningBeams) { ctx.save(); ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2); ctx.strokeStyle = b.color; ctx.lineWidth = 2.5; ctx.stroke(); ctx.restore(); }
+    for (const b of lightningBeams) {
+        if (window.TowerCombatArtV17 && window.TowerCombatArtV17.drawBeam(ctx, b)) continue;
+        ctx.save(); ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2);
+        ctx.strokeStyle = b.color; ctx.lineWidth = 2.5; ctx.stroke(); ctx.restore();
+    }
 
     ctx.save(); ctx.translate(tx, ty);
     // V2.4 reactor underglow: low-intensity light and segmented telemetry ring beneath the tower skin.
@@ -2869,7 +2889,19 @@ function renderGame() {
             ctx.strokeText(label,0,-e.radius-29);ctx.fillText(label,0,-e.radius-29);ctx.restore();
         }
         // V17: either a complete sprite or the complete legacy body stack; never both.
-        const v17SpriteDrawn = typeof TowerEnemySpritesV17 !== "undefined" && TowerEnemySpritesV17.render(ctx, e, tx, ty, nowCompTime);
+        // Stage 1.5: all five existing bosses get distinct body/phase art first.
+        // Their combat warning rings, HP labels and projectiles remain outside this path.
+        const bossFamilyDrawn = window.TowerBossFamiliesV17 &&
+            window.TowerBossFamiliesV17.drawEnemy(ctx, e, tx, ty, nowCompTime);
+        const unifiedEnemyDrawn = !bossFamilyDrawn && window.TowerUnifiedCharactersV17 &&
+            window.TowerUnifiedCharactersV17.drawEnemy(ctx, e, tx, ty, nowCompTime);
+        // Stage 1.3: all remaining registered normal families get distinct shared-world
+        // Canvas silhouettes; dedicated Scout and Titan references take priority.
+        // A false return preserves V17 WebP and complete legacy fallbacks.
+        const unifiedFamilyDrawn = !unifiedEnemyDrawn && window.TowerUnifiedEnemyFamiliesV17 &&
+            window.TowerUnifiedEnemyFamiliesV17.drawEnemy(ctx, e, tx, ty, nowCompTime);
+        const v17SpriteDrawn = bossFamilyDrawn || unifiedEnemyDrawn || unifiedFamilyDrawn ||
+            (typeof TowerEnemySpritesV17 !== "undefined" && TowerEnemySpritesV17.render(ctx, e, tx, ty, nowCompTime));
         if (!v17SpriteDrawn) {
             drawCustomEnemy(ctx, e, tx, ty, nowCompTime);
             if (typeof TowerEnemyVisualV4 !== "undefined") TowerEnemyVisualV4.draw(ctx, e, nowCompTime, "normal");

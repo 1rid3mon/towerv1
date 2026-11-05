@@ -175,3 +175,135 @@ Not included: directional eight-way sprite sheets, skeletal rigging, art-level r
 - [ ] Art-direct / hand-retouch body and directional sprites after visual review
 
 **Do not merge or deploy the draft PR solely because the code compiles; final CI and browser/iPad acceptance are Stage 7.**
+
+
+## Post-V17 player feedback · gameplay visibility and unified LOST SIGNAL art
+
+Source: iPad Safari screenshot of Endless wave 412, multiple enemies circled by the player. The player reports that small silhouettes, especially red enemies against the **Cengiz** theme, are hard to see. Allies/companions use much larger friendly outlined icon silhouettes than enemy raster sprites, so the combat field has two competing art languages.
+
+### Immediate readability patch (separate branch)
+- Stage 1.2 targets **28px normal / 34px elite / 46px boss** visual sprite sizes, with a strict 1.9x bound relative to the original raster draw. Very small hitboxes can remain below the target; the dark identification plate stays visible without changing collisions.
+- Stage 1.2 uses a near-black backing disc and neutral bright rim, icy cyan around red/fast units so they remain distinct on Cengiz red; their warm identity stays in the body and tracking notch. Elites have a pale-gold identification edge.
+- Entirely Canvas-rendered within sprite \`save/restore\`. No changes to \`enemy.radius\`, collision, targeting, damage, movement, economy, progression, or saves.
+- Remains compatible with \`?enemyArt=legacy\` fallback. Needs real Cengiz-theme screenshot and iPad frame-time review before deployment.
+
+### Follow-up unified art pass (not claimed implemented)
+1. **Shared silhouette language:** enemies, companions, bosses, Piko and tower share restrained outer stroke thickness, shape clarity, shadow/backplate materials and emissive light values. Differentiate friendly/enemy by geometry and warm/cool accents, not by entirely unrelated drawing styles.
+2. **Shared size grammar:** normal enemies readable at gameplay zoom, elites distinctly stronger, bosses largest; allies retain a clear but not cartoon-disconnected identity. Calibrate with real 1x iPad screenshots and at wave 400+.
+3. **Theme-aware contrast:** evaluate Cengiz, frost, cyber, desert and bubblegum with enemy palettes. Maintain a consistent minimum foreground/background contrast independent of arena color.
+4. **Asset pass:** replace or hand-retouch overly transparent, thin and blurry concept-derived WebP art; use consistent authored rim lighting, silhouette fills and compact sprite framing.
+5. **Combat readability:** avoid extra halos masking bullets, boss warnings, HP bars and companion targeting.
+6. **Performance:** verify tablet frame times under crowded waves, and honor reduced motion. Only merge/redeploy once tests and actual screenshot review pass.
+
+**Scope:** The immediate patch is a readability fix, not the full art unification. Avoid claiming the companion and enemy designs are already artistically consistent.
+
+
+## Reference trio implementation · LOST SIGNAL Unified Characters (first code integration)
+
+The first approved art-direction experiment is implemented as local Canvas character art in \`lost-signal-characters-v17.js\`, loaded before \`render.js\`. The reference characters are not concept promises:
+
+- **Echo / owned default-tech companions** — Stage 1.2 applies a 1.30x render-space size increase (roughly 40–50px overall), while all five companion roles share a small armored supporting-drone chassis, two-pixel digital eye expression, layered dark metal, restrained role-specific accents, micro-thrusters and a clear silhouette. The equipped `ghost_wisp` collectible appearance is also updated with translucent spectral fins and violet signal arcs on the same chassis; other purchased alternate skins retain the original renderer. This pass does not affect companion damage, skills, position, level or skins in saves.
+- **Cyber Scout** — a compact swept-wing V silhouette, centered sensor visor, dark armored chassis and bright nose locator. Stage 1.2 increases the minimum geometry width to about 36px without changing enemy.radius. Uses the existing \`scout\` identity and target-facing direction, no new unit types or stats.
+- **Armored Titan** — a six-mass siege silhouette, broad shoulders, ram, armor and amber reactor. Phase 3 now adds two large shoulder indicators alongside the reactor treatment. Existing \`v12Combat.phase\` values affect presentation only; attacks, death FX, warnings and HP labels remain unchanged.
+
+All three share **LOST SIGNAL industrial materials**: deep ink \`#08111f\`, steel \`#345065\`, edge metal \`#b7ccdc\`, restrained colored signal accents and narrow identification arcs. Companions have friendly rounded visor expression, enemies use forward V-shaped geometry, bosses use oversized broad armor massing.
+
+The module is intentionally limited to three reference *silhouette families*; it does not yet redraw every normal variant or all bosses, nor does it replace custom companion skins. It is a working in-game visual candidate for review, not a completed art conversion.
+
+**Integration gates:** renderer calls the unified drawing module for these references first. If it is absent or returns false, the original V17 WebP sprite and legacy fallback stay available. The \`?enemyArt=legacy\` opt-out is retained. No gameplay state or saved data is modified by the new module.
+
+**Verification:** \`security-lab/lost-signal-characters-v17.test.cjs\` tests three draw paths, phase levels, purchased-skin fallback, opt-out, no gameplay mutation and renderer wiring. Tablet browser smoke draws the actual three references against cyber-dark and Cengiz-red fields and stores a visual \`v17-unified-reference-trio.png\` artifact for quality assessment. These checks must pass, followed by subjective on-device comparison, before merge or production deployment.
+
+
+### Stage 1.2 implementation record (2026-11-05)
+- Completed on the PR branch: shared high-contrast neutral rim, 1.30x Echo chassis scale, minimum 36px Scout silhouette, Titan phase-3 shoulder signal, stronger bounded WebP size floors and cool rim for warm/red enemies.
+- Deliberately unchanged: radius/hitbox, combat targeting, animation tick rate, economy, existing player saves and production deployment.
+- CI JavaScript syntax, V17 sprite tests and unified-reference unit tests passed on the Stage 1.2 head; full browser/WebKit matrix and real 1x iPad crowded-wave evaluation remain the merge gate.
+- This visual-readability milestone does not imply the remaining companion costumes, enemy families, Piko or tower have been artistically converted.
+
+
+## Stage 1.3 · Normal enemy family conversion (2026-11-05)
+
+Source: lost-signal-enemy-families-v17.js. The 20 remaining normal enemy IDs now receive distinct top-down Canvas chassis, while Scout remains the first shared reference.
+
+- Core: circuit (circuit guard), drone (rotor).
+- Khan: shield (bulwark), raider (razor), amber (orbiter), redrunner (dart).
+- Snow: ice (blade crystal), glacier (heavy ice shield), snowghost (spectral hardware).
+- Desert: scorpion (claws/tail), cactus (spiked hull), sand (crawler).
+- Nebula: violet (phase blades), prism (facets), void (dark shell), nebula (twin wings), pulse (coil).
+- Dream: bubble (armored spheres), butterfly (moth drone), candy (corrupted crystal).
+
+Each family has an opaque neutral dark backing, a near-white identification edge and restrained family-color sensor. Distinct silhouettes distinguish types before fine details. Small and elite visual bodies have bounded presentation-space sizes; no game radius, hitboxes, movement, targeting, attacks, economy, save keys, progression or player costumes change.
+
+Renderer priority: the first Scout/Titan renderer, then Stage 1.3 normal families, then existing V17 WebP, then complete legacy painting. Only one body pipeline draws each enemy. The enemyArt=legacy URL flag still opts out of unified Canvas art.
+
+Automated verification: the new Node regression test checks exact 20 canonical IDs, distinct geometry, six era palettes, shared contrast, no enemy state mutation, fallback and reduced-motion. Tablet browser smoke captures all 20 at native 1x size across cyber-dark and Cengiz-red backgrounds and verifies a minimum painted area and width. Real iPad 400+ wave performance and visual direction require separate review before merge.
+
+Not included: the other four boss redesigns (Stage 1.5), remaining companion skins (1.4), Piko, tower, or final image-artist sign-off.
+
+Release control: Stage 1.3 remains in draft PR #91; production and main unchanged.
+
+
+## Stage 1.4 · All ten collectible companion appearances (2026-11-05)
+
+Canonical inventory from COMPANION_SKIN_DATABASE in data.js: 10 skin IDs. Two existing Stage 1.1 references (default_tech and ghost_wisp) retain their armoured Echo chassis. Stage 1.4 adds lost-signal-companion-skins-v17.js for the other eight:
+
+- origami_crane: articulated origami metal wings and compact drone core
+- cyber_prism: faceted quantum sensor crystal with industrial framing
+- shadow_kunai: rotating four-fin shuriken armor and bright sensor
+- crimson_sand: tactical chronometer with unmistakable red hourglass
+- drama_mask: paired tragedy/comedy ceramic visor plates
+- valkyrie_halo: symmetrical protection wings with restrained amber halo
+- eclipse_crescent: distinct golden crescent and dark eclipse sensor
+- kurt_spirit: blue mechanized wolf totem with two ears and dual bright eyes
+
+All ten draw via the same dark metal / pale edge / limited glow material language, with per-costume identity distinct from the original emoji-like legacy bodies. The five role-specific accent colors remain recognizable across costumes. Visual footprints are approximately comparable to Echo at native Canvas scale and are not gameplay hitbox or range changes.
+
+Render priority: Stage 1.1 Echo/ghost -> Stage 1.4 other eight -> previous drawCustomCompanionSkin fallback. The 76px lootbox/reward Canvas preview now uses this same renderer selection, with a reduced local preview scale to prevent clipping. This pass does not alter game.ownedCompanionSkins, game.activeCompanionSkin, lootbox odds, shop pricing, companions' unlocked status, combat stats, or save format.
+
+Unit tests: security-lab/lost-signal-companion-skins-v17.test.cjs checks the 10 canonical database entries, all 5 roles, distinct geometry, 1x contrast, reduced motion, restored Canvas state, unknown-skin fallback, and in-game/reward renderer wiring. Browser smoke creates v17-stage-14-companion-skins.png comparing all ten against cyber-dark and saturated Cengiz red at native 1x scale, checking minimum silhouette size and painted pixels.
+
+Deployment gate: Draft PR #91 only. Until CI is fully green and iPad real-game 400+ wave screenshots and frame-rate review are accepted, do not merge or deploy. These are code-based Canvas designs, not artist-retouched 3D or sprite-sheet assets.
+
+
+## Stage 1.5 · Boss anatomical and three-phase visual conversion (2026-11-05)
+
+Implementation: lost-signal-bosses-v17.js renders the five actual boss IDs through the same near-black chassis, pale edge, restrained emissive accents and hard-surface plating language as Stage 1.1–1.4. It is presentation-only Canvas art rather than new boss mechanics.
+
+| Existing ID | Distinct silhouette | Phase 2 visual change | Phase 3 visual change |
+| --- | --- | --- | --- |
+| tank_boss | Wide siege shoulders, thick ram, armored reactor | Deploys outer shoulder armor | Heavy flank prongs and brighter ram plating |
+| ranged_boss | Dual rear artillery pods and twin forward barrels | Opens raised battery armor | Extra visible rail armor and forward gun casing |
+| speed_boss | Narrow arrowhead predator and swept wings | Opens secondary interceptor fins | Broad outer wing blades and aggressive nose plate |
+| frost_boss | Six-sided ice fortress, angular cryo plating | Deploys frost shield armor | Extended cryo crown and ice spear nose |
+| leviathan | Split cosmic shell, asymmetrical arm segments, large reactor | Opens secondary tendrils | Unfolds outer signal fins and forward abyss projection |
+
+Phase visual state is read from existing v12Combat.phase (1, 2 or 3), not derived from damage guesses and never written back. When a boss changes phase, its newly deployed armor unfolds over 680ms with a restrained signal arc; a WeakMap stores only ephemeral presentation history, never player saves or gameplay data. Reduced-motion disables the transition. All bosses are drawn using a shared contrasting backing and at most local, subtle oscillation; prefers-reduced-motion disables that oscillation. Hit feedback is still visible via a bright core when hitFlash > 0. All existing attack telegraphs, boss phase labels, shield cues, HP bars, collision/targeting radius, loot, progression, death and save format remain unchanged.
+
+Renderer priority: Stage 1.5 boss module -> Stage 1.1 reference renderer (including old Titan fallback) -> Stage 1.3 normal families -> V17 raster atlas -> complete original legacy body. Only one branch paints the body, so no multiplied effects. The enemyArt=legacy URL switch keeps the prior gameplay visuals for A/B comparisons. Unsupported boss IDs revert to V17/legacy.
+
+Automated tests: security-lab/lost-signal-bosses-v17.test.cjs checks all five canonical boss IDs, 15 separate visual phase variants, changed polygon anatomy across phases, distinct geometry for each boss, enemy-state immutability, reduced-motion, hit cues, legacy opt-out and render wiring. Browser-smoke captures the real Canvas asset in v17-stage-15-five-bosses-three-phases.png (five bosses x three phases x two backgrounds: cyber-dark and saturated Cengiz red) at native 1x size with painted-pixel and silhouette-width assertions.
+
+Scope and release gate: this is a fully wired initial Canvas redesign, not final hand-painted high-res character assets or new gameplay attack phases. Full CI and iPad 1x heavy-wave/performance and visual acceptability still gate the draft PR #91. Main and production intentionally remain untouched.
+
+
+## Stage 1.6 · Piko + tower + combat visual unification (2026-11-05)
+
+### Piko
+- Existing inline game-mascot-face SVG gains authored external helmet/shoulder panel edges, instrument cabling, chassis marks and neutral metal/cyan/amber signal markers; two eyes, facial expression, reactor core, drag/tap behaviour, Piko 3.0 dialogue/memory and accessibility labels remain unchanged.
+- New last-loaded lost-signal-stage16.css coordinates Piko with the same ink/steel palette, reduces excessive aura, preserves reaction animations and adds responsive speech-bubble wrapping/contrast. Reduced-motion continues to disable decorative movement.
+
+### Tower
+- Expanded lost-signal-towers.js from a single generic disc to a recognizable layered octagonal station chassis: dark base, beveled plate, four armor locks, compact reactor and high-contrast perimeter.
+- The in-game drawCustomTowerSkin still paints each existing owned special tower costume, stats, recoil, barrels and visual silhouette. A thin drawAccent pass adds common mechanical tracking brackets and limited era hue around every outfit; skin database, rarity, cosmetic ownership, collision radius, projectile paths, acquisition and save keys are unchanged.
+
+### Combat signals
+- Added lost-signal-combat-art-v17.js as a presentation-only bounded 2D painter for projectiles, boss ice bolts, history streaks and beam lines. It uses dark backing, thin white edge and class color; trail segments are capped at six and disappear with reduced motion/low quality. It reads projectile data without modifying position, speed, history, hitbox or damage.
+- render.js selects the new painter once and falls back to the complete original if it returns false. Separate existing warning/charge/elite/boss rings, overdrive, HP bars, player shields, frozen states and combat damage cues are retained.
+- Updated combat-v12.js visual ripples from full neon circles to shorter segmented hardware signal arcs. Its cap stays at 46, existing triggers and lifetime are unchanged, and reduced-motion/low-quality suppression remains.
+
+### Acceptance and remaining gates
+- security-lab/lost-signal-art-stage16.test.cjs verifies every existing tower skin receives the chassis and overlay; no projectile mutation; trail bounds, frost bolt, beam, fallback, reduced motion, original Piko eyes/core and bubble wrapping.
+- Browser smoke includes a native 1x sheet of Piko + four representative tower outfits + two combat effects on cyber-dark and Cengiz-red fields, saving v17-stage-16-piko-tower-combat.png.
+- Code art is initially complete, but the release still requires fully green exact-head CI, an actual device/iPad 400+ wave comparison and frame-time/perceptual art acceptance. These have not been replaced with synthetic screenshots.
+- Main/production deployment intentionally untouched. PR #91 remains draft.

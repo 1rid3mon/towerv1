@@ -123,6 +123,16 @@ jobs:
         run: node security-lab/enemy-sprites-v17.test.cjs
       - name: Verify V17 motion and boss phase visuals
         run: node security-lab/enemy-motion-v17.test.cjs
+      - name: Verify LOST SIGNAL unified reference characters
+        run: node security-lab/lost-signal-characters-v17.test.cjs
+      - name: Verify LOST SIGNAL 20 normal enemy families
+        run: node security-lab/lost-signal-enemy-families-v17.test.cjs
+      - name: Verify LOST SIGNAL all 10 companion skins
+        run: node security-lab/lost-signal-companion-skins-v17.test.cjs
+      - name: Verify LOST SIGNAL five bosses and all three art phases
+        run: node security-lab/lost-signal-bosses-v17.test.cjs
+      - name: Verify LOST SIGNAL Stage 1.6 Piko, tower and combat art
+        run: node security-lab/lost-signal-art-stage16.test.cjs
       - name: Verify V12 boss phases, combos and narrative branching
         run: node security-lab/v12-expansion.test.cjs
 
@@ -160,6 +170,9 @@ jobs:
       - name: Play all 27 campaign missions and switch all four languages
         working-directory: security-lab
         run: node campaign-browser.cjs
+      - name: Stage 1.7 iPad-size high-density battle visual QA (Chromium)
+        working-directory: security-lab
+        run: node stage17-visual-browser.cjs
       - name: Test the matching live production assets with a disposable guest
         if: github.ref == 'refs/heads/main'
         working-directory: security-lab
@@ -197,6 +210,9 @@ jobs:
       - name: Test Story phone, landscape, tablet and desktop in WebKit
         working-directory: security-lab
         run: node browser-smoke.cjs
+      - name: Stage 1.7 iPad-size high-density battle visual QA (WebKit)
+        working-directory: security-lab
+        run: node stage17-visual-browser.cjs
       - name: Test matching production assets and flows in WebKit
         if: github.ref == 'refs/heads/main'
         working-directory: security-lab
