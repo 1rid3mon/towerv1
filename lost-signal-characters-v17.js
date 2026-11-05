@@ -5,6 +5,10 @@
 (function(root){'use strict';
 const PI=Math.PI, TAU=PI*2;
 const INK='#08111f', PLATE='#172b3d', STEEL='#345065', EDGE='#b7ccdc';
+// Stage 1.2: presentation-space readability. Never feed these values into combat.
+const VISUAL_GRAMMAR=Object.freeze({
+ echoScale:1.30, scoutMinRadius:18, scoutMaxRadius:28, titanMinRadius:30
+});
 const ACCENT=Object.freeze({
  laserDrone:'#fb9ea6',frostOrb:'#9adffa',missileBot:'#ffc48c',
  repairDrone:'#83e4bd',plasmaSatellite:'#d1b5ff'
@@ -22,10 +26,12 @@ function polygon(c,pts,fill,stroke,width=1.25){
  if(stroke){c.strokeStyle=stroke;c.lineWidth=width;c.stroke();}
 }
 function ring(c,r,color){
- c.fillStyle='rgba(3,10,19,0.90)';c.beginPath();c.arc(0,0,r,0,TAU);c.fill();
- c.strokeStyle='rgba(197,220,232,0.39)';c.lineWidth=1.15;
- c.beginPath();c.arc(0,0,r+0.3,PI*0.72,PI*1.83);c.stroke();
- c.strokeStyle=color;c.lineWidth=1.45;
+ // Neutral dark ink + near-white edge stay legible against both Cengiz red and dark space.
+ // A short role-colored arc identifies the unit without filling the battlefield with glow.
+ c.fillStyle='rgba(2,7,16,0.91)';c.beginPath();c.arc(0,0,r,0,TAU);c.fill();
+ c.strokeStyle='rgba(229,245,255,0.88)';c.lineWidth=1.45;
+ c.beginPath();c.arc(0,0,r+0.45,PI*0.70,PI*1.88);c.stroke();
+ c.strokeStyle=color;c.lineWidth=1.85;
  c.beginPath();c.arc(0,0,r+1.5,-0.66,0.55);c.stroke();
 }
 function screws(c,r){
@@ -40,7 +46,8 @@ function echo(c,compKey,star,angle,ms,ghostSkin){
  c.save();
  try{
   c.rotate(Number.isFinite(angle)?angle:0);
-  c.scale(k,k);
+  // 40-50px visual signature for the default companion at native game zoom.
+  c.scale(k*VISUAL_GRAMMAR.echoScale,k*VISUAL_GRAMMAR.echoScale);
   c.translate(0,Math.sin(t*3)*0.55);
   ring(c,14.1,color);
   // Three compact layers: side-mounted thrusters, dark lower chassis, bright face panel.
@@ -78,7 +85,7 @@ function echo(c,compKey,star,angle,ms,ghostSkin){
 }
 function scout(c,e,tx,ty,ms){
  const t=motionTime(ms);
- const r=Math.max(15.5,Math.min(25.5,e.radius*1.55));
+ const r=Math.max(VISUAL_GRAMMAR.scoutMinRadius,Math.min(VISUAL_GRAMMAR.scoutMaxRadius,e.radius*1.56));
  const aim=Number.isFinite(tx)&&Number.isFinite(ty)?Math.atan2(ty-e.y,tx-e.x):0;
  const hit=Number(e.hitFlash)>0;
  c.save();
@@ -88,9 +95,9 @@ function scout(c,e,tx,ty,ms){
   ring(c,r*0.89,'#78dbea');
   // Paired swept wings form a pointed predator, not a toy.
   polygon(c,[[-r*0.65,-r*0.08],[-r*0.87,-r*0.72],[-r*0.29,-r*0.57],[r*0.12,-r*0.22]],
-    '#223749','#7897a8',1.35);
+    '#223749','#b2d3df',1.35);
   polygon(c,[[-r*0.65,r*0.08],[-r*0.87,r*0.72],[-r*0.29,r*0.57],[r*0.12,r*0.22]],
-    '#223749','#7897a8',1.35);
+    '#223749','#b2d3df',1.35);
   polygon(c,[[-r*0.54,0],[-r*0.19,-r*0.38],[r*0.73,-r*0.23],[r*0.98,0],
              [r*0.73,r*0.23],[-r*0.19,r*0.38]],hit?'#a6cbd4':PLATE,EDGE,1.5);
   polygon(c,[[r*0.04,-r*0.19],[r*0.64,-r*0.12],[r*0.76,0],[r*0.64,r*0.12],[r*0.04,r*0.19]],
@@ -100,12 +107,14 @@ function scout(c,e,tx,ty,ms){
   c.moveTo(-r*0.22,-r*0.27);c.lineTo(r*0.1,-r*0.23);
   c.moveTo(-r*0.22,r*0.27);c.lineTo(r*0.1,r*0.23);c.stroke();
   c.fillStyle='#55e2fa';c.fillRect(-r*0.73,-r*0.37,2.4,3.2);c.fillRect(-r*0.73,r*0.27,2.4,3.2);
+  // White nose locator keeps the predator-facing direction identifiable at 1x zoom.
+  c.fillStyle='#f1fbff';c.beginPath();c.arc(r*0.92,0,Math.max(1.3,r*0.072),0,TAU);c.fill();
  }finally{c.restore();}
  return true;
 }
 function titan(c,e,tx,ty,ms){
  const t=motionTime(ms),phase=Math.min(3,Math.max(1,Number(e.v12Combat&&e.v12Combat.phase)||1));
- const r=Math.max(29,Math.min(78,e.radius*1.08));
+ const r=Math.max(VISUAL_GRAMMAR.titanMinRadius,Math.min(78,e.radius*1.08));
  const aim=Number.isFinite(tx)&&Number.isFinite(ty)?Math.atan2(ty-e.y,tx-e.x):0;
  const danger=phase===3?'#ffe5a4':phase===2?'#ffc07d':'#fca34f';
  const hit=Number(e.hitFlash)>0;
@@ -145,6 +154,14 @@ function titan(c,e,tx,ty,ms){
    c.strokeStyle=danger;c.lineWidth=phase===3?2:1.3;
    c.beginPath();c.arc(-r*0.04,0,r*0.47,-PI*0.38,PI*0.38);c.stroke();
   }
+  if(phase===3){
+   // Third phase activates two *large* shoulder indicators; visible without glow blur.
+   c.globalAlpha=1;c.fillStyle='#fff0bc';
+   for(const side of [-1,1]){
+    polygon(c,[[r*0.02,side*r*0.79],[r*0.24,side*r*0.74],
+      [r*0.37,side*r*0.59],[r*0.10,side*r*0.64]],'#ffd392','#fff6d5',1.2);
+   }
+  }
   screws(c,r*0.9);
  }finally{c.restore();}
  return true;
@@ -164,6 +181,6 @@ function drawCompanion(c,skinId,key,star,angle,ms){
 }
 root.TowerUnifiedCharactersV17=Object.freeze({
  drawEnemy,drawCompanion,
- getState(){return {referenceCharacters:['default_tech','scout','tank_boss'],styles:'lost-signal-industrial-v1'};}
+ getState(){return {referenceCharacters:['default_tech','scout','tank_boss'],styles:'lost-signal-industrial-v1.2',visualGrammar:{...VISUAL_GRAMMAR}};}
 });
 })(typeof window!=='undefined'?window:globalThis);
