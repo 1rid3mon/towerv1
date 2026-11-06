@@ -58,13 +58,51 @@ if(mission===27){
 }
 build();
 function resize(){vw=innerWidth;vh=innerHeight;const scale=Math.min(devicePixelRatio||1,2);canvas.width=vw*scale;canvas.height=vh*scale;ctx.setTransform(scale,0,0,scale,0,0)}addEventListener('resize',resize);resize();
-function hud(){objective.innerHTML='<b>GÖREV '+mission+' · '+names[mission]+'</b><div>'+goals[mission][Math.min(phase,goals[mission].length-1)]+'</div><small>WASD · oklar · E · iPad joystick</small>'+(combat?'<div>Çekirdek '+hp+' · Tehdit '+enemies.filter(e=>e.hp>0).length+' · Dalga '+round+'</div>':'')+(mission===20?'<div>Devriye alarmı: '+alerts+' · Kırmızı görüş alanından kaçın.</div>':'')};hud();
+function hud(){objective.innerHTML='<b>GÖREV '+mission+' · '+names[mission]+'</b><div>'+goals[mission][Math.min(phase,goals[mission].length-1)]+'</div><small>WASD · oklar · E · iPad joystick</small>'+(combat?'<div>Çekirdek '+hp+' · Tehdit '+enemies.filter(e=>e.hp>0).length+' · Dalga '+round+'</div>':'')+(mission>=25?'<div>Mor bağlantı: '+linkUses+' kullanım · '+(mission===25?'Piko sınaması':'Kalkan desteği')+'</div>':'');updateLinkButton()};hud();
 function show(html){dialog=true;modal.classList.add('open');panel.innerHTML=html}function hide(){dialog=false;modal.classList.remove('open')}
 function say(title,body){show('<h2>'+title+'</h2><p>'+body+'</p><button id="continue">DEVAM</button>');document.getElementById('continue').onclick=hide}
 function pick(title,body,options,cb){show('<h2>'+title+'</h2><p>'+body+'</p><div id="options"></div><p id="feedback" role="status"></p><button id="cancel">KAPAT</button>');document.getElementById('cancel').onclick=hide;const box=document.getElementById('options');for(const [label,value] of options){const button=document.createElement('button');button.textContent=label;button.onclick=()=>cb(value);box.appendChild(button)}}
 function error(text){document.getElementById('feedback').textContent=text}
-function finish(text){if(complete)return;complete=true;combat=false;show('<h2>GÖREV '+mission+' TAMAMLANDI</h2><p>'+text+'</p><button id="done">GÖREV PANOSUNA DÖN</button>');document.getElementById('done').onclick=()=>((payload)=>window.StoryInteriorCompletion ? window.StoryInteriorCompletion.submit(payload) : parent.postMessage(payload,location.origin))({type:'lost-signal-interior-mission-complete',mission,callSignChoice:mission===17?choice:null})}
-function beginBattle(count,health){round++;combat=true;enemies.length=0;for(let i=0;i<count;i++){enemies.push({x:800+i%2*45,y:120+i*65,hp:health,speed:16+i*2})}timer=0;hud();say('SAVUNMA','Düşmanları dokunarak hedefle. Tüm tehditleri çekirdeğe ulaşmadan durdur!')}
+function finish(text){if(complete)return;complete=true;combat=false;show('<h2>GÖREV '+mission+' TAMAMLANDI</h2><p>'+text+'</p><button id="done">GÖREV PANOSUNA DÖN</button>');document.getElementById('done').onclick=()=>((payload)=>window.StoryInteriorCompletion ? window.StoryInteriorCompletion.submit(payload) : parent.postMessage(payload,location.origin))({type:'lost-signal-interior-mission-complete',mission,stabilityChoice:mission===23?choice:null,companionForm:mission===25?'purple':mission===27?'tower':null})}
+function beginBattle(count,health){
+ round++;combat=true;linkUsedWave=false;enemies.length=0;
+ if(round===1){initialHP=mission===24&&memory==='preserve'?29:24;hp=initialHP}
+ for(let i=0;i<count;i++)enemies.push({x:782+i%2*39,y:126+i*47,hp:health,speed:14+i*2});
+ timer=0;hud();
+ say('SAVUNMA '+round,'Düşmanları ekranda seçip hedefle. Mor bağlantı etkinse sağdaki MOR DESTEK düğmesi kalkan aktarır. Çekirdek dayanıklılığı sıfıra inerse dalgayı tekrar başlatabilirsin.');
+}
+function updateLinkButton(){
+ const b=document.getElementById('link');if(!b)return;
+ b.hidden=mission<25;
+ const ready=performance.now()>=linkReadyAt;
+ const available=mission===25?phase===3:combat;
+ b.disabled=!ready||!available||dialog||complete;
+ b.textContent=!ready?'YÜKLENİYOR':'MOR DESTEK';
+}
+function useLink(){
+ if(mission<25||dialog||complete||performance.now()<linkReadyAt)return;
+ if(mission===25){
+  if(phase!==3)return;
+  linkUses++;linkReadyAt=performance.now()+6000;phase=4;hp=Math.min(36,hp+8);hud();
+  say('MOR DESTEK TESTİ','Piko savunma hattına koruyucu enerji aktardı. Mor biçim etkin, Piko\'nun seçimi kayda geçti.');
+  return;
+ }
+ if(!combat)return;
+ linkUsedWave=true;linkUses++;linkReadyAt=performance.now()+5500;hp=Math.min(36,hp+9);hud();
+ if(enemies.every(e=>e.hp<=0))finishWave();
+}
+function finishWave(){
+ if(!combat||enemies.some(e=>e.hp>0))return;
+ if((mission===26||mission===27&&round===3)&&!linkUsedWave){
+  say('MOR DESTEK GEREKLİ','Dalgayı bitirdin ancak Piko\'nun savunma bağlantısını henüz denemedin. MOR DESTEK düğmesini kullan.');
+  return;
+ }
+ const next={22:[2,4],23:[2,4],24:[2,4,6],26:[2,4],27:[2,4,6]}[mission];
+ if(!next||next[round-1]===undefined)return;
+ combat=false;phase=next[round-1];hud();
+ say('DALGA '+round+' TAMAMLANDI',mission===27&&round===3?'Son nöbet tamamlandı. Arşivi kurtarma terminaline geç.':'Savunma başarıyla durduruldu. Görev panosundaki sonraki hedefe ilerle.');
+}
+
 function handle(n){
 if(mission===21){
  if(n.type==='clue'&&phase===0){
@@ -227,18 +265,34 @@ for(const patrol of patrols(time).filter(p=>p.active)){ctx.fillStyle='rgba(245,8
 for(const e of enemies.filter(e=>e.hp>0)){ctx.fillStyle='#d7687a';ctx.fillRect(e.x-15,e.y-15,30,30);ctx.fillStyle='#fff';ctx.fillText(String(e.hp),e.x,e.y-23)}
 if(beam&&time<beam.until){ctx.strokeStyle='#9bffff';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(490,300);ctx.lineTo(beam.x,beam.y);ctx.stroke()}
 ctx.fillStyle='#6bddf0';ctx.beginPath();ctx.arc(player.x,player.y,player.r,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#efffff';ctx.lineWidth=2;ctx.stroke();ctx.restore()}
-canvas.addEventListener('pointerdown',e=>{if(!combat||dialog||complete)return;const {scale,ox,oy}=camera(),x=e.clientX/scale+ox,y=e.clientY/scale+oy,target=enemies.find(f=>f.hp>0&&Math.hypot(f.x-x,f.y-y)<37);if(!target)return;target.hp--;beam={x:target.x,y:target.y,until:performance.now()+160};if(enemies.every(f=>f.hp<=0)){combat=false;phase=mission===18?(round===1?2:round===2?4:6):(round===1?2:4);hud();say('DALGA TAMAMLANDI',round===1?'İlk savunma geçti.':'Bir savunma dalgası daha tamamlandı.')}else hud()});
-function restart(){combat=false;hp=24;round--;enemies.length=0;show('<h2>ÇEKİRDEK HASAR ALDI</h2><p>Bu dalgayı tekrar deneyebilirsin. Mühür kayıtları korundu.</p><button id="retry">TEKRAR</button>');document.getElementById('retry').onclick=hide}
-function tick(t){const dt=Math.min((t-last)/1000||0,.05);last=t;move(dt);
-if(mission===20&&!dialog&&!complete&&t>safeUntil&&t-lastAlert>1700){
- const spotted=patrols(t).some(p=>p.active&&Math.hypot(player.x-p.x,player.y-p.y)<p.radius+player.r);
- if(spotted){lastAlert=t;alerts++;player.x=phase<2?397:754;player.y=300;
- say('DEVRIYE ALARMI','Filo sensörü seni tespit etti. Güvenli koridora geri çekildin. Devriye hareketine göre geçiş zamanını seç. Alarm sayısı: '+alerts);
- }
+canvas.addEventListener('pointerdown',e=>{
+ if(!combat||dialog||complete)return;
+ const {scale,ox,oy}=camera(),x=e.clientX/scale+ox,y=e.clientY/scale+oy;
+ const target=enemies.find(f=>f.hp>0&&Math.hypot(f.x-x,f.y-y)<39);if(!target)return;
+ target.hp--;beam={x:target.x,y:target.y,until:performance.now()+180};
+ if(enemies.every(f=>f.hp<=0))finishWave();else hud();
+});
+function restart(){
+ combat=false;hp=initialHP;round--;linkUsedWave=false;enemies.length=0;
+ show('<h2>ÇEKİRDEK HASAR ALDI</h2><p>Bu savunma dalgasını yeniden başlatabilirsin. Önceki röle ve hikâye kararların korundu.</p><button id="retry">SAVUNMAYA DÖN</button>');
+ document.getElementById('retry').onclick=()=>{hide();hud()};
 }
-if(combat&&!dialog){timer+=dt;for(const e of enemies.filter(e=>e.hp>0)){const dx=490-e.x,dy=300-e.y,m=Math.hypot(dx,dy)||1;e.x+=dx/m*e.speed*dt;e.y+=dy/m*e.speed*dt}if(timer>3.2){timer=0;hp-=3;hud();if(hp<=0)restart()}}draw(t);requestAnimationFrame(tick)}requestAnimationFrame(tick);
+let lastLinkUI=0;
+function tick(t){
+ const dt=Math.min((t-last)/1000||0,.05);last=t;move(dt);
+ if(combat&&!dialog){
+  timer+=dt;
+  for(const e of enemies.filter(e=>e.hp>0)){const dx=490-e.x,dy=300-e.y,m=Math.hypot(dx,dy)||1;e.x+=dx/m*e.speed*dt;e.y+=dy/m*e.speed*dt}
+  if(timer>3.5&&enemies.some(e=>e.hp>0)){
+   timer=0;hp-=mission===27?4:3;hud();if(hp<=0)restart();
+  }
+ }
+ if(t-lastLinkUI>250){lastLinkUI=t;updateLinkButton()}
+ draw(t);requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys.add(k);if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)interact()});addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>keys.clear());
-document.getElementById('act').onclick=interact;document.getElementById('quit').onclick=()=>parent.postMessage({type:'lost-signal-interior-close'},location.origin);
+document.getElementById('act').onclick=interact;document.getElementById('link').onclick=useLink;document.getElementById('quit').onclick=()=>parent.postMessage({type:'lost-signal-interior-close'},location.origin);
 function stick(e){const b=pad.getBoundingClientRect(),x=e.clientX-b.left-b.width/2,y=e.clientY-b.top-b.height/2,m=Math.max(1,Math.hypot(x,y)),r=Math.min(1,m/44);joy.x=x/m*r;joy.y=y/m*r;knob.style.transform='translate('+(joy.x*38)+'px,'+(joy.y*38)+'px)'}
 pad.addEventListener('pointerdown',e=>{joy.id=e.pointerId;pad.setPointerCapture(e.pointerId);stick(e)});pad.addEventListener('pointermove',e=>{if(e.pointerId===joy.id)stick(e)});function reset(e){if(e.pointerId!==joy.id)return;joy.id=null;joy.x=joy.y=0;knob.style.transform=''}pad.addEventListener('pointerup',reset);pad.addEventListener('pointercancel',reset);
 })();
