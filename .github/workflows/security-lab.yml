@@ -179,6 +179,9 @@ jobs:
       - name: Complete missions 16–20 and verify chapter 3
         working-directory: security-lab
         run: node story-interior-16-20-playthrough.cjs
+      - name: Play complete LOST SIGNAL finale missions 21–27
+        working-directory: security-lab
+        run: node story-interior-21-27-playthrough.cjs
       - name: Validate story frame finish and return to board
         working-directory: security-lab
         run: node story-completion-parent-browser.cjs
@@ -234,6 +237,9 @@ jobs:
       - name: Complete missions 16–20 and verify chapter 3
         working-directory: security-lab
         run: node story-interior-16-20-playthrough.cjs
+      - name: Play complete LOST SIGNAL finale missions 21–27
+        working-directory: security-lab
+        run: node story-interior-21-27-playthrough.cjs
       - name: Validate story frame finish and return to board
         working-directory: security-lab
         run: node story-completion-parent-browser.cjs

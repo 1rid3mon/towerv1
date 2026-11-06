@@ -6,7 +6,7 @@ const server=http.createServer((req,res)=>{const url=new URL(req.url,'http://loc
  content=content.replace('})();\n</script>','window.__qaFinish=()=>finish("QA completion");\n})();\n</script>');
  res.end(content);return;
 }
-if(/story-interior-missions(?:11-15|16-20)\.js$/.test(file)){
+if(/story-interior-missions(?:11-15|16-20|21-27)\.js$/.test(file)){
  let content=fs.readFileSync(file,'utf8');
  content=content.replace(/\}\)\(\);\s*$/,'window.__qaFinish=()=>finish("QA completion");\n})();');
  res.end(content);return;
@@ -20,7 +20,7 @@ try{
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:4202/',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>typeof startStoryMission==='function'&&typeof game!=='undefined');
  await page.evaluate(()=>{game.wave=26;game.highestWave=26;window._syncShadow?.();saveGame(true);updateStoryUnlockUI()});
- for(const mission of [2,3,5,6,9,10,11,13,15,16,20]){
+ for(const mission of [2,3,5,6,9,10,11,13,15,16,20,21,22,23,24,25,26,27]){
    await page.evaluate(m=>{const assertSingleOverlay=()=>{if(document.querySelectorAll('#lost-signal-interior-overlay').length!==1)throw Error('Duplicate mission overlay detected')};const data={introSeen:true,chapter:m>=19?3:m>=10?2:1};for(let i=1;i<m;i++)data['mission'+i+'Complete']=true;localStorage.setItem(STORY_PROGRESS_KEY,JSON.stringify(data));updateStoryMissionBoard();startStoryMission(m);startStoryMission(m);assertSingleOverlay()},mission);
    const iframe=page.locator('iframe[title^="LOST SIGNAL · İç İstasyon"]');
    await iframe.waitFor({state:'visible',timeout:4500});
@@ -30,9 +30,10 @@ try{
    await frame.locator('#done').click({timeout:4500});
    await iframe.waitFor({state:'detached',timeout:4500});
    assert.equal(await page.evaluate(m=>getStoryProgress()['mission'+m+'Complete']===true,mission),true,'completion not saved '+mission+' diagnostics='+JSON.stringify(await page.evaluate(()=>({raw:localStorage.getItem(STORY_PROGRESS_KEY),owner:localStorage.getItem(STORY_PROGRESS_OWNER_KEY),session:GameModeRuntime.storySession?.active,sessionOwner:GameModeRuntime.storySession?.ownerUid,currentUser:typeof currentUser==='undefined'?'undefined':currentUser?.uid,origin:location.origin}))));
-   assert.equal(await page.evaluate(m=>document.getElementById('story-start-mission'+(m+1))?.disabled,mission),false,'next mission blocked '+mission);
+   if(mission<27)assert.equal(await page.evaluate(m=>document.getElementById('story-start-mission'+(m+1))?.disabled,mission),false,'next mission blocked '+mission);
+   if(mission===27)assert.equal(await page.evaluate(()=>getStoryProgress().mission27Complete),true,'final mission completion missing');
    // The actual unlocked board button must launch the next mission and the frame must close.
-   if(mission<20){
+   if(mission<27){
      await page.evaluate(m=>document.getElementById('story-start-mission'+(m+1)).click(),mission);
    }else{
      await page.evaluate(()=>startStoryMission(1));
