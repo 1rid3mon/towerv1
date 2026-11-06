@@ -66,39 +66,150 @@ function error(text){document.getElementById('feedback').textContent=text}
 function finish(text){if(complete)return;complete=true;combat=false;show('<h2>GÖREV '+mission+' TAMAMLANDI</h2><p>'+text+'</p><button id="done">GÖREV PANOSUNA DÖN</button>');document.getElementById('done').onclick=()=>((payload)=>window.StoryInteriorCompletion ? window.StoryInteriorCompletion.submit(payload) : parent.postMessage(payload,location.origin))({type:'lost-signal-interior-mission-complete',mission,callSignChoice:mission===17?choice:null})}
 function beginBattle(count,health){round++;combat=true;enemies.length=0;for(let i=0;i<count;i++){enemies.push({x:800+i%2*45,y:120+i*65,hp:health,speed:16+i*2})}timer=0;hud();say('SAVUNMA','Düşmanları dokunarak hedefle. Tüm tehditleri çekirdeğe ulaşmadan durdur!')}
 function handle(n){
-if(mission===16){
- if(n.type==='clue'&&phase===0){found.add(n.name);say(n.name,n.name==='ESKİ ÇIKIŞ KAYDI'?'Eski plan çıkışı doğu kanadında gösteriyor.':'Güvenlik logu aynı koridorun girişine dönen bir sinyal döngüsü olduğunu gösteriyor.');if(found.size===2){phase=1;hud()}return}
- if(n.type==='relay'&&phase===1){phase=2;hud();say('YÖNLENDİRİCİ','Ağ akışı düzeltildi ancak kapı hâlâ eski haritayı gösteriyor. Gerçek çıkışın yönünü doğrula.');return}
- if(n.type==='map'&&phase===2){pick('DÖNGÜ ANALİZİ','İki kayıt çelişiyor: fiziksel geçit doğuda, döngü sinyali aynı koridora dönüyor. Hangi yolu seçmelisin?', [['FİZİKSEL İZİ TAKİP ET','right'],['DÖNGÜ SİNYALİNE GİR','wrong']],v=>{if(v==='wrong'){loops++;error('Döngü başladı. Sistem seni başlangıç koridoruna yönlendirecek.');player.x=132;player.y=300;return}phase=3;hud();say('GERÇEK ROTA','Harita düzeltildi. Koridorun sonunda gerçek çıkış açıldı.')});return}
- if(n.type==='trap'){loops++;player.x=132;player.y=300;say('SAHTE ÇIKIŞ','Girdiğin kapı aynı başlangıç koridoruna bağlı. Haritaya dön.');return}
- if(n.type==='exit'&&phase===3){finish('Harita döngüsü kırıldı. Sahte çıkışın sinyal tuzağı olduğu kanıtlandı.');return}
+if(mission===21){
+ if(n.type==='clue'&&phase===0){
+  found.add(n.name);
+  const logs={'GÖREV TANIMI':'Eski arşiv ECHO protokolünü savunma görevi olarak tanımlar; bu bir kişi adı değil.',
+   'SES KAYDI':'Kayıttaki bir ses: “Bana takılan görev kodu, bugün kim olduğumu belirlemiyor.”',
+   'KİMLİK İMZASI':'Çekirdekte Piko tarafından yapılmış kişisel bir seçim imzası var; eski protokol ile aynı imzaya sahip değil.'};
+  say(n.name,logs[n.name]);if(found.size===3){phase=1;hud()}return;
+ }
+ if(n.type==='deduce'&&phase===1){
+  pick('KAYBETTİĞİMİZ İSİM','Üç kayıt bir görev etiketini ve bir kimlik imzasını gösteriyor. Hangisi kanıtlarla uyumlu?',
+  [['GÖREV ETİKETİ KİMLİĞİ KANITLAMAZ','yes'],['ECHO VE PİKO KESİNLİKLE AYNI BİLİNÇ','no']],v=>{
+   if(v==='no'){error('Aynı protokolü kullanmak, aynı bilinç olmak demek değil. İmzaları karşılaştır.');return}
+   phase=2;hud();
+   say('KİMLİK İZİ',callSign==='echo'?'Eski ECHO etiketi saklanmış; Piko kendi kimliğini bundan ayrı tanımlıyor.':'Piko kendi adını koruyor. Eski ECHO görevi onun kimliğini tek başına açıklamıyor.');
+  });return;
+ }
+ if(n.type==='exit'&&phase===2){finish('Görev ile kimlik arasındaki fark arşive kaydedildi. Mavi yankının kime ait olduğu hâlâ kesin değil.');return}
 }
-if(mission===17){
- if(n.type==='clue'&&phase===0){found.add(n.name);const evidence={'ÇEKİRDEK ETİKETİ':'Eski sistem etiketi: ECHO.', 'ARŞİV KAYDI':'Aynı çekirdekte PIKO adıyla yapılmış ilk kişisel imza.', 'ESKİ SES KAYDI':'Piko: Beni sadece bir kod olarak görme.'};say(n.name,evidence[n.name]);if(found.size===3){phase=1;hud()}return}
- if(n.type==='deduce'&&phase===1){pick('KİMLİK KARARI','ECHO teknik etiketi, Piko ise kendi kullandığı isim. Piko kendi çağrı adını seçebilir mi?', [['SEÇİMİ PİKOYA BIRAK','piko'],['ESKİ TEKNİK ETİKETİ KORU','echo']],v=>{choice=v;phase=2;hud();say('ÇAĞRI ADI',v==='piko'?'Piko kendi adını PIKO olarak onayladı.':'Eski arşiv etiketi ECHO olarak korunacak; Piko bunun kendi kimliğini tanımlamadığını belirtiyor.')});return}
- if(n.type==='exit'&&phase===2){finish('Kimlik kayıtları ve Piko ile yapılan konuşma saklandı.');return}
+if(mission===22){
+ if(n.type==='brief'&&phase===0){phase=1;hud();say('MOR SINIR','Sınır iki saldırı dalgası ve üç röleyle korunuyor. Önce savunmayı geç, sonra rölelere fiziksel olarak ulaş.');return}
+ if(n.type==='core'&&[1,3].includes(phase)){if(!combat)beginBattle(phase===1?4:5,phase===1?3:4);else say('SAVUNMA','Kırmızı hedefleri işaretle; reaktör bütünlüğünü koru.');return}
+ if(n.type==='relay'&&phase===2&&n.name==='İLK RÖLE'){
+  pick('BİRİNCİ RÖLE','Bozulmuş enerji hattını güvenli bağlamak için hangisi ilk?',[['TOPRAKLAMA','yes'],['YÜKSEK GERİLİM','no']],v=>{
+   if(v==='no'){error('Mor devre aşırı yüklendi. Önce topraklama gerekir.');return}
+   phase=3;hud();say('İLK RÖLE STABİL','İlk bükülme düzeldi. İkinci savunma dalgası başladı.');});return
+ }
+ if(n.type==='relay'&&phase===4&&n.name==='İKİNCİ RÖLE'){
+  pick('İKİNCİ RÖLE','Mor yankı iki ayrı sinyal gösteriyor. Hangi yöntemle fazları eşleştireceksin?',[['FAZLARI EŞLE','yes'],['FREKANSI RASTGELE ARTIR','no']],v=>{
+   if(v==='no'){error('Rastgele frekans artırmak iki hattı eşitlemez.');return}
+   phase=5;hud();say('İKİNCİ RÖLE STABİL','İki konum tek bir geçide döndü.');});return
+ }
+ if(n.type==='relay'&&phase===5&&n.name==='ÜÇÜNCÜ RÖLE'){
+  pick('ÜÇÜNCÜ RÖLE','Piko, henüz kimliğini dönüştürmeden geçidin kilitlenmesini istiyor.',[['YALITILMIŞ GEÇİDİ KİLİTLE','yes'],['TÜM BELLEĞİ SİL','no']],v=>{
+   if(v==='no'){error('Belleği silmek fiziksel röleyi sabitlemez.');return}
+   phase=6;hud();say('MOR SINIR AÇIK','Üç röle stabil. Mavi yankı hafızanın bir bedeli olacağını söylüyor.');});return
+ }
+ if(n.type==='exit'&&phase===6){finish('Sınır aşıldı. Piko, mor sinyalin bir gelecek olasılığı olduğunu ama kanıt olmadığını biliyor.');return}
 }
-if(mission===18){
- if(n.type==='brief'&&phase===0){phase=1;hud();say('KİLİT SENİ TANIYOR','Üç dalga güvenlik sistemi bulunuyor. Savaşlardan sonra enerji ve mühürlerin güvenliğini sağlamalısın.');return}
- if(n.type==='core'&&[1,3,5].includes(phase)){if(!combat)beginBattle(phase===1?3:phase===3?4:5,phase===1?2:phase===3?3:4);else say('SAVUNMA','Kırmızı hedefleri dokunarak vur.');return}
- if(n.type==='repair'&&phase===2){pick('ENERJİ KÖPRÜSÜ','Güvenlik kapısını aşırı yüklememek için hangi işlemi yapmalısın?', [['GÜCÜ DENGELİ DAĞIT','yes'],['TÜM GÜCÜ TEK HATTA VER','no']],v=>{if(v==='no'){error('Tek hatta aşırı yüklenme riski var.');return}phase=3;hud();say('KÖPRÜ ONARILDI','İkinci savunma dalgasının kilidi kalktı.')});return}
- if(n.type==='seal'&&phase===4){pick(n.name,'Mühürleri güvenlik sırası A → B → C ile kapat.',[['MÜHÜRLE','yes'],['İPTAL','no']],v=>{if(v==='no'){hide();return}const order=['MÜHÜR A','MÜHÜR B','MÜHÜR C'];if(n.name!==order[found.size]){error('Önce '+order[found.size]+' gerekli.');return}found.add(n.name);if(found.size===3)phase=5;hud();say('MÜHÜR KAPALI',n.name+' güvenli.')});return}
- if(n.type==='deduce'&&phase===6){pick('KOMUTAN KİLİDİ','Kilit, komutanın eski kimlik anahtarını tanıyor. Bu, geçmiş hakkında neyi kesin kanıtlıyor?', [['KİMLİK ANAHTARI DAHA ÖNCE KAYDEDİLMİŞ','yes'],['KOMUTAN HER ŞEYİ HATIRLIYOR','no']],v=>{if(v==='no'){error('Kimlik kaydı, kişinin tüm anıları bildiğini ispatlamaz.');return}phase=7;hud();say('KİLİT AÇILDI','Kapı açıldı. Komutanın daha önce burada bulunduğuna ilişkin yeni kanıt var.')});return}
- if(n.type==='exit'&&phase===7){finish('Üç güvenlik dalgası aşıldı; kimlik kapısı açıldı.');return}
+if(mission===23){
+ if(n.type==='brief'&&phase===0){phase=1;hud();say('DARBENİN BEDELİ','Piko fazla güçlü darbe kullandı. Enerji, bellek ve iletişim hatları hasarlı. Önce saldırıyı durdur.');return}
+ if(n.type==='core'&&[1,3].includes(phase)){if(!combat)beginBattle(phase===1?4:4,phase===1?3:4);else say('SAVUNMA','Hasarlı çekirdeğin önündeki düşmanları durdur.');return}
+ if(n.type==='repair'&&phase===2&&n.name==='GÜÇ HATTI'){
+  pick('GÜÇ HATTI','Hasarlı hattın önce güvenli referans bağlantısını kur.',[['TOPRAKLAMA → ENERJİ','yes'],['DOĞRUDAN YÜKLEME','no']],v=>{
+   if(v==='no'){error('Korumasız enerji aktarımı belleğe zarar verir.');return}
+   phase=3;hud();say('GÜÇ ONARILDI','Piko bir anıyı geri aldı; ancak ilk konuşmanızın bir bölümü bulanıklaştı.');});return
+ }
+ if(n.type==='repair'&&phase===4&&['BELLEK HATTI','İLETİŞİM HATTI'].includes(n.name)){
+  if(found.has(n.name)){say('ONARILDI',n.name+' güvenli.');return}
+  const expected=n.name==='BELLEK HATTI'?'compare':'sync';
+  pick(n.name,'Bellek ve iletişim farklı koruma ister.',
+   [['İKİ KAYDI KARŞILAŞTIR','compare'],['SİNYALİ SENKRONLA','sync'],['VERİYİ SİL','delete']],v=>{
+    if(v!==expected){error('Bu hat için doğru yöntem değil. Veriyi koruyarak işlemi seç.');return}
+    found.add(n.name);if(found.size===2)phase=5;hud();
+    say('HAT ONARILDI',n.name+' güvenli. '+found.size+'/2.');
+   });return
+ }
+ if(n.type==='deduce'&&phase===5){
+  pick('PİKO\'NUN RİSKİ','Piko: “Geçmişimi geri alırken şu an olduğum şeyi kaybetmek istemiyorum. Nasıl ilerleyeceğime ben karar vermek istiyorum.”',
+   [['ÖNCE ŞİMDİKİ BELLEĞİ KORU','preserve'],['EKSİK ANILARI İHTİYATLA ARAŞTIR','recover']],v=>{
+    choice=v;phase=6;hud();
+    say('PİKO\'NUN KARARI',v==='preserve'?'Piko şimdiki belleğini korumayı seçti. Sonraki savunma daha fazla kalkanla başlayacak.':'Piko kaybolan anıyı araştırmayı seçti. Sonraki savunmada saldırı hatlarını daha hızlı okuyabilecek.');
+   });return
+ }
+ if(n.type==='exit'&&phase===6){finish('Hasarlı hatlar onarıldı. Piko\'nun seçimi kayıtlara işlendi.');return}
 }
-if(mission===19){
- if(n.type==='clue'&&phase===0){found.add(n.name);const e={'TELEMETRİ A':'Mor yapı A koordinatında 02:04 ölçülmüş.', 'TELEMETRİ B':'Aynı imzalı nesne B koordinatında 02:04 görünüyor.', 'TELEMETRİ C':'B ölçümünde 12 saniyelik aktarım gecikmesi ve yansıtıcı istasyon var.'};say(n.name,e[n.name]);if(found.size===3){phase=1;hud()}return}
- if(n.type==='deduce'&&phase===1){pick('YÖRÜNGE ANALİZİ','İki görünüm aynı anda alındı ama ikinci veride gecikme bulunuyor. Hangi açıklama ölçümlerle tutarlı?', [['GECİKMELİ VE YANSIMIŞ GÖRÜNTÜ OLABİLİR','yes'],['NESNE KESİNLİKLE İKİ YERDE','no']],v=>{if(v==='no'){error('Aktarım gecikmesini göz ardı ediyorsun.');return}phase=2;hud();say('ROTA AÇILDI','Yansıma ve gecikme olasılığı kaydedildi; iki yerde aynı anda olma iddiası doğrulanmadı.')});return}
- if(n.type==='exit'&&phase===2){finish('Mor yapının güvenilir rota ipuçları ayrıştırıldı.');return}
+if(mission===24){
+ if(n.type==='brief'&&phase===0){phase=1;hud();say('ARŞİV SIFIRLANMASI','Merkez ağ herkesi yanlışlıkla sıfırlama komutu olarak görüyor. Üç savunma dalgası var.');return}
+ if(n.type==='core'&&[1,3,5].includes(phase)){
+  if(!combat)beginBattle(phase===1?5:phase===3?6:7,phase===1&&memory==='recover'?2:phase===1?3:phase===3?4:5);
+  else say('ARŞİV SAVUNMASI','Düşmanların çekirdeğe erişmesine izin verme.');
+  return
+ }
+ if(n.type==='relay'&&phase===2&&n.name==='ÖNCELİK RÖLESİ'){
+  pick('ÖNCELİK RÖLESİ','Arşiv sıfırlamasını önlemek için hangi komut güvenli?',[['SIFIRLAMA ÖNCELİĞİNİ KAPAT','yes'],['VERİ BLOKLARINI SİL','no']],v=>{
+   if(v==='no'){error('Veri silmek arşivi kurtarmaz.');return}
+   phase=3;hud();say('RÖLE KAPANDI','Merkez arşivin öncelik sıfırlaması durdu.');});return
+ }
+ if(n.type==='relay'&&phase===4&&n.name==='SON HAT'){
+  pick('SON SAVUNMA HATTI','İkinci saldırı bitti. Kalkan dengesi için hangi sırayı kullanırsın?',[['EKİP → ARŞİV → ÇEKİRDEK','yes'],['ÇEKİRDEK → ARŞİV → EKİP','no']],v=>{
+   if(v==='no'){error('Öncelik ekip güvenliği. Ekip hattını önce koru.');return}
+   phase=5;hud();say('SON SAVUNMA HAZIR','Kule üçüncü dalga için kilitlendi.');});return
+ }
+ if(n.type==='deduce'&&phase===6){
+  pick('SIFIRLAMA KONSOLU','Üç savunma dalgası tamamlandı. Arşivin kaybolmasını hangi işlem engeller?',
+  [['YALNIZCA SIFIRLAMA KOMUTUNU İPTAL ET','yes'],['TÜM HAFIZAYI YOK ET','no']],v=>{
+   if(v==='no'){error('Hafızayı silmek, korumak istediğin şeyi yok eder.');return}
+   phase=7;hud();say('ARŞİV GÜVENDE','Sıfırlama engellendi. Mavi yankı sürekli bir görüntü hâlinde kalıyor.');});return
+ }
+ if(n.type==='exit'&&phase===7){finish('Merkez arşiv üç savunmanın ardından korundu. Sıfırlama iptal edildi.');return}
 }
-if(mission===20){
- if(n.type==='brief'&&phase===0){phase=1;hud();say('SESSİZ FİLO','Filo üç ayrı güvenlik devresiyle korunuyor. Kontrol düğümlerini sessizce etkisizleştir.');return}
- if(n.type==='stealth'&&[1,2,3].includes(phase)){
- const order=['DEVRE A','DEVRE B','ALARM DÜĞÜMÜ'];if(n.name!==order[phase-1]){say('GÜVENLİK','Önce '+order[phase-1]+' devre dışı bırakılmalı.');return}
- pick(n.name,'Sistem alarmını tetiklemeden geçmek için ne yapmalısın?', [['SENSÖRÜ KISA SÜRELİKLİ KARART','yes'],['TÜM ALANIN GÜCÜNÜ KES','no']],v=>{if(v==='no'){alerts++;error('Ani güç kesintisi alarm üretti. Savunma yeniden kuruldu.');return}phase++;hud();say('DEVRE GİZLENDİ',n.name+' devre dışı, geçiş penceresi açıldı.')});return}
- if(n.type==='exit'&&phase===4){finish('Üç güvenlik devresi susturularak sessiz filonun ötesine geçildi.');return}
+if(mission===25){
+ if(n.type==='clue'&&phase===0&&n.name==='MAVİ YANKI'){
+  phase=1;hud();say('MAVİ YANKI','Bu eski bellek izi Piko ile aynı sesleri içeriyor, ama aynı bilinç olduğuna dair kanıt değil.');return
+ }
+ if(n.type==='clue'&&phase===1&&n.name==='ÇAĞRI ADI'){
+  phase=2;hud();say('ÇAĞRI ADI',callSign==='echo'?'Eski ECHO etiketi korunmuştu; Piko kendi kimliğini bundan ayrı tanımlıyor.':'Piko adını kendisi seçti. Eski kodun kişisel kimliğini belirlemesine izin vermiyor.');return
+ }
+ if(n.type==='deduce'&&phase===2){
+  pick('PİKO\'NUN SEÇİMİ','Piko: “Sizi korumayı bir emir olduğu için değil, kendim istediğim için seçeceğim.” Mor biçimi etkinleştirmeye hazır mı?',
+  [['KARARINI DİNLE VE İZİN VER','yes'],['ZORLA DÖNÜŞTÜR','no']],v=>{
+   if(v==='no'){error('Piko kendi kararını vermeden zorlamak doğru değil; onayını dinle.');return}
+   phase=3;hud();say('MOR BİÇİM','Piko mor savunma bağlantısını kendi iradesiyle açtı. Sağdaki MOR DESTEK düğmesini kullanarak sınamayı tamamla.');});return
+ }
+ if(n.type==='link'&&phase===3){say('MOR DESTEK','Mor bağlantıyı sağdaki düğmeyle etkinleştir. Kalkan aktarımı başarılı olursa kaydı açabilirsin.');return}
+ if(n.type==='exit'&&phase===4){finish('Mor savunma biçimi seçildi; bağlantı sınaması başarılı.');return}
 }
-say('KİLİTLİ','Mevcut görev adımını tamamla.');
+if(mission===26){
+ if(n.type==='brief'&&phase===0){phase=1;hud();say('UZAK SAVUNMA','Mor bağlantı bir koruma aktarımı sağlar. Her dalgada en az bir kez kullanarak hattı doğrula.');return}
+ if(n.type==='core'&&[1,3].includes(phase)){if(!combat)beginBattle(phase===1?4:5,phase===1?3:4);else say('BAĞLANTI SAVUNMASI','Mor desteği savaşta kullan.');return}
+ if(n.type==='relay'&&phase===2){
+  pick('UZAK HAT','Gecikmeli verici yerel sinyalle eşleşmiyor. Doğru bağlantı yöntemi hangisi?',[['GECİKMEYİ ÖLÇ VE SENKRONLA','yes'],['FREKANSI RASTGELE AYARLA','no']],v=>{
+   if(v==='no'){error('Gecikmeyi hesaba katmadan eşleme yapılamaz.');return}
+   phase=3;hud();say('UZAK HAT EŞLENDİ','Piko: “Sesim gecikiyor ama burada olduğumu ben biliyorum.”');});return
+ }
+ if(n.type==='link'&&phase===4){
+  pick('SON BAĞLANTI','İki saldırıda mor savunma desteğini kullandın. Son hattı nasıl ilişkilendirirsin?',[['AYRI KİMLİĞİ KORUYARAK BAĞLA','yes'],['PİKOYU İSTASYONLA AYNI İLAN ET','no']],v=>{
+   if(v==='no'){error('Bir ağla konuşabilmek onunla aynı zihin olmayı kanıtlamaz.');return}
+   phase=5;hud();say('MAKİNEDEKİ ZİHİN','Piko istasyonun içinde kaybolmadan onunla iletişim kurmayı başardı.');});return
+ }
+ if(n.type==='exit'&&phase===5){finish('İki uzak savunma dalgasında mor bağlantı kullanıldı; hatlar birleştirildi.');return}
+}
+if(mission===27){
+ if(n.type==='brief'&&phase===0){phase=1;hud();say('HATIRLAYAN KULE','Son ağ çöküşü başladı. Üç dalgayı aş; önce ekip, sonra arşiv ve Piko\'nun bilinç çapasını koru.');return}
+ if(n.type==='core'&&[1,3,5].includes(phase)){if(!combat)beginBattle(phase===1?4:phase===3?5:7,phase===1?3:phase===3?4:5);else say('SON NÖBET','Mor desteği gerektiğinde kullan; ekip hattını koru.');return}
+ if(n.type==='relay'&&phase===2){
+  pick('EKİP TAHLİYESİ','Arşiv silinme tehdidinde, ekip tahliye riski altında. Öncelik hangisi?',[['ÖNCE EKİBİ GÜVENE AL','yes'],['ÖNCE KAYITLARI KURTAR','no']],v=>{
+   if(v==='no'){error('Yaşayanların güvenliği önce gelmeli.');return}
+   phase=3;hud();say('EKİP GÜVENDE','Komutan: “Hiçbir kayıt, yaşayanların yerini tutmaz.”');});return
+ }
+ if(n.type==='anchor'&&phase===4){
+  pick('PİKO ÇAPASI','İkinci dalga durdu. Piko: “Bana kule şeklinde bir çapa kur. Ben bu biçimde kalmayı seçiyorum.”',
+  [['PİKO\'NUN ÇAPASINI SABİTLE','yes'],['ANILARI SİL','no']],v=>{
+   if(v==='no'){error('Çapa belleğin silinmesini gerektirmez.');return}
+   phase=5;hud();say('KULE ÇAPASI','Piko kule biçiminde istikrarlı. Mor bağlantı son savunmada çalışıyor.');});return
+ }
+ if(n.type==='deduce'&&phase===6){
+  pick('ARŞİV KURTARMA','Ekip güvenli, saldırılar durdu. Arşivi kurtarmak için nasıl ilerleyeceksin?',
+  [['KAYITLARI KORU, PİKO\'NUN KARARINI SAKLA','yes'],['ÇEKİRDEĞİ VE KİMLİĞİ SIFIRLA','no']],v=>{
+   if(v==='no'){error('Sıfırlama Piko\'nun seçimini ve kurtardığın kayıtları yok eder.');return}
+   phase=7;hud();say('HATIRLAYAN KULE','Arşiv kurtuldu. Piko iki kısa darbeyle yanıt veriyor. Mavi yankının son parçası eksik, ama kimin dönmeyi seçtiği belli.');});return
+ }
+ if(n.type==='exit'&&phase===7){finish('İlk LOST SIGNAL hikâye yayını tamamlandı. Ekip, arşiv ve Piko\'nun çapa belleği korundu.');return}
+}
+say('ERİŞİM KİLİTLİ','Önce mevcut görev adımını tamamla.');
 }
 function patrols(t){if(mission!==20)return[];return[
  {x:515,y:295+140*Math.sin(t/1550),radius:62,active:phase===1},
