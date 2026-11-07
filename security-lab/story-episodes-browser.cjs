@@ -54,6 +54,8 @@ async function main() {
       const frame = await (await iframe.elementHandle()).contentFrame();
       await frame.waitForFunction(() => typeof window.__qaFinish === 'function', {timeout:6500});
       assert.match(frame.url(), new RegExp('mission=' + mission));
+      const heading = await frame.locator(mission === 1 ? '#status' : '#objective').innerText();
+      assert.match(heading, /BÖLÜM 0[12]/, 'Stage should display its grouped episode');
       return frame;
     }
     async function finishStage(mission, last) {
