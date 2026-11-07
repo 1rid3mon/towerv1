@@ -25,11 +25,16 @@ const server = http.createServer((req, res) => {
     html = html.replace('})();\n</script>', source);
     res.end(html); return;
   }
-  if (file.endsWith('story-interior-missions11-15.js')) {
+  if (['story-interior-missions11-15.js','story-interior-missions16-20.js',
+      'story-interior-missions21-27.js'].some(name => file.endsWith(name))) {
     let js=fs.readFileSync(file,'utf8');
     const end=js.lastIndexOf('})();');
     assert.ok(end>0,'Underground QA hook target missing');
-    js=js.slice(0,end)+'window.__qaFinish=()=>finish("QA stage completed");'+String.fromCharCode(10)+'})();'+js.slice(end+5);
+    js=js.slice(0,end)+`window.__qaFinish=()=>{
+      if(typeof choice!=='undefined' && mission===17) choice='piko';
+      if(typeof choice!=='undefined' && mission===23) choice='preserve';
+      finish("QA stage completed");
+    };`+String.fromCharCode(10)+'})();'+js.slice(end+5);
     res.end(js); return;
   }
   fs.createReadStream(file).pipe(res);
@@ -62,7 +67,7 @@ async function main() {
       await frame.waitForFunction(() => typeof window.__qaFinish === 'function', {timeout:6500});
       assert.match(frame.url(), new RegExp('mission=' + mission));
       const heading = await frame.locator(mission === 1 ? '#status' : '#objective').innerText();
-      assert.match(heading, /BÖLÜM 0[1-5]/, 'Stage should display its grouped episode');
+      assert.match(heading, /BÖLÜM 0[1-9]/, 'Stage should display its grouped episode');
       return frame;
     }
     async function finishStage(mission, last) {
@@ -124,6 +129,40 @@ async function main() {
     }
     assert.equal(await page.locator('#story-start-mission15').evaluate(el=>el.closest('.story-mission').style.display),'none');
     assert.match(await page.locator('#story-campaign-progress-count').innerText(),/5 \/ 17/);
+
+    // Last four episodes include both chapter crossings and Piko's final decisions.
+    for (const start of [16,19,22,25]) {
+      await page.evaluate(n => startStoryMission(n), start);
+      await finishStage(start,false);
+      if(start===19) {
+        // Leave after the fleet telemetry checkpoint, resume directly at stealth.
+        await page.locator('#story-episode-exit').click();
+        await overlay.waitFor({state:'detached',timeout:6500});
+        await page.evaluate(() => startStoryMission(19));
+        await expectStage(20);
+      } else {
+        await continueEpisode();
+      }
+      await finishStage(start+1,false);
+      await continueEpisode();
+      await finishStage(start+2,true);
+      assert.equal(await page.evaluate(n => getStoryProgress()['mission' + n + 'Complete'],start+2),true);
+      if(start+3<=27)
+        assert.equal(await page.evaluate(n=>document.querySelector('#story-start-mission'+n).disabled,start+3),false);
+    }
+    // The Piko call sign, memory decision, and final form must not disappear between scenes.
+    assert.deepEqual(await page.evaluate(() => {
+      const progress=getStoryProgress();
+      return [progress.callSignChoice,progress.stabilityChoice,progress.companionForm,progress.mission27Complete];
+    }),['piko','preserve','tower',true]);
+    assert.equal(await page.locator('#story-start-mission27').evaluate(el=>el.closest('.story-mission').style.display),'none');
+    assert.match(await page.locator('#story-campaign-progress-count').innerText(),/9 \/ 9/);
+    // Reopening a fully complete finale should start at its first stage, not create a 28th mission.
+    await page.evaluate(() => startStoryMission(25));
+    await expectStage(25);
+    const finalReplay = await (await iframe.elementHandle()).contentFrame();
+    await finalReplay.evaluate(() => window.parent.postMessage({type:'lost-signal-interior-close'},location.origin));
+    await overlay.waitFor({state:'detached',timeout:6500});
 
     // A legacy player who completed 7 and 8 must resume episode 3 at stage 9.
     await page.evaluate(() => {
