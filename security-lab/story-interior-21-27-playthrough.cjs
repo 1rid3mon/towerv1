@@ -33,14 +33,14 @@ async function run(){
      await page.waitForFunction(() => {
        const b=document.getElementById('link');
        return b && !b.disabled && __qa.combat && !document.getElementById('modal').classList.contains('open');
-     }, {timeout:9000});
+     }, null, {timeout:9000});
      // WebKit touch click can race with a UI state refresh: prove the interaction
      // actually incremented the use counter rather than assuming a click was handled.
      await page.locator('#link').click();
      await page.waitForFunction(previous => __qa.linkUses > previous, before, {timeout:2500})
        .catch(async () => {
          const state = await page.evaluate(() => ({
-           mission,phase:__qa.phase,combat:__qa.combat,linkUses:__qa.linkUses,
+           mission:new URLSearchParams(location.search).get('mission'),phase:__qa.phase,combat:__qa.combat,linkUses:__qa.linkUses,
            modalOpen:document.getElementById('modal').classList.contains('open'),
            linkDisabled:document.getElementById('link').disabled,
            linkText:document.getElementById('link').textContent
