@@ -211,7 +211,8 @@ jobs:
 
   webkit-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Complete 27-mission playthrough plus mobile screens requires more than ten minutes.
+    timeout-minutes: 16
     env:
       BROWSER_ENGINE: webkit
     steps:
