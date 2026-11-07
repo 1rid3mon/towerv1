@@ -403,7 +403,7 @@ function updateStoryMissionBoard() {
     const s1 = document.getElementById('story-mission-1-status');
     if (m1) {
         m1.disabled = false;
-        m1.textContent = progress.mission1Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'DEPLOY →' : 'GÖREVE BAŞLA →');
+        m1.textContent = progress.mission1Complete ? ({tr:'TEKRAR OYNA ↻',en:'REPLAY ↻',es:'REPETIR ↻',de:'ERNEUT SPIELEN ↻'}[getGameLanguage()] || 'TEKRAR OYNA ↻') : (en ? 'DEPLOY →' : 'GÖREVE BAŞLA →');
     }
     if (s1) s1.textContent = progress.mission1Complete ? (en ? 'CORE STABLE' : 'ÇEKİRDEK GÜVENDE') : (en ? 'PLAYABLE MISSION' : 'OYNANABİLİR GÖREV');
     const m2 = document.getElementById('story-start-mission2');
