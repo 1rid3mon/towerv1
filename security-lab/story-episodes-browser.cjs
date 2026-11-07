@@ -128,7 +128,7 @@ async function main() {
       assert.equal(await page.evaluate(n => document.querySelector('#story-start-mission' + n).disabled, start+3),false);
     }
     assert.equal(await page.locator('#story-start-mission15').evaluate(el=>el.closest('.story-mission').style.display),'none');
-    assert.match(await page.locator('#story-campaign-progress-count').innerText(),/5 \/ 17/);
+    assert.match(await page.locator('#story-campaign-progress-count').innerText(),/5 \/ 9/);
 
     // Last four episodes include both chapter crossings and Piko's final decisions.
     for (const start of [16,19,22,25]) {
