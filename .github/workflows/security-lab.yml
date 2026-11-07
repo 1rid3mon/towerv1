@@ -246,6 +246,9 @@ jobs:
       - name: Validate story frame finish and return to board
         working-directory: security-lab
         run: node story-completion-parent-browser.cjs
+      - name: Verify grouped story episodes and checkpoints in WebKit
+        working-directory: security-lab
+        run: node story-episodes-browser.cjs
       - name: Test Story phone, landscape, tablet and desktop in WebKit
         working-directory: security-lab
         run: node browser-smoke.cjs
