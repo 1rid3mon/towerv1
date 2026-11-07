@@ -5,10 +5,13 @@ Status: planning baseline only. This document does not implement the changes.
 ## Goal
 Convert 27 very short playable story missions into approximately 14–16 substantial episodes, retaining all narrative events and choices. No visual overhaul in this phase.
 
-## Proposed episode mapping (15 episodes)
-1. 01–02: Awakening, restore power, investigate patrol evidence.
-2. 03–04: Antenna maze, evidence and consequential power routing.
-3. 05–06: Corridor defense and power grid repair.
+## Implemented pilot structure (2 episodes / 6 legacy stages)
+1. 01–03: Awakening, restore power, investigate patrol evidence, solve antenna signal puzzle.
+2. 04–06: Consequential power routing, corridor defense and power grid repairs.
+
+Individual stage environments are still separately loaded inside one continuous episode overlay. Their actions, navigation, puzzles and combat are retained. Each stage writes its old mission completion flag; the next stage starts from an interlude with a checkpoint. This is a functional grouping pass, not yet a fully seamless same-map world nor verified 8–12 minute playtime.
+
+## Candidate later episode mapping (remaining missions)
 4. 07–08: Communications defense and contradiction investigation.
 5. 09: Awakening climax, shield tutorial and quiet aftermath.
 6. 10–11: Hidden elevator and underground relays.
