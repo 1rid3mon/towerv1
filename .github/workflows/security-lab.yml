@@ -185,6 +185,9 @@ jobs:
       - name: Validate story frame finish and return to board
         working-directory: security-lab
         run: node story-completion-parent-browser.cjs
+      - name: Verify grouped story episodes, checkpoint resume and save acknowledgements
+        working-directory: security-lab
+        run: node story-episodes-browser.cjs
       - name: Test Story in desktop and mobile Chromium
         working-directory: security-lab
         run: node browser-smoke.cjs
