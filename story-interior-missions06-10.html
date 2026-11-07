@@ -8,7 +8,7 @@
 (()=>{'use strict';
 const mission=Number(new URLSearchParams(location.search).get('mission'));if(![6,7,8,9,10].includes(mission)){document.body.textContent='Bilinmeyen görev';return}
 const episodeStart=Number(new URLSearchParams(location.search).get('episode'))||0;
-const missionHeading=mission===6&&episodeStart===4?'BÖLÜM 02 · AŞAMA 3/3':'GÖREV '+mission;
+const missionHeading=episodeStart&&mission>=episodeStart&&mission<=episodeStart+2 ? 'BÖLÜM '+String(Math.floor((episodeStart-1)/3)+1).padStart(2,'0')+' · AŞAMA '+(mission-episodeStart+1)+'/3' : 'GÖREV '+mission;
 const canvas=document.getElementById('view'),ctx=canvas.getContext('2d'),objective=document.getElementById('objective'),modal=document.getElementById('modal'),panel=document.getElementById('panel'),pad=document.getElementById('pad'),knob=document.getElementById('knob');
 const MAP_W=1120,MAP_H=610,player={x:132,y:300,r:12},keys=new Set(),joy={x:0,y:0,id:null};
 let width=0,height=0,dpr=1,previous=0,phase=0,dialog=false,finished=false,gateOpen=false,switches=0,seq=[],shield=20,attackTime=0,combat=false,round=0,beam=null;
@@ -56,7 +56,7 @@ function message(title,body){show('<h2>'+title+'</h2><p>'+body+'</p><button id="
 function choices(title,body,options,onSelect){show('<h2>'+title+'</h2><p>'+body+'</p><div id="options"></div><p id="feedback" role="status"></p><button id="back">KAPAT</button>');document.getElementById('back').onclick=hide;const target=document.getElementById('options');options.forEach(([label,value])=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>onSelect(value);target.appendChild(b)})}
 function error(s){const el=document.getElementById('feedback');if(el)el.textContent=s}
 function near(n){return Math.hypot(n.x-player.x,n.y-player.y)<72}
-function finish(body){if(finished)return;finished=true;combat=false;show('<h2>'+missionHeading+' TAMAMLANDI</h2><p>'+body+'</p><button id="done">'+(mission===6&&episodeStart===4?'BÖLÜMÜ TAMAMLA →':'GÖREV PANOSUNA DÖN')+'</button>');document.getElementById('done').onclick=()=>((payload)=>window.StoryInteriorCompletion ? window.StoryInteriorCompletion.submit(payload) : parent.postMessage(payload,location.origin))({type:'lost-signal-interior-mission-complete',mission})}
+function finish(body){if(finished)return;finished=true;combat=false;show('<h2>'+missionHeading+' TAMAMLANDI</h2><p>'+body+'</p><button id="done">'+(episodeStart&&mission<episodeStart+2?'ARA KAYDI AL →':episodeStart?'BÖLÜMÜ TAMAMLA →':'GÖREV PANOSUNA DÖN')+'</button>');document.getElementById('done').onclick=()=>((payload)=>window.StoryInteriorCompletion ? window.StoryInteriorCompletion.submit(payload) : parent.postMessage(payload,location.origin))({type:'lost-signal-interior-mission-complete',mission})}
 function waves(count,hp){round++;combat=true;foes.length=0;for(let k=0;k<count;k++){foes.push({x:780+(k%2)*34,y:140+k*66,hp,maxHp:hp,speed:18+Math.floor(k/2)*3})}attackTime=0;drawHud()}
 function fightHelp(){message('SAVUNMA','Düşmanların üstüne dokunarak veya tıklayarak kuleleri hedefle. Reaktör hasar alırsa saldırıyı yeniden dene.')}
 function failFight(){combat=false;shield=mission===9?(power==='shield'?30:22):18;foes.length=0;const lost=round;round--;show('<h2>ÇEKİRDEK HASAR ALDI</h2><p>'+lost+'. dalga başarısız. Kanıtlar ve önceki adımlar kaybolmadı.</p><button id="retry">YENİDEN DENE</button>');document.getElementById('retry').onclick=()=>{hide();waves(lost===1?3:5,lost===1?3:4)}}

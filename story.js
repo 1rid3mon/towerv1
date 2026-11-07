@@ -541,7 +541,7 @@ function updateStoryMissionBoard() {
     // 27-mission board available, including for the existing full-campaign QA.
     // Only the new top-down interior runtime uses grouped episode cards.
     const groupedInterior = window.LOST_SIGNAL_INTERIOR_MISSION_ONE !== false;
-    for (const hiddenStage of [2, 3, 5, 6]) {
+    for (const hiddenStage of [2, 3, 5, 6, 8, 9, 11, 12, 14, 15]) {
         const hiddenButton = document.getElementById('story-start-mission' + hiddenStage);
         const hiddenCard = hiddenButton?.closest('.story-mission');
         if (hiddenCard) hiddenCard.style.display = groupedInterior ? 'none' : '';
@@ -549,7 +549,10 @@ function updateStoryMissionBoard() {
     if (!groupedInterior) return;
     for (const [start, end, label, name, description] of [
         [1, 3, '01', 'Uyanış ve Kayıp Frekans', 'Enerjiyi aç, devriyeyi durdur, izleri takip et ve anteni çöz.'],
-        [4, 6, '02', 'Kırık Hat', 'Gücü yönlendir, koridoru savun ve bakım hatlarını onar.']
+        [4, 6, '02', 'Kırık Hat', 'Gücü yönlendir, koridoru savun ve bakım hatlarını onar.'],
+        [7, 9, '03', 'Kırılma ve Uyanış', 'Haberleşmeyi kurtar, çelişkileri araştır ve uyanış savunmasını tamamla.'],
+        [10, 12, '04', 'İstasyonun Altında', 'Gizli kapıyı aç, alt istasyonu onar ve arşivdeki sırları çöz.'],
+        [13, 15, '05', 'Belleğin Bedeli', 'Seslerin kimliğini sorgula, alt çekirdeği savun ve Piko’nun belleğini kurtar.']
     ]) {
         const button = document.getElementById('story-start-mission' + start);
         const card = button?.closest('.story-mission');
@@ -559,7 +562,7 @@ function updateStoryMissionBoard() {
         card.querySelector('.story-mission-number').textContent = (en ? 'EPISODE ' : 'BÖLÜM ') + label;
         card.querySelector('h3').textContent = name;
         card.querySelector('p').textContent = description;
-        button.disabled = start === 4 && !progress.mission3Complete;
+        button.disabled = start > 1 && !progress['mission' + (start - 1) + 'Complete'];
         button.textContent = done ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') :
             completedStages ? (en ? 'CONTINUE →' : 'KALDIĞIN YERDEN →') :
             (en ? 'START EPISODE →' : 'BÖLÜME BAŞLA →');
@@ -570,15 +573,14 @@ function updateStoryMissionBoard() {
         if (status) status.textContent = done ? (en ? 'EPISODE COMPLETE' : 'BÖLÜM TAMAMLANDI') :
             (en ? completedStages + '/3 CHECKPOINTS' : completedStages + '/3 ARA KAYIT');
     }
-    // Six legacy stages are now two episodes; the other 21 are unchanged.
-    const episodeCount = Number(Boolean(progress.mission3Complete)) +
-        Number(Boolean(progress.mission6Complete)) +
-        Array.from({length:21},(_,i) => progress['mission' + (i+7) + 'Complete']).filter(Boolean).length;
-    if (progressCount) progressCount.textContent = episodeCount + (en ? ' / 23 EPISODES' : ' / 23 BÖLÜM');
-    if (progressFill) progressFill.style.width = (episodeCount / 23 * 100) + '%';
+    // Five three-stage episodes (legacy 1–15) plus twelve unchanged missions (16–27).
+    const episodeCount = [3,6,9,12,15].filter(end => progress['mission' + end + 'Complete']).length +
+        Array.from({length:12},(_,i) => progress['mission' + (i+16) + 'Complete']).filter(Boolean).length;
+    if (progressCount) progressCount.textContent = episodeCount + (en ? ' / 17 EPISODES' : ' / 17 BÖLÜM');
+    if (progressFill) progressFill.style.width = (episodeCount / 17 * 100) + '%';
     if (progressTrack) {
         progressTrack.setAttribute('aria-valuenow', String(episodeCount));
-        progressTrack.setAttribute('aria-valuemax', '23');
+        progressTrack.setAttribute('aria-valuemax', '17');
     }
 }
 function setStoryComms(speakerTr, speakerEn, textTr, textEn) {
@@ -615,7 +617,7 @@ function storyMissionPrerequisiteMet(missionNumber, progress) {
 function startStoryMission(missionNumber = 1) {
     const progress = getStoryProgress();
     // Episodes 01 and 02 contain three legacy stages each. Save flags remain unchanged.
-    const episodeStart = window.LOST_SIGNAL_INTERIOR_MISSION_ONE !== false && (missionNumber === 1 || missionNumber === 4) ? missionNumber : 0;
+    const episodeStart = window.LOST_SIGNAL_INTERIOR_MISSION_ONE !== false && [1, 4, 7, 10, 13].includes(missionNumber) ? missionNumber : 0;
     const episodeEnd = episodeStart ? episodeStart + 2 : 0;
     if (episodeStart) {
         for (let step = episodeStart; step <= episodeEnd; step++) {
@@ -702,10 +704,14 @@ function startStoryMission(missionNumber = 1) {
             const box = document.createElement('div');
             box.style.cssText = 'width:min(560px,100%);padding:30px;border:1px solid #4b95ac;border-radius:20px;background:#102333;line-height:1.6;box-shadow:0 18px 60px #0009';
             const heading = document.createElement('h2');
-            heading.textContent = 'BÖLÜM ' + (episodeStart === 1 ? '01' : '02') + ' · ARA KAYIT ✓';
-            const stageNames = episodeStart === 1 ?
-                {2:'Devriye izlerini takip et',3:'Antenin kaynağını bul'} :
-                {5:'Kırık koridoru savun',6:'Bakım hatlarını onar'};
+            heading.textContent = 'BÖLÜM ' + String(Math.floor((episodeStart - 1) / 3) + 1).padStart(2, '0') + ' · ARA KAYIT ✓';
+            const stageNames = {
+                1:{2:'Devriye izlerini takip et',3:'Antenin kaynağını bul'},
+                4:{5:'Kırık koridoru savun',6:'Bakım hatlarını onar'},
+                7:{8:'Tanıdık odadaki çelişkiyi araştır',9:'Uyanış savunmasını tamamla'},
+                10:{11:'Alt istasyon rölelerini onar',12:'Arşivdeki zaman çelişkisini çöz'},
+                13:{14:'Alt çekirdeğin kuşatmasını kır',15:'Piko bellek kanallarını onar'}
+            }[episodeStart];
             const description = document.createElement('p');
             description.textContent = 'İlerlemen kaydedildi. Sıradaki aşama: ' + stageNames[nextStage] +
                 '. Çıkarsan buradan devam edebilirsin.';
@@ -787,7 +793,7 @@ function startStoryMission(missionNumber = 1) {
                 }
                 cleanup();
                 showToast(episodeEnd
-                    ? 'Bölüm ' + (episodeStart === 1 ? '01' : '02') + ' tamamlandı. İlerlemen kaydedildi.'
+                    ? 'Bölüm ' + String(Math.floor((episodeStart - 1) / 3) + 1).padStart(2, '0') + ' tamamlandı. İlerlemen kaydedildi.'
                     : (storyLanguage() === 'en'
                         ? 'Mission ' + missionNumber + ' complete. Station progress saved.'
                         : missionNumber + '. görev tamamlandı. İstasyon ilerlemesi kaydedildi.'));

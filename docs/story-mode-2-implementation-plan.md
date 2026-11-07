@@ -11,6 +11,16 @@ Convert 27 very short playable story missions into approximately 14–16 substan
 
 Individual stage environments are still separately loaded inside one continuous episode overlay. Their actions, navigation, puzzles and combat are retained. Each stage writes its old mission completion flag; the next stage starts from an interlude with a checkpoint. This is a functional grouping pass, not yet a fully seamless same-map world nor verified 8–12 minute playtime.
 
+## Follow-on episodes (current development branch)
+3. 07–09: Communications defense, archive contradiction and Piko awakening.
+4. 10–12: Secret elevator, three underground relays and contradictory timestamps.
+5. 13–15: Voice/trust decision, core siege and Piko memory channels.
+
+The five playable groups retain the original numbered mission saves and still load
+separate interior scenes within one episode. Checkpoint compatibility is enforced at
+the parent iframe boundary. New grouped stage labels are presentation only.
+Remaining legacy missions 16–27 are unchanged in this branch.
+
 ## Candidate later episode mapping (remaining missions)
 4. 07–08: Communications defense and contradiction investigation.
 5. 09: Awakening climax, shield tutorial and quiet aftermath.

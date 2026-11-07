@@ -28,6 +28,11 @@ try{
    await frame.waitForFunction(()=>typeof window.__qaFinish==='function',{timeout:4500});
    await frame.evaluate(()=>window.__qaFinish());
    await frame.locator('#done').click({timeout:4500});
+   if ([10,13].includes(mission)) {
+     // Episode starts 10 and 13 checkpoint instead of unmounting the whole session.
+     await page.locator('#story-episode-transition').waitFor({state:'visible',timeout:4500});
+     await page.locator('#story-episode-exit').click();
+   }
    await iframe.waitFor({state:'detached',timeout:4500});
    assert.equal(await page.evaluate(m=>getStoryProgress()['mission'+m+'Complete']===true,mission),true,'completion not saved '+mission+' diagnostics='+JSON.stringify(await page.evaluate(()=>({raw:localStorage.getItem(STORY_PROGRESS_KEY),owner:localStorage.getItem(STORY_PROGRESS_OWNER_KEY),session:GameModeRuntime.storySession?.active,sessionOwner:GameModeRuntime.storySession?.ownerUid,currentUser:typeof currentUser==='undefined'?'undefined':currentUser?.uid,origin:location.origin}))));
    if(mission<27)assert.equal(await page.evaluate(m=>document.getElementById('story-start-mission'+(m+1))?.disabled,mission),false,'next mission blocked '+mission);

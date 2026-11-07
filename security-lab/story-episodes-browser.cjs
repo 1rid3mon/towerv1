@@ -25,6 +25,13 @@ const server = http.createServer((req, res) => {
     html = html.replace('})();\n</script>', source);
     res.end(html); return;
   }
+  if (file.endsWith('story-interior-missions11-15.js')) {
+    let js=fs.readFileSync(file,'utf8');
+    const end=js.lastIndexOf('})();');
+    assert.ok(end>0,'Underground QA hook target missing');
+    js=js.slice(0,end)+'window.__qaFinish=()=>finish("QA stage completed");'+String.fromCharCode(10)+'})();'+js.slice(end+5);
+    res.end(js); return;
+  }
   fs.createReadStream(file).pipe(res);
 });
 async function main() {
@@ -55,7 +62,7 @@ async function main() {
       await frame.waitForFunction(() => typeof window.__qaFinish === 'function', {timeout:6500});
       assert.match(frame.url(), new RegExp('mission=' + mission));
       const heading = await frame.locator(mission === 1 ? '#status' : '#objective').innerText();
-      assert.match(heading, /BÖLÜM 0[12]/, 'Stage should display its grouped episode');
+      assert.match(heading, /BÖLÜM 0[1-5]/, 'Stage should display its grouped episode');
       return frame;
     }
     async function finishStage(mission, last) {
@@ -95,6 +102,40 @@ async function main() {
     await continueEpisode();
     await finishStage(6,true);
     assert.equal(await page.evaluate(() => document.querySelector('#story-start-mission7').disabled),false);
+
+    // Three further episodes preserve the 7–15 story and save every internal stage.
+    for (const start of [7,10,13]) {
+      await page.evaluate(n => startStoryMission(n), start);
+      await finishStage(start,false);
+      if (start===10) {
+        // Cross-file checkpoint: leave after secret-door scene, reopen at mission 11.
+        await page.locator('#story-episode-exit').click();
+        await overlay.waitFor({state:'detached'});
+        await page.evaluate(() => startStoryMission(10));
+        await expectStage(11);
+      } else {
+        await continueEpisode();
+      }
+      await finishStage(start+1,false);
+      await continueEpisode();
+      await finishStage(start+2,true);
+      assert.equal(await page.evaluate(n => getStoryProgress()['mission' + n + 'Complete'], start+2),true);
+      assert.equal(await page.evaluate(n => document.querySelector('#story-start-mission' + n).disabled, start+3),false);
+    }
+    assert.equal(await page.locator('#story-start-mission15').evaluate(el=>el.closest('.story-mission').style.display),'none');
+    assert.match(await page.locator('#story-campaign-progress-count').innerText(),/5 \/ 17/);
+
+    // A legacy player who completed 7 and 8 must resume episode 3 at stage 9.
+    await page.evaluate(() => {
+      const data={introSeen:true,chapter:1};
+      for(let i=1;i<=8;i++)data['mission'+i+'Complete']=true;
+      localStorage.setItem(STORY_PROGRESS_KEY,JSON.stringify(data));
+      updateStoryMissionBoard();startStoryMission(7);
+    });
+    await expectStage(9);
+    const resumed = await (await iframe.elementHandle()).contentFrame();
+    await resumed.evaluate(() => window.parent.postMessage({type:'lost-signal-interior-close'},location.origin));
+    await overlay.waitFor({state:'detached',timeout:6500});
 
     // Existing mission flags work without migration or replaying earlier completed stages.
     await page.evaluate(() => {
