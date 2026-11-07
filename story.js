@@ -537,12 +537,16 @@ function updateStoryMissionBoard() {
         else if (!button.disabled) card.setAttribute('data-mission-state', {tr:'HAZIR',en:'AVAILABLE',es:'DISPONIBLE',de:'BEREIT'}[locale] || 'HAZIR');
         else card.removeAttribute('data-mission-state');
     });
-    // Episode cards: legacy stage flags remain the source of truth, even for old saves.
+    // The old isolated combat-story runtime is still supported: keep its entire
+    // 27-mission board available, including for the existing full-campaign QA.
+    // Only the new top-down interior runtime uses grouped episode cards.
+    const groupedInterior = window.LOST_SIGNAL_INTERIOR_MISSION_ONE !== false;
     for (const hiddenStage of [2, 3, 5, 6]) {
         const hiddenButton = document.getElementById('story-start-mission' + hiddenStage);
         const hiddenCard = hiddenButton?.closest('.story-mission');
-        if (hiddenCard) hiddenCard.style.display = 'none';
+        if (hiddenCard) hiddenCard.style.display = groupedInterior ? 'none' : '';
     }
+    if (!groupedInterior) return;
     for (const [start, end, label, name, description] of [
         [1, 3, '01', 'Uyanış ve Kayıp Frekans', 'Enerjiyi aç, devriyeyi durdur, izleri takip et ve anteni çöz.'],
         [4, 6, '02', 'Kırık Hat', 'Gücü yönlendir, koridoru savun ve bakım hatlarını onar.']
