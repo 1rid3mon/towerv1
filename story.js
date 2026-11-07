@@ -615,7 +615,7 @@ function storyMissionPrerequisiteMet(missionNumber, progress) {
 function startStoryMission(missionNumber = 1) {
     const progress = getStoryProgress();
     // Episodes 01 and 02 contain three legacy stages each. Save flags remain unchanged.
-    const episodeStart = missionNumber === 1 || missionNumber === 4 ? missionNumber : 0;
+    const episodeStart = window.LOST_SIGNAL_INTERIOR_MISSION_ONE !== false && (missionNumber === 1 || missionNumber === 4) ? missionNumber : 0;
     const episodeEnd = episodeStart ? episodeStart + 2 : 0;
     if (episodeStart) {
         for (let step = episodeStart; step <= episodeEnd; step++) {
