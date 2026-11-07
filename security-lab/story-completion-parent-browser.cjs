@@ -28,7 +28,7 @@ try{
    await frame.waitForFunction(()=>typeof window.__qaFinish==='function',{timeout:4500});
    await frame.evaluate(()=>window.__qaFinish());
    await frame.locator('#done').click({timeout:4500});
-   if ([10,13].includes(mission)) {
+   if ([10,13,16,19,22,25].includes(mission)) {
      // Episode starts 10 and 13 checkpoint instead of unmounting the whole session.
      await page.locator('#story-episode-transition').waitFor({state:'visible',timeout:4500});
      await page.locator('#story-episode-exit').click();

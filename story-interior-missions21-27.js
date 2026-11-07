@@ -1,5 +1,7 @@
 (()=>{'use strict';
 const mission=Number(new URLSearchParams(location.search).get('mission'));if(mission<21||mission>27){document.body.textContent='Görev bulunamadı';return}
+const episodeStart=Number(new URLSearchParams(location.search).get('episode'))||0;
+const missionHeading=episodeStart&&mission>=episodeStart&&mission<=episodeStart+2 ? 'BÖLÜM '+String(Math.floor((episodeStart-1)/3)+1).padStart(2,'0')+' · AŞAMA '+(mission-episodeStart+1)+'/3' : 'GÖREV '+mission;
 const canvas=document.getElementById('view'),ctx=canvas.getContext('2d'),objective=document.getElementById('objective'),modal=document.getElementById('modal'),panel=document.getElementById('panel'),pad=document.getElementById('pad'),knob=document.getElementById('knob');
 const W=1100,H=590,player={x:135,y:300,r:13},keys=new Set(),joy={x:0,y:0,id:null},walls=[],gates=[],stations=[],enemies=[],found=new Set();
 const names={21:'KAYBETTİĞİMİZ İSİM',22:'MOR SINIR',23:'DARBENİN BEDELİ',24:'SON SAVUNMA PROTOKOLÜ',25:'BİR SEÇİMİN BİÇİMİ',26:'MAKİNEDEKİ ZİHİN',27:'HATIRLAYAN KULE'};
@@ -58,12 +60,12 @@ if(mission===27){
 }
 build();
 function resize(){vw=innerWidth;vh=innerHeight;const scale=Math.min(devicePixelRatio||1,2);canvas.width=vw*scale;canvas.height=vh*scale;ctx.setTransform(scale,0,0,scale,0,0)}addEventListener('resize',resize);resize();
-function hud(){objective.innerHTML='<b>GÖREV '+mission+' · '+names[mission]+'</b><div>'+goals[mission][Math.min(phase,goals[mission].length-1)]+'</div><small>WASD · oklar · E · iPad joystick</small>'+(combat?'<div>Çekirdek '+hp+' · Tehdit '+enemies.filter(e=>e.hp>0).length+' · Dalga '+round+'</div>':'')+(mission>=25?'<div>Mor bağlantı: '+linkUses+' kullanım · '+(mission===25?'Piko sınaması':'Kalkan desteği')+'</div>':'');updateLinkButton()};hud();
+function hud(){objective.innerHTML='<b>'+missionHeading+' · '+names[mission]+'</b><div>'+goals[mission][Math.min(phase,goals[mission].length-1)]+'</div><small>WASD · oklar · E · iPad joystick</small>'+(combat?'<div>Çekirdek '+hp+' · Tehdit '+enemies.filter(e=>e.hp>0).length+' · Dalga '+round+'</div>':'')+(mission>=25?'<div>Mor bağlantı: '+linkUses+' kullanım · '+(mission===25?'Piko sınaması':'Kalkan desteği')+'</div>':'');updateLinkButton()};hud();
 function show(html){dialog=true;modal.classList.add('open');panel.innerHTML=html;updateLinkButton()}function hide(){dialog=false;modal.classList.remove('open');updateLinkButton()}
 function say(title,body){show('<h2>'+title+'</h2><p>'+body+'</p><button id="continue">DEVAM</button>');document.getElementById('continue').onclick=hide}
 function pick(title,body,options,cb){show('<h2>'+title+'</h2><p>'+body+'</p><div id="options"></div><p id="feedback" role="status"></p><button id="cancel">KAPAT</button>');document.getElementById('cancel').onclick=hide;const box=document.getElementById('options');for(const [label,value] of options){const button=document.createElement('button');button.textContent=label;button.onclick=()=>cb(value);box.appendChild(button)}}
 function error(text){document.getElementById('feedback').textContent=text}
-function finish(text){if(complete)return;complete=true;combat=false;show('<h2>GÖREV '+mission+' TAMAMLANDI</h2><p>'+text+'</p><button id="done">GÖREV PANOSUNA DÖN</button>');document.getElementById('done').onclick=()=>((payload)=>window.StoryInteriorCompletion ? window.StoryInteriorCompletion.submit(payload) : parent.postMessage(payload,location.origin))({type:'lost-signal-interior-mission-complete',mission,stabilityChoice:mission===23?choice:null,companionForm:mission===25?'purple':mission===27?'tower':null})}
+function finish(text){if(complete)return;complete=true;combat=false;show('<h2>'+missionHeading+' TAMAMLANDI</h2><p>'+text+'</p><button id="done">'+(episodeStart&&mission<episodeStart+2?'ARA KAYDI AL →':episodeStart?'BÖLÜMÜ TAMAMLA →':'GÖREV PANOSUNA DÖN')+'</button>');document.getElementById('done').onclick=()=>((payload)=>window.StoryInteriorCompletion ? window.StoryInteriorCompletion.submit(payload) : parent.postMessage(payload,location.origin))({type:'lost-signal-interior-mission-complete',mission,stabilityChoice:mission===23?choice:null,companionForm:mission===25?'purple':mission===27?'tower':null})}
 function beginBattle(count,health){
  round++;combat=true;linkUsedWave=false;enemies.length=0;
  if(round===1){initialHP=mission===24&&memory==='preserve'?29:24;hp=initialHP}
@@ -291,7 +293,7 @@ function tick(t){
  draw(t);requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
-addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys.add(k);if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)interact()});addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>keys.clear());
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys.add(k);if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)interact()});addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));function clearControls(){keys.clear();joy.x=joy.y=0;joy.id=null;knob.style.transform=''}addEventListener('blur',clearControls);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearControls()});
 document.getElementById('act').onclick=interact;document.getElementById('link').onclick=useLink;document.getElementById('quit').onclick=()=>parent.postMessage({type:'lost-signal-interior-close'},location.origin);
 function stick(e){const b=pad.getBoundingClientRect(),x=e.clientX-b.left-b.width/2,y=e.clientY-b.top-b.height/2,m=Math.max(1,Math.hypot(x,y)),r=Math.min(1,m/44);joy.x=x/m*r;joy.y=y/m*r;knob.style.transform='translate('+(joy.x*38)+'px,'+(joy.y*38)+'px)'}
 pad.addEventListener('pointerdown',e=>{joy.id=e.pointerId;pad.setPointerCapture(e.pointerId);stick(e)});pad.addEventListener('pointermove',e=>{if(e.pointerId===joy.id)stick(e)});function reset(e){if(e.pointerId!==joy.id)return;joy.id=null;joy.x=joy.y=0;knob.style.transform=''}pad.addEventListener('pointerup',reset);pad.addEventListener('pointercancel',reset);
