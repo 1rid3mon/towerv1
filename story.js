@@ -403,7 +403,7 @@ function updateStoryMissionBoard() {
     const s1 = document.getElementById('story-mission-1-status');
     if (m1) {
         m1.disabled = false;
-        m1.textContent = progress.mission1Complete ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') : (en ? 'DEPLOY →' : 'GÖREVE BAŞLA →');
+        m1.textContent = progress.mission1Complete ? ({tr:'TEKRAR OYNA ↻',en:'REPLAY ↻',es:'REPETIR ↻',de:'ERNEUT SPIELEN ↻'}[getGameLanguage()] || 'TEKRAR OYNA ↻') : (en ? 'DEPLOY →' : 'GÖREVE BAŞLA →');
     }
     if (s1) s1.textContent = progress.mission1Complete ? (en ? 'CORE STABLE' : 'ÇEKİRDEK GÜVENDE') : (en ? 'PLAYABLE MISSION' : 'OYNANABİLİR GÖREV');
     const m2 = document.getElementById('story-start-mission2');
@@ -537,6 +537,49 @@ function updateStoryMissionBoard() {
         else if (!button.disabled) card.setAttribute('data-mission-state', {tr:'HAZIR',en:'AVAILABLE',es:'DISPONIBLE',de:'BEREIT'}[locale] || 'HAZIR');
         else card.removeAttribute('data-mission-state');
     });
+    // The old isolated combat-story runtime is still supported: keep its entire
+    // 27-mission board available, including for the existing full-campaign QA.
+    // Only the new top-down interior runtime uses grouped episode cards.
+    const groupedInterior = window.LOST_SIGNAL_INTERIOR_MISSION_ONE !== false;
+    for (const hiddenStage of [2, 3, 5, 6]) {
+        const hiddenButton = document.getElementById('story-start-mission' + hiddenStage);
+        const hiddenCard = hiddenButton?.closest('.story-mission');
+        if (hiddenCard) hiddenCard.style.display = groupedInterior ? 'none' : '';
+    }
+    if (!groupedInterior) return;
+    for (const [start, end, label, name, description] of [
+        [1, 3, '01', 'Uyanış ve Kayıp Frekans', 'Enerjiyi aç, devriyeyi durdur, izleri takip et ve anteni çöz.'],
+        [4, 6, '02', 'Kırık Hat', 'Gücü yönlendir, koridoru savun ve bakım hatlarını onar.']
+    ]) {
+        const button = document.getElementById('story-start-mission' + start);
+        const card = button?.closest('.story-mission');
+        if (!button || !card) continue;
+        const done = Boolean(progress['mission' + end + 'Complete']);
+        const completedStages = Array.from({length: 3}, (_, i) => progress['mission' + (start + i) + 'Complete']).filter(Boolean).length;
+        card.querySelector('.story-mission-number').textContent = (en ? 'EPISODE ' : 'BÖLÜM ') + label;
+        card.querySelector('h3').textContent = name;
+        card.querySelector('p').textContent = description;
+        button.disabled = start === 4 && !progress.mission3Complete;
+        button.textContent = done ? (en ? 'REPLAY ↻' : 'TEKRAR OYNA ↻') :
+            completedStages ? (en ? 'CONTINUE →' : 'KALDIĞIN YERDEN →') :
+            (en ? 'START EPISODE →' : 'BÖLÜME BAŞLA →');
+        card.classList.toggle('is-complete',done);
+        card.classList.toggle('is-current',!done&&!button.disabled);
+        card.classList.toggle('is-locked-card',button.disabled&&!done);
+        const status = document.getElementById('story-mission-' + start + '-status');
+        if (status) status.textContent = done ? (en ? 'EPISODE COMPLETE' : 'BÖLÜM TAMAMLANDI') :
+            (en ? completedStages + '/3 CHECKPOINTS' : completedStages + '/3 ARA KAYIT');
+    }
+    // Six legacy stages are now two episodes; the other 21 are unchanged.
+    const episodeCount = Number(Boolean(progress.mission3Complete)) +
+        Number(Boolean(progress.mission6Complete)) +
+        Array.from({length:21},(_,i) => progress['mission' + (i+7) + 'Complete']).filter(Boolean).length;
+    if (progressCount) progressCount.textContent = episodeCount + (en ? ' / 23 EPISODES' : ' / 23 BÖLÜM');
+    if (progressFill) progressFill.style.width = (episodeCount / 23 * 100) + '%';
+    if (progressTrack) {
+        progressTrack.setAttribute('aria-valuenow', String(episodeCount));
+        progressTrack.setAttribute('aria-valuemax', '23');
+    }
 }
 function setStoryComms(speakerTr, speakerEn, textTr, textEn) {
     const speaker = document.getElementById('story-comms-speaker');
@@ -571,6 +614,17 @@ function storyMissionPrerequisiteMet(missionNumber, progress) {
 }
 function startStoryMission(missionNumber = 1) {
     const progress = getStoryProgress();
+    // Episodes 01 and 02 contain three legacy stages each. Save flags remain unchanged.
+    const episodeStart = window.LOST_SIGNAL_INTERIOR_MISSION_ONE !== false && (missionNumber === 1 || missionNumber === 4) ? missionNumber : 0;
+    const episodeEnd = episodeStart ? episodeStart + 2 : 0;
+    if (episodeStart) {
+        for (let step = episodeStart; step <= episodeEnd; step++) {
+            if (!progress['mission' + step + 'Complete']) {
+                missionNumber = step; // Resume at the first unsaved checkpoint.
+                break;
+            }
+        }
+    }
     if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27].includes(missionNumber)) return;
     // Enforce mission order in the handler as well as the disabled UI buttons.
     // This prevents direct calls from bypassing the chapter's narrative gates.
@@ -607,7 +661,24 @@ function startStoryMission(missionNumber = 1) {
         overlay.dataset.mission = String(missionNumber);
         overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:#030b14';
         const frame = document.createElement('iframe');
-        frame.src = missionNumber === 1 ? 'story-interior-mission01.html' : (missionNumber <= 5 ? 'story-interior-missions02-05.html' : missionNumber <= 10 ? 'story-interior-missions06-10.html' : missionNumber <= 15 ? 'story-interior-missions11-15.html' : missionNumber <= 20 ? 'story-interior-missions16-20.html' : 'story-interior-missions21-27.html') + '?mission=' + missionNumber + '&power=' + encodeURIComponent(progress.powerChoice || '') + '&memory=' + encodeURIComponent(progress.stabilityChoice || '') + '&callSign=' + encodeURIComponent(progress.callSignChoice || '') + '&trust=' + encodeURIComponent(progress.trustChoice || '');
+        const sourceForStage = stage => {
+            const latest = getStoryProgress();
+            const path = stage === 1 ? 'story-interior-mission01.html' :
+                stage <= 5 ? 'story-interior-missions02-05.html' :
+                stage <= 10 ? 'story-interior-missions06-10.html' :
+                stage <= 15 ? 'story-interior-missions11-15.html' :
+                stage <= 20 ? 'story-interior-missions16-20.html' : 'story-interior-missions21-27.html';
+            const query = new URLSearchParams({
+                mission: String(stage),
+                power: latest.powerChoice || '',
+                memory: latest.stabilityChoice || '',
+                callSign: latest.callSignChoice || '',
+                trust: latest.trustChoice || '',
+                episode: String(episodeStart || 0)
+            });
+            return path + '?' + query.toString();
+        };
+        frame.src = sourceForStage(missionNumber);
         frame.title = 'LOST SIGNAL · İç İstasyon · Görev ' + missionNumber;
         frame.style.cssText = 'width:100%;height:100%;border:0';
         overlay.appendChild(frame);
@@ -617,8 +688,54 @@ function startStoryMission(missionNumber = 1) {
             window.removeEventListener('message', onMessage);
             overlay.remove();
             updateStoryMissionBoard();
-            const next = document.getElementById('story-start-mission' + (missionNumber + 1));
+            const next = document.getElementById('story-start-mission' + ((episodeEnd || missionNumber) + 1));
             if (next && !next.disabled) next.focus({ preventScroll: true });
+        };
+        const advanceEpisode = nextStage => {
+            // Confirmation already reached the child; all steps have a durable checkpoint.
+            frame.style.display = 'none';
+            const scene = document.createElement('section');
+            scene.id = 'story-episode-transition';
+            scene.setAttribute('role', 'dialog');
+            scene.setAttribute('aria-label', 'Bölüm ara kaydı');
+            scene.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;background:#030b14;color:#d9f6ff;font:16px system-ui';
+            const box = document.createElement('div');
+            box.style.cssText = 'width:min(560px,100%);padding:30px;border:1px solid #4b95ac;border-radius:20px;background:#102333;line-height:1.6;box-shadow:0 18px 60px #0009';
+            const heading = document.createElement('h2');
+            heading.textContent = 'BÖLÜM ' + (episodeStart === 1 ? '01' : '02') + ' · ARA KAYIT ✓';
+            const stageNames = episodeStart === 1 ?
+                {2:'Devriye izlerini takip et',3:'Antenin kaynağını bul'} :
+                {5:'Kırık koridoru savun',6:'Bakım hatlarını onar'};
+            const description = document.createElement('p');
+            description.textContent = 'İlerlemen kaydedildi. Sıradaki aşama: ' + stageNames[nextStage] +
+                '. Çıkarsan buradan devam edebilirsin.';
+            const continueButton = document.createElement('button');
+            continueButton.id = 'story-episode-continue';
+            continueButton.textContent = 'HİKÂYEYE DEVAM ET →';
+            continueButton.style.cssText = 'padding:14px 18px;margin:8px 8px 8px 0;background:#17708b;color:#fff;border:1px solid #a2e4ef;border-radius:10px;font:700 15px system-ui;cursor:pointer';
+            const exitButton = document.createElement('button');
+            exitButton.id = 'story-episode-exit';
+            exitButton.textContent = 'KAYDEDİP ÇIK';
+            exitButton.style.cssText = 'padding:14px 18px;background:#26394c;color:#fff;border:1px solid #789caf;border-radius:10px;font:700 15px system-ui;cursor:pointer';
+            exitButton.onclick = () => cleanup();
+            continueButton.onclick = () => {
+                if (!overlay.isConnected || !getStoryProgress()['mission' + missionNumber + 'Complete']) return;
+                continueButton.disabled = true;
+                continueButton.textContent = 'AÇILIYOR…';
+                missionNumber = nextStage;
+                overlay.dataset.mission = String(missionNumber);
+                frame.title = 'LOST SIGNAL · İç İstasyon · Görev ' + missionNumber;
+                completionPending = false;
+                frame.addEventListener('load', () => {
+                    frame.style.display = 'block';
+                    scene.remove();
+                }, { once: true });
+                frame.src = sourceForStage(missionNumber);
+            };
+            box.append(heading, description, continueButton, exitButton);
+            scene.appendChild(box);
+            overlay.appendChild(scene);
+            continueButton.focus();
         };
         const onMessage = event => {
             if (event.origin !== window.location.origin || event.source !== frame.contentWindow || !event.data) return;
@@ -664,10 +781,16 @@ function startStoryMission(missionNumber = 1) {
             // Unmount after the current message turn to avoid detaching a running iframe click handler.
             setTimeout(() => {
                 if (!overlay.isConnected) return;
+                if (episodeEnd && missionNumber < episodeEnd) {
+                    advanceEpisode(missionNumber + 1);
+                    return;
+                }
                 cleanup();
-                showToast(storyLanguage() === 'en'
-                    ? 'Mission ' + missionNumber + ' complete. Station progress saved.'
-                    : missionNumber + '. görev tamamlandı. İstasyon ilerlemesi kaydedildi.');
+                showToast(episodeEnd
+                    ? 'Bölüm ' + (episodeStart === 1 ? '01' : '02') + ' tamamlandı. İlerlemen kaydedildi.'
+                    : (storyLanguage() === 'en'
+                        ? 'Mission ' + missionNumber + ' complete. Station progress saved.'
+                        : missionNumber + '. görev tamamlandı. İstasyon ilerlemesi kaydedildi.'));
             }, 50);
         };
         window.addEventListener('message', onMessage);

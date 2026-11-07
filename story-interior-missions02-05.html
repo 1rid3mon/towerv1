@@ -7,6 +7,8 @@
 (()=>{'use strict';
 const mission=Number(new URLSearchParams(location.search).get('mission')), VALID=[2,3,4,5];
 if(!VALID.includes(mission)){document.body.textContent='Geçersiz görev';return}
+const episodeStart=Number(new URLSearchParams(location.search).get('episode'))||0;
+const episodeLabel=(episodeStart===1&&[2,3].includes(mission))||(episodeStart===4&&[4,5].includes(mission)) ? 'BÖLÜM '+String(episodeStart===1?1:2).padStart(2,'0')+' · AŞAMA '+(mission-episodeStart+1)+'/3' : 'GÖREV '+String(mission).padStart(2,'0');
 const cv=document.getElementById('world'),c=cv.getContext('2d'),obj=document.getElementById('objective'),modal=document.getElementById('modal'),panel=document.getElementById('panel'),pad=document.getElementById('pad'),knob=document.getElementById('knob');
 let W=0,H=0,dpr=1,last=0,locked=false,finished=false,phase=0,alarmT=0,shots=0,shield=18,feedback='',powerChoice=null,placed=0,beam=null;
 const keys=new Set(),stick={x:0,y:0,id:null},p={x:mission===2?135:mission===3?140:mission===4?170:145,y:mission===2?260:mission===3?260:mission===4?260:250,r:12};
@@ -32,13 +34,13 @@ function ui(){const tasks={
 2:['Koridordaki üç iz noktasını bul.','Devriyeyi güvenlik terminalinden durdur.','Üç farklı izi tara ve terminalden raporla.','İzler kaydedildi; görev tamamlanabilir.'],
 3:['Anten girişindeki terminali bul.','Güç rölesini etkinleştir.','Sinyal filtresinin frekansını eşleştir.','Veri terminalinden anten rotasını çöz.','Çıkışa ilerle.'],
 4:['Reaktörün gücünü kontrol et.','Dağıtım panelinde bir sistemi seç.','Seçimi onayla ve merkezi kapıdan çık.'],
-5:['Güvenlik konsolunu incele.','Kule terminalini etkinleştir ve saldırıyı durdur.','Koridorun sonundaki röleyi kapat.','Çıkışa ilerle.']};obj.innerHTML='<b>GÖREV '+String(mission).padStart(2,'0')+' · '+titles[mission]+'</b><div>'+tasks[mission][Math.min(phase,tasks[mission].length-1)]+'</div><div id="hint">WASD / oklar · E veya ETKİLEŞ · iPad joystick · '+chapterNotes[mission]+'</div>'+(phase===1&&mission===5?'<div id="health">Reaktör: '+shield+' · Tehdit: '+foes.filter(e=>e.hp>0).length+'</div>':'')}
+5:['Güvenlik konsolunu incele.','Kule terminalini etkinleştir ve saldırıyı durdur.','Koridorun sonundaki röleyi kapat.','Çıkışa ilerle.']};obj.innerHTML='<b>'+episodeLabel+' · '+titles[mission]+'</b><div>'+tasks[mission][Math.min(phase,tasks[mission].length-1)]+'</div><div id="hint">WASD / oklar · E veya ETKİLEŞ · iPad joystick · '+chapterNotes[mission]+'</div>'+(phase===1&&mission===5?'<div id="health">Reaktör: '+shield+' · Tehdit: '+foes.filter(e=>e.hp>0).length+'</div>':'')}
 ui();
 function show(html){locked=true;modal.classList.add('open');panel.innerHTML=html}
 function hide(){locked=false;modal.classList.remove('open')}
 function optionButtons(choices,callback){const wrap=document.createElement('div');for(const [label,val] of choices){const b=document.createElement('button');b.textContent=label;b.onclick=()=>callback(val);wrap.appendChild(b)}(document.getElementById('deduction')||panel).appendChild(wrap)}
 function message(head,body){show('<h2>'+head+'</h2><p>'+body+'</p><button id="ok">DEVAM</button>');document.getElementById('ok').onclick=hide}
-function finish(extra){if(finished)return;finished=true;show('<h2>GÖREV '+String(mission).padStart(2,'0')+' TAMAMLANDI</h2><p>'+extra+'</p><p>İstasyonun içindeki ilerleme bir sonraki bölümde devam edecek.</p><button id="done">GÖREV PANOSUNA DÖN</button>');document.getElementById('done').onclick=()=>((payload)=>window.StoryInteriorCompletion ? window.StoryInteriorCompletion.submit(payload) : parent.postMessage(payload,location.origin))({type:'lost-signal-interior-mission-complete',mission,choice:powerChoice})}
+function finish(extra){if(finished)return;finished=true;show('<h2>'+episodeLabel+' TAMAMLANDI</h2><p>'+extra+'</p><p>Bu aşama kaydedilecek. Hikâye aynı bölümde devam ediyor.</p><button id="done">'+(episodeStart&&(mission===2||mission===4||mission===5)?'ARA KAYDI AL →':'BÖLÜMÜ TAMAMLA →')+'</button>');document.getElementById('done').onclick=()=>((payload)=>window.StoryInteriorCompletion ? window.StoryInteriorCompletion.submit(payload) : parent.postMessage(payload,location.origin))({type:'lost-signal-interior-mission-complete',mission,choice:powerChoice})}
 const scanned=new Set(),antennaLogs=new Set();let tuned=false,defenseUnlocked=false,alarmStarted=false;
 function interact(){
 if(locked||finished)return;
@@ -95,7 +97,7 @@ cv.addEventListener('pointerdown',e=>{if(locked||finished)return;const combat=(m
 function tick(t){const dt=Math.min((t-last)/1000||0,.05);last=t;move(dt);if(!locked&&((mission===2&&alarmStarted)||(mission===5&&phase===1&&alarmStarted))){alarmT+=dt;if(mission===5){for(const e of foes){if(e.hp<=0)continue;const dx=535-e.x,dy=330-e.y,mag=Math.hypot(dx,dy)||1;e.x+=dx/mag*18*dt;e.y+=dy/mag*18*dt}}
 if(alarmT>(mission===5?4.6:3.4)){alarmT=0;shield-=mission===5?3:1;ui();if(shield<=0){restart()}}}draw();requestAnimationFrame(tick)}
 requestAnimationFrame(tick);
-addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys.add(k);if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)interact()});addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>keys.clear());document.getElementById('interact').onclick=interact;document.getElementById('leave').onclick=()=>parent.postMessage({type:'lost-signal-interior-close'},location.origin);
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys.add(k);if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)interact()});addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));function clearControls(){keys.clear();stick.x=stick.y=0;stick.id=null;knob.style.transform=''}addEventListener('blur',clearControls);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearControls()});document.getElementById('interact').onclick=interact;document.getElementById('leave').onclick=()=>parent.postMessage({type:'lost-signal-interior-close'},location.origin);
 function touch(e){const b=pad.getBoundingClientRect(),dx=e.clientX-b.left-b.width/2,dy=e.clientY-b.top-b.height/2,mag=Math.max(1,Math.hypot(dx,dy)),r=Math.min(1,mag/43);stick.x=dx/mag*r;stick.y=dy/mag*r;knob.style.transform='translate('+(stick.x*38)+'px,'+(stick.y*38)+'px)'}
 pad.addEventListener('pointerdown',e=>{stick.id=e.pointerId;pad.setPointerCapture(e.pointerId);touch(e)});pad.addEventListener('pointermove',e=>{if(stick.id===e.pointerId)touch(e)});function end(e){if(e.pointerId!==stick.id)return;stick.id=null;stick.x=stick.y=0;knob.style.transform=''}pad.addEventListener('pointerup',end);pad.addEventListener('pointercancel',end);
 })();

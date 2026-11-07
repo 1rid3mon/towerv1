@@ -1,0 +1,138 @@
+'use strict';
+// Story Mode 2.0 — playable episode grouping, resume, completion acknowledgements
+// and isolation against legacy mission save flags.
+const fs = require('node:fs');
+const path = require('node:path');
+const http = require('node:http');
+const assert = require('node:assert/strict');
+const { chromium, webkit } = require('playwright');
+const root = path.resolve(__dirname, '..');
+const server = http.createServer((req, res) => {
+  const url = new URL(req.url, 'http://localhost');
+  const file = path.resolve(root, '.' + (url.pathname === '/' ? '/index.html' : url.pathname));
+  if (!file.startsWith(root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
+    res.writeHead(404); res.end(); return;
+  }
+  res.setHeader('Content-Type', file.endsWith('.js') ? 'text/javascript; charset=utf-8' :
+    file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8');
+  if (/story-interior-mission01\.html$|story-interior-missions(?:02-05|06-10)\.html$/.test(file)) {
+    let html = fs.readFileSync(file, 'utf8');
+    const inject = 'window.__qaFinish=()=>{ if(typeof powerChoice!==\'undefined\' && mission===4) powerChoice=\'shield\'; finish(\'QA stage completed\'); };\n})();\n</script>';
+    // mission01 has no lexical "mission"; only evaluate that expression in the other pages.
+    const source = /story-interior-mission01\.html$/.test(file)
+      ? 'window.__qaFinish=()=>finish();\n})();\n</script>' : inject;
+    assert(html.includes('})();\n</script>'), 'QA hook could not be injected: ' + file);
+    html = html.replace('})();\n</script>', source);
+    res.end(html); return;
+  }
+  fs.createReadStream(file).pipe(res);
+});
+async function main() {
+  await new Promise(resolve => server.listen(4217, '127.0.0.1', resolve));
+  const browser = await (process.env.BROWSER_ENGINE === 'webkit' ? webkit : chromium).launch({ headless: true });
+  try {
+    const context = await browser.newContext({ viewport: {width: 1180,height: 820},hasTouch: true });
+    await context.route(/(?:googleapis\.com|firestore\.googleapis\.com|identitytoolkit\.googleapis\.com|securetoken\.googleapis\.com)/, r => r.abort());
+    const page = await context.newPage(), errors = [];
+    page.on('pageerror', e => errors.push(e.message));
+    await page.goto('http://127.0.0.1:4217/', {waitUntil: 'domcontentloaded'});
+    await page.waitForFunction(() => typeof startStoryMission === 'function' && typeof game !== 'undefined');
+    await page.evaluate(() => {
+      game.wave = 26; game.highestWave = 26; window._syncShadow?.();
+      saveGame(true); updateStoryUnlockUI();
+      localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify({introSeen:true,chapter:1}));
+      updateStoryMissionBoard();
+    });
+    const iframe = page.locator('#lost-signal-interior-overlay iframe');
+    const overlay = page.locator('#lost-signal-interior-overlay');
+    assert.equal(await page.locator('#story-start-mission2').evaluate(el => el.closest('.story-mission').style.display), 'none');
+    assert.equal(await page.locator('#story-start-mission6').evaluate(el => el.closest('.story-mission').style.display), 'none');
+
+    async function expectStage(mission) {
+      await iframe.waitFor({state:'visible',timeout:6500});
+      await page.waitForFunction(m => Number(document.querySelector('#lost-signal-interior-overlay')?.dataset.mission) === m, mission);
+      const frame = await (await iframe.elementHandle()).contentFrame();
+      await frame.waitForFunction(() => typeof window.__qaFinish === 'function', {timeout:6500});
+      assert.match(frame.url(), new RegExp('mission=' + mission));
+      const heading = await frame.locator(mission === 1 ? '#status' : '#objective').innerText();
+      assert.match(heading, /BÖLÜM 0[12]/, 'Stage should display its grouped episode');
+      return frame;
+    }
+    async function finishStage(mission, last) {
+      const frame = await expectStage(mission);
+      await frame.evaluate(() => window.__qaFinish());
+      await frame.locator(mission === 1 ? '#complete' : '#done').click();
+      await page.waitForFunction(m => getStoryProgress()['mission' + m + 'Complete'] === true, mission);
+      if (!last) {
+        await page.locator('#story-episode-transition').waitFor({state:'visible',timeout:6500});
+        assert.equal(await overlay.count(), 1, 'No stacked overlays');
+      } else {
+        await overlay.waitFor({state:'detached',timeout:6500});
+      }
+    }
+    async function continueEpisode() {
+      await page.locator('#story-episode-continue').click();
+      await page.locator('#story-episode-transition').waitFor({state:'detached',timeout:6500});
+    }
+    // First grouped episode: one launch, stage checkpoints, quit, then resume.
+    await page.evaluate(() => startStoryMission(1));
+    await finishStage(1,false);
+    await page.locator('#story-episode-exit').click();
+    await overlay.waitFor({state:'detached'});
+    await page.evaluate(() => startStoryMission(1));
+    await finishStage(2,false);
+    await continueEpisode();
+    await finishStage(3,true);
+    assert.equal(await page.evaluate(() => getStoryProgress().mission3Complete),true);
+    assert.equal(await page.evaluate(() => document.querySelector('#story-start-mission4').disabled),false);
+
+    // Second episode: the power choice is committed before stage 5 loads.
+    await page.evaluate(() => startStoryMission(4));
+    await finishStage(4,false);
+    assert.equal(await page.evaluate(() => getStoryProgress().powerChoice),'shield');
+    await continueEpisode();
+    await finishStage(5,false);
+    await continueEpisode();
+    await finishStage(6,true);
+    assert.equal(await page.evaluate(() => document.querySelector('#story-start-mission7').disabled),false);
+
+    // Existing mission flags work without migration or replaying earlier completed stages.
+    await page.evaluate(() => {
+      const data = {introSeen:true,chapter:1,mission1Complete:true,mission2Complete:true,mission3Complete:false,
+        mission4Complete:false,mission5Complete:false,mission6Complete:false};
+      localStorage.setItem(STORY_PROGRESS_KEY,JSON.stringify(data));updateStoryMissionBoard();startStoryMission(1);
+    });
+    await expectStage(3);
+    await page.evaluate(() => document.querySelector('#lost-signal-interior-overlay iframe').contentWindow
+      .postMessage({type:'lost-signal-interior-close'},location.origin));
+    // Dispatch from the child rather than parent; parent-origin posts must be ignored.
+    const child = await (await iframe.elementHandle()).contentFrame();
+    await child.evaluate(() => window.parent.postMessage({type:'lost-signal-interior-close'},location.origin));
+    await overlay.waitFor({state:'detached'});
+    assert.equal(await page.evaluate(() => getStoryProgress().mission2Complete),true);
+    assert.equal(await page.evaluate(() => getStoryProgress().mission3Complete),false);
+
+    // A rejected save cannot advance the episode and must allow retry.
+    await page.evaluate(() => {
+      localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify({introSeen:true,chapter:1}));
+      window.__qaSaveStoryProgress = saveStoryProgress;
+      window.saveStoryProgress = () => false;
+      startStoryMission(1);
+    });
+    const f = await expectStage(1);
+    await f.evaluate(() => window.__qaFinish());
+    await f.locator('#complete').click();
+    await f.locator('#complete').waitFor({state:'visible'});
+    await f.waitForFunction(() => !document.querySelector('#complete').disabled,{timeout:4500});
+    assert.equal(await page.locator('#story-episode-transition').count(),0);
+    await page.evaluate(() => {window.saveStoryProgress = window.__qaSaveStoryProgress});
+    await f.locator('#complete').click();
+    await page.locator('#story-episode-transition').waitFor({state:'visible',timeout:4500});
+    await page.locator('#story-episode-exit').click();
+    await overlay.waitFor({state:'detached'});
+    assert.deepEqual(errors, [], 'Browser runtime errors');
+    console.log('Story 2.0 grouped episodes/resume/ack/save-failure: PASS (' + (process.env.BROWSER_ENGINE||'chromium') + ')');
+    await context.close();
+  } finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }
+}
+main().catch(err => { console.error(err); process.exitCode=1; server.close(); });
