@@ -30,7 +30,12 @@ window.addEventListener('message',event=>{
  if(type==='lost-signal-interior-save-failed'){retry();return}
  if(type==='lost-signal-interior-save-confirmed'){
   awaiting=false;const btn=button();if(btn){btn.disabled=true;btn.textContent='KAYDEDİLDİ ✓'}
-  status('Kayıt doğrulandı. Görev panosuna dönülüyor.');
+  const args = new URLSearchParams(location.search);
+  const start = Number(args.get('episode') || 0);
+  const stage = Number(args.get('mission') || 1);
+  status(start && stage < start + 2
+    ? 'Ara kayıt doğrulandı. Sıradaki aşamaya geçebilirsin.'
+    : 'Kayıt doğrulandı. Görev panosuna dönülüyor.');
  }
 });
 window.StoryInteriorCompletion={submit};

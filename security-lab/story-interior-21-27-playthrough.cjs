@@ -29,9 +29,24 @@ async function run(){
     const enemies=await page.evaluate(()=>__qa.enemies.map(e=>e.hp));assert.equal(enemies.length,count,'Wrong wave size');
     assert.deepEqual(enemies,Array(count).fill(health),'Wrong enemy strength');
     if(needsLink){
-     await page.waitForFunction(()=>{const b=document.getElementById('link');return b&&!b.disabled},{timeout:9000});
+     const before = await page.evaluate(() => __qa.linkUses);
+     await page.waitForFunction(() => {
+       const b=document.getElementById('link');
+       return b && !b.disabled && __qa.combat && !document.getElementById('modal').classList.contains('open');
+     }, null, {timeout:9000});
+     // WebKit touch click can race with a UI state refresh: prove the interaction
+     // actually incremented the use counter rather than assuming a click was handled.
      await page.locator('#link').click();
-     assert.equal(await page.evaluate(()=>__qa.linkUses>0),true,'Piko shield ability unavailable');
+     await page.waitForFunction(previous => __qa.linkUses > previous, before, {timeout:2500})
+       .catch(async () => {
+         const state = await page.evaluate(() => ({
+           mission:new URLSearchParams(location.search).get('mission'),phase:__qa.phase,combat:__qa.combat,linkUses:__qa.linkUses,
+           modalOpen:document.getElementById('modal').classList.contains('open'),
+           linkDisabled:document.getElementById('link').disabled,
+           linkText:document.getElementById('link').textContent
+         }));
+         throw Error('Piko shield not activated: '+JSON.stringify(state));
+       });
     }
     for(let i=0;i<enemies.length;i++)for(let j=0;j<enemies[i];j++){
      const at=await page.evaluate(i=>{const q=__qa,e=q.enemies[i];q.player.x=490;q.player.y=300;const c=q.camera();return{x:(e.x-c.ox)*c.scale,y:(e.y-c.oy)*c.scale}},i);
