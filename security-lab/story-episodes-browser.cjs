@@ -125,6 +125,18 @@ async function main() {
     assert.equal(await page.locator('#story-start-mission15').evaluate(el=>el.closest('.story-mission').style.display),'none');
     assert.match(await page.locator('#story-campaign-progress-count').innerText(),/5 \/ 17/);
 
+    // A legacy player who completed 7 and 8 must resume episode 3 at stage 9.
+    await page.evaluate(() => {
+      const data={introSeen:true,chapter:1};
+      for(let i=1;i<=8;i++)data['mission'+i+'Complete']=true;
+      localStorage.setItem(STORY_PROGRESS_KEY,JSON.stringify(data));
+      updateStoryMissionBoard();startStoryMission(7);
+    });
+    await expectStage(9);
+    const resumed = await (await iframe.elementHandle()).contentFrame();
+    await resumed.evaluate(() => window.parent.postMessage({type:'lost-signal-interior-close'},location.origin));
+    await overlay.waitFor({state:'detached',timeout:6500});
+
     // Existing mission flags work without migration or replaying earlier completed stages.
     await page.evaluate(() => {
       const data = {introSeen:true,chapter:1,mission1Complete:true,mission2Complete:true,mission3Complete:false,
