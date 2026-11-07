@@ -541,7 +541,7 @@ function updateStoryMissionBoard() {
     // 27-mission board available, including for the existing full-campaign QA.
     // Only the new top-down interior runtime uses grouped episode cards.
     const groupedInterior = window.LOST_SIGNAL_INTERIOR_MISSION_ONE !== false;
-    for (const hiddenStage of [2, 3, 5, 6, 8, 9, 11, 12, 14, 15]) {
+    for (const hiddenStage of [2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18, 20, 21, 23, 24, 26, 27]) {
         const hiddenButton = document.getElementById('story-start-mission' + hiddenStage);
         const hiddenCard = hiddenButton?.closest('.story-mission');
         if (hiddenCard) hiddenCard.style.display = groupedInterior ? 'none' : '';
@@ -552,7 +552,11 @@ function updateStoryMissionBoard() {
         [4, 6, '02', 'Kırık Hat', 'Gücü yönlendir, koridoru savun ve bakım hatlarını onar.'],
         [7, 9, '03', 'Kırılma ve Uyanış', 'Haberleşmeyi kurtar, çelişkileri araştır ve uyanış savunmasını tamamla.'],
         [10, 12, '04', 'İstasyonun Altında', 'Gizli kapıyı aç, alt istasyonu onar ve arşivdeki sırları çöz.'],
-        [13, 15, '05', 'Belleğin Bedeli', 'Seslerin kimliğini sorgula, alt çekirdeği savun ve Piko’nun belleğini kurtar.']
+        [13, 15, '05', 'Belleğin Bedeli', 'Seslerin kimliğini sorgula, alt çekirdeği savun ve Piko’nun belleğini kurtar.'],
+        [16, 18, '06', 'Sahte Çıkış', 'Çıkışın gerçekliğini çöz, kimlik kayıtlarını incele ve komutan kilidini savun.'],
+        [19, 21, '07', 'Sessiz Filo', 'İmkânsız yörüngeyi incele, sessiz filoyu geç ve kayıp ismin izini bul.'],
+        [22, 24, '08', 'Mor Sınır', 'Mor sınırı aş, Piko’nun hasarlı hatlarını onar ve son savunma protokolünü etkinleştir.'],
+        [25, 27, '09', 'Hatırlayan Kule', 'Piko’nun seçimini dinle, uzak bağlantıyı kur ve son nöbeti tamamla.']
     ]) {
         const button = document.getElementById('story-start-mission' + start);
         const card = button?.closest('.story-mission');
@@ -573,14 +577,14 @@ function updateStoryMissionBoard() {
         if (status) status.textContent = done ? (en ? 'EPISODE COMPLETE' : 'BÖLÜM TAMAMLANDI') :
             (en ? completedStages + '/3 CHECKPOINTS' : completedStages + '/3 ARA KAYIT');
     }
-    // Five three-stage episodes (legacy 1–15) plus twelve unchanged missions (16–27).
-    const episodeCount = [3,6,9,12,15].filter(end => progress['mission' + end + 'Complete']).length +
-        Array.from({length:12},(_,i) => progress['mission' + (i+16) + 'Complete']).filter(Boolean).length;
-    if (progressCount) progressCount.textContent = episodeCount + (en ? ' / 17 EPISODES' : ' / 17 BÖLÜM');
-    if (progressFill) progressFill.style.width = (episodeCount / 17 * 100) + '%';
+    // Nine three-stage episodes (legacy 1–27). Save flags remain at original mission granularity.
+    const episodeCount = [3,6,9,12,15,18,21,24,27]
+        .filter(end => progress['mission' + end + 'Complete']).length;
+    if (progressCount) progressCount.textContent = episodeCount + (en ? ' / 9 EPISODES' : ' / 9 BÖLÜM');
+    if (progressFill) progressFill.style.width = (episodeCount / 9 * 100) + '%';
     if (progressTrack) {
         progressTrack.setAttribute('aria-valuenow', String(episodeCount));
-        progressTrack.setAttribute('aria-valuemax', '17');
+        progressTrack.setAttribute('aria-valuemax', '9');
     }
 }
 function setStoryComms(speakerTr, speakerEn, textTr, textEn) {
@@ -616,8 +620,8 @@ function storyMissionPrerequisiteMet(missionNumber, progress) {
 }
 function startStoryMission(missionNumber = 1) {
     const progress = getStoryProgress();
-    // Episodes 01 and 02 contain three legacy stages each. Save flags remain unchanged.
-    const episodeStart = window.LOST_SIGNAL_INTERIOR_MISSION_ONE !== false && [1, 4, 7, 10, 13].includes(missionNumber) ? missionNumber : 0;
+    // All nine episodes contain three legacy stages each. Save flags remain unchanged.
+    const episodeStart = window.LOST_SIGNAL_INTERIOR_MISSION_ONE !== false && [1, 4, 7, 10, 13, 16, 19, 22, 25].includes(missionNumber) ? missionNumber : 0;
     const episodeEnd = episodeStart ? episodeStart + 2 : 0;
     if (episodeStart) {
         for (let step = episodeStart; step <= episodeEnd; step++) {
@@ -710,7 +714,11 @@ function startStoryMission(missionNumber = 1) {
                 4:{5:'Kırık koridoru savun',6:'Bakım hatlarını onar'},
                 7:{8:'Tanıdık odadaki çelişkiyi araştır',9:'Uyanış savunmasını tamamla'},
                 10:{11:'Alt istasyon rölelerini onar',12:'Arşivdeki zaman çelişkisini çöz'},
-                13:{14:'Alt çekirdeğin kuşatmasını kır',15:'Piko bellek kanallarını onar'}
+                13:{14:'Alt çekirdeğin kuşatmasını kır',15:'Piko bellek kanallarını onar'},
+                16:{17:'İstasyon arşivindeki ismi çöz',18:'Komutan kilidini savun'},
+                19:{20:'Sessiz filonun devriyelerini geç',21:'Kayıp ismin arşivini araştır'},
+                22:{23:'Piko’nun hasarını onar',24:'Son savunma protokolünü çalıştır'},
+                25:{26:'Mor bağlantıyı uzak hattan güçlendir',27:'Hatırlayan kuleyi savun'}
             }[episodeStart];
             const description = document.createElement('p');
             description.textContent = 'İlerlemen kaydedildi. Sıradaki aşama: ' + stageNames[nextStage] +
