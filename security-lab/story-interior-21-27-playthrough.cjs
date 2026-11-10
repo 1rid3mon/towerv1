@@ -30,7 +30,12 @@ async function run(){
     assert.deepEqual(enemies,Array(count).fill(health),'Wrong enemy strength');
     if(needsLink){
      const before = await page.evaluate(() => __qa.linkUses);
-     if(mission===27)await page.waitForFunction(()=>__qa.finalBossWarning,{timeout:9000});
+     if(mission===27){
+      await page.waitForFunction(()=>__qa.finalBossWarning,{timeout:9000});
+      const evidence=path.join(__dirname,'browser-evidence','story-final-boss',process.env.BROWSER_ENGINE||'chromium');
+      fs.mkdirSync(evidence,{recursive:true});
+      await page.screenshot({path:path.join(evidence,'mission-27-boss-warning.png')});
+     }
      await page.waitForFunction(() => {
        const b=document.getElementById('link');
        return b && !b.disabled && __qa.combat && !document.getElementById('modal').classList.contains('open');
