@@ -15,7 +15,7 @@ Last updated: 2026-11-11 (Europe/Istanbul)
 | Package | Status | Evidence / changes |
 |---|---|---|
 | 0. Baseline and continuity | Complete | Verified `main` SHA, PR #97–99 merge state, current workflow jobs and failure log; established this file. |
-| 1. Story gameplay and reliability | In progress | Draft PR #101 adds a distinct final-wave boss tell and lets Piko's existing shield interrupt it; browser proof is pending in CI run 947 (`42903694479`). The existing 27-stage Chromium/WebKit runs cover mission completion and transitions but do not measure first-time human session duration or replace a guided manual playthrough. No claim that episodes meet the requested 8–12 minute target. |
+| 1. Story gameplay and reliability | In progress | Draft PR #101 adds a distinct final-wave boss tell and lets Piko's existing shield interrupt it; CI run 947 is pending. A separate `story/silent-fleet-routes` checkpoint (`006dfca`) adds three traversable paths and route-gated corridor access for mission 20; browser verification is pending. Existing 27-stage Chromium/WebKit runs cover completion and transitions but do not measure first-time human session duration. No claim that episodes meet the 8–12 minute target. |
 | 2. LOST SIGNAL art | Not started | Keep the current main menu as the immutable visual reference. The V17 enemy, Piko, companion, and boss assets/tests already exist; story interiors still need per-episode visual review and cohesive environment work. |
 | 3. Endless HUD | Not started | No changes yet. Preserve Endless economy/progression. |
 | 4. Skill mini-game replacement | Not started | No changes yet. Locate the current gambling-themed implementation before selecting a replacement; don't infer from file names. |
@@ -34,6 +34,6 @@ Last updated: 2026-11-11 (Europe/Istanbul)
 ## Next concrete steps
 
 1. Verify PR #101's finale encounter in Chromium and WebKit CI run 947; fix any real failure.
-2. Improve Story episode pacing and the Chapter 3 stealth route, without changing nine-episode save compatibility.
+2. Open and browser-test the saved mission 20 route package; improve Story episode pacing without changing nine-episode save compatibility.
 3. Review browser screenshots/artifacts; keep the main menu untouched.
 4. Continue in order: story, art, Endless HUD, skill mini-game, selected content, final QA. Update this file after each verified package.
