@@ -63,7 +63,15 @@ async function run(){
    };
    assert.equal(await page.evaluate(()=>__qa.gates.length),2,'Two bulkheads required');
    if(mission===21){
-    for(const station of ['GÖREV TANIMI','SES KAYDI','KİMLİK İMZASI']){await visit(station);await close()}
+    await visit('GÖREV TANIMI');
+    assert.match(await page.locator('#modal.open').innerText(),/Önceki kararda istasyon arşivini öne aldın/,'Saved station-trust choice must surface in the next episode');
+    await close();
+    const humanTrustPage=await browser.newPage({viewport:{width:1032,height:850},hasTouch:true,deviceScaleFactor:2});
+    await humanTrustPage.goto('http://127.0.0.1:4207/story-interior-missions21-27.html?mission=21&memory=preserve&callSign=piko&trust=human');
+    await humanTrustPage.evaluate(()=>{const n=__qa.stations.find(x=>x.name==='GÖREV TANIMI');__qa.player.x=n.x;__qa.player.y=n.y;__qa.interact()});
+    assert.match(await humanTrustPage.locator('#modal.open').innerText(),/Önceki kararda insan tanıklığına güvendin/,'Saved human-trust choice must surface in the next episode');
+    await humanTrustPage.close();
+    for(const station of ['SES KAYDI','KİMLİK İMZASI']){await visit(station);await close()}
     await visit('İSİM ARŞİVİ');await choose('KESİNLİKLE AYNI BİLİNÇ');
     assert.match(await page.locator('#feedback').innerText(),/aynı bilinç/);
     await choose('GÖREV ETİKETİ KİMLİĞİ KANITLAMAZ');await close();await visit('SONRAKİ BÖLME');

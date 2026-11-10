@@ -112,7 +112,10 @@ function handle(n){
 if(mission===21){
  if(n.type==='clue'&&phase===0){
   found.add(n.name);
-  const logs={'GÖREV TANIMI':'Eski arşiv ECHO protokolünü savunma görevi olarak tanımlar; bu bir kişi adı değil.',
+  const priorTrust=trust==='human'
+   ? 'Önceki kararda insan tanıklığına güvendin. Piko bu seçimi hatırlıyor; yine de kimliği imzalarla doğrulayalım.'
+   : 'Önceki kararda istasyon arşivini öne aldın. Piko bu seçimi hatırlıyor; arşiv imzasını ayrıca doğrulayalım.';
+  const logs={'GÖREV TANIMI':'Eski arşiv ECHO protokolünü savunma görevi olarak tanımlar; bu bir kişi adı değil. '+priorTrust,
    'SES KAYDI':'Kayıttaki bir ses: “Bana takılan görev kodu, bugün kim olduğumu belirlemiyor.”',
    'KİMLİK İMZASI':'Çekirdekte Piko tarafından yapılmış kişisel bir seçim imzası var; eski protokol ile aynı imzaya sahip değil.'};
   say(n.name,logs[n.name]);if(found.size===3){phase=1;hud()}return;
