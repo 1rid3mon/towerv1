@@ -3,7 +3,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),vm=require('node:vm');
 const {chromium,webkit}=require('playwright'),root=path.resolve(__dirname,'..');
 const raw=fs.readFileSync(path.join(root,'story-interior-missions21-27.js'),'utf8');new vm.Script(raw);
-const qa="window.__qa={player,stations,gates,enemies,interact,camera,collides,useLink,get phase(){return phase},get combat(){return combat},get round(){return round},get hp(){return hp},get linkUses(){return linkUses},get completed(){return complete}};";
+const qa="window.__qa={player,stations,gates,enemies,interact,camera,collides,useLink,get phase(){return phase},get combat(){return combat},get round(){return round},get hp(){return hp},get linkUses(){return linkUses},get finalBossWarning(){return enemies.some(e=>e.isFinalBoss&&e.telegraphUntil>performance.now())},get finalBossCountered(){return bossCounterUntil>performance.now()},get completed(){return complete}};";
 const injected=raw.replace(/\}\)\(\);\s*$/,qa+'\n})();');assert.notEqual(injected,raw,'QA instrument injection failed');
 const server=http.createServer((req,res)=>{
  const pathname=new URL(req.url,'http://localhost').pathname;
@@ -30,6 +30,12 @@ async function run(){
     assert.deepEqual(enemies,Array(count).fill(health),'Wrong enemy strength');
     if(needsLink){
      const before = await page.evaluate(() => __qa.linkUses);
+     if(mission===27){
+      await page.waitForFunction(()=>__qa.finalBossWarning,{timeout:9000});
+      const evidence=path.join(__dirname,'browser-evidence','story-final-boss',process.env.BROWSER_ENGINE||'chromium');
+      fs.mkdirSync(evidence,{recursive:true});
+      await page.screenshot({path:path.join(evidence,'mission-27-boss-warning.png')});
+     }
      await page.waitForFunction(() => {
        const b=document.getElementById('link');
        return b && !b.disabled && __qa.combat && !document.getElementById('modal').classList.contains('open');
@@ -47,6 +53,7 @@ async function run(){
          }));
          throw Error('Piko shield not activated: '+JSON.stringify(state));
        });
+     if(mission===27)assert.equal(await page.evaluate(()=>__qa.finalBossCountered),true,'Piko shield must interrupt the telegraphed finale strike');
     }
     for(let i=0;i<enemies.length;i++)for(let j=0;j<enemies[i];j++){
      const at=await page.evaluate(i=>{const q=__qa,e=q.enemies[i];q.player.x=490;q.player.y=300;const c=q.camera();return{x:(e.x-c.ox)*c.scale,y:(e.y-c.oy)*c.scale}},i);
@@ -56,7 +63,15 @@ async function run(){
    };
    assert.equal(await page.evaluate(()=>__qa.gates.length),2,'Two bulkheads required');
    if(mission===21){
-    for(const station of ['GÖREV TANIMI','SES KAYDI','KİMLİK İMZASI']){await visit(station);await close()}
+    await visit('GÖREV TANIMI');
+    assert.match(await page.locator('#modal.open').innerText(),/Önceki kararda istasyon arşivini öne aldın/,'Saved station-trust choice must surface in the next episode');
+    await close();
+    const humanTrustPage=await browser.newPage({viewport:{width:1032,height:850},hasTouch:true,deviceScaleFactor:2});
+    await humanTrustPage.goto('http://127.0.0.1:4207/story-interior-missions21-27.html?mission=21&memory=preserve&callSign=piko&trust=human');
+    await humanTrustPage.evaluate(()=>{const n=__qa.stations.find(x=>x.name==='GÖREV TANIMI');__qa.player.x=n.x;__qa.player.y=n.y;__qa.interact()});
+    assert.match(await humanTrustPage.locator('#modal.open').innerText(),/Önceki kararda insan tanıklığına güvendin/,'Saved human-trust choice must surface in the next episode');
+    await humanTrustPage.close();
+    for(const station of ['SES KAYDI','KİMLİK İMZASI']){await visit(station);await close()}
     await visit('İSİM ARŞİVİ');await choose('KESİNLİKLE AYNI BİLİNÇ');
     assert.match(await page.locator('#feedback').innerText(),/aynı bilinç/);
     await choose('GÖREV ETİKETİ KİMLİĞİ KANITLAMAZ');await close();await visit('SONRAKİ BÖLME');

@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),vm=require('node:vm');
 const {chromium,webkit}=require('playwright'),root=path.resolve(__dirname,'..'),raw=fs.readFileSync(path.join(root,'story-interior-missions16-20.js'),'utf8');
 new vm.Script(raw);
-const hook="window.__qa={player,stations,gates,enemies,interact,collides,camera,get phase(){return phase},get combat(){return combat},get round(){return round}};";
+const hook="window.__qa={player,stations,gates,enemies,interact,collides,camera,patrols,get phase(){return phase},get combat(){return combat},get round(){return round},get alerts(){return alerts},get routeChoice(){return routeChoice}};";
 const script=raw.replace(/\}\)\(\);\s*$/,hook+'\n})();');assert.notEqual(script,raw,'QA hook missing');
 const shell=fs.readFileSync(path.join(root,'story-interior-missions16-20.html'),'utf8');
 const server=http.createServer((req,res)=>{
@@ -25,7 +25,7 @@ async function play(){
  for(let i=0;i<hp.length;i++)for(let j=0;j<hp[i];j++){const point=await page.evaluate(i=>{const q=__qa,e=q.enemies[i];q.player.x=490;q.player.y=300;const c=q.camera();return{x:(e.x-c.ox)*c.scale,y:(e.y-c.oy)*c.scale}},i);await page.mouse.click(point.x,point.y)}
  await close();
  };
- assert.equal(await page.evaluate(()=>__qa.gates.length),2);
+ assert.equal(await page.evaluate(()=>__qa.gates.length),mission===20?6:2);
  if(mission===16){for(const name of ['ESKİ ÇIKIŞ KAYDI','DÖNGÜ KAYDI']){await visit(name);await close()}
  await visit('YÖNLENDİRİCİ');await close();await visit('HARİTA ANALİZİ');await choose('DÖNGÜ SİNYALİNE GİR');assert.match(await page.locator('#feedback').innerText(),/Döngü/);await choose('FİZİKSEL İZİ TAKİP ET');await close();await visit('GERÇEK ÇIKIŞ')}
  if(mission===17){for(const name of ['ÇEKİRDEK ETİKETİ','ARŞİV KAYDI','ESKİ SES KAYDI']){await visit(name);await close()}
@@ -36,7 +36,7 @@ async function play(){
  await visit('SAVUNMA KONSOLU');await close();await fight(5);await visit('KOMUTAN KİLİDİ');await choose('KİMLİK ANAHTARI');await close();await visit('GEÇİT')}
  if(mission===19){for(const name of ['TELEMETRİ A','TELEMETRİ B','TELEMETRİ C']){await visit(name);await close()}
  await visit('YÖRÜNGE ANALİZİ');await choose('NESNE KESİNLİKLE İKİ YERDE');assert.match(await page.locator('#feedback').innerText(),/gecikmesini/);await choose('GECİKMELİ VE YANSIMIŞ');await close();await visit('GÖZLEM GEÇİDİ')}
- if(mission===20){await visit('FİLO HARİTASI');await close();for(const name of ['DEVRE A','DEVRE B','ALARM DÜĞÜMÜ']){await visit(name);await choose('SENSÖRÜ KISA SÜRELİKLİ');await close()}await visit('FİLO ÇIKIŞI')}
+ if(mission===20){await visit('FİLO HARİTASI');await choose('ORTA TAŞIYICI');assert.equal(await page.evaluate(()=>__qa.routeChoice),'middle');assert.deepEqual(await page.evaluate(()=>({chosen:__qa.collides(358,298),blocked:__qa.collides(358,137.5)})),{chosen:false,blocked:true},'Chosen route must be physically traversable while other routes stay sealed');await close();await page.keyboard.down('ArrowDown');await page.waitForFunction(()=>__qa.player.y>280,{timeout:2500});await page.keyboard.up('ArrowDown');await page.keyboard.down('ArrowRight');await page.waitForFunction(()=>__qa.player.x>368,{timeout:2500});await page.keyboard.up('ArrowRight');await page.evaluate(()=>{const p=__qa.patrols(performance.now())[0];__qa.player.x=p.x;__qa.player.y=p.y});await page.waitForFunction(()=>__qa.alerts>0,{timeout:3500});await close();for(const name of ['DEVRE A','DEVRE B','ALARM DÜĞÜMÜ']){await visit(name);await choose('SENSÖRÜ KISA SÜRELİKLİ');await close()}await visit('FİLO ÇIKIŞI')}
  await page.locator('#modal.open #done').click();
  await page.waitForFunction(m=>window.__completed?.mission===m,mission,{timeout:5000});
  if(mission===17)assert.equal(await page.evaluate(()=>window.__completed.callSignChoice),'piko');
