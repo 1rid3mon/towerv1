@@ -14,7 +14,9 @@ const server=http.createServer((req,res)=>{
 });
 async function run(){
  await new Promise(resolve=>server.listen(4207,'127.0.0.1',resolve));
- const browser=await (process.env.BROWSER_ENGINE==='webkit'?webkit:chromium).launch({headless:true});
+ const launchOptions={headless:true};
+ if(process.env.BROWSER_EXECUTABLE)launchOptions.executablePath=process.env.BROWSER_EXECUTABLE;
+ const browser=await (process.env.BROWSER_ENGINE==='webkit'?webkit:chromium).launch(launchOptions);
  try{
   for(const mission of [21,22,23,24,25,26,27]){
    const page=await browser.newPage({viewport:{width:1032,height:850},hasTouch:true,deviceScaleFactor:2}),errors=[];

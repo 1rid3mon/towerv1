@@ -41,7 +41,9 @@ const server = http.createServer((req, res) => {
 });
 async function main() {
   await new Promise(resolve => server.listen(4217, '127.0.0.1', resolve));
-  const browser = await (process.env.BROWSER_ENGINE === 'webkit' ? webkit : chromium).launch({ headless: true });
+  const launchOptions = { headless: true };
+  if (process.env.BROWSER_EXECUTABLE) launchOptions.executablePath = process.env.BROWSER_EXECUTABLE;
+  const browser = await (process.env.BROWSER_ENGINE === 'webkit' ? webkit : chromium).launch(launchOptions);
   try {
     const context = await browser.newContext({ viewport: {width: 1180,height: 820},hasTouch: true });
     await context.route(/(?:googleapis\.com|firestore\.googleapis\.com|identitytoolkit\.googleapis\.com|securetoken\.googleapis\.com)/, r => r.abort());
