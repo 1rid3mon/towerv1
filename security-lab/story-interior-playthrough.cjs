@@ -46,6 +46,9 @@ async function play(){
     await station('console');
     for(const i of [0,1,2])await page.locator('#fuse button[data-i="'+i+'"]').click();
     await close();await station('door');await close();await station('defense');await close();
+    const approaching=await page.evaluate(()=>__qa.foes.map(e=>({x:e.x,y:e.y})));
+    await page.waitForFunction(before=>__qa.foes.some((e,i)=>e.hp>0&&e.x<before[i].x-5),approaching,{timeout:2500});
+    assert.match(await page.locator('#status').innerText(),/Kalan tehdit: 3/);
     await defeat();await station('defense');
    }else if(mission===2){
     await station('exit');await close();await defeat();
