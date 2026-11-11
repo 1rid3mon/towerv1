@@ -4,7 +4,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium}=require('playwright'),root=path.resolve(__dirname,'..');
-const instruments='window.__qa={p,stations:typeof nodes==="undefined"?stations:nodes,foes:typeof foes==="undefined"?enemies:foes,interact,phase:()=>phase,gates:typeof gates==="undefined"?[]:gates,collision:typeof collision==="undefined"?()=>false:collision};';
+const instruments='window.__qa={p,stations:typeof nodes==="undefined"?stations:nodes,get foes(){return typeof foes==="undefined"?enemies:foes},base:typeof base==="undefined"?null:base,turret:typeof turret==="undefined"?null:turret,interact,phase:()=>phase,gates:typeof gates==="undefined"?[]:gates,collision:typeof collision==="undefined"?()=>false:collision};';
 const server=http.createServer((req,res)=>{
  if(new URL(req.url,'http://localhost').pathname==='/story-interior-completion.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(fs.readFileSync(path.join(root,'story-interior-completion.js'),'utf8'));return}
 
@@ -46,6 +46,15 @@ async function play(){
     await station('console');
     for(const i of [0,1,2])await page.locator('#fuse button[data-i="'+i+'"]').click();
     await close();await station('door');await close();await station('defense');await close();
+    const approaching=await page.evaluate(()=>__qa.foes.map(e=>({x:e.x,y:e.y})));
+    await page.waitForFunction(before=>__qa.foes.some((e,i)=>e.hp>0&&e.x<before[i].x-5),approaching,{timeout:2500});
+    assert.match(await page.locator('#status').innerText(),/Kalan tehdit: 3/);
+    await page.evaluate(()=>{const q=__qa;q.base.hp=2;q.foes[0].x=q.turret.x+40;q.foes[0].y=q.turret.y});
+    await page.locator('#retry').waitFor({timeout:4500});
+    await page.locator('#retry').click();
+    assert.equal(await page.evaluate(()=>__qa.phase()),3,'retry must return to defense checkpoint');
+    assert.deepEqual(await page.evaluate(()=>({hp:__qa.base.hp,positions:__qa.foes.map(e=>e.x)})),{hp:12,positions:[815,855,815]},'retry restores reactor and attackers');
+    await station('defense');await close();
     await defeat();await station('defense');
    }else if(mission===2){
     await station('exit');await close();await defeat();
