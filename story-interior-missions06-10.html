@@ -11,7 +11,7 @@ const episodeStart=Number(new URLSearchParams(location.search).get('episode'))||
 const missionHeading=episodeStart&&mission>=episodeStart&&mission<=episodeStart+2 ? 'BÖLÜM '+String(Math.floor((episodeStart-1)/3)+1).padStart(2,'0')+' · AŞAMA '+(mission-episodeStart+1)+'/3' : 'GÖREV '+mission;
 const canvas=document.getElementById('view'),ctx=canvas.getContext('2d'),objective=document.getElementById('objective'),modal=document.getElementById('modal'),panel=document.getElementById('panel'),pad=document.getElementById('pad'),knob=document.getElementById('knob');
 const MAP_W=1120,MAP_H=610,player={x:132,y:300,r:12},keys=new Set(),joy={x:0,y:0,id:null};
-let width=0,height=0,dpr=1,previous=0,phase=0,dialog=false,finished=false,gateOpen=false,switches=0,seq=[],shield=20,attackTime=0,combat=false,round=0,beam=null;
+let width=0,height=0,dpr=1,previous=0,phase=0,dialog=false,finished=false,gateOpen=false,switches=0,seq=[],shield=20,breaches=0,combat=false,round=0,beam=null;
 const visited=new Set(),logs=new Set(),walls=[],gates=[],stations=[],foes=[],hazards=[],pressure={inner:8,outer:4};
 const power=new URLSearchParams(location.search).get('power');
 const names={6:'BÖLMENİN ÖTESİNDE',7:'SİNYAL BÜKÜLÜYOR',8:'TANIDIK ODA',9:'UYANMAYI SEÇMEK',10:'AŞAĞIDAKİ KAPI'};
@@ -49,7 +49,7 @@ function init(){
 }
 init();
 function remaining(){return foes.filter(e=>e.hp>0)}
-function drawHud(){objective.innerHTML='<b>'+missionHeading+' · '+names[mission]+'</b><div>'+objectives[mission][Math.min(phase,objectives[mission].length-1)]+'</div><span id="mapinfo">WASD / oklar · E veya ETKİLEŞ · iPad joystick</span>'+(combat?'<div>Çekirdek: '+shield+' · Düşman: '+remaining().length+' · Dalga: '+round+'</div>':'')+(mission===8?'<div>Bulunan kanıt: '+logs.size+'/3</div>':'')};drawHud();
+function drawHud(){objective.innerHTML='<b>'+missionHeading+' · '+names[mission]+'</b><div>'+objectives[mission][Math.min(phase,objectives[mission].length-1)]+'</div><span id="mapinfo">WASD / oklar · E veya ETKİLEŞ · iPad joystick</span>'+(combat?'<div>Çekirdek: '+shield+' · Düşman: '+remaining().length+' · Dalga: '+round+' · Sızma: '+breaches+'</div>':'')+(mission===8?'<div>Bulunan kanıt: '+logs.size+'/3</div>':'')};drawHud();
 function show(h){dialog=true;modal.classList.add('open');panel.innerHTML=h}
 function hide(){dialog=false;modal.classList.remove('open')}
 function message(title,body){show('<h2>'+title+'</h2><p>'+body+'</p><button id="continue">DEVAM</button>');document.getElementById('continue').onclick=hide}
@@ -58,8 +58,8 @@ function pressurePanel(){show('<h2>İKİ BÖLMELİ KİLİT</h2><p>Kapının içi
 function error(s){const el=document.getElementById('feedback');if(el)el.textContent=s}
 function near(n){return Math.hypot(n.x-player.x,n.y-player.y)<72}
 function finish(body){if(finished)return;finished=true;combat=false;show('<h2>'+missionHeading+' TAMAMLANDI</h2><p>'+body+'</p><button id="done">'+(episodeStart&&mission<episodeStart+2?'ARA KAYDI AL →':episodeStart?'BÖLÜMÜ TAMAMLA →':'GÖREV PANOSUNA DÖN')+'</button>');document.getElementById('done').onclick=()=>((payload)=>window.StoryInteriorCompletion ? window.StoryInteriorCompletion.submit(payload) : parent.postMessage(payload,location.origin))({type:'lost-signal-interior-mission-complete',mission})}
-function waves(count,hp){round++;combat=true;foes.length=0;for(let k=0;k<count;k++){foes.push({x:780+(k%2)*34,y:140+k*66,hp,maxHp:hp,speed:18+Math.floor(k/2)*3})}attackTime=0;drawHud()}
-function fightHelp(){message('SAVUNMA','Düşmanların üstüne dokunarak veya tıklayarak kuleleri hedefle. Reaktör hasar alırsa saldırıyı yeniden dene.')}
+function waves(count,hp){round++;combat=true;breaches=0;foes.length=0;for(let k=0;k<count;k++){const startX=780+(k%2)*34,startY=140+k*66;foes.push({x:startX,y:startY,startX,startY,hp,maxHp:hp,speed:24+Math.floor(k/2)*4,breachUntil:0})}drawHud()}
+function fightHelp(){message('SAVUNMA','Düşmanların üstüne dokunarak veya tıklayarak kuleleri hedefle. Çekirdeğe ulaşan tehdit hasar verip yeniden yaklaşır; kalkan tükenirse aynı dalgayı yeniden dene.')}
 function failFight(){combat=false;shield=mission===9?(power==='shield'?30:22):18;foes.length=0;const lost=round;round--;show('<h2>ÇEKİRDEK HASAR ALDI</h2><p>'+lost+'. dalga başarısız. Kanıtlar ve önceki adımlar kaybolmadı.</p><button id="retry">YENİDEN DENE</button>');document.getElementById('retry').onclick=()=>{hide();waves(lost===1?3:5,lost===1?3:4)}}
 function handle(n){
  if(mission===6){
@@ -127,7 +127,10 @@ function draw(time){
  ctx.restore();
 }
 canvas.addEventListener('pointerdown',e=>{if(dialog||!combat||finished)return;const {scale,ox,oy}=projection(),x=e.clientX/scale+ox,y=e.clientY/scale+oy;const target=remaining().find(z=>Math.hypot(z.x-x,z.y-y)<36);if(!target)return;target.hp--;beam={x:target.x,y:target.y,until:performance.now()+180};if(remaining().length===0){combat=false;if(mission===7){phase=3}else if(mission===9){phase=round===1?2:4}drawHud();message('SALDIRI DURDURULDU',mission===9&&round===1?'İlk dalga durdu. Kalkan modülüne yaklaş.':'Çekirdek korundu. Görev hedefini takip et.')}else drawHud()});
-function tick(t){const dt=Math.min((t-previous)/1000||0,.04);previous=t;movement(dt);if(combat&&!dialog){attackTime+=dt;for(const f of remaining()){const vx=490-f.x,vy=308-f.y,m=Math.hypot(vx,vy)||1;f.x+=vx/m*f.speed*dt;f.y+=vy/m*f.speed*dt}if(attackTime>3.5){attackTime=0;shield-=mission===9?4:3;if(shield<=0)failFight();drawHud()}}draw(t);requestAnimationFrame(tick)}requestAnimationFrame(tick);
+function tick(t){const dt=Math.min((t-previous)/1000||0,.04);previous=t;movement(dt);if(combat&&!dialog){for(const f of remaining()){
+ const vx=490-f.x,vy=308-f.y,m=Math.hypot(vx,vy)||1;f.x+=vx/m*f.speed*dt;f.y+=vy/m*f.speed*dt;
+ if(m<36&&t>=f.breachUntil){shield=Math.max(0,shield-(mission===9?4:3));breaches++;f.x=f.startX;f.y=f.startY;f.breachUntil=t+900;drawHud();if(shield<=0){failFight();break}}
+}}draw(t);requestAnimationFrame(tick)}requestAnimationFrame(tick);
 addEventListener('keydown',e=>{const key=e.key.toLowerCase();keys.add(key);if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(key))e.preventDefault();if((key==='e'||key===' ')&&!e.repeat)interact()});addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));function clearControls(){keys.clear();joy.x=joy.y=0;joy.id=null;knob.style.transform=''}addEventListener('blur',clearControls);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearControls()});
 document.getElementById('act').onclick=interact;document.getElementById('quit').onclick=()=>parent.postMessage({type:'lost-signal-interior-close'},location.origin);
 function joystick(e){const box=pad.getBoundingClientRect(),x=e.clientX-box.left-box.width/2,y=e.clientY-box.top-box.height/2,mag=Math.max(1,Math.hypot(x,y)),amount=Math.min(1,mag/44);joy.x=x/mag*amount;joy.y=y/mag*amount;knob.style.transform='translate('+(joy.x*37)+'px,'+(joy.y*37)+'px)'}
