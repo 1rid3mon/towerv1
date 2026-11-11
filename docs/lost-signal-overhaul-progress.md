@@ -59,3 +59,9 @@ Last updated: 2026-11-11 (Europe/Istanbul, morning)
 - Draft PR #104: https://github.com/1rid3mon/towerv1/pull/104, branch `story/maintenance-live-passages`, commit `5daba65`. Mission 6's three repair actions each deactivate a matching electrical hazard, opening a traversable passage; wrong choices leave the hazard active. Files: `story-interior-missions06-10.html`, `security-lab/story-interior-06-10-playthrough.cjs`.
 - Local syntax and diff checks passed. Local Playwright was blocked by the workspace Chromium socket restriction. CI run 960 is in progress; do not mark it verified until both browser engines finish.
 - Next: check runs 958 and 960, repair any failed gameplay test, then continue Story depth. Main and production remain unchanged.
+
+## Checkpoint — first defense movement
+
+- Draft PR #105: https://github.com/1rid3mon/towerv1/pull/105, branch `story/first-defense-approach`, commit `a4099f5`. Mission 1 attackers now advance from separate entry positions, damage the reactor only after reaching it, and reset their positions/attack timer on retry. Files: `story-interior-mission01.html`, `security-lab/story-interior-playthrough.cjs`.
+- Local JS syntax and diff checks passed. The browser test observes actual enemy movement and checks the threat HUD. CI pending; human episode duration remains unmeasured. This branch uses main as its base and omits PR #102's separate mission 2 edits.
+- Next: resolve CI results for PR #103–105 and continue Story gameplay. All packages remain drafts; no main merge or production deployment.
