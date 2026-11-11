@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),vm=require('node:vm');
 const {chromium,webkit}=require('playwright'),root=path.resolve(__dirname,'..'),raw=fs.readFileSync(path.join(root,'story-interior-missions16-20.js'),'utf8');
 new vm.Script(raw);
-const hook="window.__qa={player,stations,gates,enemies,interact,collides,camera,patrols,get phase(){return phase},get combat(){return combat},get round(){return round},get alerts(){return alerts},get routeChoice(){return routeChoice}};";
+const hook="window.__qa={player,stations,gates,enemies,interact,collides,camera,patrols,get phase(){return phase},get combat(){return combat},get hp(){return hp},set hp(v){hp=v},get breaches(){return breaches},get round(){return round},get alerts(){return alerts},get routeChoice(){return routeChoice}};";
 const script=raw.replace(/\}\)\(\);\s*$/,hook+'\n})();');assert.notEqual(script,raw,'QA hook missing');
 const shell=fs.readFileSync(path.join(root,'story-interior-missions16-20.html'),'utf8');
 const server=http.createServer((req,res)=>{
@@ -30,8 +30,15 @@ async function play(){
  await visit('YÖNLENDİRİCİ');await close();await visit('HARİTA ANALİZİ');await choose('DÖNGÜ SİNYALİNE GİR');assert.match(await page.locator('#feedback').innerText(),/Döngü/);await choose('FİZİKSEL İZİ TAKİP ET');await close();await visit('GERÇEK ÇIKIŞ')}
  if(mission===17){for(const name of ['ÇEKİRDEK ETİKETİ','ARŞİV KAYDI','ESKİ SES KAYDI']){await visit(name);await close()}
  await visit('PİKO İLE KONUŞ');await choose('SEÇİMİ PİKOYA BIRAK');await close();await visit('ÇAĞRI ADI KAYDI')}
- if(mission===18){await visit('GÜVENLİK ŞEMASI');await close();await visit('SAVUNMA KONSOLU');await close();await fight(3);
- await visit('ENERJİ KÖPRÜSÜ');await choose('GÜCÜ DENGELİ DAĞIT');await close();await visit('SAVUNMA KONSOLU');await close();await fight(4);
+ if(mission===18){await visit('GÜVENLİK ŞEMASI');await close();await visit('SAVUNMA KONSOLU');await close();
+ const intact=await page.evaluate(()=>__qa.hp);await page.waitForTimeout(3400);assert.equal(await page.evaluate(()=>__qa.hp),intact,'Core must not take timer-only damage');
+ await page.evaluate(()=>{const q=__qa,e=q.enemies[0];e.x=510;e.y=300});await page.waitForFunction(()=>__qa.breaches===1,{timeout:2000});
+ assert.equal(await page.evaluate(()=>__qa.hp),intact-3,'Only a real scout breach damages the core');
+ assert.equal(await page.evaluate(()=>__qa.enemies[0].hp>0),true,'Breached threat must return instead of counting as killed');await fight(3);
+ await visit('ENERJİ KÖPRÜSÜ');await choose('GÜCÜ DENGELİ DAĞIT');await close();await visit('SAVUNMA KONSOLU');await close();
+ await page.evaluate(()=>{const q=__qa;q.hp=3;const e=q.enemies[0];e.x=510;e.y=300});await page.locator('#modal.open #retry').waitFor({timeout:2000});
+ assert.equal(await page.evaluate(()=>__qa.phase),3,'Losing the second wave keeps the bridge checkpoint');await page.locator('#retry').click();
+ await visit('SAVUNMA KONSOLU');await close();assert.equal(await page.evaluate(()=>__qa.round),2,'Retry restarts the same wave');await fight(4);
  for(const name of ['MÜHÜR A','MÜHÜR B','MÜHÜR C']){await visit(name);await choose('MÜHÜRLE');await close()}
  await visit('SAVUNMA KONSOLU');await close();await fight(5);await visit('KOMUTAN KİLİDİ');await choose('KİMLİK ANAHTARI');await close();await visit('GEÇİT')}
  if(mission===19){for(const name of ['TELEMETRİ A','TELEMETRİ B','TELEMETRİ C']){await visit(name);await close()}
