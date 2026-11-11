@@ -123,3 +123,10 @@ Last updated: 2026-11-11 (Europe/Istanbul, morning)
 - Changed files: `story-interior-missions16-20.js`, `security-lab/story-interior-16-20-playthrough.cjs`, and this document.
 - Remaining Stage 1: validate this package in CI; then revisit episode 6 false-exit tension and chapter continuity, followed by episodes 3 and 8 interactions, real touch play and measured pacing across all nine. Stages 2–5 and final Stage 6 remain outstanding. Do not merge main: its Git-linked Vercel production auto-deploy risk remains, and batch release approval has not been given.
 - Next concrete step: open the stacked PR against `overhaul/story-stage1-integration`, inspect its CI once, repair any failing root cause, and update this checkpoint with exact commit/PR and results.
+
+## Episode 6 false-exit follow-up
+
+- Commander defense was published as draft PR #107, commit `e3224870283f3129d9740956cf7999bda8d7b379`, stacked on #106. Its Chromium/WebKit CI is pending at the time of this note; check run `43002263572` before relying on it.
+- Mission 16 now has a moving echo scanner across the middle sector after relay activation. The player can observe its visible detection circle, use the left service edge to reach the map, and recover near that edge when caught. A browser playthrough exercises detection and a real keyboard traversal around the scanner before interacting with the map. This adds an actual route decision without changing the story completion payload or old save keys.
+- Changed files for this follow-up: `story-interior-missions16-20.js`, `security-lab/story-interior-16-20-playthrough.cjs`, and this document. Local syntax, behavior tests and CI result must be recorded after verification. No timed human playthrough or physical iPad test yet.
+- Next step: publish this follow-up as a stacked draft PR only after local checks, then inspect CI and repair any failing browser behavior. Continue episode 6 continuity and the remaining nine-episode gameplay review before visual work. Main and production remain unchanged.

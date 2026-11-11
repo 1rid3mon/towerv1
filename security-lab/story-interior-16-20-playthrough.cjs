@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),vm=require('node:vm');
 const {chromium,webkit}=require('playwright'),root=path.resolve(__dirname,'..'),raw=fs.readFileSync(path.join(root,'story-interior-missions16-20.js'),'utf8');
 new vm.Script(raw);
-const hook="window.__qa={player,stations,gates,enemies,interact,collides,camera,patrols,get phase(){return phase},get combat(){return combat},get hp(){return hp},set hp(v){hp=v},get breaches(){return breaches},get round(){return round},get alerts(){return alerts},get routeChoice(){return routeChoice}};";
+const hook="window.__qa={player,stations,gates,enemies,interact,collides,camera,patrols,echoScanner,get phase(){return phase},get combat(){return combat},get hp(){return hp},set hp(v){hp=v},get breaches(){return breaches},get loops(){return loops},get round(){return round},get alerts(){return alerts},get routeChoice(){return routeChoice}};";
 const script=raw.replace(/\}\)\(\);\s*$/,hook+'\n})();');assert.notEqual(script,raw,'QA hook missing');
 const shell=fs.readFileSync(path.join(root,'story-interior-missions16-20.html'),'utf8');
 const server=http.createServer((req,res)=>{
@@ -27,7 +27,12 @@ async function play(){
  };
  assert.equal(await page.evaluate(()=>__qa.gates.length),mission===20?6:2);
  if(mission===16){for(const name of ['ESKİ ÇIKIŞ KAYDI','DÖNGÜ KAYDI']){await visit(name);await close()}
- await visit('YÖNLENDİRİCİ');await close();await visit('HARİTA ANALİZİ');await choose('DÖNGÜ SİNYALİNE GİR');assert.match(await page.locator('#feedback').innerText(),/Döngü/);await choose('FİZİKSEL İZİ TAKİP ET');await close();await visit('GERÇEK ÇIKIŞ')}
+ await visit('YÖNLENDİRİCİ');await close();await page.waitForTimeout(1200);await page.evaluate(()=>{const q=__qa,p=q.echoScanner(performance.now());q.player.x=p.x;q.player.y=p.y});
+ await page.waitForFunction(()=>__qa.loops===1,{timeout:3000});assert.equal(await page.evaluate(()=>Math.round(__qa.player.x)),424,'Echo scanner returns the player to the service edge');await close();
+ await page.keyboard.down('ArrowDown');await page.waitForFunction(()=>__qa.player.y>430,{timeout:2600});await page.keyboard.up('ArrowDown');
+ await page.keyboard.down('ArrowRight');await page.waitForFunction(()=>__qa.player.x>545,{timeout:2600});await page.keyboard.up('ArrowRight');
+ assert.equal(await page.evaluate(()=>__qa.loops),1,'The service edge is a usable route around the scanner');await page.keyboard.press('e');
+ await choose('DÖNGÜ SİNYALİNE GİR');assert.match(await page.locator('#feedback').innerText(),/Döngü/);await choose('FİZİKSEL İZİ TAKİP ET');await close();await visit('GERÇEK ÇIKIŞ')}
  if(mission===17){for(const name of ['ÇEKİRDEK ETİKETİ','ARŞİV KAYDI','ESKİ SES KAYDI']){await visit(name);await close()}
  await visit('PİKO İLE KONUŞ');await choose('SEÇİMİ PİKOYA BIRAK');await close();await visit('ÇAĞRI ADI KAYDI')}
  if(mission===18){await visit('GÜVENLİK ŞEMASI');await close();await visit('SAVUNMA KONSOLU');await close();
