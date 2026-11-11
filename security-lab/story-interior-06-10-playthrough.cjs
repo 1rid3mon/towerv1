@@ -7,7 +7,7 @@ const {chromium,webkit}=require('playwright');
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'story-interior-missions06-10.html'),'utf8');
 assert(source.includes('İÇ SEKTÖR A'), 'missing interior station map');
 const script=source.match(/<script>([\s\S]*?)<\/script>/);assert(script);new(require('node:vm').Script)(script[1]);
-const qa='window.__qa={player,stations,gates,foes,handle,interact,get phase(){return phase},get round(){return round},get shield(){return shield},get combat(){return combat},collisions,projection};';
+const qa='window.__qa={player,stations,gates,hazards,foes,handle,interact,get phase(){return phase},get round(){return round},get shield(){return shield},get combat(){return combat},collisions,projection};';
 assert(source.includes('})();\n</script>'));
 const html=source.replace('})();\n</script>',qa+'\n})();\n</script>');
 const server=http.createServer((req,res)=>{
@@ -54,7 +54,14 @@ async function run(){
    assert.equal(gates.length,2,'expected bulkhead gates');
    if(mission===6){
     await visit('brief');await close();
-    for(const [label,choice] of [['HAT A','YEŞİL'],['HAT B','MAVİ'],['HAT C','SARI']]){await visit('repair',label);await choose(choice);await close()}
+    assert.deepEqual(await page.evaluate(()=>__qa.hazards.map(h=>({active:h.active,blocked:__qa.collisions(h.x+h.w/2,h.y+h.h/2)}))),Array(3).fill({active:true,blocked:true}));
+    for(const [index,[label,choice]] of [['HAT A','YEŞİL'],['HAT B','MAVİ'],['HAT C','SARI']].entries()){
+     await visit('repair',label);
+     if(index===0){await choose('SARI');assert.match(await page.locator('#feedback').innerText(),/Hatalı bağlantı/);assert.equal(await page.evaluate(()=>__qa.hazards[0].active),true)}
+     await choose(choice);await close();
+     const fields=await page.evaluate(()=>__qa.hazards.map(h=>({active:h.active,blocked:__qa.collisions(h.x+h.w/2,h.y+h.h/2)})));
+     assert.deepEqual(fields,Array.from({length:3},(_,i)=>({active:i>index,blocked:i>index})),'repair must open exactly its matching passage');
+    }
     assert.equal(await page.evaluate(()=>__qa.phase),2);
     await visit('balance');await choose('6 V + 6 V');await close();
     await visit('exit');
@@ -82,7 +89,11 @@ async function run(){
    if(mission===10){
     await visit('brief');await close();await visit('node1');await choose('323');await close();
     await visit('node2');await choose('İÇERİDEN');await close();
-    await visit('lock');await choose('ÖNCE BASINÇ DENGESİ');await close();await visit('exit');
+    await visit('lock');await page.locator('#open-pressure').click();
+    assert.match(await page.locator('#feedback').innerText(),/Basınç farkı 4 kPa/,'unequal pressure must keep the door locked');
+    await page.locator('#equalize').click();await page.locator('#equalize').click();
+    assert.match(await page.locator('#panel').innerText(),/içi 6 kPa, dışı 6 kPa/);
+    await page.locator('#open-pressure').click();await close();await visit('exit');
    }
    await page.locator('#done').click();
    await page.waitForFunction(m=>window.__completed?.mission===m,mission,{timeout:5000});

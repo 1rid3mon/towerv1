@@ -3,7 +3,7 @@ const mission=Number(new URLSearchParams(location.search).get('mission'));if(mis
 const episodeStart=Number(new URLSearchParams(location.search).get('episode'))||0;
 const missionHeading=episodeStart&&mission>=episodeStart&&mission<=episodeStart+2 ? 'BÖLÜM '+String(Math.floor((episodeStart-1)/3)+1).padStart(2,'0')+' · AŞAMA '+(mission-episodeStart+1)+'/3' : 'GÖREV '+mission;
 const canvas=document.getElementById('view'),ctx=canvas.getContext('2d'),objective=document.getElementById('objective'),modal=document.getElementById('modal'),panel=document.getElementById('panel'),pad=document.getElementById('pad'),knob=document.getElementById('knob');
-const W=1100,H=590,player={x:135,y:300,r:13},keys=new Set(),joy={x:0,y:0,id:null},walls=[],gates=[],stations=[],enemies=[],found=new Set();
+const W=1100,H=590,player={x:135,y:300,r:13},keys=new Set(),joy={x:0,y:0,id:null},walls=[],gates=[],stations=[],enemies=[],found=new Set();let routeChoice=null;
 const names={16:'SAHTE ÇIKIŞ',17:'ARŞİVDEKİ İSİM',18:'KİLİT SENİ TANIYOR',19:'İMKÂNSIZ YÖRÜNGE',20:'SESSİZ FİLO'};
 const goals={
 16:['İki bozuk çıkış kaydını bul.','Alt ağdaki döngüyü izleyerek sapmayı bul.','Doğru yönlendiriciyi çalıştır.','Gerçek çıkıştan ayrıl.'],
@@ -16,9 +16,16 @@ let vw=0,vh=0,last=0,phase=0,dialog=false,complete=false,combat=false,round=0,hp
 function wall(x,y,w,h){walls.push({x,y,w,h})}function gate(x,y,w,h,openPhase){gates.push({x,y,w,h,openPhase})}function station(x,y,type,name){stations.push({x,y,type,name})}
 function build(){
 wall(25,25,1050,15);wall(25,550,1050,15);wall(25,25,15,540);wall(1060,25,15,540);
-wall(348,40,20,220);wall(348,336,20,214);wall(706,40,20,220);wall(706,336,20,214);
-gate(348,260,20,76,mission===16?1:mission===18?1:mission===20?1:0);
-gate(706,260,20,76,mission===16?2:mission===18?4:mission===20?2:0);
+if(mission===20){
+ for(const x of [348,706]){
+  wall(x,40,20,45);wall(x,190,20,70);wall(x,336,20,64);wall(x,475,20,75);
+  gate(x,85,20,105,99);gate(x,260,20,76,99);gate(x,400,20,75,99);
+ }
+}else{
+ wall(348,40,20,220);wall(348,336,20,214);wall(706,40,20,220);wall(706,336,20,214);
+ gate(348,260,20,76,mission===16?1:mission===18?1:0);
+ gate(706,260,20,76,mission===16?2:mission===18?4:0);
+}
 if(mission===16){
  station(149,125,'clue','ESKİ ÇIKIŞ KAYDI');station(253,455,'clue','DÖNGÜ KAYDI');
  station(486,139,'relay','YÖNLENDİRİCİ');station(563,450,'map','HARİTA ANALİZİ');
@@ -46,7 +53,7 @@ if(mission===20){
 }
 build();
 function resize(){vw=innerWidth;vh=innerHeight;const scale=Math.min(devicePixelRatio||1,2);canvas.width=vw*scale;canvas.height=vh*scale;ctx.setTransform(scale,0,0,scale,0,0)}addEventListener('resize',resize);resize();
-function hud(){objective.innerHTML='<b>'+missionHeading+' · '+names[mission]+'</b><div>'+goals[mission][Math.min(phase,goals[mission].length-1)]+'</div><small>WASD · oklar · E · iPad joystick</small>'+(combat?'<div>Çekirdek '+hp+' · Tehdit '+enemies.filter(e=>e.hp>0).length+' · Dalga '+round+'</div>':'')+(mission===20?'<div>Devriye alarmı: '+alerts+' · Kırmızı görüş alanından kaçın.</div>':'')};hud();
+function hud(){objective.innerHTML='<b>'+missionHeading+' · '+names[mission]+'</b><div>'+goals[mission][Math.min(phase,goals[mission].length-1)]+'</div><small>WASD · oklar · E · iPad joystick</small>'+(combat?'<div>Çekirdek '+hp+' · Tehdit '+enemies.filter(e=>e.hp>0).length+' · Dalga '+round+'</div>':'')+(mission===20?'<div>Rota: '+(routeChoice==='upper'?'ÜST KANAL':routeChoice==='middle'?'ORTA TAŞIYICI':routeChoice==='lower'?'ALT GALERİ':'SEÇİM BEKLİYOR')+' · Devriye alarmı: '+alerts+' · Kırmızı görüş alanından kaçın.</div>':'')};hud();
 function show(html){dialog=true;modal.classList.add('open');panel.innerHTML=html}function hide(){dialog=false;modal.classList.remove('open')}
 function say(title,body){show('<h2>'+title+'</h2><p>'+body+'</p><button id="continue">DEVAM</button>');document.getElementById('continue').onclick=hide}
 function pick(title,body,options,cb){show('<h2>'+title+'</h2><p>'+body+'</p><div id="options"></div><p id="feedback" role="status"></p><button id="cancel">KAPAT</button>');document.getElementById('cancel').onclick=hide;const box=document.getElementById('options');for(const [label,value] of options){const button=document.createElement('button');button.textContent=label;button.onclick=()=>cb(value);box.appendChild(button)}}
@@ -80,7 +87,7 @@ if(mission===19){
  if(n.type==='exit'&&phase===2){finish('Mor yapının güvenilir rota ipuçları ayrıştırıldı.');return}
 }
 if(mission===20){
- if(n.type==='brief'&&phase===0){phase=1;hud();say('SESSİZ FİLO','Filo üç ayrı güvenlik devresiyle korunuyor. Kontrol düğümlerini sessizce etkisizleştir.');return}
+if(n.type==='brief'&&phase===0){pick('FİLO GİRİŞ ROTASI','Üç bağlantıdan biri açık kalacak. Kısa üst kanal tarama ışığına daha açık; alt galeri uzundur ama daha iyi örtü sağlar.',[['ÜST SERVİS KANALI · KISA / AÇIK','upper'],['ORTA TAŞIYICI · DENGELİ','middle'],['ALT KABLO GALERİSİ · UZUN / ÖRTÜLÜ','lower']],v=>{routeChoice=v;const lane={upper:85,middle:260,lower:400}[v];for(const g of gates)g.openPhase=g.y===lane?1:99;phase=1;hud();say('SESSİZ FİLO','Rota kilitlendi. Bu geçitte yalnızca seçtiğin koridor açık. Devriye hareketini izle, sensör halkasına girmeden DEVRE A\'ya ulaş.');});return}
  if(n.type==='stealth'&&[1,2,3].includes(phase)){
  const order=['DEVRE A','DEVRE B','ALARM DÜĞÜMÜ'];if(n.name!==order[phase-1]){say('GÜVENLİK','Önce '+order[phase-1]+' devre dışı bırakılmalı.');return}
  pick(n.name,'Sistem alarmını tetiklemeden geçmek için ne yapmalısın?', [['SENSÖRÜ KISA SÜRELİKLİ KARART','yes'],['TÜM ALANIN GÜCÜNÜ KES','no']],v=>{if(v==='no'){alerts++;error('Ani güç kesintisi alarm üretti. Savunma yeniden kuruldu.');return}phase++;hud();say('DEVRE GİZLENDİ',n.name+' devre dışı, geçiş penceresi açıldı.')});return}
@@ -89,7 +96,7 @@ if(mission===20){
 say('KİLİTLİ','Mevcut görev adımını tamamla.');
 }
 function patrols(t){if(mission!==20)return[];return[
- {x:515,y:295+140*Math.sin(t/1550),radius:62,active:phase===1},
+ {x:515,y:235+100*Math.sin(t/1550),radius:54,active:phase===1},
  {x:850,y:295+140*Math.sin(t/1750+1.1),radius:68,active:phase===2}
 ]}
 function interact(){if(dialog||complete)return;const n=stations.filter(s=>Math.hypot(player.x-s.x,player.y-s.y)<75).sort((a,b)=>Math.hypot(player.x-a.x,player.y-a.y)-Math.hypot(player.x-b.x,player.y-b.y))[0];if(n){safeUntil=performance.now()+1100;handle(n)}}
@@ -99,6 +106,7 @@ function camera(){const scale=Math.min(vw/760,vh/450,1.6),ox=Math.max(0,Math.min
 function draw(time){ctx.fillStyle='#06101b';ctx.fillRect(0,0,vw,vh);const {scale,ox,oy}=camera();ctx.save();ctx.scale(scale,scale);ctx.translate(-ox,-oy);ctx.fillStyle='#142837';ctx.fillRect(25,25,1050,540);
 for(let i=0;i<3;i++){const x=40+i*354;ctx.fillStyle=['#122634','#182c3a','#1b2b38'][i];ctx.fillRect(x,41,334,510);ctx.strokeStyle='#305b71';ctx.strokeRect(x+8,53,318,489);ctx.fillStyle='#7eb7c9';ctx.font='bold 15px system-ui';ctx.textAlign='center';ctx.fillText('ALT SEKTÖR '+['A','B','C'][i],x+165,82)}
 for(const w of walls){ctx.fillStyle='#617d91';ctx.fillRect(w.x,w.y,w.w,w.h)}for(const g of gates){ctx.fillStyle=phase<g.openPhase?'#ac534c':'#2a776d';ctx.fillRect(g.x,g.y,g.w,g.h)}
+if(mission===20){ctx.font='bold 10px system-ui';ctx.textAlign='center';ctx.fillStyle='#c4e7ee';for(const x of [358,716]){ctx.fillText('ÜST KANAL',x,78);ctx.fillText('ORTA TAŞIYICI',x,253);ctx.fillText('ALT GALERİ',x,393)}}
 for(const s of stations){const d=Math.hypot(player.x-s.x,player.y-s.y);ctx.fillStyle=d<75?'#46a8a3':'#27627a';ctx.fillRect(s.x-23,s.y-20,46,40);ctx.strokeStyle='#a6e8ff';ctx.strokeRect(s.x-23,s.y-20,46,40);ctx.fillStyle='#ecfcff';ctx.font='12px system-ui';ctx.fillText(s.name,s.x,s.y-28);if(d<75){ctx.fillStyle='#eaffb6';ctx.fillText('ETKİLEŞ',s.x,s.y+38)}}
 for(const patrol of patrols(time).filter(p=>p.active)){ctx.fillStyle='rgba(245,88,105,0.17)';ctx.beginPath();ctx.arc(patrol.x,patrol.y,patrol.radius,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fa8b8f';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#f47787';ctx.fillRect(patrol.x-13,patrol.y-13,26,26);ctx.fillStyle='#ffe0d7';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText('DEVRIYE',patrol.x,patrol.y-24)}
 for(const e of enemies.filter(e=>e.hp>0)){ctx.fillStyle='#d7687a';ctx.fillRect(e.x-15,e.y-15,30,30);ctx.fillStyle='#fff';ctx.fillText(String(e.hp),e.x,e.y-23)}
