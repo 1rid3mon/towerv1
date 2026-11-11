@@ -59,7 +59,10 @@ async function main() {
       for(const route of routes){assert.ok(route);for(const label of route)await page.locator('.ls-v11-controls').getByRole('button',{name:label,exact:true}).tap();await page.getByRole('button',{name:'ETKİLEŞ',exact:true}).tap();}
       assert.match(await page.locator('.ls-v11-note').innerText(),/KAYIT ÇÖZÜLDÜ/);
       await page.screenshot({path:path.join(out,`${width}x${height}-sector-${m}.png`)});
-      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+      const overflow=await page.evaluate(()=>({viewport:innerWidth,document:document.documentElement.scrollWidth,
+        culprits:[...document.querySelectorAll('body *')].filter(el=>{const rect=el.getBoundingClientRect();return rect.width>0&&rect.right>innerWidth+1}).slice(0,6)
+          .map(el=>({tag:el.tagName,id:el.id,classes:String(el.className),right:Math.round(el.getBoundingClientRect().right)}))}));
+      assert.equal(overflow.document>overflow.viewport,false,JSON.stringify(overflow));
       await page.getByRole('button',{name:'KAPAT ✕',exact:true}).click();
       assert.equal(await page.evaluate(()=>TowerOverhaulV11.getScene()),null);
     }
@@ -69,6 +72,7 @@ async function main() {
     assert.deepEqual(await page.evaluate(()=>({game:JSON.stringify(game),save:localStorage.getItem(SAVE_KEY)})),before);
     await page.reload({waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>window.TowerOverhaulV11 && typeof game !== 'undefined');
+    await page.waitForFunction(()=>game.highestWave>=60 && TowerHardV10.path()==='kinetic');
     assert.equal(await page.evaluate(()=>TowerOverhaulV11.getState().completed.length),3);
     assert.equal(await page.evaluate(()=>TowerOverhaulV11.getState().modules.weapon),'focus');
     assert.equal(await page.evaluate(()=>TowerHardV10.path()),'kinetic');

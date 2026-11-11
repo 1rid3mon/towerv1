@@ -39,7 +39,10 @@ async function play(){
   assert.equal(await page.evaluate(()=>__qa.gates.length),2);
   if(mission===11){
    await visit('İSTASYON HARİTASI');await close();
-   for(const relay of ['RÖLE ALFA','RÖLE BETA','RÖLE GAMA']){await visit(relay);await choose('ENERJİYİ BAĞLA');await close()}
+   await visit('RÖLE ALFA');assert.match(await page.locator('#modal.open').innerText(),/Üç bakım izini bulmadan/);await close();
+   for(const clue of ['DEVRE ŞEMASI','BAKIM NOTU','KABLO İZİ']){await visit(clue);await close()}
+   await visit('RÖLE ALFA');await choose('ENERJİYİ BAĞLA');assert.match(await page.locator('#feedback').innerText(),/Önce RÖLE BETA/);await page.locator('#modal.open #cancel').click();
+   for(const relay of ['RÖLE BETA','RÖLE ALFA','RÖLE GAMA']){await visit(relay);await choose('ENERJİYİ BAĞLA');await close()}
    await visit('ALT AĞ KAPISI');
   }else if(mission===12){
    for(const clue of ['ARŞİV 01','ARŞİV 02','ARŞİV 03']){await visit(clue);await close()}
@@ -52,8 +55,11 @@ async function play(){
   }else if(mission===14){
    await visit('SAVUNMA PLANI');await close();
    await visit('ÇEKİRDEK SAVUNMASI');await close();await fight(4);
-   for(const seal of ['MÜHÜR A','MÜHÜR B','MÜHÜR C']){await visit(seal);await choose('ETKİNLEŞTİR');await close()}
-   await visit('ÇEKİRDEK SAVUNMASI');await close();await fight(6);
+   for(const seal of ['MÜHÜR B','MÜHÜR A','MÜHÜR C']){await visit(seal);await choose('ETKİNLEŞTİR');await close()}
+   assert.match(await page.locator('#objective').innerText(),/Savunma önceliği: MÜHÜR B/);
+   await visit('ÇEKİRDEK SAVUNMASI');await close();
+   assert.equal(await page.evaluate(()=>__qa.enemies[0].speed),12,'first selected seal slows the second wave');
+   await fight(6);
    await visit('YEREL VERİCİ');await choose('İSTASYONUN İÇİNDEN');await close();await visit('ÇIKIŞ');
   }else{
    await visit('PİKO RAPORU');await close();

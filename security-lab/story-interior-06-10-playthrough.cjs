@@ -7,7 +7,7 @@ const {chromium,webkit}=require('playwright');
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'story-interior-missions06-10.html'),'utf8');
 assert(source.includes('İÇ SEKTÖR A'), 'missing interior station map');
 const script=source.match(/<script>([\s\S]*?)<\/script>/);assert(script);new(require('node:vm').Script)(script[1]);
-const qa='window.__qa={player,stations,gates,foes,handle,interact,get phase(){return phase},get round(){return round},get shield(){return shield},get combat(){return combat},collisions,projection};';
+const qa='window.__qa={player,stations,gates,hazards,foes,handle,interact,get phase(){return phase},get round(){return round},get shield(){return shield},set shield(v){shield=v},get breaches(){return breaches},get pikoCharge(){return pikoCharge},get pikoAwake(){return pikoAwake},get combat(){return combat},collisions,projection};';
 assert(source.includes('})();\n</script>'));
 const html=source.replace('})();\n</script>',qa+'\n})();\n</script>');
 const server=http.createServer((req,res)=>{
@@ -45,6 +45,14 @@ async function run(){
      for(let j=0;j<list[i];j++){
       const position=await page.evaluate(i=>{const q=__qa,f=q.foes[i];q.player.x=490;q.player.y=300;const p=q.projection();return{x:(f.x-p.ox)*p.scale,y:(f.y-p.oy)*p.scale}},i);
       await page.mouse.click(position.x,position.y);
+      if(mission===9&&await page.evaluate(()=>__qa.round)===2&&i===0&&j===2){
+       assert.equal(await page.evaluate(()=>__qa.pikoCharge),3,'Three successful hits charge Piko signal');
+       const before=await page.evaluate(()=>__qa.shield);
+       await page.locator('#piko:not([disabled])').click();
+       assert.equal(await page.evaluate(()=>__qa.pikoAwake),true,'Piko must awaken through the actual touch control');
+       assert.equal(await page.evaluate(()=>__qa.shield),before+8,'Piko transfers a real shield bonus');
+       await close();
+      }
      }
     }
     assert.equal(await page.locator('#modal.open').count(),1,'battle result hidden');
@@ -54,7 +62,14 @@ async function run(){
    assert.equal(gates.length,2,'expected bulkhead gates');
    if(mission===6){
     await visit('brief');await close();
-    for(const [label,choice] of [['HAT A','YEŞİL'],['HAT B','MAVİ'],['HAT C','SARI']]){await visit('repair',label);await choose(choice);await close()}
+    assert.deepEqual(await page.evaluate(()=>__qa.hazards.map(h=>({active:h.active,blocked:__qa.collisions(h.x+h.w/2,h.y+h.h/2)}))),Array(3).fill({active:true,blocked:true}));
+    for(const [index,[label,choice]] of [['HAT A','YEŞİL'],['HAT B','MAVİ'],['HAT C','SARI']].entries()){
+     await visit('repair',label);
+     if(index===0){await choose('SARI');assert.match(await page.locator('#feedback').innerText(),/Hatalı bağlantı/);assert.equal(await page.evaluate(()=>__qa.hazards[0].active),true)}
+     await choose(choice);await close();
+     const fields=await page.evaluate(()=>__qa.hazards.map(h=>({active:h.active,blocked:__qa.collisions(h.x+h.w/2,h.y+h.h/2)})));
+     assert.deepEqual(fields,Array.from({length:3},(_,i)=>({active:i>index,blocked:i>index})),'repair must open exactly its matching passage');
+    }
     assert.equal(await page.evaluate(()=>__qa.phase),2);
     await visit('balance');await choose('6 V + 6 V');await close();
     await visit('exit');
@@ -62,7 +77,11 @@ async function run(){
    if(mission===7){
     for(const label of ['GÜRÜLTÜ KAYDI','ANTEN KAYDI']){await visit('record',label);await close()}
     await visit('amplifier');await choose('120 Hz / 3 saniye');await close();
-    await visit('defense');await close();await battle(3);
+    await visit('defense');await close();const intact=await page.evaluate(()=>__qa.shield);await page.waitForTimeout(3700);
+    assert.equal(await page.evaluate(()=>__qa.shield),intact,'Signal defense cannot take timer-only damage');
+    await page.evaluate(()=>{const f=__qa.foes[0];f.x=510;f.y=308});await page.waitForFunction(()=>__qa.breaches===1,{timeout:2000});
+    assert.equal(await page.evaluate(()=>__qa.shield),intact-3,'A real breach must damage the core');
+    assert.equal(await page.evaluate(()=>__qa.foes[0].hp>0),true,'A breached threat returns rather than counting as killed');await battle(3);
     await visit('analysis');await choose('ANTEN SİNYALİ TEKRAR YAYIYOR');await close();
     await visit('exit');
    }
@@ -74,7 +93,10 @@ async function run(){
     await visit('exit');
    }
    if(mission===9){
-    await visit('brief');await close();await visit('core');await close();await battle(3);
+    await visit('brief');await close();await visit('core');await close();
+    await page.evaluate(()=>{__qa.shield=4;const f=__qa.foes[0];f.x=510;f.y=308});await page.locator('#retry').waitFor({timeout:2000});
+    assert.equal(await page.evaluate(()=>__qa.phase),1,'Piko awakening loss retains the defense checkpoint');
+    await page.locator('#retry').click();assert.equal(await page.evaluate(()=>__qa.round),1,'Retry restarts wave one');await battle(3);
     await visit('shield');await choose('KALKAN YENİDEN ŞARJ');await close();
     await visit('core');await close();await battle(5);
     await visit('analysis');await choose('GİZLİ ALT KAT');await close();await visit('exit');
@@ -82,7 +104,11 @@ async function run(){
    if(mission===10){
     await visit('brief');await close();await visit('node1');await choose('323');await close();
     await visit('node2');await choose('İÇERİDEN');await close();
-    await visit('lock');await choose('ÖNCE BASINÇ DENGESİ');await close();await visit('exit');
+    await visit('lock');await page.locator('#open-pressure').click();
+    assert.match(await page.locator('#feedback').innerText(),/Basınç farkı 4 kPa/,'unequal pressure must keep the door locked');
+    await page.locator('#equalize').click();await page.locator('#equalize').click();
+    assert.match(await page.locator('#panel').innerText(),/içi 6 kPa, dışı 6 kPa/);
+    await page.locator('#open-pressure').click();await close();await visit('exit');
    }
    await page.locator('#done').click();
    await page.waitForFunction(m=>window.__completed?.mission===m,mission,{timeout:5000});
