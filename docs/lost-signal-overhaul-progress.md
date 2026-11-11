@@ -180,3 +180,7 @@ Last updated: 2026-11-11 (Europe/Istanbul, morning)
 ### Read-only production check
 
 - Vercel project `towerv1` latest listed production deployment is READY for main commit `b5a94beae9eb370dd727786d68c43713966b41e4`, matching GitHub main. This is deployment metadata only; the live game was not opened or play-tested. Historical deployment records show production builds tied to main; a merge may publish automatically. No deployment or project-setting mutation occurred.
+
+## Main integration — 11 November, 17:33 Türkiye
+
+User explicitly authorized main merge and continuation. PR #113 merged the complete tested head `427fb38` into main as `31376a0bc65fd764f7b8a8c89fe1275fe28625e5`. Earlier instructions to await release approval are superseded for this integration. No manual Vercel deployment or settings change. Automatic production outcome is not yet verified. Continue from this main commit in a fresh Story branch. Stage 1 remains partial: prioritize genuine nine-episode pacing, connected room transitions and player navigation without test teleport; preserve old saves. Stages 2–5 remain unstarted. Existing five-job CI on the source head passed; do not rerun solely to repeat those results.
