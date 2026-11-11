@@ -69,6 +69,7 @@ async function main() {
     assert.deepEqual(await page.evaluate(()=>({game:JSON.stringify(game),save:localStorage.getItem(SAVE_KEY)})),before);
     await page.reload({waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>window.TowerOverhaulV11 && typeof game !== 'undefined');
+    await page.waitForFunction(()=>game.highestWave>=60 && TowerHardV10.path()==='kinetic');
     assert.equal(await page.evaluate(()=>TowerOverhaulV11.getState().completed.length),3);
     assert.equal(await page.evaluate(()=>TowerOverhaulV11.getState().modules.weapon),'focus');
     assert.equal(await page.evaluate(()=>TowerHardV10.path()),'kinetic');
