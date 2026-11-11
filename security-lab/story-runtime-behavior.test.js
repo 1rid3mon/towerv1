@@ -66,6 +66,13 @@ function runtime(mission = 1, ownerUid = null) {
   } };
 }
 
+test('isolated legacy replay stays on the selected mission after a saved completion', () => {
+  const { run } = runtime(1);
+  run('GameModeRuntime.storySession.active=false; saveStoryProgress({mission1Complete:true}); startStoryMission(1)');
+  assert.equal(run('GameModeRuntime.storySession.active'), true);
+  assert.equal(run('GameModeRuntime.storySession.mission'), 1);
+});
+
 test('a last projectile kill stops the outgoing frame after the mission clears combat arrays', () => {
   const { run } = runtime(5);
   run(`spawnTimer = 9999; tower.fireCooldown = 9999; game.waveKills = game.waveTargetKills - 1;
