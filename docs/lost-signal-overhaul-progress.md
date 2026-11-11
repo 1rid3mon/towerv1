@@ -149,3 +149,9 @@ Last updated: 2026-11-11 (Europe/Istanbul, morning)
 
 - Episode 3 follow-up is draft PR #109, commit `4bad5e11214d1331866f2067d8aecb3f4ff4fb66`, stacked on #108. CI run `43003602876` is pending. Keep #107 and #108 as unmerged ancestors until the full integrated head passes; #107's WebKit smoke was red on the shield click. The latest tested integrated green snapshot remains #106 commit `5af7d67`.
 - Upon resume: check CI runs `43003298698` (#108 Piko pointer fix) and `43003602876` (#109 physical breach defense). Read failing logs, fix root cause, update this handoff. Continue Stage 1 before art. Main/Vercel remain unchanged.
+
+### Piko awakening checkpoint — 11 November
+
+- Episode 3 Piko awakening is saved as stacked draft PR #110, base #109, commits `59f278176a1ae86e7b1f7d60ac212d19fc801c64` and `8550a80a9ed44b8dce2d324c098cd34ffcfc6803` (current head). Second wave requires three successful hits to charge the Piko control, then a real touch-sized button press grants +8 shield and allows completion; retry resets encounter charge. Test checks the charge, actual button, awakening and shield transfer. Local syntax and 80/80 Story behavior tests passed; CI for latest head is pending. Changed `story-interior-missions06-10.html` and `security-lab/story-interior-06-10-playthrough.cjs`.
+- #108 run `43003298698`: finale WebKit interaction, Chromium campaign, Chromium overhaul and Firestore passed; remaining WebKit visual/exploration jobs still running as of this note. #109 run `43003602876`: Chromium campaign, Chromium overhaul and Firestore passed, WebKit jobs pending. #107 run `43002263572` failed WebKit finale interaction before #108's pointer fix; do not merge #107 alone.
+- Next: inspect full CI for #108–#110, repair failures, then continue Stage 1 episode pacing/real touch tests. Do not merge main or deploy Vercel. Stages 2–5 have not started, Stage 6 partial.
