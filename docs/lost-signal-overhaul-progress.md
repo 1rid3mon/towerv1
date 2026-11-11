@@ -114,3 +114,38 @@ Last updated: 2026-11-11 (Europe/Istanbul, morning)
 - Run 972 (`42978887348`) completed successfully: all five jobs passed — Chromium browser smoke with campaign and four languages, WebKit smoke with grouped episodes/checkpoints/iPad visual checks, Chromium and WebKit exploration/save checks, and Firestore emulator. Tested game-code commit: `5af7d677b01f382be4bfd3b57577d6940740cca7` on draft PR #106.
 - The earlier single landscape overflow in run 971 did not recur in run 972. Its underlying cause was not proven; keep the diagnostic assertion and watch later runs. The isolated legacy replay failure from run 958 is covered by the new deterministic regression test (80/80 locally) and the successful WebKit replay smoke in run 972.
 - This final progress-document commit is on `overhaul/story-resume-checkpoint` to avoid triggering another five-job PR workflow solely for documentation. The PR #106 code is identical; its in-PR progress-file snapshot is older. Resume from this document and PR #106 together.
+
+## Resume checkpoint — commander lock defense package
+
+- Base: tested PR #106 commit `5af7d67`; this package is on `story/commander-defense`. Its remote commit/PR and CI result are recorded in the next update after publication.
+- Episode 6, mission 18: defense enemies now damage the core when they physically arrive, instead of deducting health every 3.2 seconds regardless of their positions. Fast scouts, slower armored units and damaging sappers create different target priorities; breached enemies return for another approach rather than silently counting as defeated. Existing phase/round retry and three-seal progress are preserved. The main menu, save payload and Firebase paths are untouched.
+- Added a browser playthrough assertion for no timer-only damage, a real breach, a surviving breached threat, loss at the second wave and retry at its checkpoint. This test must pass on Chromium and WebKit CI before the package is considered verified. Local `node --check` and the existing 80/80 Story runtime behavior suite passed. Local browser launch was blocked by a missing Playwright Chromium executable. No human timed playthrough or physical iPad test was performed.
+- Changed files: `story-interior-missions16-20.js`, `security-lab/story-interior-16-20-playthrough.cjs`, and this document.
+- Remaining Stage 1: validate this package in CI; then revisit episode 6 false-exit tension and chapter continuity, followed by episodes 3 and 8 interactions, real touch play and measured pacing across all nine. Stages 2–5 and final Stage 6 remain outstanding. Do not merge main: its Git-linked Vercel production auto-deploy risk remains, and batch release approval has not been given.
+- Next concrete step: open the stacked PR against `overhaul/story-stage1-integration`, inspect its CI once, repair any failing root cause, and update this checkpoint with exact commit/PR and results.
+
+## Episode 6 false-exit follow-up
+
+- Commander defense was published as draft PR #107, commit `e3224870283f3129d9740956cf7999bda8d7b379`, stacked on #106. Its Chromium/WebKit CI is pending at the time of this note; check run `43002263572` before relying on it.
+- Mission 16 now has a moving echo scanner across the middle sector after relay activation. The player can observe its visible detection circle, use the left service edge to reach the map, and recover near that edge when caught. A browser playthrough exercises detection and a real keyboard traversal around the scanner before interacting with the map. This adds an actual route decision without changing the story completion payload or old save keys.
+- Changed files for this follow-up: `story-interior-missions16-20.js`, `security-lab/story-interior-16-20-playthrough.cjs`, and this document. Local syntax, behavior tests and CI result must be recorded after verification. No timed human playthrough or physical iPad test yet.
+- Next step: publish this follow-up as a stacked draft PR only after local checks, then inspect CI and repair any failing browser behavior. Continue episode 6 continuity and the remaining nine-episode gameplay review before visual work. Main and production remain unchanged.
+
+### WebKit shield interaction follow-up
+
+- The false-exit follow-up is draft PR #108, commit `dbf669b841a6808f3dd69e3e9a51a0f1beaa9333`, stacked on #107. Its first CI run `43002585315` was still active when this was written.
+- PR #107 CI run `43002263572` passed Chromium overhaul, Firestore and the full Chromium campaign smoke; WebKit smoke failed at mission 26 when a click on the enabled Piko shield button did not increment the use counter. This is a genuine input failure to investigate, not a green result. WebKit overhaul remained in progress.
+- Added pointer-down activation to the existing Piko shield button, retaining click activation for keyboard and assistive paths. `useLink` already applies cooldown synchronously, so a subsequent click should not consume a second charge; the browser playthrough now asserts exactly one use per press. Changed `story-interior-missions21-27.js`, `security-lab/story-interior-21-27-playthrough.cjs`, plus this document. The root of the WebKit event suppression is inferred from the failed interaction and still requires CI confirmation.
+- Next step: run local behavior and syntax checks, push this fix in one commit to PR #108 and inspect its new five-job CI. Keep #107 unmerged while red. No main merge or production deploy.
+
+## Episode 3 signal and Piko awakening defense follow-up
+
+- PR #108 received the Piko shield pointer fix in commit `bc6e885918ecb21462e3e9a8b9390811ea9d985b`. Its earlier run `43002585315` was cancelled after the branch update; the new run `43003298698` must pass before relying on the fix. PR #107's WebKit smoke is red and should not be merged independently.
+- Missions 7 and 9 currently take periodic reactor damage even while threats remain far away. This follow-up changes them to damage the reactor only on physical enemy breaches; an escaped enemy returns for another approach rather than being marked defeated. Existing shields, Piko choice, waves and checkpoint retry remain. The browser playthrough now checks idle safety, a real breach, surviving escaped enemy and mission 9 death/retry. Local JS syntax, diff check and 80/80 Story runtime behavior suite passed. Chromium/WebKit CI is still required.
+- Changed files: `story-interior-missions06-10.html`, `security-lab/story-interior-06-10-playthrough.cjs`, and this document. Main menu, save format, Firebase, economy and production remain untouched.
+- Next step: publish a stacked draft PR on #108, inspect its browser jobs, then continue episode 3 Piko interaction and nine-episode pacing review. Still no timed human playthrough or physical iPad verification; do not describe the 8–12 minute goal as achieved.
+
+### Published branch checkpoint
+
+- Episode 3 follow-up is draft PR #109, commit `4bad5e11214d1331866f2067d8aecb3f4ff4fb66`, stacked on #108. CI run `43003602876` is pending. Keep #107 and #108 as unmerged ancestors until the full integrated head passes; #107's WebKit smoke was red on the shield click. The latest tested integrated green snapshot remains #106 commit `5af7d67`.
+- Upon resume: check CI runs `43003298698` (#108 Piko pointer fix) and `43003602876` (#109 physical breach defense). Read failing logs, fix root cause, update this handoff. Continue Stage 1 before art. Main/Vercel remain unchanged.
