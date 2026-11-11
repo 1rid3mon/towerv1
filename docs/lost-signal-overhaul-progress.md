@@ -51,5 +51,11 @@ Last updated: 2026-11-11 (Europe/Istanbul, morning)
 ## Checkpoint — lower station investigation
 
 - Draft PR #103: https://github.com/1rid3mon/towerv1/pull/103, branch `story/lower-station-evidence`, commit `9b3a419`. Mission 11 now requires three physical maintenance clues to infer BETA → ALFA → GAMA relay order. Wrong order and missing clues produce feedback. Files: `story-interior-missions11-15.js`, `security-lab/story-interior-11-15-playthrough.cjs`.
-- Local `node --check` for both files and `git diff --check` passed. Chromium/WebKit interior CI is pending; this new package is not yet browser-verified.
+- Local `node --check` for both files and `git diff --check` passed. Chromium mission 11 playthrough and Firestore emulator passed in run 958; WebKit and the full browser jobs are still running. This package is not yet fully browser-verified.
 - Next: inspect PR #103 CI, fix any failure, then continue remaining Story mechanics and pacing without touching production.
+
+## Checkpoint — maintenance live passages
+
+- Draft PR #104: https://github.com/1rid3mon/towerv1/pull/104, branch `story/maintenance-live-passages`, commit `5daba65`. Mission 6's three repair actions each deactivate a matching electrical hazard, opening a traversable passage; wrong choices leave the hazard active. Files: `story-interior-missions06-10.html`, `security-lab/story-interior-06-10-playthrough.cjs`.
+- Local syntax and diff checks passed. Local Playwright was blocked by the workspace Chromium socket restriction. CI run 960 is in progress; do not mark it verified until both browser engines finish.
+- Next: check runs 958 and 960, repair any failed gameplay test, then continue Story depth. Main and production remain unchanged.
