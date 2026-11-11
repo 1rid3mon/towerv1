@@ -7,7 +7,7 @@ const {chromium,webkit}=require('playwright');
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'story-interior-missions06-10.html'),'utf8');
 assert(source.includes('İÇ SEKTÖR A'), 'missing interior station map');
 const script=source.match(/<script>([\s\S]*?)<\/script>/);assert(script);new(require('node:vm').Script)(script[1]);
-const qa='window.__qa={player,stations,gates,hazards,foes,handle,interact,get phase(){return phase},get round(){return round},get shield(){return shield},set shield(v){shield=v},get breaches(){return breaches},get combat(){return combat},collisions,projection};';
+const qa='window.__qa={player,stations,gates,hazards,foes,handle,interact,get phase(){return phase},get round(){return round},get shield(){return shield},set shield(v){shield=v},get breaches(){return breaches},get pikoCharge(){return pikoCharge},get pikoAwake(){return pikoAwake},get combat(){return combat},collisions,projection};';
 assert(source.includes('})();\n</script>'));
 const html=source.replace('})();\n</script>',qa+'\n})();\n</script>');
 const server=http.createServer((req,res)=>{
@@ -45,6 +45,14 @@ async function run(){
      for(let j=0;j<list[i];j++){
       const position=await page.evaluate(i=>{const q=__qa,f=q.foes[i];q.player.x=490;q.player.y=300;const p=q.projection();return{x:(f.x-p.ox)*p.scale,y:(f.y-p.oy)*p.scale}},i);
       await page.mouse.click(position.x,position.y);
+      if(mission===9&&await page.evaluate(()=>__qa.round)===2&&i===0&&j===2){
+       assert.equal(await page.evaluate(()=>__qa.pikoCharge),3,'Three successful hits charge Piko signal');
+       const before=await page.evaluate(()=>__qa.shield);
+       await page.locator('#piko:not([disabled])').click();
+       assert.equal(await page.evaluate(()=>__qa.pikoAwake),true,'Piko must awaken through the actual touch control');
+       assert.equal(await page.evaluate(()=>__qa.shield),before+8,'Piko transfers a real shield bonus');
+       await close();
+      }
      }
     }
     assert.equal(await page.locator('#modal.open').count(),1,'battle result hidden');
