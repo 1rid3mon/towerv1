@@ -108,3 +108,9 @@ Last updated: 2026-11-11 (Europe/Istanbul, morning)
 | 7 (19–21) | Orbit records; three physically distinct stealth routes; identity archive | Test patrol sight/route choices without QA teleport and check alert feedback |
 | 8 (22–24) | Purple boundary, Piko damage, final defense protocol | Test repair versus combat pressure and choice consequences |
 | 9 (25–27) | Piko link/shield, final boss telegraph/counter, preserved final records | Human finale pacing, clear boss warning and satisfying ending/replay |
+
+### Final CI result for this handoff
+
+- Run 972 (`42978887348`) completed successfully: all five jobs passed — Chromium browser smoke with campaign and four languages, WebKit smoke with grouped episodes/checkpoints/iPad visual checks, Chromium and WebKit exploration/save checks, and Firestore emulator. Tested game-code commit: `5af7d677b01f382be4bfd3b57577d6940740cca7` on draft PR #106.
+- The earlier single landscape overflow in run 971 did not recur in run 972. Its underlying cause was not proven; keep the diagnostic assertion and watch later runs. The isolated legacy replay failure from run 958 is covered by the new deterministic regression test (80/80 locally) and the successful WebKit replay smoke in run 972.
+- This final progress-document commit is on `overhaul/story-resume-checkpoint` to avoid triggering another five-job PR workflow solely for documentation. The PR #106 code is identical; its in-PR progress-file snapshot is older. Resume from this document and PR #106 together.
