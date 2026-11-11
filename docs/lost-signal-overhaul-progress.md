@@ -51,7 +51,7 @@ Last updated: 2026-11-11 (Europe/Istanbul, morning)
 ## Checkpoint — lower station investigation
 
 - Draft PR #103: https://github.com/1rid3mon/towerv1/pull/103, branch `story/lower-station-evidence`, commit `9b3a419`. Mission 11 now requires three physical maintenance clues to infer BETA → ALFA → GAMA relay order. Wrong order and missing clues produce feedback. Files: `story-interior-missions11-15.js`, `security-lab/story-interior-11-15-playthrough.cjs`.
-- Local `node --check` for both files and `git diff --check` passed. Chromium mission 11 playthrough and Firestore emulator passed in run 958; WebKit and the full browser jobs are still running. This package is not yet fully browser-verified.
+- Local `node --check` for both files and `git diff --check` passed. Run 958 passed Chromium and WebKit mission 11 playthrough, grouped episodes, Chromium smoke, and Firestore emulator. WebKit smoke later failed at `security-lab/browser-smoke.cjs:439` during a generic mission 1 replay active-state wait after those checks; root cause is under investigation. This package is not fully CI-verified.
 - Next: inspect PR #103 CI, fix any failure, then continue remaining Story mechanics and pacing without touching production.
 
 ## Checkpoint — maintenance live passages
@@ -65,3 +65,10 @@ Last updated: 2026-11-11 (Europe/Istanbul, morning)
 - Draft PR #105: https://github.com/1rid3mon/towerv1/pull/105, branch `story/first-defense-approach`, commits `a4099f5`, `d47da73`. Mission 1 attackers now advance from separate entry positions, damage the reactor only after reaching it, and reset their positions/attack timer on retry. Fixed a pre-existing loss-path crash from reassigning a `const` enemy array. Files: `story-interior-mission01.html`, `security-lab/story-interior-playthrough.cjs`.
 - Local JS syntax and diff checks passed. The browser test observes actual enemy movement, forces a genuine reactor loss through the attack tick, checks retry state, and completes combat. CI for the updated head is pending; human episode duration remains unmeasured. This branch uses main as its base and omits PR #102's separate mission 2 edits.
 - Next: resolve CI results for PR #103–105 and continue Story gameplay. All packages remain drafts; no main merge or production deployment.
+
+## Integration checkpoint — Story Stage 1
+
+- Draft PR #106: https://github.com/1rid3mon/towerv1/pull/106, branch `overhaul/story-stage1-integration`, commit `6fa3304`. Combines PR #100–105's code (including overlapping browser runners) and adds a two-chamber pressure equalization console to mission 10. Files: eleven Story/runtime browser files from the component PRs plus PR #100's progress and browser-race files. The mission 10 browser runner checks premature door rejection and two actual transfers before opening.
+- Local syntax and `git diff --check` passed. CI for the integrated commit is pending. Main remains `b5a94be`; production remains untouched.
+- Known issue: run 958 WebKit smoke timed out on the generic Story mission 1 replay (`browser-smoke.cjs:439`) after mission 11 WebKit playthrough passed. Compare runs 960/964/966 and diagnose this before declaring the integration safe. No failing PR is eligible for main.
+- Next: finish those CI results, fix the replay timeout if reproducible, validate the integrated pressure puzzle in Chromium/WebKit, then continue Story depth and measured human pacing. Art, Endless HUD, mini game, content, and final QA remain incomplete.
