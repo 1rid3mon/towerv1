@@ -3,7 +3,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),vm=require('node:vm');
 const {chromium,webkit}=require('playwright'),root=path.resolve(__dirname,'..');
 const raw=fs.readFileSync(path.join(root,'story-interior-missions21-27.js'),'utf8');new vm.Script(raw);
-const qa="window.__qa={player,stations,gates,enemies,interact,camera,collides,useLink,get phase(){return phase},get combat(){return combat},get round(){return round},get hp(){return hp},get linkUses(){return linkUses},get finalBossWarning(){return enemies.some(e=>e.isFinalBoss&&e.telegraphUntil>performance.now())},get finalBossCountered(){return bossCounterUntil>performance.now()},get completed(){return complete}};";
+const qa="window.__qa={player,stations,gates,enemies,interact,camera,collides,useLink,get phase(){return phase},get combat(){return combat},get round(){return round},get hp(){return hp},set hp(v){hp=v},get breaches(){return breaches},get linkUses(){return linkUses},get finalBossWarning(){return enemies.some(e=>e.isFinalBoss&&e.telegraphUntil>performance.now())},get finalBossCountered(){return bossCounterUntil>performance.now()},get completed(){return complete}};";
 const injected=raw.replace(/\}\)\(\);\s*$/,qa+'\n})();');assert.notEqual(injected,raw,'QA instrument injection failed');
 const server=http.createServer((req,res)=>{
  const pathname=new URL(req.url,'http://localhost').pathname;
@@ -80,14 +80,22 @@ async function run(){
     await choose('GÖREV ETİKETİ KİMLİĞİ KANITLAMAZ');await close();await visit('SONRAKİ BÖLME');
    }
    if(mission===22){
-    await visit('SINIR PLANI');await close();await visit('SINIR SAVUNMASI');await close();await fight(4,3);
+    await visit('SINIR PLANI');await close();await visit('SINIR SAVUNMASI');await close();
+    const intact=await page.evaluate(()=>__qa.hp);await page.waitForTimeout(3800);
+    assert.equal(await page.evaluate(()=>__qa.hp),intact,'Purple boundary cannot take timer-only damage');
+    await page.evaluate(()=>{const e=__qa.enemies[0];e.x=510;e.y=300});await page.waitForFunction(()=>__qa.breaches===1,{timeout:2000});
+    assert.equal(await page.evaluate(()=>__qa.hp),intact-3,'A physical breach must damage the reactor');
+    assert.equal(await page.evaluate(()=>__qa.enemies[0].hp>0),true,'Breached enemy returns instead of counting as killed');await fight(4,3);
     await visit('İLK RÖLE');await choose('TOPRAKLAMA');await close();
     await visit('SINIR SAVUNMASI');await close();await fight(5,4);
     await visit('İKİNCİ RÖLE');await choose('FAZLARI EŞLE');await close();
     await visit('ÜÇÜNCÜ RÖLE');await choose('YALITILMIŞ GEÇİDİ KİLİTLE');await close();await visit('MOR GEÇİT');
    }
    if(mission===23){
-    await visit('HASAR RAPORU');await close();await visit('GERİ BESLEME SAVUNMASI');await close();await fight(4,3);
+    await visit('HASAR RAPORU');await close();await visit('GERİ BESLEME SAVUNMASI');await close();
+    await page.evaluate(()=>{__qa.hp=3;const e=__qa.enemies[0];e.x=510;e.y=300});await page.locator('#retry').waitFor({timeout:2000});
+    assert.equal(await page.evaluate(()=>__qa.phase),1,'Damaged Piko defense retains its checkpoint');await page.locator('#retry').click();
+    await visit('GERİ BESLEME SAVUNMASI');await close();assert.equal(await page.evaluate(()=>__qa.round),1,'Retry restarts the same wave');await fight(4,3);
     await visit('GÜÇ HATTI');await choose('TOPRAKLAMA');await close();
     await visit('GERİ BESLEME SAVUNMASI');await close();await fight(4,4);
     await visit('BELLEK HATTI');await choose('İKİ KAYDI KARŞILAŞTIR');await close();
