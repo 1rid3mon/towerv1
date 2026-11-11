@@ -4,7 +4,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium}=require('playwright'),root=path.resolve(__dirname,'..');
-const instruments='window.__qa={p,stations:typeof nodes==="undefined"?stations:nodes,get foes(){return typeof foes==="undefined"?enemies:foes},base:typeof base==="undefined"?null:base,turret:typeof turret==="undefined"?null:turret,interact,phase:()=>phase,gates:typeof gates==="undefined"?[]:gates,collision:typeof collision==="undefined"?()=>false:collision};';
+const instruments='window.__qa={p,stations:typeof nodes==="undefined"?stations:nodes,get foes(){return typeof foes==="undefined"?enemies:foes},base:typeof base==="undefined"?null:base,turret:typeof turret==="undefined"?null:turret,interact,phase:()=>phase,get shield(){return shield},set shield(v){shield=v},get breaches(){return breaches},gates:typeof gates==="undefined"?[]:gates,collision:typeof collision==="undefined"?()=>false:collision};';
 const server=http.createServer((req,res)=>{
  if(new URL(req.url,'http://localhost').pathname==='/story-interior-completion.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(fs.readFileSync(path.join(root,'story-interior-completion.js'),'utf8'));return}
 
@@ -79,7 +79,16 @@ async function play(){
     await station('reactor');await close();await station('power');
     await page.getByText('KALKANI GÜÇLENDİR',{exact:true}).click();await close();await station('exit');
    }else{
-    await station('security');await close();await station('turret');await close();await defeat();
+    const weaponPage=await browser.newPage({viewport:{width:1032,height:1376},hasTouch:true,deviceScaleFactor:2});
+    await weaponPage.goto('http://127.0.0.1:4193/story-interior-missions02-05.html?mission=5&power=weapon');
+    assert.deepEqual(await weaponPage.evaluate(()=>({shield:__qa.shield,hits:__qa.foes.map(e=>e.hp)})),{shield:18,hits:[2,2,2,2]},'Weapon priority must reduce required hits at the cost of shield');await weaponPage.close();
+    await station('security');await close();await station('turret');await close();
+    const intact=await page.evaluate(()=>__qa.shield);await page.waitForTimeout(4800);
+    assert.equal(await page.evaluate(()=>__qa.shield),intact,'Power corridor cannot take timer-only damage');
+    await page.evaluate(()=>{__qa.shield=3;const e=__qa.foes[0];e.x=550;e.y=330});await page.locator('#modal.open #ok').waitFor({timeout:2000});
+    assert.match(await page.locator('#modal.open').innerText(),/YENİDEN DENE/,'A real core breach must trigger checkpoint retry');await close();
+    assert.deepEqual(await page.evaluate(()=>({shield:__qa.shield,hits:__qa.foes.map(e=>e.hp),positions:__qa.foes.map(e=>e.x),phase:__qa.phase()})),{shield:26,hits:[4,4,4,4],positions:[935,875,800,930],phase:1},'Shield priority and threat positions must reset on loss');
+    await station('turret');await close();await defeat();
     await station('turret');await close();await station('relay');
     for(const txt of ['GÜVENLİK','ENERJİ','ANTEN'])await page.locator('#order button').filter({hasText:txt}).click();
     await close();await station('exit');
