@@ -48,7 +48,10 @@ async function play(){
     await close();await station('door');await close();await station('defense');await close();
     await defeat();await station('defense');
    }else if(mission===2){
-    await station('exit');await close();await defeat();
+    await station('exit');await close();
+    const start=await page.evaluate(()=>__qa.foes.map(e=>({x:e.x,y:e.y})));
+    await page.waitForFunction(before=>__qa.foes.some((e,i)=>Math.hypot(e.x-before[i].x,e.y-before[i].y)>5),start,{timeout:2000});
+    await defeat();
     for(const clue of ['TARAMA A','TARAMA B','TARAMA C']){await named(clue);await close()}
     await station('exit');
     await page.locator('#deduction button').filter({hasText:'Anten 02:03'}).click();
