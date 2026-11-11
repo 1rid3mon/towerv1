@@ -7,7 +7,7 @@ const {chromium,webkit}=require('playwright');
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'story-interior-missions06-10.html'),'utf8');
 assert(source.includes('İÇ SEKTÖR A'), 'missing interior station map');
 const script=source.match(/<script>([\s\S]*?)<\/script>/);assert(script);new(require('node:vm').Script)(script[1]);
-const qa='window.__qa={player,stations,gates,hazards,foes,handle,interact,get phase(){return phase},get round(){return round},get shield(){return shield},get combat(){return combat},collisions,projection};';
+const qa='window.__qa={player,stations,gates,hazards,foes,handle,interact,get phase(){return phase},get round(){return round},get shield(){return shield},set shield(v){shield=v},get breaches(){return breaches},get combat(){return combat},collisions,projection};';
 assert(source.includes('})();\n</script>'));
 const html=source.replace('})();\n</script>',qa+'\n})();\n</script>');
 const server=http.createServer((req,res)=>{
@@ -69,7 +69,11 @@ async function run(){
    if(mission===7){
     for(const label of ['GÜRÜLTÜ KAYDI','ANTEN KAYDI']){await visit('record',label);await close()}
     await visit('amplifier');await choose('120 Hz / 3 saniye');await close();
-    await visit('defense');await close();await battle(3);
+    await visit('defense');await close();const intact=await page.evaluate(()=>__qa.shield);await page.waitForTimeout(3700);
+    assert.equal(await page.evaluate(()=>__qa.shield),intact,'Signal defense cannot take timer-only damage');
+    await page.evaluate(()=>{const f=__qa.foes[0];f.x=510;f.y=308});await page.waitForFunction(()=>__qa.breaches===1,{timeout:2000});
+    assert.equal(await page.evaluate(()=>__qa.shield),intact-3,'A real breach must damage the core');
+    assert.equal(await page.evaluate(()=>__qa.foes[0].hp>0),true,'A breached threat returns rather than counting as killed');await battle(3);
     await visit('analysis');await choose('ANTEN SİNYALİ TEKRAR YAYIYOR');await close();
     await visit('exit');
    }
@@ -81,7 +85,10 @@ async function run(){
     await visit('exit');
    }
    if(mission===9){
-    await visit('brief');await close();await visit('core');await close();await battle(3);
+    await visit('brief');await close();await visit('core');await close();
+    await page.evaluate(()=>{__qa.shield=4;const f=__qa.foes[0];f.x=510;f.y=308});await page.locator('#retry').waitFor({timeout:2000});
+    assert.equal(await page.evaluate(()=>__qa.phase),1,'Piko awakening loss retains the defense checkpoint');
+    await page.locator('#retry').click();assert.equal(await page.evaluate(()=>__qa.round),1,'Retry restarts wave one');await battle(3);
     await visit('shield');await choose('KALKAN YENİDEN ŞARJ');await close();
     await visit('core');await close();await battle(5);
     await visit('analysis');await choose('GİZLİ ALT KAT');await close();await visit('exit');
