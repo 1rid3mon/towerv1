@@ -78,3 +78,33 @@ Last updated: 2026-11-11 (Europe/Istanbul, morning)
 - Run 958's WebKit smoke failure at `browser-smoke.cjs:439` is explained by the isolated legacy runtime applying nine-episode resume logic to an already completed mission 1. On replay, the child attempted mission 2 instead of activating the selected legacy mission 1. The smoke assertion exposed a real replay routing bug.
 - Integrated PR #106 commit `828c53f` excludes isolated legacy runtime from grouped-episode resume. Normal interior episode grouping and legacy save flags stay intact. Local `story-runtime-behavior.test.js` passed 79/79, `node --check story.js` and `git diff --check` passed. Updated integration CI pending; do not mark fixed in browser until it passes.
 - PR #103 run 958 is red despite its mission 11 Chromium/WebKit playthrough passing. Keep PR #103 unmerged; integration PR #106 contains the replay fix. Main and production still unchanged.
+
+## Resume handoff — 11 November, current session
+
+- Authoritative code checkpoint: draft PR #106 `overhaul/story-stage1-integration`, commit `5af7d677b01f382be4bfd3b57577d6940740cca7`. It contains the code of PR #100–105 plus mission 10 pressure transfer, mission 14 first-seal defense priority, the isolated legacy replay fix, an 80th deterministic Story runtime test, and diagnostic output for horizontal overflow. This separate handoff branch has the same game code; only this progress document is newer.
+- Component CI: #100 run 946, #101 run 951, #102 run 955, #104 run 960, and #105 run 964 each passed all five jobs. #103 run 958 failed only in a generic WebKit Story replay wait after its mission 11 playthrough passed. The replay bug was addressed in #106; do not merge the red #103 alone.
+- Integrated CI: #106 run 971 passed browser-smoke, WebKit smoke, WebKit overhaul and Firestore, but failed Chromium overhaul once on landscape horizontal overflow at `security-lab/overhaul-browser.cjs:62`. Current run 972 (`42978887348`) has passed Chromium overhaul, browser-smoke (including all 27 stages/four languages), WebKit overhaul, and Firestore; WebKit smoke remains in progress at the time of this checkpoint. The overflow was intermittent; diagnostic code reports culprits if it recurs. Do not claim it is fixed.
+- Local checks: `node security-lab/story-runtime-behavior.test.js` passed 80/80; JS syntax checks for touched scripts and `git diff --check` passed. Local Playwright could not start system Chromium because its process-singleton socket is blocked. A cloud browser could not connect to this workspace's localhost. Browser evidence therefore comes from Actions, not a physical iPad. No timed human playthrough exists.
+- Main remains `b5a94be`; Vercel is Git-linked to main and may publish on merge. No merge, manual production deployment, deployment-setting change, Firebase schema change, or live production verification occurred. No secret or player data was used.
+
+### Exact next action after reset
+
+1. Read this file, inspect PR #106 and CI run 972. If WebKit smoke failed, read the failing job log and repair the root cause. If all five passed, treat commit `5af7d67` as the tested code snapshot, keeping in mind one earlier intermittent horizontal overflow failure.
+2. Keep work on a fresh checkout of `overhaul/story-stage1-integration` (or another Story feature branch based on it). The scratch checkout in the previous session was on main with uncommitted file copies, but every intended code change is saved in PR #106. Do not blindly commit all scratch files or replace GitHub's newer branch with main.
+3. Continue Stage 1 before starting art. Target the still short nine-episode pacing with meaningful mechanics and connected rooms, then run human timed playthroughs where available. Automated tests accelerate travel between stations, so they prove transitions and controls but **not** 8–12 minute real episode length. Keep checkpoint, old 27-stage saves, Firebase Auth/Firestore, economy, and menu intact.
+4. After Story gameplay is genuinely solid: Stage 2 designed enemy/Piko/companion/boss sprites and distinct nine-episode environments; Stage 3 iPad-first Endless HUD; Stage 4 replace the gambling mini-game with a skill-based signal task and migrate its reward/save hooks; Stage 5 a small finished challenge or discovery reward; Stage 6 Chromium/WebKit, iPad orientation/touch, legacy saves, death/retry, high-wave FPS, localization, Firebase and visual screenshot QA.
+5. Do not merge any draft to main or alter Vercel production without explicit batch-release approval. Production auto-deploy risk persists. A docs-only update to an open PR can trigger the full five-job workflow, so batch progress writes instead of editing it for every small result.
+
+### Stage 1 episode review still needed
+
+| Episode | Present work | Remaining concrete review |
+|---|---|---|
+| 1 (1–3) | Moving first defense with real loss/retry; moving patrol defense; signal investigation | Timed human playthrough, room continuity and onboarding clarity on touch |
+| 2 (4–6) | Power branch and corridor defense; three repairs open three real passages | Verify power consequences across stages and meaningful route decisions |
+| 3 (7–9) | Communications/archive clues and Piko awakening defenses | Strengthen transitions and Piko's interactive awakening; measure pacing |
+| 4 (10–12) | Physical pressure transfer, three evidence clues and relay order, archive contradiction | Inspect genuine exploration and timeline logic on iPad |
+| 5 (13–15) | Trust result carried to mission 21; first seal sets second-wave strategy; Piko memory repair | Exercise both trust branches and A/B/C seal choices, memory consequence |
+| 6 (16–18) | Fake exit, identity choice, three lock-defense waves | Make false-exit tension and defense variety feel earned, verify retry at each wave |
+| 7 (19–21) | Orbit records; three physically distinct stealth routes; identity archive | Test patrol sight/route choices without QA teleport and check alert feedback |
+| 8 (22–24) | Purple boundary, Piko damage, final defense protocol | Test repair versus combat pressure and choice consequences |
+| 9 (25–27) | Piko link/shield, final boss telegraph/counter, preserved final records | Human finale pacing, clear boss warning and satisfying ending/replay |
