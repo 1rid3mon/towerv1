@@ -55,8 +55,11 @@ async function play(){
   }else if(mission===14){
    await visit('SAVUNMA PLANI');await close();
    await visit('ÇEKİRDEK SAVUNMASI');await close();await fight(4);
-   for(const seal of ['MÜHÜR A','MÜHÜR B','MÜHÜR C']){await visit(seal);await choose('ETKİNLEŞTİR');await close()}
-   await visit('ÇEKİRDEK SAVUNMASI');await close();await fight(6);
+   for(const seal of ['MÜHÜR B','MÜHÜR A','MÜHÜR C']){await visit(seal);await choose('ETKİNLEŞTİR');await close()}
+   assert.match(await page.locator('#objective').innerText(),/Savunma önceliği: MÜHÜR B/);
+   await visit('ÇEKİRDEK SAVUNMASI');await close();
+   assert.equal(await page.evaluate(()=>__qa.enemies[0].speed),12,'first selected seal slows the second wave');
+   await fight(6);
    await visit('YEREL VERİCİ');await choose('İSTASYONUN İÇİNDEN');await close();await visit('ÇIKIŞ');
   }else{
    await visit('PİKO RAPORU');await close();
