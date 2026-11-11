@@ -62,6 +62,6 @@ Last updated: 2026-11-11 (Europe/Istanbul, morning)
 
 ## Checkpoint — first defense movement
 
-- Draft PR #105: https://github.com/1rid3mon/towerv1/pull/105, branch `story/first-defense-approach`, commit `a4099f5`. Mission 1 attackers now advance from separate entry positions, damage the reactor only after reaching it, and reset their positions/attack timer on retry. Files: `story-interior-mission01.html`, `security-lab/story-interior-playthrough.cjs`.
-- Local JS syntax and diff checks passed. The browser test observes actual enemy movement and checks the threat HUD. CI pending; human episode duration remains unmeasured. This branch uses main as its base and omits PR #102's separate mission 2 edits.
+- Draft PR #105: https://github.com/1rid3mon/towerv1/pull/105, branch `story/first-defense-approach`, commits `a4099f5`, `d47da73`. Mission 1 attackers now advance from separate entry positions, damage the reactor only after reaching it, and reset their positions/attack timer on retry. Fixed a pre-existing loss-path crash from reassigning a `const` enemy array. Files: `story-interior-mission01.html`, `security-lab/story-interior-playthrough.cjs`.
+- Local JS syntax and diff checks passed. The browser test observes actual enemy movement, forces a genuine reactor loss through the attack tick, checks retry state, and completes combat. CI for the updated head is pending; human episode duration remains unmeasured. This branch uses main as its base and omits PR #102's separate mission 2 edits.
 - Next: resolve CI results for PR #103–105 and continue Story gameplay. All packages remain drafts; no main merge or production deployment.
