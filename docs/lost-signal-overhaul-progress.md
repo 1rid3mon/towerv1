@@ -1,6 +1,6 @@
 # LOST SIGNAL overhaul progress
 
-Last updated: 2026-11-11 (Europe/Istanbul)
+Last updated: 2026-11-11 (Europe/Istanbul, morning)
 
 ## Current baseline and release constraints
 
@@ -40,3 +40,10 @@ Last updated: 2026-11-11 (Europe/Istanbul)
 3. Redesign Endless HUD, then replace the gambling mini-game with a skill-based signal task and update its saved reward connections.
 4. Select and implement a small amount of complete new content; then finish browser, save/retry, iPad, performance, and localization QA.
 5. Work remains on draft feature PRs. Do not merge to `main` or deploy production without explicit batch-release approval.
+
+## Resume checkpoint — 11 November morning
+
+- Status check: more than eight hours without commits after `959dff7` (PR #100) and `eea19cb` (PR #101). The prior executor disconnected; main remained `b5a94be`, and CI run 951 remained fully successful. No work was lost.
+- New draft PR #102: https://github.com/1rid3mon/towerv1/pull/102, branch `story/first-contact-patrols`, commit `a2f3342`. Mission 2 patrols now move toward the terminal at distinct speeds, its integrity/threat count appears during defense, and retry restores patrol positions. Files: `story-interior-missions02-05.html`, `security-lab/story-interior-playthrough.cjs`.
+- Local syntax and diff checks passed. Browser runner now verifies actual patrol movement; GitHub CI run 955 (`42973411674`) is queued. This package is **not yet browser-verified**.
+- Next: inspect run 955 once it completes, fix a real failure if present, then continue Story episode gameplay. Do not merge main or deploy production without batch-release approval.
