@@ -72,3 +72,9 @@ Last updated: 2026-11-11 (Europe/Istanbul, morning)
 - Local syntax and `git diff --check` passed. CI for the integrated commit is pending. Main remains `b5a94be`; production remains untouched.
 - Known issue: run 958 WebKit smoke timed out on the generic Story mission 1 replay (`browser-smoke.cjs:439`) after mission 11 WebKit playthrough passed. Compare runs 960/964/966 and diagnose this before declaring the integration safe. No failing PR is eligible for main.
 - Next: finish those CI results, fix the replay timeout if reproducible, validate the integrated pressure puzzle in Chromium/WebKit, then continue Story depth and measured human pacing. Art, Endless HUD, mini game, content, and final QA remain incomplete.
+
+## Replay timeout diagnosis and fix
+
+- Run 958's WebKit smoke failure at `browser-smoke.cjs:439` is explained by the isolated legacy runtime applying nine-episode resume logic to an already completed mission 1. On replay, the child attempted mission 2 instead of activating the selected legacy mission 1. The smoke assertion exposed a real replay routing bug.
+- Integrated PR #106 commit `828c53f` excludes isolated legacy runtime from grouped-episode resume. Normal interior episode grouping and legacy save flags stay intact. Local `story-runtime-behavior.test.js` passed 79/79, `node --check story.js` and `git diff --check` passed. Updated integration CI pending; do not mark fixed in browser until it passes.
+- PR #103 run 958 is red despite its mission 11 Chromium/WebKit playthrough passing. Keep PR #103 unmerged; integration PR #106 contains the replay fix. Main and production still unchanged.
