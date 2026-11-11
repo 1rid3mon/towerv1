@@ -47,3 +47,9 @@ Last updated: 2026-11-11 (Europe/Istanbul, morning)
 - New draft PR #102: https://github.com/1rid3mon/towerv1/pull/102, branch `story/first-contact-patrols`, commit `a2f3342`. Mission 2 patrols now move toward the terminal at distinct speeds, its integrity/threat count appears during defense, and retry restores patrol positions. Files: `story-interior-missions02-05.html`, `security-lab/story-interior-playthrough.cjs`.
 - Local syntax and diff checks passed. Browser runner now verifies actual patrol movement; GitHub CI run 955 (`42973411674`) passed all five jobs: Chromium/WebKit overhaul, browser smoke (including moving-patrol playthrough), WebKit device smoke, and Firestore emulator. This package is browser-verified; human episode duration remains unmeasured.
 - Next: continue Story episode gameplay and pacing with distinct mechanics; keep legacy saves and checkpoints intact. Avoid repeating completed CI. Do not merge main or deploy production without batch-release approval.
+
+## Checkpoint — lower station investigation
+
+- Draft PR #103: https://github.com/1rid3mon/towerv1/pull/103, branch `story/lower-station-evidence`, commit `9b3a419`. Mission 11 now requires three physical maintenance clues to infer BETA → ALFA → GAMA relay order. Wrong order and missing clues produce feedback. Files: `story-interior-missions11-15.js`, `security-lab/story-interior-11-15-playthrough.cjs`.
+- Local `node --check` for both files and `git diff --check` passed. Chromium/WebKit interior CI is pending; this new package is not yet browser-verified.
+- Next: inspect PR #103 CI, fix any failure, then continue remaining Story mechanics and pacing without touching production.
