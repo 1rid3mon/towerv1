@@ -55,6 +55,7 @@ async function run(){
          }));
          throw Error('Piko shield not activated: '+JSON.stringify(state));
        });
+     assert.equal(await page.evaluate(()=>__qa.linkUses),before+1,'A press and its click may activate Piko shield only once');
      if(mission===27)assert.equal(await page.evaluate(()=>__qa.finalBossCountered),true,'Piko shield must interrupt the telegraphed finale strike');
     }
     for(let i=0;i<enemies.length;i++)for(let j=0;j<enemies[i];j++){
