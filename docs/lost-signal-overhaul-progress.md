@@ -234,3 +234,8 @@ User explicitly authorized main merge and continuation. PR #113 merged the compl
 - Chromium phone/tablet HUD and workshop screenshots plus episode 4/9 art reviewed. Phone notifications overlap the lower workshop content; polish remains. Art is an initial pass, not finished visual overhaul.
 - Resume code from main, not this docs-only branch. Outstanding: notification/HUD overlap, workshop localization, richer environments/boss visuals, nine-episode qualitative navigation and measured 8–12 minute pacing, physical iPad comfort and final performance QA.
 - No manual production deployment or settings change. Post-merge Vercel production status remains unverified. Save each meaningful package to GitHub and report its commit/PR before moving on; do not wait for quota exhaustion.
+
+
+## Interaction readability follow-up
+
+Saved branch `overhaul/readable-interaction-consoles`, commit `3fe12eee1e8b356bb9bb309ec730cac106b4fd02`: missions 11–27 share detailed signal consoles with high-contrast nearby interaction badges; workshop overlay CSS adjustment. Syntax checks only so far; browser/visual verification pending. Next inspect new CI and screenshots, verify mascot selector behavior and phone clearance, then continue actual navigation and gameplay/content improvements. This is a small initial presentation package, not completion of the requested overhaul.
