@@ -239,3 +239,8 @@ User explicitly authorized main merge and continuation. PR #113 merged the compl
 ## Interaction readability follow-up
 
 Saved branch `overhaul/readable-interaction-consoles`, commit `3fe12eee1e8b356bb9bb309ec730cac106b4fd02`: missions 11–27 share detailed signal consoles with high-contrast nearby interaction badges; workshop overlay CSS adjustment. Syntax checks only so far; browser/visual verification pending. Next inspect new CI and screenshots, verify mascot selector behavior and phone clearance, then continue actual navigation and gameplay/content improvements. This is a small initial presentation package, not completion of the requested overhaul.
+
+
+## Navigation and notebook package — 12 November
+
+Draft #121 `overhaul/station-map`, latest `9c6b69dfd98a2b5634afc1b666b5fa09d0cd9da1`, stacked on #120. Missions 11–15 now offer a touch map with player position, actual locked/open gates, numbered station list and discovered markers. Opening clears input and pauses through existing modal state. A field notebook retains only inspected maintenance/archive/voice clues during the current mission; this is not a new durable save schema. No puzzle answers disclosed. Local controller tests 7/7 and puzzle tests 7/7 passed; syntax/diff passed. Browser runner taps map open/close across five missions and captures screenshots; latest CI pending. #120 run 43298382215 had Firestore and Chromium overhaul green, other jobs running at checkpoint. Next inspect both runs and map/console/workshop screenshots; fix real failures, extend navigation to other chapters, continue substantive content and final QA. Main remains c3a8a2e; no new merge or manual deployment.
