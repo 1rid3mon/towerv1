@@ -225,3 +225,12 @@ User explicitly authorized main merge and continuation. PR #113 merged the compl
 - #118 includes Endless-only health/wave cards and larger touch controls; main menu and update IDs preserved. Local skill tests 5/5, Story runtime 80/80, syntax/diff passed. Browser checks for actual taps, record reload, currency/inventory isolation and phone/tablet screenshots pending. New text is Turkish; localization remains. Remote tree `9f8f064d328c85fdf22b39871b77a5ae4e5df37e` matches local HEAD exactly.
 - Resume game work from **#118**, not this docs-only branch. Inspect its new CI and visual evidence, fix concrete failures, then deepen environments/boss/Piko presentation and finish content/QA. Main remains `31376a0`; no new main merge or manual production deployment.
 - Still unfinished/unmeasured: natural nine-episode continuity/navigation review, human 8–12 minute duration, physical iPad comfort, final art/HUD QA, localization and full performance checks. Art/HUD now have initial implementations; skill replacement is implemented but browser validation pending. Do not mark the overall overhaul complete.
+
+
+## Main integration — 12 November, resumed merge
+
+- User explicitly reconfirmed main merge and frequent durable checkpoints. PR #119 merged packages #114–118 into main as `c3a8a2e5bb225b983729c60e65ba1126cafc8a89` from head `a14d6d017f9da657d92da8cf594c1d148294931b`.
+- Integrated run `43238126802` completed all five jobs successfully: Chromium smoke, WebKit smoke, both overhaul browser jobs and Firestore emulator. No historical successful tests were manually rerun. Opening #119 automatically superseded run `43236016169`; its cancelled WebKit job is not counted as success.
+- Chromium phone/tablet HUD and workshop screenshots plus episode 4/9 art reviewed. Phone notifications overlap the lower workshop content; polish remains. Art is an initial pass, not finished visual overhaul.
+- Resume code from main, not this docs-only branch. Outstanding: notification/HUD overlap, workshop localization, richer environments/boss visuals, nine-episode qualitative navigation and measured 8–12 minute pacing, physical iPad comfort and final performance QA.
+- No manual production deployment or settings change. Post-merge Vercel production status remains unverified. Save each meaningful package to GitHub and report its commit/PR before moving on; do not wait for quota exhaustion.
