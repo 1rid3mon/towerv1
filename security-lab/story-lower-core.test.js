@@ -4,8 +4,8 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 function runtime(){
  const nodes=new Map(),noop=()=>{},listeners=new Map();
  const ctx=new Proxy({}, {get:()=>noop,set:()=>true});
- const node=id=>{if(!nodes.has(id))nodes.set(id,{style:{},classList:{add:noop,remove:noop},getContext:()=>ctx,addEventListener:(name,fn)=>listeners.set(id+':'+name,fn),hasPointerCapture:()=>false,appendChild:noop});return nodes.get(id)};
- const sandbox={URLSearchParams,location:{search:'?mission=14'},innerWidth:1032,innerHeight:850,devicePixelRatio:1,requestAnimationFrame:noop,performance:{now:()=>0},addEventListener:(name,fn)=>listeners.set(name,fn),document:{getElementById:node,addEventListener:noop},StoryInteriorPuzzles:require('../story-interior-puzzles.js')};sandbox.window=sandbox;
+ const node=id=>{if(!nodes.has(id))nodes.set(id,{style:{},classList:{add:noop,remove:noop},getContext:()=>ctx,addEventListener:(name,fn)=>listeners.set(id+':'+name,fn),hasPointerCapture:()=>false,appendChild:noop,setAttribute:noop,focus:noop});return nodes.get(id)};
+ const sandbox={URLSearchParams,location:{search:'?mission=14'},innerWidth:1032,innerHeight:850,devicePixelRatio:1,requestAnimationFrame:noop,performance:{now:()=>0},addEventListener:(name,fn)=>listeners.set(name,fn),document:{body:node("body"),createElement:()=>node("created"),getElementById:node,addEventListener:noop},StoryInteriorPuzzles:require('../story-interior-puzzles.js')};sandbox.window=sandbox;
  const raw=fs.readFileSync(path.join(__dirname,'../story-interior-missions11-15.js'),'utf8');vm.runInNewContext(raw.replace(/\}\)\(\);\s*$/,'window.run=code=>eval(code);})();'),sandbox);
  return {run:sandbox.run,nodes,listeners};
 }
@@ -27,4 +27,10 @@ test('dialog keyboard input does not latch movement or suppress native button ac
  const {run,listeners}=runtime();run("say('test','test')");let prevented=false;
  listeners.get('keydown')({key:' ',preventDefault:()=>{prevented=true}});assert.equal(prevented,false);
  listeners.get('keydown')({key:'ArrowRight',preventDefault:()=>{}});run('hide();move(.05)');assert.equal(run('player.x'),135);
+});
+
+test('map pauses movement and does not consume encounter progress',()=>{
+ const {run}=runtime();run('phase=2;found.add("MÜHÜR A");keys.add("d");openMap()');
+ assert.equal(run('dialog'),true);assert.equal(run('keys.size'),0);assert.equal(run('phase'),2);assert.equal(run('found.size'),1);
+ run('hide()');assert.equal(run('dialog'),false);assert.equal(run('mapButton.hidden'),false);
 });

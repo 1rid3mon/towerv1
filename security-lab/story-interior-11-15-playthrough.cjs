@@ -27,6 +27,12 @@ async function play(){
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4196/story-interior-missions11-15.html?mission='+mission);
   await page.evaluate(()=>addEventListener('message',e=>{if(e.data?.type==='lost-signal-interior-mission-complete')window.__complete=e.data}));
+  await page.locator('#map-open').tap();
+  await page.locator('#station-map').waitFor({state:'visible'});
+  assert.equal(await page.locator('#map-terminals li').count(),await page.evaluate(()=>__qa.stations.length));
+  await page.screenshot({path:path.join(evidence,'mission-'+mission+'-map.png')});
+  await page.locator('#map-close').tap();
+  await page.locator('#modal').waitFor({state:'hidden'});
   const teleportVisit=async(name)=>page.evaluate(label=>{const q=__qa,n=q.stations.find(s=>s.name===label);if(!n)throw Error('Station missing '+label);q.player.x=n.x;q.player.y=n.y;q.interact()},name);
   const walkAxis=async(axis,target)=>{const current=await page.evaluate(axis=>__qa.player[axis],axis);if(Math.abs(current-target)<5)return;const sign=target>current?1:-1,key=axis==='x'?(sign>0?'ArrowRight':'ArrowLeft'):(sign>0?'ArrowDown':'ArrowUp');await page.keyboard.down(key);try{await page.waitForFunction(({axis,target,sign})=>(__qa.player[axis]-target)*sign>=-4,{axis,target,sign},{timeout:6500})}finally{await page.keyboard.up(key)}};
   const visit=async(name)=>{if(mission!==11&&mission!==12)return teleportVisit(name);const target=await page.evaluate(label=>{const n=__qa.stations.find(s=>s.name===label);return{x:n.x,y:n.y}},name);await walkAxis('y',298);await walkAxis('x',target.x);await walkAxis('y',target.y);await page.locator('#act').tap()};
