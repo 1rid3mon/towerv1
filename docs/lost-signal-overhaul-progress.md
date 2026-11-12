@@ -249,3 +249,8 @@ Draft #121 `overhaul/station-map`, latest `9c6b69dfd98a2b5634afc1b666b5fa09d0cd9
 ## Finale input follow-up
 
 Draft #122 `overhaul/finale-input-ownership`, commit `5342ab7925c7b6c7b98272f726a5b2dcf8b8000d`, stacks #121/#120. Extends dialog movement clearing, native Space button handling, pointer ownership and lost-capture cleanup to missions 16–27. Actual controllers changed; browser runners assert dialog key clearing and Space close. Local runtime 80/80 and syntax/diff passed. Browser CI pending. Resume latest code from #122; check latest CI and screenshots before integration. No new main merge, physical device result or duration measurement claimed.
+
+
+## Finale navigation continuation
+
+Branch `overhaul/finale-navigation`, commit `a8e2061f5b5fa0ab5ebbdb1bdb480e72f5b74437`, adds maps to missions 16–27, completing map availability across 11–27. Browser runners exercise map open/close and station count; syntax/diff checks passed, new browser run pending. #122 run 43299053706: Chromium smoke, both overhaul jobs and Firestore green; final WebKit smoke still in progress. Resume from finale-navigation, inspect CI before merging. Earlier 1–10 navigation, qualitative pacing, art/content/HUD/localization, physical device and performance QA remain incomplete.
