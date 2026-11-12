@@ -1,11 +1,11 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 // Execute the shipped interior controller; only browser rendering/events are adapters.
-function runtime(){
+function runtime(mission=14){
  const nodes=new Map(),noop=()=>{},listeners=new Map();
  const ctx=new Proxy({}, {get:()=>noop,set:()=>true});
  const node=id=>{if(!nodes.has(id))nodes.set(id,{style:{},classList:{add:noop,remove:noop},getContext:()=>ctx,addEventListener:(name,fn)=>listeners.set(id+':'+name,fn),hasPointerCapture:()=>false,appendChild:noop,setAttribute:noop,focus:noop});return nodes.get(id)};
- const sandbox={URLSearchParams,location:{search:'?mission=14'},innerWidth:1032,innerHeight:850,devicePixelRatio:1,requestAnimationFrame:noop,performance:{now:()=>0},addEventListener:(name,fn)=>listeners.set(name,fn),document:{body:node("body"),createElement:()=>node("created"),getElementById:node,addEventListener:noop},StoryInteriorPuzzles:require('../story-interior-puzzles.js')};sandbox.window=sandbox;
+ const sandbox={URLSearchParams,location:{search:'?mission='+mission},innerWidth:1032,innerHeight:850,devicePixelRatio:1,requestAnimationFrame:noop,performance:{now:()=>0},addEventListener:(name,fn)=>listeners.set(name,fn),document:{body:node("body"),createElement:()=>node("created"),getElementById:node,addEventListener:noop},StoryInteriorPuzzles:require('../story-interior-puzzles.js')};sandbox.window=sandbox;
  const raw=fs.readFileSync(path.join(__dirname,'../story-interior-missions11-15.js'),'utf8');vm.runInNewContext(raw.replace(/\}\)\(\);\s*$/,'window.run=code=>eval(code);})();'),sandbox);
  return {run:sandbox.run,nodes,listeners};
 }
@@ -33,4 +33,12 @@ test('map pauses movement and does not consume encounter progress',()=>{
  const {run}=runtime();run('phase=2;found.add("MÜHÜR A");keys.add("d");openMap()');
  assert.equal(run('dialog'),true);assert.equal(run('keys.size'),0);assert.equal(run('phase'),2);assert.equal(run('found.size'),1);
  run('hide()');assert.equal(run('dialog'),false);assert.equal(run('mapButton.hidden'),false);
+});
+
+test('field notebook records only inspected clues and repeated visits do not duplicate them',()=>{
+ const {run}=runtime(11);assert.equal(run('fieldNotes.size'),0);
+ run('handle(stations.find(s=>s.type==="brief"));hide();handle(stations.find(s=>s.name==="DEVRE ŞEMASI"))');
+ assert.equal(run('fieldNotes.size'),1);assert.match(run('fieldNotes.get("DEVRE ŞEMASI")'),/BETA/);
+ assert.equal(run('relayEvidence.size'),1);assert.equal(run('found.size'),0);
+ run('hide();handle(stations.find(s=>s.name==="DEVRE ŞEMASI"))');assert.equal(run('fieldNotes.size'),1);
 });
