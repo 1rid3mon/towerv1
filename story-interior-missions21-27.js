@@ -61,7 +61,20 @@ if(mission===27){
 build();
 function resize(){vw=innerWidth;vh=innerHeight;const scale=Math.min(devicePixelRatio||1,2);canvas.width=vw*scale;canvas.height=vh*scale;ctx.setTransform(scale,0,0,scale,0,0)}addEventListener('resize',resize);resize();
 function hud(){objective.innerHTML='<b>'+missionHeading+' · '+names[mission]+'</b><div>'+goals[mission][Math.min(phase,goals[mission].length-1)]+'</div><small>WASD · oklar · E · iPad joystick</small>'+(combat?'<div>Çekirdek '+hp+' · Tehdit '+enemies.filter(e=>e.hp>0).length+' · Dalga '+round+(mission>=22&&mission<=24?' · Sızma '+breaches:'')+'</div>':'')+(mission===27&&bossCounterUntil>performance.now()?'<div style="color:#b6ffd7">PİKO SALDIRIYI KESTİ · ÇEKİRDEK GÜVENDE</div>':'')+(mission>=25?'<div>Mor bağlantı: '+linkUses+' kullanım · '+(mission===25?'Piko sınaması':'Kalkan desteği')+'</div>':'');updateLinkButton()};hud();
-function show(html){clearControls();dialog=true;modal.classList.add('open');panel.innerHTML=html;updateLinkButton()}function hide(){dialog=false;modal.classList.remove('open');updateLinkButton()}
+// Optional tactical map: discovered records remain readable without guessing a puzzle answer.
+function openMap(){
+ if(dialog||complete)return;
+ show('<h2>İSTASYON HARİTASI</h2><p>'+goals[mission][Math.min(phase,goals[mission].length-1)]+'</p><canvas id="station-map" width="1100" height="590" style="width:100%;height:auto;background:#081723;border:1px solid #638b9c" aria-label="İstasyon planı: konumun, geçitler ve terminaller"></canvas><p>Mavi: konumun · Kırmızı: kilitli geçit · Yeşil: incelenen / tamamlanan terminal</p><ol id="map-terminals"></ol><button id="map-close">OYUNA DÖN</button>');
+ const c=document.getElementById('station-map').getContext('2d');
+ c.fillStyle='#678293';for(const w of walls)c.fillRect(w.x,w.y,w.w,w.h);
+ for(const g of gates){c.fillStyle=phase<g.openPhase?'#ef8d7b':'#4baf9c';c.fillRect(g.x,g.y,g.w,g.h)}
+ const list=document.getElementById('map-terminals');
+ stations.forEach((s,i)=>{const done=found.has(s.name);c.fillStyle=done?'#93d9ab':'#e5c58c';c.beginPath();c.arc(s.x,s.y,17,0,Math.PI*2);c.fill();c.fillStyle='#081723';c.font='bold 18px system-ui';c.textAlign='center';c.fillText(String(i+1),s.x,s.y+6);const li=document.createElement('li');li.textContent=s.name+(done?' — İNCELENDİ':'');li.style.color=done?'#93d9ab':'#e5edf4';list.appendChild(li)});
+ c.fillStyle='#75e7ff';c.beginPath();c.arc(player.x,player.y,10,0,Math.PI*2);c.fill();c.strokeStyle='#fff';c.lineWidth=3;c.stroke();
+ const close=document.getElementById('map-close');close.onclick=()=>{hide();document.getElementById('map-open').focus()};close.focus();
+}
+const mapButton=document.createElement('button');mapButton.id='map-open';mapButton.textContent='HARİTA';mapButton.setAttribute('aria-label','İstasyon haritasını aç');mapButton.style.cssText='position:fixed;right:12px;top:80px;min-width:70px;min-height:44px;z-index:4;background:#16394b;color:#e2f6ff;border:1px solid #80c9db;border-radius:9px;touch-action:manipulation';mapButton.onclick=openMap;document.body.appendChild(mapButton);
+function show(html){mapButton.hidden=true;clearControls();dialog=true;modal.classList.add('open');panel.innerHTML=html;updateLinkButton()}function hide(){mapButton.hidden=complete;dialog=false;modal.classList.remove('open');updateLinkButton()}
 function say(title,body){show('<h2>'+title+'</h2><p>'+body+'</p><button id="continue">DEVAM</button>');document.getElementById('continue').onclick=hide}
 function pick(title,body,options,cb){show('<h2>'+title+'</h2><p>'+body+'</p><div id="options"></div><p id="feedback" role="status"></p><button id="cancel">KAPAT</button>');document.getElementById('cancel').onclick=hide;const box=document.getElementById('options');for(const [label,value] of options){const button=document.createElement('button');button.textContent=label;button.onclick=()=>cb(value);box.appendChild(button)}}
 function error(text){document.getElementById('feedback').textContent=text}
