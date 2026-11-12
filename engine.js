@@ -709,7 +709,12 @@ function updateGame(dt) {
                         p.bouncesLeft--; p.damage = Math.max(1, Math.round(p.damage * 0.60)); p.hitList.push(e);
                         let nextTarget = null, minDist = 140;
                         for (const cand of enemies) {
-                            if (!p.hitList.includes(cand) && Math.hypot(cand.x - e.x, cand.y - e.y) < minDist) { minDist = Math.hypot(cand.x - e.x, cand.y - e.y); nextTarget = cand; }
+                            if (p.hitList.includes(cand)) continue;
+                            const candidateDistance = Math.hypot(cand.x - e.x, cand.y - e.y);
+                            if (candidateDistance < minDist) {
+                                minDist = candidateDistance;
+                                nextTarget = cand;
+                            }
                         }
                         if (nextTarget) {
                             p.x = e.x; p.y = e.y;
