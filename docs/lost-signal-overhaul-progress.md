@@ -254,3 +254,8 @@ Draft #122 `overhaul/finale-input-ownership`, commit `5342ab7925c7b6c7b98272f726
 ## Finale navigation continuation
 
 Branch `overhaul/finale-navigation`, commit `a8e2061f5b5fa0ab5ebbdb1bdb480e72f5b74437`, adds maps to missions 16–27, completing map availability across 11–27. Browser runners exercise map open/close and station count; syntax/diff checks passed, new browser run pending. #122 run 43299053706: Chromium smoke, both overhaul jobs and Firestore green; final WebKit smoke still in progress. Resume from finale-navigation, inspect CI before merging. Earlier 1–10 navigation, qualitative pacing, art/content/HUD/localization, physical device and performance QA remain incomplete.
+
+
+## Early navigation and touch continuation
+
+Saved `overhaul/early-navigation-touch` at `9c9d8851c02f4481852efe4eabe1d15f46057423`: maps for missions 2–10 and scrollable landscape dialogs across six interior shells; early dialog input clearing. Inline syntax checks passed; browser verification pending. Mission 1 map, early-map explicit browser assertions and active hazard marking remain follow-ups. #123 run 43300954380 had four green jobs and WebKit smoke pending. Chromium artifact 13981133656 inspected: mission 11 map readable, phone workshop mascot overlay fixed; audio corner control still visible. No new main merge. Remaining full art/content/localization, qualitative pacing, physical iPad and performance tasks are not complete.
