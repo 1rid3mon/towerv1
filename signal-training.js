@@ -1,0 +1,27 @@
+/* Skill-only station recreation. Scores are local; no wagers or currency writes. */
+(function(root){'use strict';
+ const $=id=>document.getElementById(id),labels=['◈','≋','⊙','⌁'];
+ let mode='pulse',phase='idle',round=0,total=0,pos=0,start=0,raf=0,owner='',sequence=[],entered=[],best=0,pausedElapsed=0;
+ const targets=[.28,.67,.43,.74,.35];
+ function identity(){return typeof currentUser!=='undefined'&&currentUser?.uid?String(currentUser.uid):'guest'}
+ function key(){return 'towerSignalTrainingV1:'+identity()}
+ function permitted(){return document.body.dataset.gameMode!=='story'&&!(root.GameModeRuntime?.isStoryActive())}
+ function read(){try{const r=JSON.parse(localStorage.getItem(key())||'{}');return {pulse:Math.max(0,Math.min(500,Number(r.pulse)||0)),memory:Math.max(0,Math.min(500,Number(r.memory)||0))}}catch{return {pulse:0,memory:0}}}
+ function status(text){$('signal-status').textContent=text}
+ function scoreAt(position,target){return Math.max(0,Math.round(100*(1-Math.abs(position-target)/.15)))}
+ function update(){if(!$('signal-action'))return;$('signal-score').textContent=total+' / 500';$('signal-round').textContent='TUR '+Math.min(5,round+1)+' / 5';$('signal-best').textContent=read()[mode]+' / 500';$('signal-action').textContent=phase==='running'?'ŞİMDİ KİLİTLE':phase==='paused'?'DEVAM ET':phase==='memory'?'DİZİYİ YENİDEN GÖSTER':phase==='preview'?'HAZIRIM · GİZLE':phase==='between'?'SONRAKİ TUR':'ANTRENMANA BAŞLA';$('signal-pulse').hidden=mode!=='pulse';$('signal-memory').hidden=mode!=='memory';document.querySelectorAll('[data-signal-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.signalMode===mode)));}
+ function draw(){const target=targets[round%5];$('signal-target').style.left=(target*100)+'%';$('signal-cursor').style.left=(pos*100)+'%';$('signal-target').setAttribute('aria-label','Hedef yüzde '+Math.round(target*100));}
+ function loop(now){if(phase!=='running')return;if(document.hidden||$('tab-casino').classList.contains('hidden')){pause();return}const t=(now-start)/(2100-round*160);pos=1-Math.abs((t%2)-1);draw();raf=requestAnimationFrame(loop)}
+ function beginRound(){entered=[];if(mode==='pulse'){phase='running';pos=0;start=performance.now();draw();raf=requestAnimationFrame(loop);status('İşaret hedefin ortasındayken kilitle. Sonuç yalnızca isabetine bağlı.')}else{sequence=Array.from({length:3+round},(_,i)=>(i*i+round*3+i)%4);phase='preview';$('signal-sequence').textContent=sequence.map(i=>labels[i]).join('  ');status('Diziyi incele. Hazır olduğunda gizle, sonra sembollere aynı sırayla dokun.')}update()}
+ function complete(points){cancelAnimationFrame(raf);total+=points;round++;if(round===5){phase='done';let saved=false;if(owner===identity()&&permitted()){const records=read();best=records[mode];records[mode]=Math.max(best,total);try{localStorage.setItem(key(),JSON.stringify(records));saved=true}catch{}}
+  status((total>=450?'USTA OPERATÖR':total>=300?'SİNYAL UZMANI':'ÇIRAK OPERATÖR')+' · '+total+'/500. '+(saved?'En iyi puanın bu cihazda kaydedildi.':'Puan kaydedilemedi; tekrar deneyebilirsin.'));
+ }else{phase='between';status('Tur tamamlandı: '+points+'/100. '+(points===100?'Kusursuz bağlantı.':'Bir sonraki turda yeniden dene.'))}update()}
+ function action(){if(!permitted())return;if(phase==='running'){complete(scoreAt(pos,targets[round]));return}if(phase==='paused'){phase='running';start=performance.now()-pausedElapsed;raf=requestAnimationFrame(loop);status('Bağlantı sürdürüldü.');update();return}if(phase==='preview'){phase='memory';$('signal-sequence').textContent='• '.repeat(sequence.length);status('Sembolleri sırayla gir.');update();return}if(phase==='memory'){entered=[];phase='preview';$('signal-sequence').textContent=sequence.map(i=>labels[i]).join('  ');status('Tekrar inceleyebilirsin; bu çalışma süreye karşı değil.');update();return}if(phase==='idle'||phase==='done'){round=0;total=0;owner=identity()}beginRound()}
+ function input(value){if(phase!=='memory'||!permitted())return;if(value!==sequence[entered.length]){$('signal-sequence').textContent=sequence.map(i=>labels[i]).join('  ');complete(0);return}entered.push(value);$('signal-sequence').textContent=entered.map(i=>labels[i]).join('  ')+'  '+('• '.repeat(sequence.length-entered.length));if(entered.length===sequence.length)complete(100)}
+ function pause(){if(phase==='running'){cancelAnimationFrame(raf);pausedElapsed=performance.now()-start;phase='paused';status('Duraklatıldı. Hazır olduğunda devam edebilirsin.');update()}}
+ function select(next){cancelAnimationFrame(raf);mode=next==='memory'?'memory':'pulse';phase='idle';round=0;total=0;pos=0;$('signal-sequence').textContent='◈  ≋  ⊙  ⌁';status('Beş tur, en fazla 500 puan. Kristal harcanmaz; ödülün beceri derecen ve kişisel rekorun.');draw();update()}
+ function mount(){if(!$('signal-action')||$('signal-action').dataset.ready)return;$('signal-action').dataset.ready='1';$('signal-action').onclick=action;document.querySelectorAll('[data-signal-mode]').forEach(b=>b.onclick=()=>select(b.dataset.signalMode));document.querySelectorAll('[data-signal-symbol]').forEach(b=>b.onclick=()=>input(Number(b.dataset.signalSymbol)));select('pulse')}
+ addEventListener('blur',pause);document.addEventListener('visibilitychange',()=>{if(document.hidden)pause()});
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
+ root.SignalTraining=Object.freeze({open(){mount();update()},pause,scoreAt});
+})(window);

@@ -201,6 +201,12 @@ jobs:
         if: github.ref == 'refs/heads/main'
         working-directory: security-lab
         run: node browser-smoke.cjs --live
+      - name: Capture all nine interior episode art views
+        working-directory: security-lab
+        run: node story-interior-visual.cjs
+      - name: Verify skill workshop, saved records and Endless HUD
+        working-directory: security-lab
+        run: node signal-training-browser.cjs
       - name: Preserve guest-only browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -212,7 +218,9 @@ jobs:
   webkit-smoke:
     runs-on: ubuntu-latest
     # Complete 27-mission playthrough plus mobile screens requires more than ten minutes.
-    timeout-minutes: 16
+    # Real navigation and nine durable-reload cases exceed the old 16-minute
+    # aggregate budget on WebKit. Keep assertions and render limits unchanged.
+    timeout-minutes: 25
     env:
       BROWSER_ENGINE: webkit
     steps:
@@ -260,6 +268,12 @@ jobs:
         if: github.ref == 'refs/heads/main'
         working-directory: security-lab
         run: node browser-smoke.cjs --live
+      - name: Capture all nine interior episode art views
+        working-directory: security-lab
+        run: node story-interior-visual.cjs
+      - name: Verify skill workshop, saved records and Endless HUD
+        working-directory: security-lab
+        run: node signal-training-browser.cjs
       - name: Preserve WebKit evidence
         if: always()
         uses: actions/upload-artifact@v4

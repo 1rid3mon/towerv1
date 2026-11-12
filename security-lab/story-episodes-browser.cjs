@@ -166,6 +166,32 @@ async function main() {
     await finalReplay.evaluate(() => window.parent.postMessage({type:'lost-signal-interior-close'},location.origin));
     await overlay.waitFor({state:'detached',timeout:6500});
 
+    // A true document reload discards all runtime state. Verify durable checkpoints
+    // for every episode, not only closing and reopening the existing iframe.
+    for(const start of [1,4,7,10,13,16,19,22,25]) {
+      await page.evaluate(start=>{
+        const data={introSeen:true,chapter:Math.ceil(start/10)};
+        for(let m=1;m<start;m++)data['mission'+m+'Complete']=true;
+        if(start>4)data.powerChoice='weapon';
+        if(start>13)data.trustChoice='human';
+        if(start>17)data.callSignChoice='piko';
+        if(start>23)data.stabilityChoice='preserve';
+        localStorage.setItem(STORY_PROGRESS_KEY,JSON.stringify(data));
+        updateStoryMissionBoard();startStoryMission(start);
+      },start);
+      await finishStage(start,false);
+      const checkpoint=await page.evaluate(()=>JSON.parse(localStorage.getItem(STORY_PROGRESS_KEY)));
+      await page.reload({waitUntil:'domcontentloaded'});
+      await page.waitForFunction(()=>typeof startStoryMission==='function' && typeof game!=='undefined' && game.highestWave>=26);
+      const restored=await page.evaluate(()=>getStoryProgress());
+      for(let m=1;m<=27;m++)assert.equal(!!restored['mission'+m+'Complete'],!!checkpoint['mission'+m+'Complete'],'Reload must preserve stage '+m+' for episode '+start);
+      for(const key of ['powerChoice','trustChoice','callSignChoice','stabilityChoice'])assert.equal(restored[key],checkpoint[key],'Reload must preserve '+key);
+      await page.evaluate(start=>startStoryMission(start),start);
+      const resumedFrame=await expectStage(start+1);
+      await resumedFrame.evaluate(()=>window.parent.postMessage({type:'lost-signal-interior-close'},location.origin));
+      await overlay.waitFor({state:'detached',timeout:6500});
+    }
+
     // A legacy player who completed 7 and 8 must resume episode 3 at stage 9.
     await page.evaluate(() => {
       const data={introSeen:true,chapter:1};
