@@ -244,3 +244,8 @@ Saved branch `overhaul/readable-interaction-consoles`, commit `3fe12eee1e8b356bb
 ## Navigation and notebook package — 12 November
 
 Draft #121 `overhaul/station-map`, latest `9c6b69dfd98a2b5634afc1b666b5fa09d0cd9da1`, stacked on #120. Missions 11–15 now offer a touch map with player position, actual locked/open gates, numbered station list and discovered markers. Opening clears input and pauses through existing modal state. A field notebook retains only inspected maintenance/archive/voice clues during the current mission; this is not a new durable save schema. No puzzle answers disclosed. Local controller tests 7/7 and puzzle tests 7/7 passed; syntax/diff passed. Browser runner taps map open/close across five missions and captures screenshots; latest CI pending. #120 run 43298382215 had Firestore and Chromium overhaul green, other jobs running at checkpoint. Next inspect both runs and map/console/workshop screenshots; fix real failures, extend navigation to other chapters, continue substantive content and final QA. Main remains c3a8a2e; no new merge or manual deployment.
+
+
+## Finale input follow-up
+
+Draft #122 `overhaul/finale-input-ownership`, commit `5342ab7925c7b6c7b98272f726a5b2dcf8b8000d`, stacks #121/#120. Extends dialog movement clearing, native Space button handling, pointer ownership and lost-capture cleanup to missions 16–27. Actual controllers changed; browser runners assert dialog key clearing and Space close. Local runtime 80/80 and syntax/diff passed. Browser CI pending. Resume latest code from #122; check latest CI and screenshots before integration. No new main merge, physical device result or duration measurement claimed.
