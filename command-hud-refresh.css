@@ -27,3 +27,9 @@ body:not([data-game-mode="story"]) #hud-quick-stats>div{min-width:0;margin-left:
 #signal-action{width:100%;background:#41685b;border-color:#b5d2b0;margin-top:12px}
 #signal-status{min-height:66px;font-size:13px;line-height:1.6;color:#e5d5b4;margin:12px 0}
 .signal-training [hidden]{display:none!important}
+
+/* Keep workshop controls clear of the floating companion and transient notices. */
+body:has(#tab-casino:not(.hidden)) #game-mascot{visibility:hidden;pointer-events:none}
+body:has(#tab-casino:not(.hidden)) #game-mascot-bubble{visibility:hidden;pointer-events:none}
+body:has(#tab-casino:not(.hidden)) #toast-msg{bottom:auto!important;top:84px;max-width:calc(100vw - 32px)}
+#tab-casino{padding-bottom:80px;scroll-padding-bottom:80px}

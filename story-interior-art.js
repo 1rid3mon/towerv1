@@ -41,6 +41,18 @@
    c.strokeStyle='#c0a6e9';c.lineWidth=1.3;c.beginPath();c.moveTo(0,-8);c.lineTo(2,-13);c.stroke();disc(c,2,-13,1.5,'#f6d18c');
   }c.restore();
  }
+ function station(c,s,near){
+  c.save();c.translate(s.x,s.y);c.textAlign='center';c.lineJoin='round';
+  const color=near?'#efffa7':'#91dbe4';
+  poly(c,[[-25,-17],[-18,-24],[18,-24],[25,-17],[25,18],[17,24],[-17,24],[-25,18]],'#0a1925',color);
+  c.fillStyle='#345465';c.fillRect(-19,16,38,5);
+  c.fillStyle='#173c4d';c.fillRect(-18,-17,36,25);
+  c.strokeStyle=color;c.lineWidth=2;c.beginPath();c.moveTo(-13,0);c.lineTo(-7,0);c.lineTo(-3,-10);c.lineTo(2,3);c.lineTo(7,-6);c.lineTo(13,-6);c.stroke();
+  for(let i=0;i<3;i++){disc(c,-10+i*10,12,2,i===0?color:'#4d7180')}
+  c.font='bold 12px system-ui';c.lineWidth=4;c.strokeStyle='#06101b';c.strokeText(s.name||s.label||'',0,-34);c.fillStyle='#e7f5fa';c.fillText(s.name||s.label||'',0,-34);
+  if(near){c.fillStyle='#e8f8b5';c.fillRect(-38,31,76,22);c.fillStyle='#0b222c';c.font='bold 11px system-ui';c.fillText('ETKİLEŞ',0,46)}
+  c.restore();
+ }
  function environment(c,mission,width=1100,height=590){
   const chapter=Math.max(0,Math.min(8,Math.floor((mission-1)/3))),accent=palettes[chapter];
   c.save();c.strokeStyle=accent;c.lineWidth=2;c.globalAlpha=.45;
@@ -57,5 +69,5 @@
   c.globalAlpha=.6;c.fillStyle=accent;c.font='10px monospace';c.textAlign='left';c.fillText('LS / '+String(chapter+1).padStart(2,'0')+'  '+titles[chapter],62,height-30);
   c.restore();
  }
- root.StoryInteriorArt=Object.freeze({enemy,pilot,environment});
+ root.StoryInteriorArt=Object.freeze({enemy,pilot,environment,station});
 })(typeof window!=='undefined'?window:globalThis);
