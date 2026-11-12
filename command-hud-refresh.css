@@ -1,0 +1,29 @@
+/* Endless controls only. The existing main menu has no matching selectors. */
+body:not([data-game-mode="story"]) #hud-top-bar{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);width:min(490px,calc(100% - 16px));gap:8px!important;align-items:stretch!important}
+body:not([data-game-mode="story"]) #hud-hp-card,body:not([data-game-mode="story"]) #hud-wave-card{width:auto!important;min-width:0;padding:10px!important;border-radius:10px!important;background:rgba(12,24,34,.96)!important;box-shadow:0 4px 16px #0004!important}
+body:not([data-game-mode="story"]) #ui-hp-text{font-size:14px;font-variant-numeric:tabular-nums}
+body:not([data-game-mode="story"]) #ui-wave-badge{letter-spacing:.04em;font-size:12px}
+body:not([data-game-mode="story"]) #btn-hold-wave{min-height:40px;min-width:70px;padding:6px}
+body:not([data-game-mode="story"]) #hud-bottom-controls button{min-width:44px;min-height:44px;justify-content:center;touch-action:manipulation}
+body:not([data-game-mode="story"]) #hud-quick-stats{max-width:calc(100% - 120px);gap:10px;padding:8px!important;border-radius:8px!important;background:rgba(12,24,34,.96)!important}
+body:not([data-game-mode="story"]) #hud-quick-stats>div{min-width:0;margin-left:0!important}
+@media(max-width:600px){body:not([data-game-mode="story"]) #hud-quick-stats{gap:7px;font-size:10px}body:not([data-game-mode="story"]) #hud-hp-card,body:not([data-game-mode="story"]) #hud-wave-card{padding:7px!important}body:not([data-game-mode="story"]) #ui-hp-text{font-size:12px}}
+@media(max-height:500px){body:not([data-game-mode="story"]) #hud-top-bar{width:min(420px,calc(100% - 16px))}body:not([data-game-mode="story"]) #hud-hp-card>div:last-child{display:none}body:not([data-game-mode="story"]) #btn-hold-wave{min-height:32px}}
+#tab-casino .signal-training{padding:18px;background:#102333;border:1px solid #49727f;border-radius:12px;color:#dcebf0}
+.signal-training h3{font:700 18px system-ui;letter-spacing:.06em;color:#e8cc94;margin:0 0 8px}
+.signal-training p{font-size:13px;line-height:1.6;color:#adc6ce;margin:8px 0 14px}
+.signal-training button{min-height:48px;border:1px solid #5b8592;border-radius:8px;padding:10px;color:#e0f4f5;background:#1c3b4b;touch-action:manipulation;font-weight:700}
+.signal-training button:focus-visible{outline:3px solid #f0ce8c;outline-offset:2px}
+.signal-training button[aria-pressed="true"]{background:#375952;border-color:#c5d5a1;color:#f3f4d4}
+.signal-training .signal-modes,.signal-training .signal-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
+.signal-training .signal-metrics{grid-template-columns:repeat(3,minmax(0,1fr));font-size:11px;color:#9dbac5}
+.signal-training .signal-metrics strong{display:block;font-size:16px;color:#edf4e8;font-variant-numeric:tabular-nums;margin-top:5px}
+#signal-track{height:80px;background:repeating-linear-gradient(90deg,#152f3f 0 9%,#264455 9% 10%);position:relative;overflow:hidden;border:1px solid #587f90;border-radius:9px;margin:15px 0}
+#signal-target{position:absolute;top:0;bottom:0;width:14%;transform:translateX(-50%);background:#a7d5aa66;border-left:2px solid #bad8ac;border-right:2px solid #bad8ac}
+#signal-target:after{content:'';position:absolute;left:50%;height:100%;border-left:2px dashed #ffdf92}
+#signal-cursor{position:absolute;top:5px;bottom:5px;width:5px;transform:translateX(-50%);background:#fff7d5;box-shadow:0 0 0 2px #0b1827}
+#signal-sequence{font:700 24px monospace;letter-spacing:4px;min-height:76px;display:grid;place-items:center;padding:12px;border:1px solid #527789;border-radius:8px;background:#0b1b29;overflow-wrap:anywhere}
+.signal-symbols{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}.signal-symbols button{font-size:25px}
+#signal-action{width:100%;background:#41685b;border-color:#b5d2b0;margin-top:12px}
+#signal-status{min-height:66px;font-size:13px;line-height:1.6;color:#e5d5b4;margin:12px 0}
+.signal-training [hidden]{display:none!important}

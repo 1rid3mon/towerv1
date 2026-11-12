@@ -1328,7 +1328,6 @@ function gameLoop(now) {
             combatFramePacer.observeRenderCost(performance.now() - drawStart);
         }
     }
-    updateRouletteAnimation(now);
 
     if (!isDuplicateTab) requestAnimationFrame(gameLoop);
 }
@@ -1379,7 +1378,6 @@ window.onload = function () {
     updateHoldWaveButton();
     buildUpgradesUI();
     buildInventoryUI();
-    drawRouletteWheel();
     updateHUD();
 
     // An isolated Story iframe must never claim the Endless tab lock or start Endless autosaves.

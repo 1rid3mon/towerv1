@@ -740,6 +740,7 @@
 <link rel="stylesheet" href="overhaul-v11.css">
 <link rel="stylesheet" href="silent-station-art.css">
 <link rel="stylesheet" href="lost-signal-stage16.css">
+<link rel="stylesheet" href="command-hud-refresh.css">
 </head>
 <body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-pc color-pastel" id="main-body">
 
@@ -1073,7 +1074,7 @@
                 <button onclick="switchTab('items')" id="tab-btn-items" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40 relative"><i class="fa-solid fa-shield-cat text-xs text-yellow-400"></i><span>Envanter</span><span id="badge-equipped-count" class="absolute top-0.5 right-0.5 px-1 bg-yellow-500 text-black font-bold text-[7px] rounded-full">0/3</span></button>
                 <button onclick="switchTab('lootbox')" id="tab-btn-lootbox" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-box-open text-xs text-pink-400"></i><span>Kutular</span></button>
                 <button onclick="switchTab('prestige')" id="tab-btn-prestige" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-bolt-lightning text-xs text-purple-400"></i><span>Prestij</span></button>
-                <button onclick="switchTab('casino')" id="tab-btn-casino" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-dice text-xs text-amber-300 animate-pulse"></i><span>Kumar</span></button>
+                <button onclick="switchTab('casino')" id="tab-btn-casino" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-wave-square text-xs text-cyan-300"></i><span>Atölye</span></button>
                 <button onclick="switchTab('leaderboard')" id="tab-btn-leaderboard" class="py-2.5 flex flex-col items-center justify-center gap-0.5 text-slate-400 transition hover:bg-slate-800/40"><i class="fa-solid fa-trophy text-xs text-yellow-400"></i><span>Sıralama</span></button>
             </nav>
 
@@ -1240,86 +1241,16 @@
                 </div>
 
                 <div id="tab-casino" class="hidden space-y-3">
-                    <div class="premium-card p-3.5 space-y-3 shadow-xl">
-                        <div class="flex items-center justify-between border-b border-white/10 pb-2">
-                            <h3 class="font-tech font-bold text-sm text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-dice"></i> Kristal Kumarhanesi</h3>
-                            <span class="text-[10px] text-cyan-400 font-tech"><i class="fa-solid fa-gem"></i> Para Birimi: Kristal</span>
-                        </div>
-
-                        <div class="space-y-1">
-                            <label class="text-[11px] text-slate-400 block font-semibold">Bahis Miktarı (Kristal):</label>
-                            <div class="flex gap-1.5">
-                                <input type="number" id="casino-bet" value="2" min="1" class="flex-1 bg-slate-900 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-cyan-400 font-tech font-bold focus:outline-none focus:border-cyan-500">
-                                <button onclick="setCasinoBetVal(1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] rounded text-slate-300 font-tech">1</button>
-                                <button onclick="setCasinoBetVal(5)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] rounded text-slate-300 font-tech">5</button>
-                                <button onclick="setCasinoBetVal(10)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] rounded text-slate-300 font-tech">10</button>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-2 pt-1">
-                            <button onclick="switchMiniGame('roulette')" id="mg-btn-roulette" class="py-2 rounded-xl bg-amber-600 text-white font-tech font-bold text-xs transition">RULET</button>
-                            <button onclick="switchMiniGame('blackjack')" id="mg-btn-blackjack" class="py-2 rounded-xl bg-slate-800 text-slate-300 font-tech font-bold text-xs transition">BLACKJACK</button>
-                            <button onclick="switchMiniGame('quantum')" id="mg-btn-quantum" class="py-2 rounded-xl bg-slate-800 text-slate-300 font-tech font-bold text-xs transition">KUANTUM</button>
-                        </div>
-
-                        <div id="mg-roulette" class="space-y-2.5 pt-1">
-                            <div class="bg-slate-900/60 border border-white/5 p-3 rounded-xl text-center space-y-2 flex flex-col items-center">
-                                <div class="relative w-[180px] h-[180px] flex items-center justify-center">
-                                    <canvas id="rouletteCanvas" width="180" height="180" class="rounded-full shadow-lg border-2 border-amber-500/40"></canvas>
-                                    <div class="absolute -top-1 left-1/2 -translate-x-1/2 text-amber-400 text-sm drop-shadow"><i class="fa-solid fa-caret-down"></i></div>
-                                </div>
-                                <div id="roulette-wheel-display" class="font-tech font-bold text-sm text-amber-300 py-1 px-3 bg-slate-950 rounded-lg border border-slate-800">ÇARK HAZIR</div>
-                                <div id="roulette-result" class="text-xs text-slate-300 min-h-[18px]">Renk seç, çarkı ve topu döndür!</div>
-                            </div>
-                            <div class="grid grid-cols-3 gap-2">
-                                <button id="btn-roul-red" onclick="playRoulette('red')" class="upgrade-btn py-2.5 rounded-xl bg-red-600/80 hover:bg-red-600 text-white font-tech font-bold text-xs shadow">KIRMIZI (x2)</button>
-                                <button id="btn-roul-green" onclick="playRoulette('green')" class="upgrade-btn py-2.5 rounded-xl bg-emerald-600/80 hover:bg-emerald-600 text-white font-tech font-bold text-xs shadow">YEŞİL (x14)</button>
-                                <button id="btn-roul-black" onclick="playRoulette('black')" class="upgrade-btn py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-tech font-bold text-xs shadow border border-slate-700">SİYAH (x2)</button>
-                            </div>
-                        </div>
-
-                        <div id="mg-blackjack" class="hidden space-y-3 pt-1">
-                            <div class="bg-slate-900/60 border border-white/5 p-3 rounded-xl space-y-3 text-xs">
-                                <div>
-                                    <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-                                        <span>Kasa (Bot):</span>
-                                        <span id="bj-dealer-score" class="font-tech font-bold text-slate-200">-</span>
-                                    </div>
-                                    <div id="bj-dealer-cards" class="flex gap-1.5 min-h-[64px] items-center bg-slate-950/60 p-2 rounded-lg border border-slate-800 overflow-x-auto">
-                                        <span class="text-slate-500 text-[11px] italic">Bekleniyor...</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between text-[11px] text-amber-400 mb-1">
-                                        <span>Sen (Oyuncu):</span>
-                                        <span id="bj-player-score" class="font-tech font-bold text-amber-300">-</span>
-                                    </div>
-                                    <div id="bj-player-cards" class="flex gap-1.5 min-h-[64px] items-center bg-slate-950/60 p-2 rounded-lg border border-slate-800 overflow-x-auto">
-                                        <span class="text-slate-500 text-[11px] italic">Bekleniyor...</span>
-                                    </div>
-                                </div>
-                                <div id="bj-status" class="text-center text-slate-300 pt-1 font-medium bg-slate-950 p-2 rounded border border-slate-800">Kristal bahsini gir ve Dağıt'a bas.</div>
-                            </div>
-                            <div id="bj-actions-start" class="grid grid-cols-1">
-                                <button onclick="startBlackjack()" class="py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-tech font-bold text-xs shadow">KARTLARI DAĞIT</button>
-                            </div>
-                            <div id="bj-actions-play" class="hidden grid grid-cols-2 gap-2">
-                                <button onclick="hitBlackjack()" class="py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-tech font-bold text-xs">KART ÇEK (HIT)</button>
-                                <button onclick="standBlackjack()" class="py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-tech font-bold text-xs">KAL (STAND)</button>
-                            </div>
-                        </div>
-
-                        <div id="mg-quantum" class="hidden space-y-3 pt-1">
-                            <div class="bg-slate-900/60 border border-white/5 p-3 rounded-xl space-y-2.5 text-xs">
-                                <div id="quantum-rules-text" class="text-center text-[11px] text-slate-400 leading-snug">
-                                    Çubuk kayarken <b class="text-yellow-300">sarı</b> bölgede kilitle: <b class="text-yellow-300">x4</b>, <b class="text-sky-300">mavi</b> bölgede: <b class="text-sky-300">x2</b>. Her başarı kombo çarpanını artırır, kaçırırsan kombo sıfırlanır.
-                                </div>
-                                <canvas id="quantumHackCanvas" width="320" height="40" class="w-full h-10 rounded-lg border border-slate-800"></canvas>
-                                <div id="quantum-combo-text" class="text-center font-tech font-bold text-[11px] text-cyan-300">Kombo Serisi: 0x (Çarpan: x1.0)</div>
-                            </div>
-                            <button id="btn-quantum-action" onclick="handleQuantumAction()" class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-tech font-bold text-xs shadow transition">FREKANSI BAŞLAT</button>
-                        </div>
-                    </div>
+                  <section class="signal-training" aria-labelledby="signal-title">
+                    <h3 id="signal-title">SİNYAL ATÖLYESİ</h3>
+                    <p>İstasyonun bağlantısını güçlendir. Zamanlama veya bellek çalışması: beş tur, tek kişisel rekor.</p>
+                    <div class="signal-modes"><button type="button" data-signal-mode="pulse" aria-pressed="true">FREKANS KİLİDİ</button><button type="button" data-signal-mode="memory" aria-pressed="false">YANKI BELLEĞİ</button></div>
+                    <div class="signal-metrics"><div>İLERLEME<strong id="signal-round">TUR 1 / 5</strong></div><div>PUAN<strong id="signal-score">0 / 500</strong></div><div>REKOR<strong id="signal-best">0 / 500</strong></div></div>
+                    <div id="signal-pulse"><div id="signal-track" aria-label="Frekans hedefi ve hareketli işaret"><div id="signal-target"></div><div id="signal-cursor"></div></div></div>
+                    <div id="signal-memory" hidden><div id="signal-sequence" aria-live="polite">◈ ≋ ⊙ ⌁</div><div class="signal-symbols"><button data-signal-symbol="0" aria-label="Elmas">◈</button><button data-signal-symbol="1" aria-label="Dalga">≋</button><button data-signal-symbol="2" aria-label="Çekirdek">⊙</button><button data-signal-symbol="3" aria-label="Yankı">⌁</button></div></div>
+                    <div id="signal-status" role="status">Kristal harcanmaz. Sonucu becerin belirler.</div>
+                    <button type="button" id="signal-action">ANTRENMANA BAŞLA</button>
+                  </section>
                 </div>
 
                 <!-- 9. SEKME: LİDERLİK TABLOSU (🏆 SIRALAMA) -->
@@ -1807,6 +1738,7 @@
 <script src="locales.js"></script>
 <script src="i18n.js"></script>
 <script src="ui.js"></script>
+<script src="signal-training.js"></script>
 <script src="story.js"></script>
 <script src="story-finale.js"></script>
 <script src="living-space.js"></script>
