@@ -9,6 +9,7 @@ const server=http.createServer((req,res)=>{
  const pathname=new URL(req.url,'http://localhost').pathname;
  if(pathname==='/story-interior-missions21-27.html'){res.setHeader('Content-Type','text/html; charset=utf-8');res.end(fs.readFileSync(path.join(root,'story-interior-missions21-27.html'),'utf8'));return}
  if(pathname==='/story-interior-missions21-27.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(injected);return}
+ if(pathname==='/story-interior-art.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(fs.readFileSync(path.join(root,'story-interior-art.js'),'utf8'));return}
  if(pathname==='/story-interior-completion.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(fs.readFileSync(path.join(root,'story-interior-completion.js'),'utf8'));return}
  res.writeHead(404);res.end();
 });

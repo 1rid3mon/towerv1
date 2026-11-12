@@ -6,6 +6,7 @@ const hook="window.__qa={player,stations,gates,enemies,interact,collides,camera,
 const script=raw.replace(/\}\)\(\);\s*$/,hook+'\n})();');assert.notEqual(script,raw,'QA hook missing');
 const shell=fs.readFileSync(path.join(root,'story-interior-missions16-20.html'),'utf8');
 const server=http.createServer((req,res)=>{
+ if(new URL(req.url,'http://localhost').pathname==='/story-interior-art.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(fs.readFileSync(path.join(root,'story-interior-art.js'),'utf8'));return}
  if(new URL(req.url,'http://localhost').pathname==='/story-interior-completion.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(fs.readFileSync(path.join(root,'story-interior-completion.js'),'utf8'));return}
 const p=new URL(req.url,'http://localhost').pathname;if(p==='/story-interior-missions16-20.html'){res.setHeader('Content-Type','text/html');res.end(shell)}else if(p==='/story-interior-missions16-20.js'){res.setHeader('Content-Type','text/javascript');res.end(script)}else{res.writeHead(404);res.end()}});
 async function play(){
