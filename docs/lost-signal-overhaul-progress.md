@@ -184,3 +184,22 @@ Last updated: 2026-11-11 (Europe/Istanbul, morning)
 ## Main integration — 11 November, 17:33 Türkiye
 
 User explicitly authorized main merge and continuation. PR #113 merged the complete tested head `427fb38` into main as `31376a0bc65fd764f7b8a8c89fe1275fe28625e5`. Earlier instructions to await release approval are superseded for this integration. No manual Vercel deployment or settings change. Automatic production outcome is not yet verified. Continue from this main commit in a fresh Story branch. Stage 1 remains partial: prioritize genuine nine-episode pacing, connected room transitions and player navigation without test teleport; preserve old saves. Stages 2–5 remain unstarted. Existing five-job CI on the source head passed; do not rerun solely to repeat those results.
+
+## Chapter four playable investigation package
+
+- Base main `31376a0`; feature work `story/episode-continuity`. Mission 11 now requires routing three distinct rotatable circuit boards through their safety fuses, in the evidence-derived BETA → ALFA → GAMA order. Powered paths and open ends provide feedback; closing a board retains its in-stage rotations. Mission 12 now requires ordering four preserved timestamp records and selecting the conflicting signature/command pair before making the original cautious deduction. Old mission completion payloads and checkpoint flags are unchanged.
+- Mission 11–15 controls now release held joystick and keyboard input on dialog, blur and hidden document, avoiding continued movement after interrupted touch input.
+- Tests: seven new pure puzzle tests passed (solvability, broken connection, forbidden fuse shortcut, open branch, rotations, chronology); existing Story runtime 80/80 passed; syntax and diff checks passed. Browser runner now walks to mission 11–12 terminals through the real gates instead of teleporting, taps the boards with touch input, checks close/reopen state, verifies a 390px phone board, and captures puzzle screenshots. Chromium/WebKit browser CI is pending. Local Playwright executable is missing; attempted headless-shell download returned an invalid empty archive, so browser success is not claimed locally.
+- Files: `story-interior-puzzles.js`, `story-interior-missions11-15.js`, `story-interior-missions11-15.html`, `security-lab/story-puzzles.test.js`, `security-lab/story-interior-11-15-playthrough.cjs`, and this file.
+- Next: publish one bundled PR, inspect the new real-navigation/touch browser checks and screenshots, repair failures. Then continue remaining chapter gameplay/continuity. Stage 1 still partial: the 8–12 minute human pacing target is unmeasured; physical iPad play remains unverified. Stages 2–5 unstarted, Stage 6 partial. No new main merge or manual production deployment in this package.
+
+
+## Session handoff — 2026-11-12, PR #114 saved
+
+- Chapter four package saved on `overhaul/story-chapter-four-puzzles`, commit `ea0841532ecc4fe2eea28b9ea9e196c875c95de5`, draft PR https://github.com/1rid3mon/towerv1/pull/114.
+- Local equivalent: `049dddce959b9cd80812c22dd63e0a059c288ee0`. All six changed files are on GitHub.
+- Main integration PR #113 merged at `31376a0bc65fd764f7b8a8c89fe1275fe28625e5`.
+- Next: inspect PR #114 Chromium/WebKit CI; fix failures and inspect chapter-four screenshots before merge. Do not rerun completed green prior CI.
+- Puzzle tests 7/7, runtime tests 80/80 passed locally. New browser/visual validation pending; local Playwright download failed with invalid archive.
+- Stage 1 partial: episode duration, continuity and all-nine-episode qualitative review outstanding. Stages 2–5 not started. Stage 6 partial. Physical iPad and measured durations not verified.
+- Vercel production after #113 not verified; no manual deployment or deployment setting changes.
