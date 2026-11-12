@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {chromium,webkit}=require('playwright'),root=path.resolve(__dirname,'..');
 const raw=fs.readFileSync(path.join(root,'story-interior-missions11-15.js'),'utf8');
 new vm.Script(raw,{filename:'story-interior-missions11-15.js'});
-const hook='window.__qa={player,joy,stations,gates,enemies,interact,collides,camera,get phase(){return phase},get combat(){return combat},get round(){return round}};';
+const hook='window.__qa={player,joy,stations,gates,enemies,interact,collides,camera,get phase(){return phase},get combat(){return combat},get round(){return round},get hp(){return hp},get breaches(){return breaches}};';
 assert(raw.includes('})();'));
 const instrumented=raw.replace(/\}\)\(\);\s*$/,hook+'\n})();');
 const shell=fs.readFileSync(path.join(root,'story-interior-missions11-15.html'),'utf8');
@@ -44,11 +44,23 @@ async function play(){
   assert.equal(await page.evaluate(()=>__qa.gates.length),2);
   if(mission===11){
    const pad=await page.locator('#pad').boundingBox();await page.mouse.move(pad.x+pad.width-10,pad.y+pad.height/2);await page.mouse.down();assert.equal(await page.evaluate(()=>__qa.joy.x>0),true);await page.evaluate(()=>dispatchEvent(new Event('blur')));assert.deepEqual(await page.evaluate(()=>({x:__qa.joy.x,y:__qa.joy.y,id:__qa.joy.id})),{x:0,y:0,id:null},'Lost focus releases held joystick input');await page.mouse.up();
-   await visit('İSTASYON HARİTASI');await close();
+   await visit('İSTASYON HARİTASI');
+   const pausedAt=await page.evaluate(()=>({x:__qa.player.x,y:__qa.player.y}));
+   await page.keyboard.down('ArrowRight');await close();await page.waitForTimeout(120);await page.keyboard.up('ArrowRight');
+   assert.deepEqual(await page.evaluate(()=>({x:__qa.player.x,y:__qa.player.y})),pausedAt,'Keys pressed in a dialog must not move the player after closing');
    await visit('RÖLE ALFA');assert.match(await page.locator('#modal.open').innerText(),/Üç bakım izini bulmadan/);await close();
    for(const clue of ['DEVRE ŞEMASI','BAKIM NOTU','KABLO İZİ']){await visit(clue);await close()}
    await visit('RÖLE ALFA');assert.match(await page.locator('#modal.open').innerText(),/Önce RÖLE BETA/);await close();
-   for(const [relay,path] of [['RÖLE BETA',[0,1,5,6,10,14,15]],['RÖLE ALFA',[0,4,8,9,5,6,7,11,15]],['RÖLE GAMA',[0,1,2,6,5,9,10,11,15]]]){await visit(relay);await page.locator('#circuit-check').tap();assert.match(await page.locator('#puzzle-feedback').innerText(),/Hat tamamlanmadı/);const tile=page.locator('[data-cell="1"]');await tile.tap();const changed=await tile.getAttribute('data-ports');await page.locator('#puzzle-close').tap();await visit(relay);assert.equal(await tile.getAttribute('data-ports'),changed,'Closing the board retains in-stage rotations');await solveCircuit(path);if(relay==='RÖLE BETA'){await page.setViewportSize({width:390,height:844});await page.screenshot({path:require('node:path').join(evidence,'relay-phone.png')});assert.equal(await page.locator('.signal-tile').first().evaluate(el=>el.getBoundingClientRect().width>=44),true,'Circuit touch target stays usable on a phone');await page.setViewportSize({width:1032,height:850})}assert.equal(await page.locator('.signal-board').evaluate(el=>el.getBoundingClientRect().width<=innerWidth),true);await page.locator('#circuit-check').tap();await close()}
+   for(const [relay,path] of [['RÖLE BETA',[0,1,5,6,10,14,15]],['RÖLE ALFA',[0,4,8,9,5,6,7,11,15]],['RÖLE GAMA',[0,1,2,6,5,9,10,11,15]]]){await visit(relay);await page.locator('#circuit-check').tap();assert.match(await page.locator('#puzzle-feedback').innerText(),/Hat tamamlanmadı/);const tile=page.locator('[data-cell="1"]');await tile.tap();const changed=await tile.getAttribute('data-ports');await page.locator('#puzzle-close').tap();await visit(relay);assert.equal(await tile.getAttribute('data-ports'),changed,'Closing the board retains in-stage rotations');const keyboardTile=page.locator('[data-cell="2"]');const beforeSpace=Number(await keyboardTile.getAttribute('data-ports'));await keyboardTile.focus();await page.keyboard.press('Space');assert.notEqual(Number(await keyboardTile.getAttribute('data-ports')),beforeSpace,'Space activates the focused puzzle tile');await solveCircuit(path);if(relay==='RÖLE BETA'){await page.setViewportSize({width:390,height:844});await page.screenshot({path:require('node:path').join(evidence,'relay-phone.png')});assert.equal(await page.locator('.signal-tile').first().evaluate(el=>el.getBoundingClientRect().width>=44),true,'Circuit touch target stays usable on a phone');await page.setViewportSize({width:844,height:390});
+    const scroll=await page.locator('#panel').evaluate(el=>({overflow:el.scrollHeight>el.clientHeight,touch:getComputedStyle(el).touchAction}));assert.equal(scroll.overflow,true,'Landscape puzzle requires scrolling');assert.equal(scroll.touch,'pan-y','Puzzle panel allows touch scrolling');
+    if(process.env.BROWSER_ENGINE!=='webkit'){
+     const client=await page.context().newCDPSession(page);const box=await page.locator('#panel').boundingBox();const x=box.x+box.width-12,y=box.y+box.height-35;
+     await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
+     for(let step=1;step<=8;step++){await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y-step*22}]});await page.waitForTimeout(20)}
+     await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+     await page.waitForFunction(()=>document.getElementById('panel').scrollTop>40);await client.detach();
+    }
+    await page.screenshot({path:require('node:path').join(evidence,'relay-landscape.png')});await page.setViewportSize({width:1032,height:850})}assert.equal(await page.locator('.signal-board').evaluate(el=>el.getBoundingClientRect().width<=innerWidth),true);await page.locator('#circuit-check').tap();await close()}
    await visit('ALT AĞ KAPISI');
   }else if(mission===12){
    for(const clue of ['ARŞİV 01','ARŞİV 02','ARŞİV 03']){await visit(clue);await close()}
@@ -63,11 +75,21 @@ async function play(){
    await visit('SES ANALİZİ');await choose('PİKO KAYDINI DOĞRULA');await close();await visit('KARAR KAYDI');
   }else if(mission===14){
    await visit('SAVUNMA PLANI');await close();
-   await visit('ÇEKİRDEK SAVUNMASI');await close();await fight(4);
+   await visit('ÇEKİRDEK SAVUNMASI');await close();
+   await page.waitForTimeout(3400);assert.equal(await page.evaluate(()=>__qa.hp),24,'Distant enemies cannot damage the core on a timer');
+   await page.evaluate(()=>{__qa.enemies[0].x=490;__qa.enemies[0].y=300});
+   await page.waitForFunction(()=>__qa.breaches===1);assert.equal(await page.evaluate(()=>__qa.hp),21);assert.equal(await page.evaluate(()=>__qa.enemies[0].hp>0&&__qa.enemies[0].x>700),true,'Breached enemy survives and approaches again');
+   await fight(4);
    for(const seal of ['MÜHÜR B','MÜHÜR A','MÜHÜR C']){await visit(seal);await choose('ETKİNLEŞTİR');await close()}
    assert.match(await page.locator('#objective').innerText(),/Savunma önceliği: MÜHÜR B/);
    await visit('ÇEKİRDEK SAVUNMASI');await close();
    assert.equal(await page.evaluate(()=>__qa.enemies[0].speed),12,'first selected seal slows the second wave');
+   await page.evaluate(()=>{for(const e of __qa.enemies){e.x=490;e.y=300;e.breachUntil=0}});
+   await page.waitForFunction(()=>__qa.hp===3);
+   await page.evaluate(()=>{const e=__qa.enemies[0];e.x=490;e.y=300;e.breachUntil=0});
+   await page.locator('#retry').tap();assert.equal(await page.evaluate(()=>__qa.phase),3,'Retry preserves second wave checkpoint');
+   assert.match(await page.locator('#objective').innerText(),/MÜHÜR B/);
+   await visit('ÇEKİRDEK SAVUNMASI');await close();assert.equal(await page.evaluate(()=>__qa.round),2);assert.equal(await page.evaluate(()=>__qa.hp),24);assert.equal(await page.evaluate(()=>__qa.enemies[0].speed),12);assert.equal(await page.evaluate(()=>__qa.enemies.every(e=>e.x>700)),true);
    await fight(6);
    await visit('YEREL VERİCİ');await choose('İSTASYONUN İÇİNDEN');await close();await visit('ÇIKIŞ');
   }else{
