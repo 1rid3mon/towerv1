@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),vm=require('node:vm');
 const {chromium,webkit}=require('playwright'),root=path.resolve(__dirname,'..'),raw=fs.readFileSync(path.join(root,'story-interior-missions16-20.js'),'utf8');
 new vm.Script(raw);
-const hook="window.__qa={player,stations,gates,enemies,interact,collides,camera,patrols,echoScanner,get phase(){return phase},get combat(){return combat},get hp(){return hp},set hp(v){hp=v},get breaches(){return breaches},get loops(){return loops},get round(){return round},get alerts(){return alerts},get routeChoice(){return routeChoice}};";
+const hook="window.__qa={show,hide,keys,joy,player,stations,gates,enemies,interact,collides,camera,patrols,echoScanner,get phase(){return phase},get combat(){return combat},get hp(){return hp},set hp(v){hp=v},get breaches(){return breaches},get loops(){return loops},get round(){return round},get alerts(){return alerts},get routeChoice(){return routeChoice}};";
 const script=raw.replace(/\}\)\(\);\s*$/,hook+'\n})();');assert.notEqual(script,raw,'QA hook missing');
 const shell=fs.readFileSync(path.join(root,'story-interior-missions16-20.html'),'utf8');
 const server=http.createServer((req,res)=>{
@@ -17,6 +17,11 @@ async function play(){
  const page=await browser.newPage({viewport:{width:1032,height:850},hasTouch:true,deviceScaleFactor:2}),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:4203/story-interior-missions16-20.html?mission='+mission);
+ await page.evaluate(()=>{__qa.keys.add('d');__qa.show('<button id="input-dialog-close">DEVAM</button>');document.getElementById('input-dialog-close').onclick=__qa.hide});
+ await page.keyboard.down('ArrowRight');
+ assert.equal(await page.evaluate(()=>__qa.keys.size),0,'Dialog must release and reject gameplay keys');
+ await page.locator('#input-dialog-close').focus();await page.keyboard.press('Space');
+ await page.keyboard.up('ArrowRight');await page.locator('#modal').waitFor({state:'hidden'});
  await page.evaluate(()=>addEventListener('message',e=>{if(e.data?.type==='lost-signal-interior-mission-complete')window.__completed=e.data}));
  const visit=name=>page.evaluate(label=>{const q=__qa,n=q.stations.find(x=>x.name===label);if(!n)throw Error('Missing '+label);q.player.x=n.x;q.player.y=n.y;q.interact()},name);
  const close=()=>page.locator('#modal.open #continue').click({timeout:4500});
