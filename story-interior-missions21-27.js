@@ -61,7 +61,7 @@ if(mission===27){
 build();
 function resize(){vw=innerWidth;vh=innerHeight;const scale=Math.min(devicePixelRatio||1,2);canvas.width=vw*scale;canvas.height=vh*scale;ctx.setTransform(scale,0,0,scale,0,0)}addEventListener('resize',resize);resize();
 function hud(){objective.innerHTML='<b>'+missionHeading+' · '+names[mission]+'</b><div>'+goals[mission][Math.min(phase,goals[mission].length-1)]+'</div><small>WASD · oklar · E · iPad joystick</small>'+(combat?'<div>Çekirdek '+hp+' · Tehdit '+enemies.filter(e=>e.hp>0).length+' · Dalga '+round+(mission>=22&&mission<=24?' · Sızma '+breaches:'')+'</div>':'')+(mission===27&&bossCounterUntil>performance.now()?'<div style="color:#b6ffd7">PİKO SALDIRIYI KESTİ · ÇEKİRDEK GÜVENDE</div>':'')+(mission>=25?'<div>Mor bağlantı: '+linkUses+' kullanım · '+(mission===25?'Piko sınaması':'Kalkan desteği')+'</div>':'');updateLinkButton()};hud();
-function show(html){dialog=true;modal.classList.add('open');panel.innerHTML=html;updateLinkButton()}function hide(){dialog=false;modal.classList.remove('open');updateLinkButton()}
+function show(html){clearControls();dialog=true;modal.classList.add('open');panel.innerHTML=html;updateLinkButton()}function hide(){dialog=false;modal.classList.remove('open');updateLinkButton()}
 function say(title,body){show('<h2>'+title+'</h2><p>'+body+'</p><button id="continue">DEVAM</button>');document.getElementById('continue').onclick=hide}
 function pick(title,body,options,cb){show('<h2>'+title+'</h2><p>'+body+'</p><div id="options"></div><p id="feedback" role="status"></p><button id="cancel">KAPAT</button>');document.getElementById('cancel').onclick=hide;const box=document.getElementById('options');for(const [label,value] of options){const button=document.createElement('button');button.textContent=label;button.onclick=()=>cb(value);box.appendChild(button)}}
 function error(text){document.getElementById('feedback').textContent=text}
@@ -316,7 +316,7 @@ function tick(t){
  draw(t);requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
-addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys.add(k);if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)interact()});addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));function clearControls(){keys.clear();joy.x=joy.y=0;joy.id=null;knob.style.transform=''}addEventListener('blur',clearControls);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearControls()});
+addEventListener('keydown',e=>{if(dialog||complete)return;const k=e.key.toLowerCase();keys.add(k);if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)interact()});addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));function clearControls(){keys.clear();if(joy.id!==null&&pad.hasPointerCapture(joy.id))pad.releasePointerCapture(joy.id);joy.x=joy.y=0;joy.id=null;knob.style.transform=''}addEventListener('blur',clearControls);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearControls()});
 document.getElementById('act').onclick=interact;
 const linkButton=document.getElementById('link');
 // A touch or mouse press must activate the shield even when WebKit suppresses
@@ -325,5 +325,5 @@ linkButton.addEventListener('pointerdown',useLink);
 linkButton.onclick=useLink;
 document.getElementById('quit').onclick=()=>parent.postMessage({type:'lost-signal-interior-close'},location.origin);
 function stick(e){const b=pad.getBoundingClientRect(),x=e.clientX-b.left-b.width/2,y=e.clientY-b.top-b.height/2,m=Math.max(1,Math.hypot(x,y)),r=Math.min(1,m/44);joy.x=x/m*r;joy.y=y/m*r;knob.style.transform='translate('+(joy.x*38)+'px,'+(joy.y*38)+'px)'}
-pad.addEventListener('pointerdown',e=>{joy.id=e.pointerId;pad.setPointerCapture(e.pointerId);stick(e)});pad.addEventListener('pointermove',e=>{if(e.pointerId===joy.id)stick(e)});function reset(e){if(e.pointerId!==joy.id)return;joy.id=null;joy.x=joy.y=0;knob.style.transform=''}pad.addEventListener('pointerup',reset);pad.addEventListener('pointercancel',reset);
+pad.addEventListener('pointerdown',e=>{if(dialog||complete||joy.id!==null)return;joy.id=e.pointerId;pad.setPointerCapture(e.pointerId);stick(e)});pad.addEventListener('pointermove',e=>{if(e.pointerId===joy.id)stick(e)});function reset(e){if(e.pointerId!==joy.id)return;joy.id=null;joy.x=joy.y=0;knob.style.transform=''}pad.addEventListener('pointerup',reset);pad.addEventListener('pointercancel',reset);pad.addEventListener('lostpointercapture',reset);
 })();

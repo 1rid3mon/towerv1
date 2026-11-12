@@ -3,7 +3,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),vm=require('node:vm');
 const {chromium,webkit}=require('playwright'),root=path.resolve(__dirname,'..');
 const raw=fs.readFileSync(path.join(root,'story-interior-missions21-27.js'),'utf8');new vm.Script(raw);
-const qa="window.__qa={player,stations,gates,enemies,interact,camera,collides,useLink,get phase(){return phase},get combat(){return combat},get round(){return round},get hp(){return hp},set hp(v){hp=v},get breaches(){return breaches},get linkUses(){return linkUses},get finalBossWarning(){return enemies.some(e=>e.isFinalBoss&&e.telegraphUntil>performance.now())},get finalBossCountered(){return bossCounterUntil>performance.now()},get completed(){return complete}};";
+const qa="window.__qa={show,hide,keys,joy,player,stations,gates,enemies,interact,camera,collides,useLink,get phase(){return phase},get combat(){return combat},get round(){return round},get hp(){return hp},set hp(v){hp=v},get breaches(){return breaches},get linkUses(){return linkUses},get finalBossWarning(){return enemies.some(e=>e.isFinalBoss&&e.telegraphUntil>performance.now())},get finalBossCountered(){return bossCounterUntil>performance.now()},get completed(){return complete}};";
 const injected=raw.replace(/\}\)\(\);\s*$/,qa+'\n})();');assert.notEqual(injected,raw,'QA instrument injection failed');
 const server=http.createServer((req,res)=>{
  const pathname=new URL(req.url,'http://localhost').pathname;
@@ -23,7 +23,12 @@ async function run(){
    const page=await browser.newPage({viewport:{width:1032,height:850},hasTouch:true,deviceScaleFactor:2}),errors=[];
    page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
    await page.goto('http://127.0.0.1:4207/story-interior-missions21-27.html?mission='+mission+'&memory=preserve&callSign=piko&trust=piko');
-   await page.evaluate(()=>addEventListener('message',e=>{if(e.data?.type==='lost-signal-interior-mission-complete')window.__completion=e.data}));
+   await page.evaluate(()=>{__qa.keys.add('d');__qa.show('<button id="input-dialog-close">DEVAM</button>');document.getElementById('input-dialog-close').onclick=__qa.hide});
+ await page.keyboard.down('ArrowRight');
+ assert.equal(await page.evaluate(()=>__qa.keys.size),0,'Dialog must release and reject gameplay keys');
+ await page.locator('#input-dialog-close').focus();await page.keyboard.press('Space');
+ await page.keyboard.up('ArrowRight');await page.locator('#modal').waitFor({state:'hidden'});
+ await page.evaluate(()=>addEventListener('message',e=>{if(e.data?.type==='lost-signal-interior-mission-complete')window.__completion=e.data}));
    const visit=name=>page.evaluate(label=>{const q=__qa,n=q.stations.find(z=>z.name===label);if(!n)throw Error('Missing station '+label);q.player.x=n.x;q.player.y=n.y;q.interact()},name);
    const close=()=>page.locator('#modal.open #continue').click({timeout:4000});
    const choose=async label=>{const options=page.locator('#modal.open #options button').filter({hasText:label});assert.equal(await options.count(),1,'Missing choice '+label+' in mission '+mission);await options.click()};
