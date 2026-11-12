@@ -23,7 +23,11 @@ async function run(){
    const page=await browser.newPage({viewport:{width:1032,height:850},hasTouch:true,deviceScaleFactor:2}),errors=[];
    page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
    await page.goto('http://127.0.0.1:4207/story-interior-missions21-27.html?mission='+mission+'&memory=preserve&callSign=piko&trust=piko');
-   await page.evaluate(()=>{__qa.keys.add('d');__qa.show('<button id="input-dialog-close">DEVAM</button>');document.getElementById('input-dialog-close').onclick=__qa.hide});
+   await page.locator('#map-open').tap();
+ await page.locator('#station-map').waitFor({state:'visible'});
+ assert.equal(await page.locator('#map-terminals li').count(),await page.evaluate(()=>__qa.stations.length));
+ await page.locator('#map-close').tap();await page.locator('#modal').waitFor({state:'hidden'});
+ await page.evaluate(()=>{__qa.keys.add('d');__qa.show('<button id="input-dialog-close">DEVAM</button>');document.getElementById('input-dialog-close').onclick=__qa.hide});
  await page.keyboard.down('ArrowRight');
  assert.equal(await page.evaluate(()=>__qa.keys.size),0,'Dialog must release and reject gameplay keys');
  await page.locator('#input-dialog-close').focus();await page.keyboard.press('Space');
