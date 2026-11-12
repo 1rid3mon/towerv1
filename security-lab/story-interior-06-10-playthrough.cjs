@@ -11,6 +11,7 @@ const qa='window.__qa={player,stations,gates,hazards,foes,handle,interact,get ph
 assert(source.includes('})();\n</script>'));
 const html=source.replace('})();\n</script>',qa+'\n})();\n</script>');
 const server=http.createServer((req,res)=>{
+ if(new URL(req.url,'http://localhost').pathname==='/story-interior-art.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(fs.readFileSync(path.join(root,'story-interior-art.js'),'utf8'));return}
  if(new URL(req.url,'http://localhost').pathname==='/story-interior-completion.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(fs.readFileSync(path.join(root,'story-interior-completion.js'),'utf8'));return}
 
  const name=new URL(req.url,'http://127.0.0.1').pathname;

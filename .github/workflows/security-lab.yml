@@ -201,6 +201,9 @@ jobs:
         if: github.ref == 'refs/heads/main'
         working-directory: security-lab
         run: node browser-smoke.cjs --live
+      - name: Capture all nine interior episode art views
+        working-directory: security-lab
+        run: node story-interior-visual.cjs
       - name: Preserve guest-only browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -262,6 +265,9 @@ jobs:
         if: github.ref == 'refs/heads/main'
         working-directory: security-lab
         run: node browser-smoke.cjs --live
+      - name: Capture all nine interior episode art views
+        working-directory: security-lab
+        run: node story-interior-visual.cjs
       - name: Preserve WebKit evidence
         if: always()
         uses: actions/upload-artifact@v4

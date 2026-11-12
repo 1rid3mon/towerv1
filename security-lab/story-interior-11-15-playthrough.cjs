@@ -8,6 +8,7 @@ assert(raw.includes('})();'));
 const instrumented=raw.replace(/\}\)\(\);\s*$/,hook+'\n})();');
 const shell=fs.readFileSync(path.join(root,'story-interior-missions11-15.html'),'utf8');
 const server=http.createServer((req,res)=>{
+ if(new URL(req.url,'http://localhost').pathname==='/story-interior-art.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(fs.readFileSync(path.join(root,'story-interior-art.js'),'utf8'));return}
  if(new URL(req.url,'http://localhost').pathname==='/story-interior-completion.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(fs.readFileSync(path.join(root,'story-interior-completion.js'),'utf8'));return}
 
  const name=new URL(req.url,'http://localhost').pathname;
