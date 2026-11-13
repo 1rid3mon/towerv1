@@ -77,6 +77,31 @@
   if(near){c.fillStyle='#e8f8b5';c.fillRect(-38,31,76,22);c.fillStyle='#0b222c';c.font='bold 11px system-ui';c.fillText('ETKİLEŞ',0,46)}
   c.restore();
  }
+ function wall(c,w){
+  c.save();const vertical=w.h>w.w;
+  c.fillStyle='#030b16';c.fillRect(w.x+4,w.y+5,w.w,w.h);
+  const g=c.createLinearGradient(w.x,w.y,w.x+(vertical?w.w:0),w.y+(vertical?0:w.h));g.addColorStop(0,'#718a99');g.addColorStop(.22,'#3d576b');g.addColorStop(.7,'#223749');g.addColorStop(1,'#102231');
+  c.fillStyle=g;c.fillRect(w.x,w.y,w.w,w.h);c.strokeStyle='#9eb3ba';c.lineWidth=1;c.strokeRect(w.x+.5,w.y+.5,w.w-1,w.h-1);
+  c.strokeStyle='#0b1c2b';c.lineWidth=2;
+  for(let q=28;q<(vertical?w.h:w.w);q+=48){c.beginPath();if(vertical){c.moveTo(w.x+2,w.y+q);c.lineTo(w.x+w.w-2,w.y+q)}else{c.moveTo(w.x+q,w.y+2);c.lineTo(w.x+q,w.y+w.h-2)}c.stroke()}
+  c.restore();
+ }
+ function gate(c,g,locked){
+  c.save();const vertical=g.h>g.w,light=locked?'#ffbb7e':'#8ce3c6';
+  c.fillStyle='#071522';c.fillRect(g.x-4,g.y-4,g.w+8,g.h+8);
+  if(locked){
+   c.fillStyle='#394757';c.fillRect(g.x,g.y,g.w,g.h);
+   c.strokeStyle='#a0a9b2';c.lineWidth=2;c.strokeRect(g.x+2,g.y+2,g.w-4,g.h-4);
+   c.strokeStyle='#131e2d';c.beginPath();if(vertical){c.moveTo(g.x,g.y+g.h/2);c.lineTo(g.x+g.w,g.y+g.h/2)}else{c.moveTo(g.x+g.w/2,g.y);c.lineTo(g.x+g.w/2,g.y+g.h)}c.stroke();
+   c.fillStyle='#c8925b';for(let i=5;i<(vertical?g.h:g.w)-5;i+=12){if(vertical)c.fillRect(g.x+3,g.y+i,3,6);else c.fillRect(g.x+i,g.y+3,6,3)}
+  }else{
+   c.fillStyle='#24434a';c.fillRect(g.x,g.y,g.w,g.h);
+   c.fillStyle='#102936';if(vertical)c.fillRect(g.x+2,g.y+7,g.w-4,g.h-14);else c.fillRect(g.x+7,g.y+2,g.w-14,g.h-4);
+   c.strokeStyle=light;c.lineWidth=2;c.beginPath();const x=g.x+g.w/2,y=g.y+g.h/2;c.moveTo(x-4,y-5);c.lineTo(x+2,y);c.lineTo(x-4,y+5);c.stroke();
+  }
+  c.fillStyle=light;if(vertical){c.fillRect(g.x-3,g.y,2,g.h);c.fillRect(g.x+g.w+1,g.y,2,g.h)}else{c.fillRect(g.x,g.y-3,g.w,2);c.fillRect(g.x,g.y+g.h+1,g.w,2)}
+  c.textAlign='center';c.font='bold 10px system-ui';c.strokeStyle='#06101b';c.lineWidth=3;c.strokeText(locked?'KİLİTLİ':'AÇIK',g.x+g.w/2,g.y-10);c.fillStyle=light;c.fillText(locked?'KİLİTLİ':'AÇIK',g.x+g.w/2,g.y-10);c.restore();
+ }
  const scenery=new Map();
  function paintEnvironment(c,chapter,width,height){
   const accent=palettes[chapter],mode=chapter%3;
@@ -128,5 +153,5 @@
   }
   c.drawImage(layer,0,0);
  }
- root.StoryInteriorArt=Object.freeze({enemy,pilot,boss,environment,station});
+ root.StoryInteriorArt=Object.freeze({enemy,pilot,boss,environment,station,wall,gate});
 })(typeof window!=='undefined'?window:globalThis);
