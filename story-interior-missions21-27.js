@@ -286,7 +286,7 @@ if(combat&&mission>=22&&mission<=24){ctx.strokeStyle='#f5c27d';ctx.lineWidth=3;c
 for(const s of stations){const d=Math.hypot(player.x-s.x,player.y-s.y);if(window.StoryInteriorArt?.station){StoryInteriorArt.station(ctx,s,d<75);continue;}ctx.fillStyle=d<75?'#46a8a3':'#27627a';ctx.fillRect(s.x-23,s.y-20,46,40);ctx.strokeStyle='#a6e8ff';ctx.strokeRect(s.x-23,s.y-20,46,40);ctx.fillStyle='#ecfcff';ctx.font='12px system-ui';ctx.fillText(s.name,s.x,s.y-28);if(d<75){ctx.fillStyle='#eaffb6';ctx.fillText('ETKİLEŞ',s.x,s.y+38)}}
 for(const patrol of patrols(time).filter(p=>p.active)){ctx.fillStyle='rgba(245,88,105,0.17)';ctx.beginPath();ctx.arc(patrol.x,patrol.y,patrol.radius,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fa8b8f';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#f47787';ctx.fillRect(patrol.x-13,patrol.y-13,26,26);ctx.fillStyle='#ffe0d7';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText('DEVRIYE',patrol.x,patrol.y-24)}
 for(const e of enemies.filter(e=>e.hp>0)){
- if(e.isFinalBoss){
+ if(e.isFinalBoss&&window.StoryInteriorArt?.boss){StoryInteriorArt.boss(ctx,e,time)}else if(e.isFinalBoss){
   const r=22+Math.sin(time/210)*1.8;ctx.save();ctx.translate(e.x,e.y);
   ctx.fillStyle='#3a233d';ctx.strokeStyle='#f3b67b';ctx.lineWidth=3;ctx.beginPath();
   for(let i=0;i<8;i++){const a=-Math.PI/2+i*Math.PI/4,x=Math.cos(a)*r,y=Math.sin(a)*r;i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.closePath();ctx.fill();ctx.stroke();

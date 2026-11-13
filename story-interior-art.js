@@ -26,20 +26,40 @@
   c.font='bold 11px system-ui';c.textAlign='center';c.textBaseline='alphabetic';c.lineWidth=3;c.strokeStyle='#06101b';c.strokeText(String(e.hp),0,-27);c.fillStyle='#f4f8ff';c.fillText(String(e.hp),0,-27);c.restore();
  }
  function pilot(c,p,mission,ms,pikoVisible){
-  c.save();c.translate(p.x,p.y);disc(c,0,3,16,'#05101a');
-  poly(c,[[-10,-2],[-13,8],[-7,14],[7,14],[13,8],[10,-2]],'#24455b','#85cddf');
-  c.fillStyle='#162b3c';c.fillRect(-10,12,7,6);c.fillRect(3,12,7,6);
-  poly(c,[[-8,-13],[8,-13],[12,-6],[9,3],[-9,3],[-12,-6]],'#466e83','#d9f3f4');
-  poly(c,[[-8,-9],[8,-9],[7,-3],[-7,-3]],'#061724','#90e5ec');
-  c.fillStyle='#e3d6ab';c.fillRect(-3,6,6,4);
+  c.save();c.translate(p.x,p.y);c.fillStyle='#02091399';c.beginPath();c.ellipse(2,12,19,9,0,0,TAU);c.fill();
+  // Asymmetric rescue suit: oxygen pack, ceramic shoulders, amber service stripe.
+  poly(c,[[-13,-7],[-17,-3],[-16,11],[-10,14],[-7,7],[-8,-6]],'#1e374a','#7193a2');
+  poly(c,[[10,-8],[16,-3],[17,9],[11,12],[7,6]],'#334b60','#abc0cb');
+  poly(c,[[-9,-6],[8,-6],[12,8],[6,17],[-8,15],[-12,5]],'#233c51','#6e9aa9');
+  c.fillStyle='#0b1725';c.fillRect(-10,13,8,7);c.fillRect(3,14,8,6);c.fillStyle='#d5d1b5';c.fillRect(-8,17,5,2);c.fillRect(5,17,5,2);
+  poly(c,[[-9,-17],[7,-18],[13,-11],[11,0],[4,5],[-7,3],[-13,-5]],'#5c778b','#d0e2e6');
+  poly(c,[[-9,-11],[8,-13],[10,-7],[6,-1],[-7,-2]],'#051722','#80dce9');
+  c.fillStyle='#daf9ec';c.fillRect(-6,-10,8,2);c.fillStyle='#e6b66d';c.fillRect(8,2,3,10);c.fillStyle='#91bfce';c.fillRect(-5,6,8,5);c.fillStyle='#102331';c.fillRect(-3,7,4,2);
   if(pikoVisible){
-   c.translate(25,-22+(reduced?0:Math.sin((ms||0)/450)*1.5));
-   disc(c,0,0,10,'#091321');
-   poly(c,[[-8,-5],[-3,-9],[6,-7],[10,0],[6,7],[-4,8],[-9,3]],'#3b3558','#c9b3ef');
-   c.fillStyle='#8f7eb4';c.fillRect(-12,-2,4,7);c.fillRect(9,-2,4,7);
-   c.fillStyle='#e7f8e9';c.fillRect(-4,-2,3,3);c.fillRect(2,-2,3,3);
-   c.strokeStyle='#c0a6e9';c.lineWidth=1.3;c.beginPath();c.moveTo(0,-8);c.lineTo(2,-13);c.stroke();disc(c,2,-13,1.5,'#f6d18c');
+   c.translate(26,-23+(reduced?0:Math.sin((ms||0)/450)*1.5));
+   c.fillStyle='#070d2099';c.beginPath();c.ellipse(0,15,10,4,0,0,TAU);c.fill();
+   poly(c,[[-9,-6],[-4,-11],[6,-10],[11,-4],[10,6],[4,10],[-6,8],[-11,1]],'#71658e','#dfd5ed');
+   poly(c,[[-7,-5],[7,-5],[8,2],[3,6],[-6,4]],'#111b31','#ac9dd6');
+   for(const sign of [-1,1]){poly(c,[[sign*10,-3],[sign*15,-6],[sign*16,3],[sign*10,6]],'#3c4867','#8aa6bf');c.fillStyle='#9ee4ec';c.fillRect(sign<0?-14:12,5,2,4)}
+   disc(c,-3,0,2,'#c9f8f3');disc(c,4,0,2,'#c9f8f3');c.strokeStyle='#d6c8f2';c.lineWidth=1.5;c.beginPath();c.moveTo(0,-10);c.lineTo(2,-15);c.stroke();disc(c,2,-15,2,'#f4c784');
   }c.restore();
+ }
+ function boss(c,e,ms){
+  const warning=e.telegraphUntil>ms,color=warning?'#ffd58a':'#bdacd9';
+  c.save();c.translate(e.x,e.y);disc(c,2,7,31,'#030915bb');
+  for(const sign of [-1,1]){
+   poly(c,[[sign*14,-16],[sign*29,-20],[sign*33,-10],[sign*27,7],[sign*20,17],[sign*13,8]],'#313a52',color);
+   c.fillStyle='#c99863';c.fillRect(sign<0?-29:24,-12,5,12);
+   poly(c,[[sign*8,12],[sign*19,16],[sign*22,27],[sign*12,29],[sign*6,20]],'#253347','#8c9eb3');
+  }
+  poly(c,[[-13,-23],[10,-25],[21,-12],[18,13],[7,22],[-12,17],[-21,3],[-20,-13]],'#493a54',color);
+  poly(c,[[-12,-14],[11,-14],[15,-4],[8,7],[-10,7],[-16,-3]],'#071725','#9e8eb8');
+  disc(c,0,-3,8,warning?'#f4aa61':'#75649d');disc(c,0,-3,4,'#fff2c9');
+  c.strokeStyle=color;c.lineWidth=2;c.beginPath();c.arc(0,0,36,-2.7,-.45);c.arc(0,0,36,.45,2.7);c.stroke();
+  c.font='bold 11px system-ui';c.textAlign='center';c.strokeStyle='#050a16';c.lineWidth=4;c.strokeText('ÇAPA YIKICI',0,59);c.fillStyle='#f6dfbf';c.fillText('ÇAPA YIKICI',0,59);
+  c.fillStyle='#fff1d4';c.fillText(String(e.hp),0,-52);
+  if(warning){c.strokeStyle='#ffd58a';c.lineWidth=3;c.beginPath();c.arc(0,0,43+(reduced?0:Math.sin(ms/100)*2),0,TAU);c.stroke();c.strokeStyle='#050a16';c.lineWidth=4;c.strokeText('PİKO KALKANI',0,-70);c.fillStyle='#ffe2a5';c.fillText('PİKO KALKANI',0,-70)}
+  c.restore();
  }
  function station(c,s,near){
   c.save();c.translate(s.x,s.y);c.textAlign='center';c.lineJoin='round';
@@ -108,5 +128,5 @@
   }
   c.drawImage(layer,0,0);
  }
- root.StoryInteriorArt=Object.freeze({enemy,pilot,environment,station});
+ root.StoryInteriorArt=Object.freeze({enemy,pilot,boss,environment,station});
 })(typeof window!=='undefined'?window:globalThis);
