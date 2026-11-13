@@ -274,3 +274,8 @@ Saved `overhaul/lost-signal-cast` at `d0e0800fcf3551ce8077ed2d23cdc5badee94740`:
 ## Physical station art checkpoint
 
 Branch `overhaul/physical-station-art`, commit `371f264864a5e4300946a05a84407e8bd97f5ab7`: metal walls and explicit gate states across missions 2–27. Canvas preview inspected, syntax passed; browser/performance pending. Mission 1 custom walls unchanged; no pushable-object mechanic found or added. Continue from this latest branch; full visual overhaul remains incomplete.
+
+
+## Interaction prop art
+
+Latest branch `overhaul/interaction-prop-art` replaces identical station bodies with six silhouettes: reactor, antenna/scanner, relay/repair cabinet, doorway panel, archive tablet, console. Near-range brackets retained. Native Canvas frozen-prop preview inspected; syntax passed; browser/layout/performance pending. Existing shared integrations cover all 27 missions. Individual subtypes still share families. Continue latest integrated CI and actual scene screenshot review before merging; no full art completion claimed.
