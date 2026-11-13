@@ -264,3 +264,8 @@ Saved `overhaul/early-navigation-touch` at `9c9d8851c02f4481852efe4eabe1d15f4605
 ## Lost Signal art continuation — 13 November
 
 Saved `overhaul/lost-signal-deck-art` at `2cec7b5b8bbfedc693cafce100d31ce5adeef2b9`. Layered deck panels, recessed light washes, sector seals, equipment banks and chapter-dependent signal/orbital markings; bounded static canvas cache. Functional archive/reactor/exit console glyphs and shared console art now across early interiors too. Native Canvas preview inspected and syntax passed; browser screenshots/performance pending. Hero/Piko/boss redesign and full qualitative art review remain incomplete. Resume this branch, inspect latest integrated CI, and continue visual development. No new main merge or manual deployment.
+
+
+## Cast redesign checkpoint — 13 November
+
+Saved `overhaul/lost-signal-cast` at `d0e0800fcf3551ce8077ed2d23cdc5badee94740`: redesigned rescue-suit pilot, compact articulated Piko, armored final boss with preserved shield telegraph. Native Canvas frozen-entity rendering inspected; label/ring overlap corrected afterward. Runtime 80/80 and syntax passed; browser evidence pending. Important: #125 had NO CI run because story-interior files were absent from workflow path filters. Added story-interior* to both path lists; new branch validates integrated deck/cast changes. Do not report #125 browser verified. Resume this latest branch and inspect its CI/screenshots before integration. Remaining broader art, pacing, mobile and real-device QA are still incomplete.
