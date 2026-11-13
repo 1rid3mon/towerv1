@@ -47,27 +47,66 @@
   poly(c,[[-25,-17],[-18,-24],[18,-24],[25,-17],[25,18],[17,24],[-17,24],[-25,18]],'#0a1925',color);
   c.fillStyle='#345465';c.fillRect(-19,16,38,5);
   c.fillStyle='#173c4d';c.fillRect(-18,-17,36,25);
-  c.strokeStyle=color;c.lineWidth=2;c.beginPath();c.moveTo(-13,0);c.lineTo(-7,0);c.lineTo(-3,-10);c.lineTo(2,3);c.lineTo(7,-6);c.lineTo(13,-6);c.stroke();
+  const kind=String(s.type||s.kind||'');
+  if(/core|reactor|defense|security/.test(kind)){c.strokeStyle=color;c.lineWidth=2;c.beginPath();c.arc(0,-5,10,0,TAU);c.stroke();disc(c,0,-5,5,color)}
+  else if(/clue|log|record|evidence/.test(kind)){for(let i=0;i<3;i++){c.fillStyle=i===0?color:'#527d8e';c.fillRect(-12,-12+i*6,24-i*4,2)}}
+  else if(/exit|door/.test(kind)){c.strokeStyle=color;c.lineWidth=3;c.strokeRect(-9,-14,18,20);c.beginPath();c.moveTo(-5,-4);c.lineTo(7,-4);c.lineTo(3,-8);c.moveTo(7,-4);c.lineTo(3,0);c.stroke()}
+  else {c.strokeStyle=color;c.lineWidth=2;c.beginPath();c.moveTo(-13,0);c.lineTo(-7,0);c.lineTo(-3,-10);c.lineTo(2,3);c.lineTo(7,-6);c.lineTo(13,-6);c.stroke();}
   for(let i=0;i<3;i++){disc(c,-10+i*10,12,2,i===0?color:'#4d7180')}
   c.font='bold 12px system-ui';c.lineWidth=4;c.strokeStyle='#06101b';c.strokeText(s.name||s.label||'',0,-34);c.fillStyle='#e7f5fa';c.fillText(s.name||s.label||'',0,-34);
   if(near){c.fillStyle='#e8f8b5';c.fillRect(-38,31,76,22);c.fillStyle='#0b222c';c.font='bold 11px system-ui';c.fillText('ETKİLEŞ',0,46)}
   c.restore();
  }
- function environment(c,mission,width=1100,height=590){
-  const chapter=Math.max(0,Math.min(8,Math.floor((mission-1)/3))),accent=palettes[chapter];
-  c.save();c.strokeStyle=accent;c.lineWidth=2;c.globalAlpha=.45;
-  // Edge-mounted hardware and floor route markings leave interaction areas clear.
-  for(let room=0;room<3;room++){
-   const left=48+room*(width-90)/3,right=left+(width-90)/3-30;
-   c.beginPath();c.moveTo(left,105);c.lineTo(left,235);c.moveTo(left,365);c.lineTo(left,height-65);c.lineTo(left+48,height-65);c.stroke();
-   c.globalAlpha=.75;
-   for(let i=0;i<4;i++){c.fillStyle='#091721';c.fillRect(right-54+i*13,height-63,9,23);c.fillStyle=accent;c.fillRect(right-52+i*13,height-59,5,3+i%2*5)}
-   c.globalAlpha=.22;c.fillStyle=accent;
-   for(let i=0;i<3;i++){const x=left+58+i*15;c.beginPath();c.moveTo(x,294);c.lineTo(x+6,300);c.lineTo(x,306);c.lineTo(x+2,300);c.fill()}
-   c.globalAlpha=.45;
+ const scenery=new Map();
+ function paintEnvironment(c,chapter,width,height){
+  const accent=palettes[chapter],mode=chapter%3;
+  c.save();c.lineWidth=1;
+  // Inset deck plates: decoration never changes collision geometry.
+  for(let y=65;y<height-70;y+=62)for(let x=65;x<width-70;x+=76){
+   c.fillStyle=(Math.floor(x/76)+Math.floor(y/62))%2?'#102b3938':'#03111b48';
+   c.fillRect(x,y,70,56);c.strokeStyle='#81b9c015';c.strokeRect(x+.5,y+.5,70,56);
+   c.fillStyle='#b4d2d129';c.fillRect(x+4,y+4,2,2);c.fillRect(x+64,y+50,2,2);
   }
-  c.globalAlpha=.6;c.fillStyle=accent;c.font='10px monospace';c.textAlign='left';c.fillText('LS / '+String(chapter+1).padStart(2,'0')+'  '+titles[chapter],62,height-30);
+  for(let room=0;room<3;room++){
+   const center=185+room*(width-90)/3;
+   // Recessed ceiling light washes, without shadow blur per frame.
+   const glow=c.createRadialGradient(center,82,4,center,82,180);
+   glow.addColorStop(0,accent+'28');glow.addColorStop(1,accent+'00');c.fillStyle=glow;c.fillRect(center-180,42,360,240);
+   c.fillStyle='#07131e';c.fillRect(center-54,48,108,19);c.fillStyle='#405363';c.fillRect(center-48,50,96,4);c.fillStyle=accent;c.fillRect(center-38,58,76,3);
+   c.globalAlpha=.18;c.strokeStyle=accent;c.lineWidth=2;c.beginPath();c.arc(center,height*.53,58,0,TAU);c.stroke();
+   c.beginPath();c.arc(center,height*.53,66,.3,2.4);c.arc(center,height*.53,66,3.5,5.7);c.stroke();
+   c.font='bold 38px monospace';c.textAlign='center';c.fillStyle=accent;c.fillText(String(room+1).padStart(2,'0'),center,height*.53+13);c.globalAlpha=1;
+   // Three distinct equipment families, alternating with chapter identity.
+   const y=height-78;
+   for(let i=0;i<3;i++){
+    const x=center-48+i*35;c.fillStyle='#050e18';c.fillRect(x+3,y+5,29,37);
+    poly(c,[[x,y],[x+25,y],[x+29,y+5],[x+29,y+32],[x,y+32]],'#1d3040','#496477');
+    if(mode===0){for(let k=0;k<4;k++){c.fillStyle=k===chapter%4?accent:'#314c60';c.fillRect(x+5,y+5+k*6,19,3)}}
+    else if(mode===1){disc(c,x+14,y+15,10,'#091925');c.strokeStyle=accent;c.beginPath();c.arc(x+14,y+15,7,.3,4.9);c.stroke();disc(c,x+14,y+15,3,accent)}
+    else{c.fillStyle='#091721';c.fillRect(x+4,y+4,21,18);c.strokeStyle=accent;c.beginPath();c.moveTo(x+7,y+16);c.lineTo(x+11,y+8);c.lineTo(x+17,y+18);c.lineTo(x+23,y+9);c.stroke();}
+   }
+   c.globalAlpha=.36;c.strokeStyle=accent;c.lineWidth=2;c.beginPath();c.moveTo(center-60,height-39);c.lineTo(center+65,height-39);c.stroke();c.globalAlpha=1;
+  }
+  // Chapter-specific signal scars: archives, circuitry, orbital traces.
+  c.save();c.globalAlpha=.12;c.strokeStyle=accent;c.lineWidth=2;
+  for(let i=0;i<5;i++){const x=85+i*19;
+   c.beginPath();if(chapter===3||chapter===4){c.moveTo(x,180);c.lineTo(x+40,210+i*13);c.lineTo(x+12,255+i*13)}
+   else if(chapter===6||chapter===8){c.ellipse(width-155,height*.5,60+i*12,100+i*8,.35,0,TAU)}
+   else{c.moveTo(x,185);c.lineTo(x,230+i*9);c.lineTo(x+25,255+i*9);c.lineTo(x+25,360)}c.stroke();
+  }c.restore();
+  c.font='bold 11px monospace';c.textAlign='left';c.fillStyle=accent;c.globalAlpha=.65;c.fillText('LOST SIGNAL / '+String(chapter+1).padStart(2,'0')+' / '+titles[chapter],65,height-25);
   c.restore();
+ }
+ function environment(c,mission,width=1100,height=590){
+  const chapter=Math.max(0,Math.min(8,Math.floor((mission-1)/3))),key=chapter+':'+width+':'+height;
+  let layer=scenery.get(key);
+  if(!layer){
+   layer=typeof root.OffscreenCanvas==='function'?new root.OffscreenCanvas(width,height):root.document?.createElement('canvas');
+   if(!layer){paintEnvironment(c,chapter,width,height);return}
+   layer.width=width;layer.height=height;paintEnvironment(layer.getContext('2d'),chapter,width,height);
+   if(scenery.size>=27)scenery.delete(scenery.keys().next().value);scenery.set(key,layer);
+  }
+  c.drawImage(layer,0,0);
  }
  root.StoryInteriorArt=Object.freeze({enemy,pilot,environment,station});
 })(typeof window!=='undefined'?window:globalThis);
