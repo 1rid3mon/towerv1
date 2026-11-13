@@ -259,3 +259,8 @@ Branch `overhaul/finale-navigation`, commit `a8e2061f5b5fa0ab5ebbdb1bdb480e72f5b
 ## Early navigation and touch continuation
 
 Saved `overhaul/early-navigation-touch` at `9c9d8851c02f4481852efe4eabe1d15f46057423`: maps for missions 2–10 and scrollable landscape dialogs across six interior shells; early dialog input clearing. Inline syntax checks passed; browser verification pending. Mission 1 map, early-map explicit browser assertions and active hazard marking remain follow-ups. #123 run 43300954380 had four green jobs and WebKit smoke pending. Chromium artifact 13981133656 inspected: mission 11 map readable, phone workshop mascot overlay fixed; audio corner control still visible. No new main merge. Remaining full art/content/localization, qualitative pacing, physical iPad and performance tasks are not complete.
+
+
+## Lost Signal art continuation — 13 November
+
+Saved `overhaul/lost-signal-deck-art` at `2cec7b5b8bbfedc693cafce100d31ce5adeef2b9`. Layered deck panels, recessed light washes, sector seals, equipment banks and chapter-dependent signal/orbital markings; bounded static canvas cache. Functional archive/reactor/exit console glyphs and shared console art now across early interiors too. Native Canvas preview inspected and syntax passed; browser screenshots/performance pending. Hero/Piko/boss redesign and full qualitative art review remain incomplete. Resume this branch, inspect latest integrated CI, and continue visual development. No new main merge or manual deployment.
