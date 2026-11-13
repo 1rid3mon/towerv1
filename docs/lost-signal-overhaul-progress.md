@@ -269,3 +269,8 @@ Saved `overhaul/lost-signal-deck-art` at `2cec7b5b8bbfedc693cafce100d31ce5adeef2
 ## Cast redesign checkpoint — 13 November
 
 Saved `overhaul/lost-signal-cast` at `d0e0800fcf3551ce8077ed2d23cdc5badee94740`: redesigned rescue-suit pilot, compact articulated Piko, armored final boss with preserved shield telegraph. Native Canvas frozen-entity rendering inspected; label/ring overlap corrected afterward. Runtime 80/80 and syntax passed; browser evidence pending. Important: #125 had NO CI run because story-interior files were absent from workflow path filters. Added story-interior* to both path lists; new branch validates integrated deck/cast changes. Do not report #125 browser verified. Resume this latest branch and inspect its CI/screenshots before integration. Remaining broader art, pacing, mobile and real-device QA are still incomplete.
+
+
+## Physical station art checkpoint
+
+Branch `overhaul/physical-station-art`, commit `371f264864a5e4300946a05a84407e8bd97f5ab7`: metal walls and explicit gate states across missions 2–27. Canvas preview inspected, syntax passed; browser/performance pending. Mission 1 custom walls unchanged; no pushable-object mechanic found or added. Continue from this latest branch; full visual overhaul remains incomplete.
