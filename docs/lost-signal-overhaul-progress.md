@@ -279,3 +279,8 @@ Branch `overhaul/physical-station-art`, commit `371f264864a5e4300946a05a84407e8b
 ## Interaction prop art
 
 Latest branch `overhaul/interaction-prop-art` replaces identical station bodies with six silhouettes: reactor, antenna/scanner, relay/repair cabinet, doorway panel, archive tablet, console. Near-range brackets retained. Native Canvas frozen-prop preview inspected; syntax passed; browser/layout/performance pending. Existing shared integrations cover all 27 missions. Individual subtypes still share families. Continue latest integrated CI and actual scene screenshot review before merging; no full art completion claimed.
+
+
+## Authoritative pacing decision — 13 November
+
+User cancelled the briefly proposed 30-minute total target and explicitly restored **8–12 minutes per episode**. Nine episodes / 27 missions therefore target roughly **72–108 minutes total**. This supersedes the 30-minute proposal. These are design targets, not measured current gameplay duration. Add meaningful exploration, interactions and encounters rather than padding; retain mobile checkpoints. Human pacing measurement remains outstanding.
