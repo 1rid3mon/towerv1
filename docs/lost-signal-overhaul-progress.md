@@ -294,3 +294,10 @@ Latest `overhaul/art-navigation-integration`, commit `8aae051ca16ec412e70c6f856e
 ## WebKit performance follow-up — 14 November
 
 #129 run 43613935381 failed mission 11 walk: from x852.5 to target460, reached473.25 after6500ms; arrowleft held, dialog false, focus view, visible, gates open, no pageerrors. Focus restoration did not resolve it. Evidence points to slow frame/simulation progress rather than blocked input; underlying performance cause remains to be validated. Added WeakMap caches for static station near/far states and wall surfaces on #129. Native Canvas test confirmed 100 frames reuse two surfaces and near-state creates only one extra, with frozen input objects; 7 controller tests pass. New integrated CI pending; no timeout relaxed, no main merge. Other requested work remains open.
+
+
+## Expedition content checkpoint — 14 November, 21:09 UTC
+
+User authorized all proposed content and verified main integration. #129 cache-only run 43622521882 still failed WebKit movement (4/5). Commit 874aa94d03b71aa40cdd60ed4c7d3d84d8daad7e now preserves up to 250ms elapsed simulation with 1/60 substeps; low-FPS speed and closed-gate regression passes. Run 43640945209 pending.
+
+New #130 https://github.com/1rid3mon/towerv1/pull/130 at 0d3e13f2c98d68a6dcf4d2f49a3df1e5484c5043 on overhaul/expedition-tactics includes all #129 plus optional mission 11 push-cell maintenance annex and session-only story record, Piko scans in 11–15 and one shield per wave in 14, two breakable finale boss capsules, and opt-in Endless wave tradeoffs (±8% both outgoing/incoming, or neutral). No saved economy/schema change. 10 actual controller and 80 runtime tests pass locally. New real browser assertions written; CI pending. Main still c3a8a2e; no manual deployment. Next resolve browser failures, inspect new screenshots, merge only verified content. This does not complete every episode mechanic, localization, physical iPad or human pacing measurement; 8–12min/episode remains a target.
