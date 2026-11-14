@@ -36,7 +36,7 @@ function openMap(){
  const close=document.getElementById('map-close');close.onclick=()=>{hide();document.getElementById('map-open').focus()};close.focus();
 }
 const mapButton=document.createElement('button');mapButton.id='map-open';mapButton.textContent='HARİTA';mapButton.setAttribute('aria-label','İstasyon haritasını aç');mapButton.style.cssText='position:fixed;right:12px;top:80px;min-width:70px;min-height:44px;z-index:4;background:#16394b;color:#e2f6ff;border:1px solid #80c9db;border-radius:9px;touch-action:manipulation';mapButton.onclick=openMap;document.body.appendChild(mapButton);
-function show(html){mapButton.hidden=true;clearControls();dialog=true;modal.classList.add('open');panel.innerHTML=html}function hide(){mapButton.hidden=complete;dialog=false;modal.classList.remove('open')}
+function show(html){mapButton.hidden=true;clearControls();dialog=true;modal.classList.add('open');panel.innerHTML=html}function hide(){mapButton.hidden=complete;dialog=false;modal.classList.remove('open');canvas.tabIndex=-1;canvas.focus({preventScroll:true})}
 function say(title,body){show('<h2>'+title+'</h2><p>'+body+'</p><button id="continue">DEVAM</button>');document.getElementById('continue').onclick=hide}
 function pick(title,body,options,cb){show('<h2>'+title+'</h2><p>'+body+'</p><div id="options"></div><p id="feedback" role="status"></p><button id="cancel">KAPAT</button>');document.getElementById('cancel').onclick=hide;const box=document.getElementById('options');for(const [label,value] of options){const button=document.createElement('button');button.textContent=label;button.onclick=()=>cb(value);box.appendChild(button)}}
 function error(text){document.getElementById('feedback').textContent=text}
