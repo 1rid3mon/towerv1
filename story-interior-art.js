@@ -61,7 +61,16 @@
   if(warning){c.strokeStyle='#ffd58a';c.lineWidth=3;c.beginPath();c.arc(0,0,43+(reduced?0:Math.sin(ms/100)*2),0,TAU);c.stroke();c.strokeStyle='#050a16';c.lineWidth=4;c.strokeText('PİKO KALKANI',0,-70);c.fillStyle='#ffe2a5';c.fillText('PİKO KALKANI',0,-70)}
   c.restore();
  }
+ const objectLayers=new WeakMap(),wallLayers=new WeakMap();
+ function surface(width,height){const layer=typeof root.OffscreenCanvas==='function'?new root.OffscreenCanvas(width,height):root.document?.createElement('canvas');if(layer){layer.width=width;layer.height=height}return layer}
  function station(c,s,near){
+  let states=objectLayers.get(s);if(!states){states=[];objectLayers.set(s,states)}
+  const index=near?1:0;let layer=states[index];
+  if(!layer){layer=surface(320,120);if(!layer){paintStation(c,s,near);return}const x=layer.getContext('2d');x.translate(160,54);paintStation(x,{...s,x:0,y:0},near);states[index]=layer}
+  c.drawImage(layer,s.x-160,s.y-54);
+ }
+ function wall(c,w){let layer=wallLayers.get(w);if(!layer){layer=surface(w.w+8,w.h+9);if(!layer){paintWall(c,w);return}paintWall(layer.getContext('2d'),{...w,x:0,y:0});wallLayers.set(w,layer)}c.drawImage(layer,w.x,w.y)}
+ function paintStation(c,s,near){
   c.save();c.translate(s.x,s.y);c.textAlign='center';c.lineJoin='round';
   const color=near?'#efffa7':'#91dbe4',kind=String(s.type||s.kind||''),name=s.name||s.label||'';
   c.fillStyle='#020a1599';c.beginPath();c.ellipse(3,23,29,9,0,0,TAU);c.fill();
@@ -93,7 +102,7 @@
   c.font='bold 12px system-ui';c.lineWidth=4;c.strokeStyle='#06101b';c.strokeText(name,0,-40);c.fillStyle='#e7f5fa';c.fillText(name,0,-40);
   if(near){c.fillStyle='#e8f8b5';c.fillRect(-38,34,76,22);c.fillStyle='#0b222c';c.font='bold 11px system-ui';c.fillText('ETKİLEŞ',0,49)}c.restore();
  }
- function wall(c,w){
+ function paintWall(c,w){
   c.save();const vertical=w.h>w.w;
   c.fillStyle='#030b16';c.fillRect(w.x+4,w.y+5,w.w,w.h);
   const g=c.createLinearGradient(w.x,w.y,w.x+(vertical?w.w:0),w.y+(vertical?0:w.h));g.addColorStop(0,'#718a99');g.addColorStop(.22,'#3d576b');g.addColorStop(.7,'#223749');g.addColorStop(1,'#102231');
