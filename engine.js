@@ -1021,6 +1021,7 @@ function dealDamageToEnemy(enemy, amount, isCrit = false, color = '#ffffff', app
         if (combo.bonus > 0) { amount += combo.bonus; addFloatingText(enemy.x, enemy.y - (enemy.radius || 12) - 8, combo.label + ' +' + formatNumber(combo.bonus), '#e5b36b', 9); }
         amount = window.TowerCombatDirectorV12.mitigation(enemy, amount);
     }
+    amount *= tacticMultiplier();
     enemy.hp -= amount; enemy.hitFlash = 1;
     if (window.TowerCombatV12) window.TowerCombatV12.hit(enemy.x, enemy.y, color, isCrit, enemy.type === 'boss');
     if (typeof playBattleCue === 'function') playBattleCue(isCrit ? 'critical' : 'impact');
@@ -1080,6 +1081,7 @@ function killEnemy(enemy) {
 }
 
 function damageTower(rawDamage, attacker) {
+    rawDamage *= tacticMultiplier(true);
     if (window.TowerOverhaulV11) rawDamage = window.TowerOverhaulV11.incoming(rawDamage);
     const armorVal = getTowerArmor();
     const flatReduced = Math.max(rawDamage * 0.25, rawDamage - armorVal);
@@ -1093,6 +1095,22 @@ function damageTower(rawDamage, attacker) {
     if (tower.shield > 0) { if (tower.shield >= rem) { tower.shield -= rem; rem = 0; } else { rem -= tower.shield; tower.shield = 0; } }
     if (rem > 0) { tower.hp -= rem; if (window.TowerCombatV12) window.TowerCombatV12.incoming(tower.x, tower.y, '#e5b36b'); createParticles(tower.x, tower.y, '#ef4444', 5, 50); if (typeof playBattleCue === 'function') playBattleCue('towerHit'); }
     if (tower.hp <= 0) { tower.hp = 0; triggerTowerDefeat(); }
+}
+
+// One temporary, reversible tradeoff per Endless wave. No saved economy/stat mutation.
+let endlessTactic={wave:0,choice:'balanced',locked:false};
+function tacticMultiplier(incoming=false){
+ if(GameModeRuntime.isStoryActive()||endlessTactic.wave!==game.wave)return 1;
+ return endlessTactic.choice==='assault'?1.08:endlessTactic.choice==='guard'?.92:1;
+}
+function offerEndlessTactics(){
+ if(GameModeRuntime.isStoryActive())return;
+ endlessTactic={wave:game.wave,choice:'balanced',locked:false};
+ let box=document.getElementById('endless-tactics');
+ if(!box){box=document.createElement('details');box.id='endless-tactics';box.className='endless-tactics';document.body.appendChild(box)}
+ box.innerHTML='<summary>DALGA '+game.wave+' · TAKTİK SEÇ</summary><p>Yalnız bu dalga. Seçmezsen Dengeli devam eder. Para harcanmaz.</p><div></div>';
+ const options=[['assault','TAARRUZ','Verilen ve alınan hasar +%8'],['guard','KORUMA','Verilen ve alınan hasar −%8'],['balanced','DENGELİ','Standart hasar ve savunma']];
+ for(const [id,title,description] of options){const b=document.createElement('button');b.textContent=title+' · '+description;b.onclick=()=>{if(GameModeRuntime.isStoryActive()||endlessTactic.locked||endlessTactic.wave!==game.wave)return;endlessTactic.choice=id;endlessTactic.locked=true;box.open=false;box.querySelector('summary').textContent='DALGA '+game.wave+' · '+title;box.querySelectorAll('button').forEach(button=>button.disabled=true)};box.querySelector('div').appendChild(b)}
 }
 
 function completeWave() {
@@ -1170,6 +1188,7 @@ function completeWave() {
     waveFrostSpawns = 0;
     game.waveKills = 0; game.waveTargetKills = Math.min(45, 14 + Math.floor(game.wave * 0.25)); tower.hp = Math.min(tower.maxHp, tower.hp + tower.maxHp * 0.15);
     if (!game.holdWave && game.wave % 5 === 0 && !enemies.some(e => e.type === 'boss')) spawnEnemy(true);
+    if (!wasHoldWave) offerEndlessTactics();
     updatePrestigeUI(); refreshUpgradeButtonsState(); saveGame(true);
 }
 

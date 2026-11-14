@@ -51,3 +51,16 @@ test('field notebook records only inspected clues and repeated visits do not dup
  assert.ok(run('player.x')<335,'closed gate stays solid at 5 FPS');
  run('keys.clear();tick(20000)');assert.ok(run('player.x')<335);
 });
+
+test('optional power cell docks through movement, opens only with power and records the annex',()=>{
+ const {run,nodes}=runtime(11);run('pikoOrders()');nodes.get('piko-door').onclick();assert.equal(run('annex.open'),false);
+ run("hide();player.x=248;player.y=330;keys.add('s')");for(let i=0;i<35;i++)run('move(1/60)');run('keys.clear()');
+ assert.equal(run('annex.powered'),true);assert.equal(run('phase'),0);
+ run('pikoOrders()');nodes.get('piko-door').onclick();assert.equal(run('annex.open'),true);
+ run('player.x=125;player.y=480;interact()');assert.equal(run('annex.read'),true);assert.equal(run('fieldNotes.has("YANKI 01 · SON VARDİYA")'),true);
+});
+test('Piko shield is one charge per defense wave and cannot be replenished in that wave',()=>{
+ const {run,nodes}=runtime();run('beginBattle(4,3);hide();pikoOrders()');nodes.get('piko-shield').onclick();
+ run('enemies[0].x=490;enemies[0].y=300;simulate(.01,50)');assert.equal(run('hp'),23);assert.equal(run('annex.shield'),false);
+ run('pikoOrders()');nodes.get('piko-shield').onclick();assert.equal(run('annex.shield'),false);
+});

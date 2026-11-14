@@ -36,12 +36,12 @@ function openMap(){
  const close=document.getElementById('map-close');close.onclick=()=>{hide();document.getElementById('map-open').focus()};close.focus();
 }
 const mapButton=document.createElement('button');mapButton.id='map-open';mapButton.textContent='HARİTA';mapButton.setAttribute('aria-label','İstasyon haritasını aç');mapButton.style.cssText='position:fixed;right:12px;top:80px;min-width:70px;min-height:44px;z-index:4;background:#16394b;color:#e2f6ff;border:1px solid #80c9db;border-radius:9px;touch-action:manipulation';mapButton.onclick=openMap;document.body.appendChild(mapButton);
-function show(html){mapButton.hidden=true;clearControls();dialog=true;modal.classList.add('open');panel.innerHTML=html}function hide(){mapButton.hidden=complete;dialog=false;modal.classList.remove('open');canvas.tabIndex=-1;canvas.focus({preventScroll:true})}
+function show(html){pikoButton.hidden=true;mapButton.hidden=true;clearControls();dialog=true;modal.classList.add('open');panel.innerHTML=html}function hide(){pikoButton.hidden=complete;mapButton.hidden=complete;dialog=false;modal.classList.remove('open');canvas.tabIndex=-1;canvas.focus({preventScroll:true})}
 function say(title,body){show('<h2>'+title+'</h2><p>'+body+'</p><button id="continue">DEVAM</button>');document.getElementById('continue').onclick=hide}
 function pick(title,body,options,cb){show('<h2>'+title+'</h2><p>'+body+'</p><div id="options"></div><p id="feedback" role="status"></p><button id="cancel">KAPAT</button>');document.getElementById('cancel').onclick=hide;const box=document.getElementById('options');for(const [label,value] of options){const button=document.createElement('button');button.textContent=label;button.onclick=()=>cb(value);box.appendChild(button)}}
 function error(text){document.getElementById('feedback').textContent=text}
 function finish(text){if(complete)return;complete=true;combat=false;show('<h2>'+missionHeading+' TAMAMLANDI</h2><p>'+text+'</p><button id="done">'+(episodeStart&&mission<episodeStart+2?'ARA KAYDI AL →':episodeStart?'BÖLÜMÜ TAMAMLA →':'GÖREV PANOSUNA DÖN')+'</button>');document.getElementById('done').onclick=()=>((payload)=>window.StoryInteriorCompletion ? window.StoryInteriorCompletion.submit(payload) : parent.postMessage(payload,location.origin))({type:'lost-signal-interior-mission-complete',mission,trustChoice:choice})}
-function beginBattle(count,health){round++;combat=true;breaches=0;enemies.length=0;for(let i=0;i<count;i++){const startX=800+i%2*45,startY=120+i*65;enemies.push({x:startX,y:startY,startX,startY,breachUntil:0,hp:health,speed:sealPriority==='MÜHÜR B'&&round===2?Math.round((16+i*2)*.75):16+i*2})}hud();say('SAVUNMA','Düşmanları dokunarak hedefle. Tüm tehditleri çekirdeğe ulaşmadan durdur!')}
+function beginBattle(count,health){annex.shield=false;annex.shieldUsed=false;round++;combat=true;breaches=0;enemies.length=0;for(let i=0;i<count;i++){const startX=800+i%2*45,startY=120+i*65;enemies.push({x:startX,y:startY,startX,startY,breachUntil:0,hp:health,speed:sealPriority==='MÜHÜR B'&&round===2?Math.round((16+i*2)*.75):16+i*2})}hud();say('SAVUNMA','Düşmanları dokunarak hedefle. Tüm tehditleri çekirdeğe ulaşmadan durdur!')}
 function handle(n){
 if(mission===11){if(n.type==='brief'&&phase===0){phase=1;hud();say('ALT AĞ','Eski ağın bağlantı sırası silinmiş. Sektörlerdeki bakım izlerini karşılaştırıp röleleri doğru akışta bağla.');return}
 if(n.type==='evidence'&&phase===1){relayEvidence.add(n.name);const notes={'DEVRE ŞEMASI':'Besleme hattı BETA rölesinden çıkıyor; önce bu hatta güç verilmeli.','BAKIM NOTU':'ALFA yalnızca BETA beslemesi kararlı olduğunda akımı taşıyabilir.','KABLO İZİ':'GAMA çıkış rölesi; ALFA akımı gelmeden açılması koruma kilidini düşürür.'};fieldNotes.set(n.name,notes[n.name]);hud();say(n.name,notes[n.name]);return}
@@ -63,9 +63,41 @@ if(n.type==='repair'&&phase===1){pick(n.name,'Bu bellek bölmesine uygun onarım
 if(n.type==='deduce'&&phase===2){pick('ANILARIN ÇELİŞKİSİ','Piko iki farklı olay kaydı gösteriyor. Kanıtlanmayan bilgiyi nasıl saklarsın?', [['BELİRSİZ OLARAK KORU','yes'],['GERÇEK OLARAK MÜHÜRLE','no']],v=>{if(v==='no'){error('Doğrulanmamış bilgi gerçek ilan edilemez.');return}phase=3;hud();say('ANILAR KORUNDU','Piko stabilize edildi; eksik anı hâlâ bilinmiyor.');});return}
 if(n.type==='exit'&&phase===3){finish('Piko çekirdeği kararlı. Kaybolan anı güvenli biçimde korundu.');return}}
 say('ERİŞİM KİLİTLİ','Önce mevcut görevi tamamla.')}
-function interact(){if(dialog||complete)return;const n=stations.filter(s=>Math.hypot(player.x-s.x,player.y-s.y)<75).sort((a,b)=>Math.hypot(player.x-a.x,player.y-a.y)-Math.hypot(player.x-b.x,player.y-b.y))[0];if(n)handle(n)}
-function collides(x,y){return walls.concat(gates.filter(g=>phase<g.openPhase)).some(w=>x+player.r>w.x&&x-player.r<w.x+w.w&&y+player.r>w.y&&y-player.r<w.y+w.h)}
-function move(dt){if(dialog)return;let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'))+joy.x,dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'))+joy.y;const m=Math.hypot(dx,dy);if(m<.02)return;dx/=Math.max(1,m);dy/=Math.max(1,m);const x=player.x+dx*205*dt,y=player.y+dy*205*dt;if(!collides(x,player.y))player.x=x;if(!collides(player.x,y))player.y=y}
+// Optional maintenance annex: physical power routing and contextual Piko orders.
+const annex={cell:{x:248,y:370,r:17},socket:{x:248,y:448},powered:false,open:false,read:false,scanUntil:0,shield:false};
+if(mission===11){wall(65,350,145,12);wall(65,350,12,175);wall(65,513,145,12);wall(198,350,12,65);wall(198,477,12,48)}
+const pikoButton=document.createElement('button');pikoButton.id='piko-orders';pikoButton.textContent='PİKO';pikoButton.style.cssText=mapButton.style.cssText+';top:132px';pikoButton.setAttribute('aria-label','Piko komutları');document.body.appendChild(pikoButton);
+function pikoOrders(){
+ if(dialog||complete)return;
+ show('<h2>PİKO · SAHA KOMUTLARI</h2><p>TARA: terminalleri işaretler. KAPI: güç verilmiş bakım odasını açar. KALKAN: bu savunma dalgasındaki ilk sızmayı hafifletir.</p><button id="piko-scan">ÇEVREYİ TARA</button>'+(mission===11?'<button id="piko-door">BAKIM KAPISINI AÇ</button><button id="cell-reset">HÜCREYİ YUVASINA GERİ ÇEK</button>':'')+(mission===14?'<button id="piko-shield">KALKAN KUR</button>':'')+'<button id="piko-close">OYUNA DÖN</button>');
+ document.getElementById('piko-close').onclick=hide;
+ document.getElementById('piko-scan').onclick=()=>{annex.scanUntil=performance.now()+8000;hide()};
+ if(mission===11){document.getElementById('cell-reset').onclick=()=>{if(!annex.open){annex.cell.x=248;annex.cell.y=370;annex.powered=false}hide()};document.getElementById('piko-door').onclick=()=>{if(!annex.powered){say('GÜÇ GEREKİYOR','Bakım kapısının sağındaki hücreyi alttaki ışıklı yuvaya it. Hücrenin arkasına geç ve yürü. Sıkışırsan Piko onu geri çekebilir.');return}annex.open=true;hide()}}
+ if(mission===14)document.getElementById('piko-shield').onclick=()=>{if(!combat){say('SAVUNMA BAĞLANTISI','Kalkanı saldırı dalgası sırasında kurabilirsin.');return}if(annex.shieldUsed){say('KALKAN TÜKENDİ','Her dalgada bir koruma yükün var.');return}annex.shield=true;annex.shieldUsed=true;hide()};
+}
+pikoButton.onclick=pikoOrders;
+function pushCell(x,y){
+ if(mission!==11||annex.powered)return true;
+ const c=annex.cell,dx=x-c.x,dy=y-c.y,d=Math.hypot(dx,dy),reach=player.r+c.r;
+ if(d>=reach)return true;
+ const nx=c.x+(x-player.x),ny=c.y+(y-player.y);
+ if(walls.concat(gates.filter(g=>phase<g.openPhase)).some(w=>nx+c.r>w.x&&nx-c.r<w.x+w.w&&ny+c.r>w.y&&ny-c.r<w.y+w.h))return false;
+ c.x=nx;c.y=ny;
+ if(Math.hypot(c.x-annex.socket.x,c.y-annex.socket.y)<12){c.x=annex.socket.x;c.y=annex.socket.y;annex.powered=true;fieldNotes.set('BAKIM HATTI','Güç hücresi bağlandı. Piko kapıyı açabilir.');}
+ return true;
+}
+function drawAnnex(time){
+ if(time<annex.scanUntil){ctx.save();ctx.strokeStyle='#a5d9ff';ctx.lineWidth=2;ctx.setLineDash([6,5]);for(const s of stations)ctx.strokeRect(s.x-30,s.y-30,60,60);ctx.restore()}
+ if(annex.shield){ctx.strokeStyle='#bfadff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(490,300,50,0,Math.PI*2);ctx.stroke()}
+ if(mission!==11)return;
+ ctx.save();ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.fillStyle='#b8d9cb';ctx.fillText('BAKIM EKİ · İSTEĞE BAĞLI',137,342);
+ ctx.strokeStyle=annex.powered?'#8ff3ba':'#cbb776';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(248,448);ctx.lineTo(205,448);ctx.stroke();ctx.strokeRect(227,427,42,42);
+ ctx.fillStyle='#263e48';ctx.fillRect(annex.cell.x-17,annex.cell.y-17,34,34);ctx.strokeStyle='#a1edc6';ctx.strokeRect(annex.cell.x-17,annex.cell.y-17,34,34);ctx.fillStyle='#a1edc6';ctx.fillText(annex.powered?'ON':'↓',annex.cell.x,annex.cell.y+5);
+ ctx.fillStyle=annex.open?'#326d61':'#cd9972';ctx.fillRect(198,415,12,62);ctx.fillStyle=annex.read?'#759a92':'#e4d2a1';ctx.fillRect(112,466,26,29);ctx.fillText(annex.read?'KAYIT ALINDI':'YANKI KAYDI',132,505);ctx.restore();
+}
+function interact(){if(dialog||complete)return;if(mission===11&&annex.open&&Math.hypot(player.x-125,player.y-480)<55){annex.read=true;const note='Son vardiya, herkes ayrıldıktan sonra bahçe ışıklarına güç verdi. Arşivdeki tahliye saatiyle aynı olmayan bir saat: 04:02. Bu bir tanıklık; tek başına kanıt değil.';fieldNotes.set('YANKI 01 · SON VARDİYA',note);say('YANKI 01 · SON VARDİYA',note);return;}const n=stations.filter(s=>Math.hypot(player.x-s.x,player.y-s.y)<75).sort((a,b)=>Math.hypot(player.x-a.x,player.y-a.y)-Math.hypot(player.x-b.x,player.y-b.y))[0];if(n)handle(n)}
+function collides(x,y){if(mission===11&&!annex.open&&x+player.r>198&&x-player.r<210&&y+player.r>415&&y-player.r<477)return true;return walls.concat(gates.filter(g=>phase<g.openPhase)).some(w=>x+player.r>w.x&&x-player.r<w.x+w.w&&y+player.r>w.y&&y-player.r<w.y+w.h)}
+function move(dt){if(dialog)return;let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'))+joy.x,dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'))+joy.y;const m=Math.hypot(dx,dy);if(m<.02)return;dx/=Math.max(1,m);dy/=Math.max(1,m);const x=player.x+dx*205*dt,y=player.y+dy*205*dt;if(!collides(x,player.y)&&pushCell(x,player.y))player.x=x;if(!collides(player.x,y)&&pushCell(player.x,y))player.y=y}
 function camera(){const scale=Math.min(vw/760,vh/450,1.6),ox=Math.max(0,Math.min(W-vw/scale,player.x-vw/scale/2)),oy=Math.max(0,Math.min(H-vh/scale,player.y-vh/scale/2));return{scale,ox,oy}}
 function draw(time){ctx.fillStyle='#06101b';ctx.fillRect(0,0,vw,vh);const {scale,ox,oy}=camera();ctx.save();ctx.scale(scale,scale);ctx.translate(-ox,-oy);ctx.fillStyle='#142837';ctx.fillRect(25,25,1050,540);
 for(let i=0;i<3;i++){const x=40+i*354;ctx.fillStyle=['#122634','#182c3a','#1b2b38'][i];ctx.fillRect(x,41,334,510);ctx.strokeStyle='#305b71';ctx.strokeRect(x+8,53,318,489);ctx.fillStyle='#7eb7c9';ctx.font='bold 15px system-ui';ctx.textAlign='center';ctx.fillText('ALT SEKTÖR '+['A','B','C'][i],x+165,82)}
@@ -74,12 +106,12 @@ for(const w of walls){if(window.StoryInteriorArt?.wall){StoryInteriorArt.wall(ct
 for(const s of stations){const d=Math.hypot(player.x-s.x,player.y-s.y);if(window.StoryInteriorArt?.station){StoryInteriorArt.station(ctx,s,d<75);continue;}ctx.fillStyle=d<75?'#46a8a3':'#27627a';ctx.fillRect(s.x-23,s.y-20,46,40);ctx.strokeStyle='#a6e8ff';ctx.strokeRect(s.x-23,s.y-20,46,40);ctx.fillStyle='#ecfcff';ctx.font='12px system-ui';ctx.fillText(s.name,s.x,s.y-28);if(d<75){ctx.fillStyle='#eaffb6';ctx.fillText('ETKİLEŞ',s.x,s.y+38)}}
 for(const e of enemies.filter(e=>e.hp>0)){if(window.StoryInteriorArt)StoryInteriorArt.enemy(ctx,e,time);else{ctx.fillStyle='#d7687a';ctx.fillRect(e.x-15,e.y-15,30,30);ctx.fillStyle='#fff';ctx.fillText(String(e.hp),e.x,e.y-23)}}
 if(beam&&time<beam.until){ctx.strokeStyle='#9bffff';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(490,300);ctx.lineTo(beam.x,beam.y);ctx.stroke()}
-if(window.StoryInteriorArt)StoryInteriorArt.pilot(ctx,player,mission,time,true);else{ctx.fillStyle='#6bddf0';ctx.beginPath();ctx.arc(player.x,player.y,player.r,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#efffff';ctx.lineWidth=2;ctx.stroke();}ctx.restore()}
+drawAnnex(time);if(window.StoryInteriorArt)StoryInteriorArt.pilot(ctx,player,mission,time,true);else{ctx.fillStyle='#6bddf0';ctx.beginPath();ctx.arc(player.x,player.y,player.r,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#efffff';ctx.lineWidth=2;ctx.stroke();}ctx.restore()}
 canvas.addEventListener('pointerdown',e=>{if(!combat||dialog||complete)return;const {scale,ox,oy}=camera(),x=e.clientX/scale+ox,y=e.clientY/scale+oy,target=enemies.find(f=>f.hp>0&&Math.hypot(f.x-x,f.y-y)<37);if(!target)return;target.hp--;beam={x:target.x,y:target.y,until:performance.now()+160};if(enemies.every(f=>f.hp<=0)){combat=false;phase=round===1?2:4;hud();say('DALGA TAMAMLANDI',round===1?'Mühürleri sırayla etkinleştir.':'Sinyal vericisini incele.')}else hud()});
 function restart(){combat=false;hp=round===2&&sealPriority==='MÜHÜR A'?30:24;breaches=0;round--;enemies.length=0;show('<h2>ÇEKİRDEK HASAR ALDI</h2><p>Bu dalgayı tekrar deneyebilirsin. Mühür kayıtları korundu.</p><button id="retry">TEKRAR</button>');document.getElementById('retry').onclick=hide}
 function simulate(dt,t){move(dt);if(combat&&!dialog){for(const e of enemies.filter(e=>e.hp>0)){
  const dx=490-e.x,dy=300-e.y,m=Math.hypot(dx,dy)||1;e.x+=dx/m*e.speed*dt;e.y+=dy/m*e.speed*dt;
- if(Math.hypot(490-e.x,300-e.y)<37&&t>=e.breachUntil){hp=Math.max(0,hp-3);breaches++;e.x=e.startX;e.y=e.startY;e.breachUntil=t+900;hud();if(hp<=0){restart();break}}
+ if(Math.hypot(490-e.x,300-e.y)<37&&t>=e.breachUntil){hp=Math.max(0,hp-(annex.shield?1:3));annex.shield=false;breaches++;e.x=e.startX;e.y=e.startY;e.breachUntil=t+900;hud();if(hp<=0){restart();break}}
 }}}
 // Preserve elapsed play time at low frame rates without tunnelling through walls.
 function tick(t){let elapsed=Math.max(0,Math.min((t-last)/1000||0,.25));last=t;if(document.hidden)elapsed=0;while(elapsed>0){const step=Math.min(elapsed,1/60);simulate(step,t);elapsed-=step}draw(t);requestAnimationFrame(tick)}requestAnimationFrame(tick);

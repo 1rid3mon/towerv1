@@ -8,6 +8,9 @@ const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http:
   const context=await browser.newContext({viewport:{width,height},hasTouch:true});await context.route(/firestore\.googleapis\.com|identitytoolkit\.googleapis\.com|securetoken\.googleapis\.com/,r=>r.abort());const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4224/',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.SignalTraining&&typeof game!=='undefined');await page.locator('#mode-main-menu button').filter({hasText:'Sonsuz Mod'}).click();await page.evaluate(()=>{isPaused=true});
   await page.screenshot({path:path.join(out,'endless-hud-'+width+'.png')});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+  const balance=await page.evaluate(()=>({gold:game.gold,crystals:game.crystals}));await page.evaluate(()=>offerEndlessTactics());await page.locator('#endless-tactics summary').tap();await page.locator('#endless-tactics button').filter({hasText:'TAARRUZ'}).tap();
+  assert.equal(await page.evaluate(()=>tacticMultiplier()),1.08);assert.equal(await page.locator('#endless-tactics button:disabled').count(),3);assert.deepEqual(await page.evaluate(()=>({gold:game.gold,crystals:game.crystals})),balance);
+  await page.screenshot({path:path.join(out,'endless-tactic-'+width+'.png')});
   await page.evaluate(()=>{toggleUpgradeDrawer();switchTab('casino')});await page.locator('[data-signal-mode="memory"]').tap();
   const before=await page.evaluate(()=>({crystals:game.crystals,inventory:JSON.stringify(game.inventory)}));
   for(let round=0;round<5;round++){await page.locator('#signal-action').tap();const seq=(await page.locator('#signal-sequence').innerText()).trim().split(/\s+/);await page.locator('#signal-action').tap();for(const symbol of seq)await page.locator('[data-signal-symbol="'+['◈','≋','⊙','⌁'].indexOf(symbol)+'"]').tap()}

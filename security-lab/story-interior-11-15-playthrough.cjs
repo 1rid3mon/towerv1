@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {chromium,webkit}=require('playwright'),root=path.resolve(__dirname,'..');
 const raw=fs.readFileSync(path.join(root,'story-interior-missions11-15.js'),'utf8');
 new vm.Script(raw,{filename:'story-interior-missions11-15.js'});
-const hook='window.__qa={player,joy,keys,get dialog(){return dialog},stations,gates,enemies,interact,collides,camera,get phase(){return phase},get combat(){return combat},get round(){return round},get hp(){return hp},get breaches(){return breaches}};';
+const hook='window.__qa={player,joy,keys,annex,get dialog(){return dialog},stations,gates,enemies,interact,collides,camera,get phase(){return phase},get combat(){return combat},get round(){return round},get hp(){return hp},get breaches(){return breaches}};';
 assert(raw.includes('})();'));
 const instrumented=raw.replace(/\}\)\(\);\s*$/,hook+'\n})();');
 const shell=fs.readFileSync(path.join(root,'story-interior-missions11-15.html'),'utf8');
@@ -51,6 +51,13 @@ async function play(){
   assert.equal(await page.evaluate(()=>__qa.gates.length),2);
   if(mission===11){
    const pad=await page.locator('#pad').boundingBox();await page.mouse.move(pad.x+pad.width-10,pad.y+pad.height/2);await page.mouse.down();assert.equal(await page.evaluate(()=>__qa.joy.x>0),true);await page.evaluate(()=>dispatchEvent(new Event('blur')));assert.deepEqual(await page.evaluate(()=>({x:__qa.joy.x,y:__qa.joy.y,id:__qa.joy.id})),{x:0,y:0,id:null},'Lost focus releases held joystick input');await page.mouse.up();
+   await page.locator('#piko-orders').tap();await page.locator('#piko-door').tap();assert.equal(await page.evaluate(()=>__qa.annex.open),false);await close();
+   await page.evaluate(()=>{__qa.player.x=248;__qa.player.y=330});await walkAxis('y',420);
+   assert.equal(await page.evaluate(()=>__qa.annex.powered),true,'Real keyboard movement docks the power cell');
+   await page.locator('#piko-orders').tap();await page.locator('#piko-door').tap();
+   await walkAxis('y',448);await walkAxis('x',125);await walkAxis('y',480);await page.locator('#act').tap();
+   assert.match(await page.locator('#panel').innerText(),/SON VARDİYA/);await page.screenshot({path:path.join(evidence,'optional-annex-record.png')});await close();
+   await page.evaluate(()=>{__qa.player.x=135;__qa.player.y=300});
    await visit('İSTASYON HARİTASI');
    const pausedAt=await page.evaluate(()=>({x:__qa.player.x,y:__qa.player.y}));
    await page.keyboard.down('ArrowRight');await close();await page.waitForTimeout(120);await page.keyboard.up('ArrowRight');

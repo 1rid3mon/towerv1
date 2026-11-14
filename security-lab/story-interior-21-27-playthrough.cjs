@@ -68,6 +68,10 @@ async function run(){
      assert.equal(await page.evaluate(()=>__qa.linkUses),before+1,'A press and its click may activate Piko shield only once');
      if(mission===27)assert.equal(await page.evaluate(()=>__qa.finalBossCountered),true,'Piko shield must interrupt the telegraphed finale strike');
     }
+    if(mission===27&&needsLink){
+     for(let part=0;part<2;part++)for(let hit=0;hit<2;hit++){const at=await page.evaluate(part=>{const q=__qa,b=q.enemies.find(e=>e.isFinalBoss);q.player.x=b.x;q.player.y=b.y;const c=q.camera();return{x:(b.x+(part?55:-55)-c.ox)*c.scale,y:(b.y-c.oy)*c.scale}},part);await page.mouse.click(at.x,at.y)}
+     assert.deepEqual(await page.evaluate(()=>__qa.enemies.find(e=>e.isFinalBoss).parts),[0,0],'Both power capsules can be broken without altering boss core HP');
+    }
     for(let i=0;i<enemies.length;i++)for(let j=0;j<enemies[i];j++){
      const at=await page.evaluate(i=>{const q=__qa,e=q.enemies[i];q.player.x=490;q.player.y=300;const c=q.camera();return{x:(e.x-c.ox)*c.scale,y:(e.y-c.oy)*c.scale}},i);
      await page.mouse.click(at.x,at.y);
