@@ -61,7 +61,20 @@ if(mission===27){
 build();
 function resize(){vw=innerWidth;vh=innerHeight;const scale=Math.min(devicePixelRatio||1,2);canvas.width=vw*scale;canvas.height=vh*scale;ctx.setTransform(scale,0,0,scale,0,0)}addEventListener('resize',resize);resize();
 function hud(){objective.innerHTML='<b>'+missionHeading+' · '+names[mission]+'</b><div>'+goals[mission][Math.min(phase,goals[mission].length-1)]+'</div><small>WASD · oklar · E · iPad joystick</small>'+(combat?'<div>Çekirdek '+hp+' · Tehdit '+enemies.filter(e=>e.hp>0).length+' · Dalga '+round+(mission>=22&&mission<=24?' · Sızma '+breaches:'')+'</div>':'')+(mission===27&&bossCounterUntil>performance.now()?'<div style="color:#b6ffd7">PİKO SALDIRIYI KESTİ · ÇEKİRDEK GÜVENDE</div>':'')+(mission>=25?'<div>Mor bağlantı: '+linkUses+' kullanım · '+(mission===25?'Piko sınaması':'Kalkan desteği')+'</div>':'');updateLinkButton()};hud();
-function show(html){dialog=true;modal.classList.add('open');panel.innerHTML=html;updateLinkButton()}function hide(){dialog=false;modal.classList.remove('open');updateLinkButton()}
+// Optional tactical map: discovered records remain readable without guessing a puzzle answer.
+function openMap(){
+ if(dialog||complete)return;
+ show('<h2>İSTASYON HARİTASI</h2><p>'+goals[mission][Math.min(phase,goals[mission].length-1)]+'</p><canvas id="station-map" width="1100" height="590" style="width:100%;height:auto;background:#081723;border:1px solid #638b9c" aria-label="İstasyon planı: konumun, geçitler ve terminaller"></canvas><p>Mavi: konumun · Kırmızı: kilitli geçit · Yeşil: incelenen / tamamlanan terminal</p><ol id="map-terminals"></ol><button id="map-close">OYUNA DÖN</button>');
+ const c=document.getElementById('station-map').getContext('2d');
+ c.fillStyle='#678293';for(const w of walls)c.fillRect(w.x,w.y,w.w,w.h);
+ for(const g of gates){c.fillStyle=phase<g.openPhase?'#ef8d7b':'#4baf9c';c.fillRect(g.x,g.y,g.w,g.h)}
+ const list=document.getElementById('map-terminals');
+ stations.forEach((s,i)=>{const done=found.has(s.name);c.fillStyle=done?'#93d9ab':'#e5c58c';c.beginPath();c.arc(s.x,s.y,17,0,Math.PI*2);c.fill();c.fillStyle='#081723';c.font='bold 18px system-ui';c.textAlign='center';c.fillText(String(i+1),s.x,s.y+6);const li=document.createElement('li');li.textContent=s.name+(done?' — İNCELENDİ':'');li.style.color=done?'#93d9ab':'#e5edf4';list.appendChild(li)});
+ c.fillStyle='#75e7ff';c.beginPath();c.arc(player.x,player.y,10,0,Math.PI*2);c.fill();c.strokeStyle='#fff';c.lineWidth=3;c.stroke();
+ const close=document.getElementById('map-close');close.onclick=()=>{hide();document.getElementById('map-open').focus()};close.focus();
+}
+const mapButton=document.createElement('button');mapButton.id='map-open';mapButton.textContent='HARİTA';mapButton.setAttribute('aria-label','İstasyon haritasını aç');mapButton.style.cssText='position:fixed;right:12px;top:80px;min-width:70px;min-height:44px;z-index:4;background:#16394b;color:#e2f6ff;border:1px solid #80c9db;border-radius:9px;touch-action:manipulation';mapButton.onclick=openMap;document.body.appendChild(mapButton);
+function show(html){mapButton.hidden=true;clearControls();dialog=true;modal.classList.add('open');panel.innerHTML=html;updateLinkButton()}function hide(){mapButton.hidden=complete;dialog=false;modal.classList.remove('open');updateLinkButton()}
 function say(title,body){show('<h2>'+title+'</h2><p>'+body+'</p><button id="continue">DEVAM</button>');document.getElementById('continue').onclick=hide}
 function pick(title,body,options,cb){show('<h2>'+title+'</h2><p>'+body+'</p><div id="options"></div><p id="feedback" role="status"></p><button id="cancel">KAPAT</button>');document.getElementById('cancel').onclick=hide;const box=document.getElementById('options');for(const [label,value] of options){const button=document.createElement('button');button.textContent=label;button.onclick=()=>cb(value);box.appendChild(button)}}
 function error(text){document.getElementById('feedback').textContent=text}
@@ -268,12 +281,12 @@ function camera(){const scale=Math.min(vw/760,vh/450,1.6),ox=Math.max(0,Math.min
 function draw(time){ctx.fillStyle='#06101b';ctx.fillRect(0,0,vw,vh);const {scale,ox,oy}=camera();ctx.save();ctx.scale(scale,scale);ctx.translate(-ox,-oy);ctx.fillStyle='#142837';ctx.fillRect(25,25,1050,540);
 for(let i=0;i<3;i++){const x=40+i*354;ctx.fillStyle=['#122634','#182c3a','#1b2b38'][i];ctx.fillRect(x,41,334,510);ctx.strokeStyle='#305b71';ctx.strokeRect(x+8,53,318,489);ctx.fillStyle='#7eb7c9';ctx.font='bold 15px system-ui';ctx.textAlign='center';ctx.fillText('ALT SEKTÖR '+['A','B','C'][i],x+165,82)}
 if(window.StoryInteriorArt)StoryInteriorArt.environment(ctx,mission,W,H);
-for(const w of walls){ctx.fillStyle='#617d91';ctx.fillRect(w.x,w.y,w.w,w.h)}for(const g of gates){ctx.fillStyle=phase<g.openPhase?'#ac534c':'#2a776d';ctx.fillRect(g.x,g.y,g.w,g.h)}
+for(const w of walls){if(window.StoryInteriorArt?.wall){StoryInteriorArt.wall(ctx,w);continue;}ctx.fillStyle='#617d91';ctx.fillRect(w.x,w.y,w.w,w.h)}for(const g of gates){if(window.StoryInteriorArt?.gate){StoryInteriorArt.gate(ctx,g,phase<g.openPhase);continue;}ctx.fillStyle=phase<g.openPhase?'#ac534c':'#2a776d';ctx.fillRect(g.x,g.y,g.w,g.h)}
 if(combat&&mission>=22&&mission<=24){ctx.strokeStyle='#f5c27d';ctx.lineWidth=3;ctx.beginPath();ctx.arc(490,300,37,0,Math.PI*2);ctx.stroke()}
-for(const s of stations){const d=Math.hypot(player.x-s.x,player.y-s.y);ctx.fillStyle=d<75?'#46a8a3':'#27627a';ctx.fillRect(s.x-23,s.y-20,46,40);ctx.strokeStyle='#a6e8ff';ctx.strokeRect(s.x-23,s.y-20,46,40);ctx.fillStyle='#ecfcff';ctx.font='12px system-ui';ctx.fillText(s.name,s.x,s.y-28);if(d<75){ctx.fillStyle='#eaffb6';ctx.fillText('ETKİLEŞ',s.x,s.y+38)}}
+for(const s of stations){const d=Math.hypot(player.x-s.x,player.y-s.y);if(window.StoryInteriorArt?.station){StoryInteriorArt.station(ctx,s,d<75);continue;}ctx.fillStyle=d<75?'#46a8a3':'#27627a';ctx.fillRect(s.x-23,s.y-20,46,40);ctx.strokeStyle='#a6e8ff';ctx.strokeRect(s.x-23,s.y-20,46,40);ctx.fillStyle='#ecfcff';ctx.font='12px system-ui';ctx.fillText(s.name,s.x,s.y-28);if(d<75){ctx.fillStyle='#eaffb6';ctx.fillText('ETKİLEŞ',s.x,s.y+38)}}
 for(const patrol of patrols(time).filter(p=>p.active)){ctx.fillStyle='rgba(245,88,105,0.17)';ctx.beginPath();ctx.arc(patrol.x,patrol.y,patrol.radius,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fa8b8f';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#f47787';ctx.fillRect(patrol.x-13,patrol.y-13,26,26);ctx.fillStyle='#ffe0d7';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText('DEVRIYE',patrol.x,patrol.y-24)}
 for(const e of enemies.filter(e=>e.hp>0)){
- if(e.isFinalBoss){
+ if(e.isFinalBoss&&window.StoryInteriorArt?.boss){StoryInteriorArt.boss(ctx,e,time)}else if(e.isFinalBoss){
   const r=22+Math.sin(time/210)*1.8;ctx.save();ctx.translate(e.x,e.y);
   ctx.fillStyle='#3a233d';ctx.strokeStyle='#f3b67b';ctx.lineWidth=3;ctx.beginPath();
   for(let i=0;i<8;i++){const a=-Math.PI/2+i*Math.PI/4,x=Math.cos(a)*r,y=Math.sin(a)*r;i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.closePath();ctx.fill();ctx.stroke();
@@ -316,7 +329,7 @@ function tick(t){
  draw(t);requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
-addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys.add(k);if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)interact()});addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));function clearControls(){keys.clear();joy.x=joy.y=0;joy.id=null;knob.style.transform=''}addEventListener('blur',clearControls);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearControls()});
+addEventListener('keydown',e=>{if(dialog||complete)return;const k=e.key.toLowerCase();keys.add(k);if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)interact()});addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));function clearControls(){keys.clear();if(joy.id!==null&&pad.hasPointerCapture(joy.id))pad.releasePointerCapture(joy.id);joy.x=joy.y=0;joy.id=null;knob.style.transform=''}addEventListener('blur',clearControls);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearControls()});
 document.getElementById('act').onclick=interact;
 const linkButton=document.getElementById('link');
 // A touch or mouse press must activate the shield even when WebKit suppresses
@@ -325,5 +338,5 @@ linkButton.addEventListener('pointerdown',useLink);
 linkButton.onclick=useLink;
 document.getElementById('quit').onclick=()=>parent.postMessage({type:'lost-signal-interior-close'},location.origin);
 function stick(e){const b=pad.getBoundingClientRect(),x=e.clientX-b.left-b.width/2,y=e.clientY-b.top-b.height/2,m=Math.max(1,Math.hypot(x,y)),r=Math.min(1,m/44);joy.x=x/m*r;joy.y=y/m*r;knob.style.transform='translate('+(joy.x*38)+'px,'+(joy.y*38)+'px)'}
-pad.addEventListener('pointerdown',e=>{joy.id=e.pointerId;pad.setPointerCapture(e.pointerId);stick(e)});pad.addEventListener('pointermove',e=>{if(e.pointerId===joy.id)stick(e)});function reset(e){if(e.pointerId!==joy.id)return;joy.id=null;joy.x=joy.y=0;knob.style.transform=''}pad.addEventListener('pointerup',reset);pad.addEventListener('pointercancel',reset);
+pad.addEventListener('pointerdown',e=>{if(dialog||complete||joy.id!==null)return;joy.id=e.pointerId;pad.setPointerCapture(e.pointerId);stick(e)});pad.addEventListener('pointermove',e=>{if(e.pointerId===joy.id)stick(e)});function reset(e){if(e.pointerId!==joy.id)return;joy.id=null;joy.x=joy.y=0;knob.style.transform=''}pad.addEventListener('pointerup',reset);pad.addEventListener('pointercancel',reset);pad.addEventListener('lostpointercapture',reset);
 })();

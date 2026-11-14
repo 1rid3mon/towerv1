@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {chromium,webkit}=require('playwright'),root=path.resolve(__dirname,'..');
 const raw=fs.readFileSync(path.join(root,'story-interior-missions11-15.js'),'utf8');
 new vm.Script(raw,{filename:'story-interior-missions11-15.js'});
-const hook='window.__qa={player,joy,stations,gates,enemies,interact,collides,camera,get phase(){return phase},get combat(){return combat},get round(){return round},get hp(){return hp},get breaches(){return breaches}};';
+const hook='window.__qa={player,joy,keys,get dialog(){return dialog},stations,gates,enemies,interact,collides,camera,get phase(){return phase},get combat(){return combat},get round(){return round},get hp(){return hp},get breaches(){return breaches}};';
 assert(raw.includes('})();'));
 const instrumented=raw.replace(/\}\)\(\);\s*$/,hook+'\n})();');
 const shell=fs.readFileSync(path.join(root,'story-interior-missions11-15.html'),'utf8');
@@ -27,8 +27,14 @@ async function play(){
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4196/story-interior-missions11-15.html?mission='+mission);
   await page.evaluate(()=>addEventListener('message',e=>{if(e.data?.type==='lost-signal-interior-mission-complete')window.__complete=e.data}));
+  await page.locator('#map-open').tap();
+  await page.locator('#station-map').waitFor({state:'visible'});
+  assert.equal(await page.locator('#map-terminals li').count(),await page.evaluate(()=>__qa.stations.length));
+  await page.screenshot({path:path.join(evidence,'mission-'+mission+'-map.png')});
+  await page.locator('#map-close').tap();
+  await page.locator('#modal').waitFor({state:'hidden'});
   const teleportVisit=async(name)=>page.evaluate(label=>{const q=__qa,n=q.stations.find(s=>s.name===label);if(!n)throw Error('Station missing '+label);q.player.x=n.x;q.player.y=n.y;q.interact()},name);
-  const walkAxis=async(axis,target)=>{const current=await page.evaluate(axis=>__qa.player[axis],axis);if(Math.abs(current-target)<5)return;const sign=target>current?1:-1,key=axis==='x'?(sign>0?'ArrowRight':'ArrowLeft'):(sign>0?'ArrowDown':'ArrowUp');await page.keyboard.down(key);try{await page.waitForFunction(({axis,target,sign})=>(__qa.player[axis]-target)*sign>=-4,{axis,target,sign},{timeout:6500})}finally{await page.keyboard.up(key)}};
+  const walkAxis=async(axis,target)=>{const current=await page.evaluate(axis=>__qa.player[axis],axis);if(Math.abs(current-target)<5)return;const sign=target>current?1:-1,key=axis==='x'?(sign>0?'ArrowRight':'ArrowLeft'):(sign>0?'ArrowDown':'ArrowUp');await page.keyboard.down(key);try{await page.waitForFunction(({axis,target,sign})=>(__qa.player[axis]-target)*sign>=-4,{axis,target,sign},{timeout:6500})}catch(error){const state=await page.evaluate(()=>({player:{...__qa.player},keys:[...__qa.keys],dialog:__qa.dialog,phase:__qa.phase,joy:{...__qa.joy},gates:__qa.gates,focused:document.activeElement?.id,visibility:document.visibilityState}));await page.screenshot({path:path.join(evidence,'movement-failure-'+mission+'.png')});throw new Error(JSON.stringify({mission,axis,target,current,state,pageErrors:errors})+' '+error.message)}finally{await page.keyboard.up(key)}};
   const visit=async(name)=>{if(mission!==11&&mission!==12)return teleportVisit(name);const target=await page.evaluate(label=>{const n=__qa.stations.find(s=>s.name===label);return{x:n.x,y:n.y}},name);await walkAxis('y',298);await walkAxis('x',target.x);await walkAxis('y',target.y);await page.locator('#act').tap()};
   const solveCircuit=async(path)=>{const direction=(a,b)=>b===a+1?2:b===a-1?8:b===a+4?4:1;for(let i=0;i<path.length;i++){const cell=path[i],wanted=(i?direction(cell,path[i-1]):8)|(i===path.length-1?2:direction(cell,path[i+1]));const tile=page.locator('[data-cell="'+cell+'"]');for(let turns=0;Number(await tile.getAttribute('data-ports'))!==wanted;turns++){assert(turns<4,'Circuit tile cannot reach required orientation');await tile.tap()}}};
   const close=()=>page.locator('#modal.open #continue').click({timeout:4000});
