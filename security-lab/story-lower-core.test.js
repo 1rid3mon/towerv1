@@ -6,7 +6,7 @@ function runtime(mission=14){
  const ctx=new Proxy({}, {get:()=>noop,set:()=>true});
  const node=id=>{if(!nodes.has(id))nodes.set(id,{style:{},classList:{add:noop,remove:noop},getContext:()=>ctx,addEventListener:(name,fn)=>listeners.set(id+':'+name,fn),hasPointerCapture:()=>false,appendChild:noop,setAttribute:noop,focus:noop});return nodes.get(id)};
  const sandbox={URLSearchParams,location:{search:'?mission='+mission},innerWidth:1032,innerHeight:850,devicePixelRatio:1,requestAnimationFrame:noop,performance:{now:()=>0},addEventListener:(name,fn)=>listeners.set(name,fn),document:{body:node("body"),createElement:()=>node("created"),getElementById:node,addEventListener:noop},StoryInteriorPuzzles:require('../story-interior-puzzles.js')};sandbox.window=sandbox;
- const raw=fs.readFileSync(path.join(__dirname,'../story-interior-missions11-15.js'),'utf8');vm.runInNewContext(raw.replace(/\}\)\(\);\s*$/,'window.run=code=>eval(code);})();'),sandbox);
+ const raw=fs.readFileSync(path.join(__dirname,mission>=21?'../story-interior-missions21-27.js':'../story-interior-missions11-15.js'),'utf8');vm.runInNewContext(raw.replace(/\}\)\(\);\s*$/,'window.run=code=>eval(code);})();'),sandbox);
  return {run:sandbox.run,nodes,listeners};
 }
 test('lower core only loses health on a physical breach; surviving threats reset',()=>{
@@ -54,7 +54,7 @@ test('field notebook records only inspected clues and repeated visits do not dup
 
 test('optional power cell docks through movement, opens only with power and records the annex',()=>{
  const {run,nodes}=runtime(11);run('pikoOrders()');nodes.get('piko-door').onclick();assert.equal(run('annex.open'),false);
- run("hide();player.x=248;player.y=330;keys.add('s')");for(let i=0;i<35;i++)run('move(1/60)');run('keys.clear()');
+ run("hide();player.x=310;player.y=330;keys.add('s')");for(let i=0;i<35;i++)run('move(1/60)');run('keys.clear()');
  assert.equal(run('annex.powered'),true);assert.equal(run('phase'),0);
  run('pikoOrders()');nodes.get('piko-door').onclick();assert.equal(run('annex.open'),true);
  run('player.x=125;player.y=480;interact()');assert.equal(run('annex.read'),true);assert.equal(run('fieldNotes.has("YANKI 01 · SON VARDİYA")'),true);
@@ -63,4 +63,14 @@ test('Piko shield is one charge per defense wave and cannot be replenished in th
  const {run,nodes}=runtime();run('beginBattle(4,3);hide();pikoOrders()');nodes.get('piko-shield').onclick();
  run('enemies[0].x=490;enemies[0].y=300;simulate(.01,50)');assert.equal(run('hp'),23);assert.equal(run('annex.shield'),false);
  run('pikoOrders()');nodes.get('piko-shield').onclick();assert.equal(run('annex.shield'),false);
+});
+
+test('final boss capsules reduce strike damage without bypassing core HP',()=>{
+ const {run,listeners}=runtime(27);run('round=2;beginBattle(1,5);hide()');
+ for(let part=0;part<2;part++)for(let hit=0;hit<2;hit++){
+  const at=run(`(()=>{const b=enemies[0],c=camera();return {clientX:(b.x+(${part}?55:-55)-c.ox)*c.scale,clientY:(b.y-c.oy)*c.scale}})()`);
+  listeners.get('view:pointerdown')(at);
+ }
+ assert.equal(run('enemies[0].parts.join()'),'0,0');assert.equal(run('enemies[0].hp'),5);
+ run('performance.now=()=>2000;enemies[0].telegraphUntil=1000;tick(2000)');assert.equal(run('hp'),22);
 });

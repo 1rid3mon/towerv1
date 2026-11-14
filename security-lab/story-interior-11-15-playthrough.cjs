@@ -52,7 +52,7 @@ async function play(){
   if(mission===11){
    const pad=await page.locator('#pad').boundingBox();await page.mouse.move(pad.x+pad.width-10,pad.y+pad.height/2);await page.mouse.down();assert.equal(await page.evaluate(()=>__qa.joy.x>0),true);await page.evaluate(()=>dispatchEvent(new Event('blur')));assert.deepEqual(await page.evaluate(()=>({x:__qa.joy.x,y:__qa.joy.y,id:__qa.joy.id})),{x:0,y:0,id:null},'Lost focus releases held joystick input');await page.mouse.up();
    await page.locator('#piko-orders').tap();await page.locator('#piko-door').tap();assert.equal(await page.evaluate(()=>__qa.annex.open),false);await close();
-   await page.evaluate(()=>{__qa.player.x=248;__qa.player.y=330});await walkAxis('y',420);
+   await page.evaluate(()=>{__qa.player.x=310;__qa.player.y=330});await walkAxis('y',420);
    assert.equal(await page.evaluate(()=>__qa.annex.powered),true,'Real keyboard movement docks the power cell');
    await page.locator('#piko-orders').tap();await page.locator('#piko-door').tap();
    await walkAxis('y',448);await walkAxis('x',125);await walkAxis('y',480);await page.locator('#act').tap();

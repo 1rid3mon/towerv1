@@ -1081,7 +1081,7 @@ function killEnemy(enemy) {
 }
 
 function damageTower(rawDamage, attacker) {
-    rawDamage *= tacticMultiplier(true);
+    rawDamage *= tacticMultiplier();
     if (window.TowerOverhaulV11) rawDamage = window.TowerOverhaulV11.incoming(rawDamage);
     const armorVal = getTowerArmor();
     const flatReduced = Math.max(rawDamage * 0.25, rawDamage - armorVal);
@@ -1099,18 +1099,19 @@ function damageTower(rawDamage, attacker) {
 
 // One temporary, reversible tradeoff per Endless wave. No saved economy/stat mutation.
 let endlessTactic={wave:0,choice:'balanced',locked:false};
-function tacticMultiplier(incoming=false){
- if(GameModeRuntime.isStoryActive()||endlessTactic.wave!==game.wave)return 1;
+function tacticOwner(){return typeof currentUser!=='undefined'&&currentUser?.uid?String(currentUser.uid):'guest'}
+function tacticMultiplier(){
+ if(GameModeRuntime.isStoryActive()||endlessTactic.wave!==game.wave||endlessTactic.owner!==tacticOwner())return 1;
  return endlessTactic.choice==='assault'?1.08:endlessTactic.choice==='guard'?.92:1;
 }
 function offerEndlessTactics(){
  if(GameModeRuntime.isStoryActive())return;
- endlessTactic={wave:game.wave,choice:'balanced',locked:false};
+ endlessTactic={wave:game.wave,owner:tacticOwner(),choice:'balanced',locked:false};
  let box=document.getElementById('endless-tactics');
  if(!box){box=document.createElement('details');box.id='endless-tactics';box.className='endless-tactics';document.body.appendChild(box)}
- box.innerHTML='<summary>DALGA '+game.wave+' · TAKTİK SEÇ</summary><p>Yalnız bu dalga. Seçmezsen Dengeli devam eder. Para harcanmaz.</p><div></div>';
+ box.innerHTML='';const summary=document.createElement('summary'),description=document.createElement('p'),choices=document.createElement('div'),buttons=[];summary.textContent='DALGA '+game.wave+' · TAKTİK SEÇ';description.textContent='Yalnız bu dalga. Seçmezsen Dengeli devam eder. Para harcanmaz.';box.appendChild(summary);box.appendChild(description);box.appendChild(choices);
  const options=[['assault','TAARRUZ','Verilen ve alınan hasar +%8'],['guard','KORUMA','Verilen ve alınan hasar −%8'],['balanced','DENGELİ','Standart hasar ve savunma']];
- for(const [id,title,description] of options){const b=document.createElement('button');b.textContent=title+' · '+description;b.onclick=()=>{if(GameModeRuntime.isStoryActive()||endlessTactic.locked||endlessTactic.wave!==game.wave)return;endlessTactic.choice=id;endlessTactic.locked=true;box.open=false;box.querySelector('summary').textContent='DALGA '+game.wave+' · '+title;box.querySelectorAll('button').forEach(button=>button.disabled=true)};box.querySelector('div').appendChild(b)}
+ for(const [id,title,description] of options){const b=document.createElement('button');b.textContent=title+' · '+description;b.onclick=()=>{if(GameModeRuntime.isStoryActive()||endlessTactic.locked||endlessTactic.wave!==game.wave||endlessTactic.owner!==tacticOwner())return;endlessTactic.choice=id;endlessTactic.locked=true;box.open=false;summary.textContent='DALGA '+game.wave+' · '+title;buttons.forEach(button=>button.disabled=true)};buttons.push(b);choices.appendChild(b)}
 }
 
 function completeWave() {

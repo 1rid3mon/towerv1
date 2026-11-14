@@ -64,7 +64,7 @@ if(n.type==='deduce'&&phase===2){pick('ANILARIN ÇELİŞKİSİ','Piko iki farkl�
 if(n.type==='exit'&&phase===3){finish('Piko çekirdeği kararlı. Kaybolan anı güvenli biçimde korundu.');return}}
 say('ERİŞİM KİLİTLİ','Önce mevcut görevi tamamla.')}
 // Optional maintenance annex: physical power routing and contextual Piko orders.
-const annex={cell:{x:248,y:370,r:17},socket:{x:248,y:448},powered:false,open:false,read:false,scanUntil:0,shield:false};
+const annex={cell:{x:310,y:370,r:17},socket:{x:310,y:448},powered:false,open:false,read:false,scanUntil:0,shield:false,record:{x:125,y:480,type:"clue",name:"YANKI 01"}};
 if(mission===11){wall(65,350,145,12);wall(65,350,12,175);wall(65,513,145,12);wall(198,350,12,65);wall(198,477,12,48)}
 const pikoButton=document.createElement('button');pikoButton.id='piko-orders';pikoButton.textContent='PİKO';pikoButton.style.cssText=mapButton.style.cssText+';top:132px';pikoButton.setAttribute('aria-label','Piko komutları');document.body.appendChild(pikoButton);
 function pikoOrders(){
@@ -72,7 +72,7 @@ function pikoOrders(){
  show('<h2>PİKO · SAHA KOMUTLARI</h2><p>TARA: terminalleri işaretler. KAPI: güç verilmiş bakım odasını açar. KALKAN: bu savunma dalgasındaki ilk sızmayı hafifletir.</p><button id="piko-scan">ÇEVREYİ TARA</button>'+(mission===11?'<button id="piko-door">BAKIM KAPISINI AÇ</button><button id="cell-reset">HÜCREYİ YUVASINA GERİ ÇEK</button>':'')+(mission===14?'<button id="piko-shield">KALKAN KUR</button>':'')+'<button id="piko-close">OYUNA DÖN</button>');
  document.getElementById('piko-close').onclick=hide;
  document.getElementById('piko-scan').onclick=()=>{annex.scanUntil=performance.now()+8000;hide()};
- if(mission===11){document.getElementById('cell-reset').onclick=()=>{if(!annex.open){annex.cell.x=248;annex.cell.y=370;annex.powered=false}hide()};document.getElementById('piko-door').onclick=()=>{if(!annex.powered){say('GÜÇ GEREKİYOR','Bakım kapısının sağındaki hücreyi alttaki ışıklı yuvaya it. Hücrenin arkasına geç ve yürü. Sıkışırsan Piko onu geri çekebilir.');return}annex.open=true;hide()}}
+ if(mission===11){document.getElementById('cell-reset').onclick=()=>{if(!annex.open){annex.cell.x=310;annex.cell.y=370;annex.powered=false}hide()};document.getElementById('piko-door').onclick=()=>{if(!annex.powered){say('GÜÇ GEREKİYOR','Bakım kapısının sağındaki hücreyi alttaki ışıklı yuvaya it. Hücrenin arkasına geç ve yürü. Sıkışırsan Piko onu geri çekebilir.');return}annex.open=true;hide()}}
  if(mission===14)document.getElementById('piko-shield').onclick=()=>{if(!combat){say('SAVUNMA BAĞLANTISI','Kalkanı saldırı dalgası sırasında kurabilirsin.');return}if(annex.shieldUsed){say('KALKAN TÜKENDİ','Her dalgada bir koruma yükün var.');return}annex.shield=true;annex.shieldUsed=true;hide()};
 }
 pikoButton.onclick=pikoOrders;
@@ -91,9 +91,9 @@ function drawAnnex(time){
  if(annex.shield){ctx.strokeStyle='#bfadff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(490,300,50,0,Math.PI*2);ctx.stroke()}
  if(mission!==11)return;
  ctx.save();ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.fillStyle='#b8d9cb';ctx.fillText('BAKIM EKİ · İSTEĞE BAĞLI',137,342);
- ctx.strokeStyle=annex.powered?'#8ff3ba':'#cbb776';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(248,448);ctx.lineTo(205,448);ctx.stroke();ctx.strokeRect(227,427,42,42);
+ ctx.strokeStyle=annex.powered?'#8ff3ba':'#cbb776';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(310,448);ctx.lineTo(205,448);ctx.stroke();ctx.strokeRect(289,427,42,42);
  ctx.fillStyle='#263e48';ctx.fillRect(annex.cell.x-17,annex.cell.y-17,34,34);ctx.strokeStyle='#a1edc6';ctx.strokeRect(annex.cell.x-17,annex.cell.y-17,34,34);ctx.fillStyle='#a1edc6';ctx.fillText(annex.powered?'ON':'↓',annex.cell.x,annex.cell.y+5);
- ctx.fillStyle=annex.open?'#326d61':'#cd9972';ctx.fillRect(198,415,12,62);ctx.fillStyle=annex.read?'#759a92':'#e4d2a1';ctx.fillRect(112,466,26,29);ctx.fillText(annex.read?'KAYIT ALINDI':'YANKI KAYDI',132,505);ctx.restore();
+ ctx.fillStyle=annex.open?'#326d61':'#cd9972';ctx.fillRect(198,415,12,62);if(window.StoryInteriorArt)StoryInteriorArt.station(ctx,annex.record,Math.hypot(player.x-125,player.y-480)<55);else{ctx.fillStyle='#e4d2a1';ctx.fillRect(112,466,26,29)}ctx.restore();
 }
 function interact(){if(dialog||complete)return;if(mission===11&&annex.open&&Math.hypot(player.x-125,player.y-480)<55){annex.read=true;const note='Son vardiya, herkes ayrıldıktan sonra bahçe ışıklarına güç verdi. Arşivdeki tahliye saatiyle aynı olmayan bir saat: 04:02. Bu bir tanıklık; tek başına kanıt değil.';fieldNotes.set('YANKI 01 · SON VARDİYA',note);say('YANKI 01 · SON VARDİYA',note);return;}const n=stations.filter(s=>Math.hypot(player.x-s.x,player.y-s.y)<75).sort((a,b)=>Math.hypot(player.x-a.x,player.y-a.y)-Math.hypot(player.x-b.x,player.y-b.y))[0];if(n)handle(n)}
 function collides(x,y){if(mission===11&&!annex.open&&x+player.r>198&&x-player.r<210&&y+player.r>415&&y-player.r<477)return true;return walls.concat(gates.filter(g=>phase<g.openPhase)).some(w=>x+player.r>w.x&&x-player.r<w.x+w.w&&y+player.r>w.y&&y-player.r<w.y+w.h)}

@@ -50,3 +50,11 @@ test('V10 and V11 repair hooks stack only at a real Endless wave completion',()=
   assert.equal(run('tower.shield'),1);
   assert.equal(run('game.wave'),27);
 });
+
+test('temporary tactics expire by wave and owner and never affect Story',()=>{
+ const {run}=setup();run("GameModeRuntime.leaveStory();game.wave=30;endlessTactic={wave:30,owner:tacticOwner(),choice:'assault',locked:true}");
+ assert.equal(run('tacticMultiplier()'),1.08);run('game.wave=31');assert.equal(run('tacticMultiplier()'),1);
+ run("game.wave=30;endlessTactic.choice='guard'");assert.equal(run('tacticMultiplier()'),.92);
+ run("endlessTactic.owner='another-player'");assert.equal(run('tacticMultiplier()'),1);
+ run("endlessTactic.owner=tacticOwner();startStoryMission(1)");assert.equal(run('tacticMultiplier()'),1);
+});
