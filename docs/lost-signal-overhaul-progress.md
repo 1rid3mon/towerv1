@@ -1,12 +1,12 @@
 # LOST SIGNAL overhaul progress
 
-## CURRENT RESUME POINTER — 14 November 21:17 UTC
+## CURRENT RESUME POINTER — 14 November 21:24 UTC
 
-- Latest code: PR #130 `overhaul/expedition-tactics`, commit `3a0fc466ec07edeb7271d781a8a9deaa62d47d7c`. This includes the entire #120–129 stack. Do not resume from game code on this docs-only branch.
-- Current integration run: `43641795933`, pending/running. Check its jobs, repair actual failures, inspect screenshots, then merge #130 when verified (user authorization already given).
+- Latest code: PR #130 `overhaul/expedition-tactics`, commit `fde30e694ea734fffa0ca32895d6b42040096187`. This includes the entire #120–129 stack. Do not resume from game code on this docs-only branch.
+- Current integration run: `43642501737`, running. Check its jobs, repair actual failures, inspect screenshots, then merge #130 when verified (user authorization already given).
 - Local: 233/233 non-Firestore-emulator tests passed. Includes 11 interior-controller and 4 engine/module regressions. Physical iPad and natural episode durations NOT measured.
 - Prior #130 head run `43641270867` found a DOM-adapter failure in the Endless-wave unit test. Replaced innerHTML lookup dependencies with explicitly created nodes; test passes. Later run `43641678326` was superseded by an Exit/Map overlap correction; do not count cancellation as success.
-- Last verified main `c3a8a2e5bb225b983729c60e65ba1126cafc8a89`, Vercel production `dpl_2SiNczn4TDog4fQAPYRuY1wr2j7f` READY for that SHA (metadata only). No manual deployment or configuration changes.
+- Last verified main `52d0929213c4dd3f85162e4192893b8bfdaaad53` (#129 merged after all five jobs in 43640945209 passed). #121–128 closed as included in #129, #120 auto-recognized as merged. Latest merge deployment not checked yet. Previous Vercel production `dpl_2SiNczn4TDog4fQAPYRuY1wr2j7f` READY for that SHA (metadata only). No manual deployment or configuration changes.
 - Content scope: mission 11 push-cell side room and session notebook record; Piko scan 11–15 / shield14; boss27 capsules; per-wave account-isolated Endless tactics. Not every episode is expanded yet; full localization and physical-device/pacing review remain.
 
 Older entries below are historical and their merge restrictions/statuses are superseded by this pointer and subsequent checkpoints.
@@ -312,3 +312,8 @@ Latest `overhaul/art-navigation-integration`, commit `8aae051ca16ec412e70c6f856e
 User authorized all proposed content and verified main integration. #129 cache-only run 43622521882 still failed WebKit movement (4/5). Commit 874aa94d03b71aa40cdd60ed4c7d3d84d8daad7e now preserves up to 250ms elapsed simulation with 1/60 substeps; low-FPS speed and closed-gate regression passes. Run 43640945209 pending.
 
 New #130 https://github.com/1rid3mon/towerv1/pull/130 at 0d3e13f2c98d68a6dcf4d2f49a3df1e5484c5043 on overhaul/expedition-tactics includes all #129 plus optional mission 11 push-cell maintenance annex and session-only story record, Piko scans in 11–15 and one shield per wave in 14, two breakable finale boss capsules, and opt-in Endless wave tradeoffs (±8% both outgoing/incoming, or neutral). No saved economy/schema change. 10 actual controller and 80 runtime tests pass locally. New real browser assertions written; CI pending. Main still c3a8a2e; no manual deployment. Next resolve browser failures, inspect new screenshots, merge only verified content. This does not complete every episode mechanic, localization, physical iPad or human pacing measurement; 8–12min/episode remains a target.
+
+
+## Browser follow-up and first merge — 21:24 UTC
+
+PR #129 merged at 52d0929213c4dd3f85162e4192893b8bfdaaad53 after all five jobs passed. #130 remains pending on fde30e694ea734fffa0ca32895d6b42040096187, run 43642501737. The previous #130 WebKit failure was a real-keyboard test overshooting a narrow corridor (y269.45; player radius13; opening starts260). Vertical approach now uses actual analog joystick at quarter speed, retaining collisions and the 6500ms timeout. A newly added visual assertion also incorrectly assumed every early exit control was #quit; it now includes #leave. No production game change in these two test commits. Chromium annex-record and boss-warning screenshots inspected: readable record, visible caps/telegraph and separate Exit/Map. New tactic screenshot still pending. Main merge authorization remains valid; continue until #130 is verified and merged. No physical iPad or natural pacing claim.
