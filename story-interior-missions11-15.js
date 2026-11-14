@@ -77,10 +77,12 @@ if(beam&&time<beam.until){ctx.strokeStyle='#9bffff';ctx.lineWidth=4;ctx.beginPat
 if(window.StoryInteriorArt)StoryInteriorArt.pilot(ctx,player,mission,time,true);else{ctx.fillStyle='#6bddf0';ctx.beginPath();ctx.arc(player.x,player.y,player.r,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#efffff';ctx.lineWidth=2;ctx.stroke();}ctx.restore()}
 canvas.addEventListener('pointerdown',e=>{if(!combat||dialog||complete)return;const {scale,ox,oy}=camera(),x=e.clientX/scale+ox,y=e.clientY/scale+oy,target=enemies.find(f=>f.hp>0&&Math.hypot(f.x-x,f.y-y)<37);if(!target)return;target.hp--;beam={x:target.x,y:target.y,until:performance.now()+160};if(enemies.every(f=>f.hp<=0)){combat=false;phase=round===1?2:4;hud();say('DALGA TAMAMLANDI',round===1?'Mühürleri sırayla etkinleştir.':'Sinyal vericisini incele.')}else hud()});
 function restart(){combat=false;hp=round===2&&sealPriority==='MÜHÜR A'?30:24;breaches=0;round--;enemies.length=0;show('<h2>ÇEKİRDEK HASAR ALDI</h2><p>Bu dalgayı tekrar deneyebilirsin. Mühür kayıtları korundu.</p><button id="retry">TEKRAR</button>');document.getElementById('retry').onclick=hide}
-function tick(t){const dt=Math.min((t-last)/1000||0,.05);last=t;move(dt);if(combat&&!dialog){for(const e of enemies.filter(e=>e.hp>0)){
+function simulate(dt,t){move(dt);if(combat&&!dialog){for(const e of enemies.filter(e=>e.hp>0)){
  const dx=490-e.x,dy=300-e.y,m=Math.hypot(dx,dy)||1;e.x+=dx/m*e.speed*dt;e.y+=dy/m*e.speed*dt;
  if(Math.hypot(490-e.x,300-e.y)<37&&t>=e.breachUntil){hp=Math.max(0,hp-3);breaches++;e.x=e.startX;e.y=e.startY;e.breachUntil=t+900;hud();if(hp<=0){restart();break}}
-}}draw(t);requestAnimationFrame(tick)}requestAnimationFrame(tick);
+}}}
+// Preserve elapsed play time at low frame rates without tunnelling through walls.
+function tick(t){let elapsed=Math.max(0,Math.min((t-last)/1000||0,.25));last=t;if(document.hidden)elapsed=0;while(elapsed>0){const step=Math.min(elapsed,1/60);simulate(step,t);elapsed-=step}draw(t);requestAnimationFrame(tick)}requestAnimationFrame(tick);
 function clearControls(){keys.clear();if(joy.id!==null&&pad.hasPointerCapture(joy.id))pad.releasePointerCapture(joy.id);joy.id=null;joy.x=0;joy.y=0;knob.style.transform=''}
 addEventListener('keydown',e=>{if(dialog||complete)return;const k=e.key.toLowerCase();keys.add(k);if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)interact()});addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));addEventListener('blur',clearControls);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearControls()});
 document.getElementById('act').onclick=interact;document.getElementById('quit').onclick=()=>parent.postMessage({type:'lost-signal-interior-close'},location.origin);

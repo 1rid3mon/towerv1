@@ -14,7 +14,7 @@ test('lower core only loses health on a physical breach; surviving threats reset
  for(let t=50;t<=4000;t+=50)run(`tick(${t})`);
  assert.equal(run('hp'),24);assert.equal(run('enemies[0].x<800'),true);
  run('enemies[0].x=490;enemies[0].y=300;tick(4050)');
- assert.equal(run('hp'),21);assert.equal(run('breaches'),1);assert.equal(run('enemies[0].hp'),3);assert.equal(run('enemies[0].x'),800);
+ assert.equal(run('hp'),21);assert.equal(run('breaches'),1);assert.equal(run('enemies[0].hp'),3);assert.ok(run('enemies[0].x')>799,'breached threat returns to its entry before remaining substeps');
  run('enemies[0].x=490;enemies[0].y=300;tick(4100)');assert.equal(run('hp'),21,'A returning threat cannot breach twice in one cooldown');
 });
 for(const [seal,hp,speed,health] of [['A',30,16,4],['B',24,12,4],['C',24,16,3]])test(`wave two death/retry preserves seal ${seal} and its benefit`,()=>{
@@ -41,4 +41,13 @@ test('field notebook records only inspected clues and repeated visits do not dup
  assert.equal(run('fieldNotes.size'),1);assert.match(run('fieldNotes.get("DEVRE ŞEMASI")'),/BETA/);
  assert.equal(run('relayEvidence.size'),1);assert.equal(run('found.size'),0);
  run('hide();handle(stations.find(s=>s.name==="DEVRE ŞEMASI"))');assert.equal(run('fieldNotes.size'),1);
+});
+
+ test('low frame rate preserves walking speed and does not tunnel through locked gates',()=>{
+ const {run}=runtime(11);run("player.y=300;keys.add('d')");
+ for(let t=200;t<=800;t+=200)run(`tick(${t})`);
+ assert.ok(Math.abs(run('player.x')-299)<.01);
+ for(let t=1000;t<=2000;t+=200)run(`tick(${t})`);
+ assert.ok(run('player.x')<335,'closed gate stays solid at 5 FPS');
+ run('keys.clear();tick(20000)');assert.ok(run('player.x')<335);
 });
