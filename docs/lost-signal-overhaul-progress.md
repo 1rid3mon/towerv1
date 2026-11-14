@@ -289,3 +289,8 @@ User cancelled the briefly proposed 30-minute total target and explicitly restor
 ## Integration and WebKit investigation — 14 November
 
 Latest `overhaul/art-navigation-integration`, commit `8aae051ca16ec412e70c6f856e5b494cf63d3f78`, consolidates #120–128 against main. #128 run 43399917177 was 4/5: WebKit failed mission 11 relay travel at walkAxis timeout (line 61), not puzzle assertion. Root cause unproven. Added game-canvas focus restoration after modal close and diagnostic state/screenshot on walk timeout; no timeout relaxed. Seven controller tests passed. Inspect new integrated CI before merge. Remaining localization, new content, human 8–12 minute pacing, physical iPad and full art/performance QA not complete. No new main merge.
+
+
+## WebKit performance follow-up — 14 November
+
+#129 run 43613935381 failed mission 11 walk: from x852.5 to target460, reached473.25 after6500ms; arrowleft held, dialog false, focus view, visible, gates open, no pageerrors. Focus restoration did not resolve it. Evidence points to slow frame/simulation progress rather than blocked input; underlying performance cause remains to be validated. Added WeakMap caches for static station near/far states and wall surfaces on #129. Native Canvas test confirmed 100 frames reuse two surfaces and near-state creates only one extra, with frozen input objects; 7 controller tests pass. New integrated CI pending; no timeout relaxed, no main merge. Other requested work remains open.
