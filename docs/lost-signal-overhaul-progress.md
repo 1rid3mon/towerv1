@@ -284,3 +284,8 @@ Latest branch `overhaul/interaction-prop-art` replaces identical station bodies 
 ## Authoritative pacing decision — 13 November
 
 User cancelled the briefly proposed 30-minute total target and explicitly restored **8–12 minutes per episode**. Nine episodes / 27 missions therefore target roughly **72–108 minutes total**. This supersedes the 30-minute proposal. These are design targets, not measured current gameplay duration. Add meaningful exploration, interactions and encounters rather than padding; retain mobile checkpoints. Human pacing measurement remains outstanding.
+
+
+## Integration and WebKit investigation — 14 November
+
+Latest `overhaul/art-navigation-integration`, commit `8aae051ca16ec412e70c6f856e5b494cf63d3f78`, consolidates #120–128 against main. #128 run 43399917177 was 4/5: WebKit failed mission 11 relay travel at walkAxis timeout (line 61), not puzzle assertion. Root cause unproven. Added game-canvas focus restoration after modal close and diagnostic state/screenshot on walk timeout; no timeout relaxed. Seven controller tests passed. Inspect new integrated CI before merge. Remaining localization, new content, human 8–12 minute pacing, physical iPad and full art/performance QA not complete. No new main merge.
