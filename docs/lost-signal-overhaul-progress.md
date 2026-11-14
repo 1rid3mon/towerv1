@@ -1,5 +1,16 @@
 # LOST SIGNAL overhaul progress
 
+## CURRENT RESUME POINTER — 14 November 21:17 UTC
+
+- Latest code: PR #130 `overhaul/expedition-tactics`, commit `3a0fc466ec07edeb7271d781a8a9deaa62d47d7c`. This includes the entire #120–129 stack. Do not resume from game code on this docs-only branch.
+- Current integration run: `43641795933`, pending/running. Check its jobs, repair actual failures, inspect screenshots, then merge #130 when verified (user authorization already given).
+- Local: 233/233 non-Firestore-emulator tests passed. Includes 11 interior-controller and 4 engine/module regressions. Physical iPad and natural episode durations NOT measured.
+- Prior #130 head run `43641270867` found a DOM-adapter failure in the Endless-wave unit test. Replaced innerHTML lookup dependencies with explicitly created nodes; test passes. Later run `43641678326` was superseded by an Exit/Map overlap correction; do not count cancellation as success.
+- Last verified main `c3a8a2e5bb225b983729c60e65ba1126cafc8a89`, Vercel production `dpl_2SiNczn4TDog4fQAPYRuY1wr2j7f` READY for that SHA (metadata only). No manual deployment or configuration changes.
+- Content scope: mission 11 push-cell side room and session notebook record; Piko scan 11–15 / shield14; boss27 capsules; per-wave account-isolated Endless tactics. Not every episode is expanded yet; full localization and physical-device/pacing review remain.
+
+Older entries below are historical and their merge restrictions/statuses are superseded by this pointer and subsequent checkpoints.
+
 Last updated: 2026-11-11 (Europe/Istanbul, morning)
 
 ## Current baseline and release constraints
