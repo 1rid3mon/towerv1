@@ -1129,6 +1129,19 @@ function offerEndlessTactics(){
  let box=document.getElementById('endless-tactics');
  if(!box){box=document.createElement('details');box.id='endless-tactics';box.className='endless-tactics';(document.getElementById('hud-top-bar')||document.body).appendChild(box)}
  box.hidden=false;box.open=false;box.innerHTML='';const summary=document.createElement('summary'),description=document.createElement('p'),choices=document.createElement('div'),buttons=[];summary.textContent='DALGA '+game.wave+' · TAKTİK SEÇ';description.textContent='Yalnız bu dalga. Seçmezsen Dengeli devam eder. Para harcanmaz.';box.appendChild(summary);box.appendChild(description);box.appendChild(choices);
+ if (typeof window.ResizeObserver === 'function' && !box.tacticsResizeObserver) {
+    const fit = () => {
+        const bounds = box.getBoundingClientRect();
+        if (!bounds.width) return;
+        box.style.maxHeight = Math.max(0, Math.min(320, window.innerHeight - bounds.top - 8)) + 'px';
+        box.style.maxWidth = Math.max(0, window.innerWidth - bounds.left - 8) + 'px';
+    };
+    box.tacticsResizeObserver = new window.ResizeObserver(fit);
+    box.tacticsResizeObserver.observe(box.parentElement);
+    window.addEventListener('resize',fit);
+    box.addEventListener('toggle',fit);
+    box.addEventListener('click',fit);
+ }
  const options=[['assault','TAARRUZ','Verilen ve alınan hasar +%8'],['guard','KORUMA','Verilen ve alınan hasar −%8'],['balanced','DENGELİ','Standart hasar ve savunma']];
  for(const [id,title,description] of options){const b=document.createElement('button');b.textContent=title+' · '+description;b.onclick=()=>{if(GameModeRuntime.isStoryActive()||endlessTactic.locked||endlessTactic.wave!==game.wave||endlessTactic.owner!==tacticOwner())return;endlessTactic.choice=id;endlessTactic.locked=true;box.open=false;summary.textContent='DALGA '+game.wave+' · '+title;buttons.forEach(button=>button.disabled=true)};buttons.push(b);choices.appendChild(b)}
 }
