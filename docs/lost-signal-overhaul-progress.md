@@ -1,5 +1,9 @@
 # LOST SIGNAL overhaul progress
 
+## Endless operations checkpoint
+
+Draft #132, head 6edd0fa60b182fd4d2845d46132baedddc027a8a. Adds the Operations panel, seven-day supply with gear choice, 24 gear items and four slots, first sector clear gear, daily/weekly/career tasks, 30-tier free season and up to 12 hours of local offline parts. Data remains device-local per owner; no purchase or ad grants. Ten targeted local tests passed. Next: browser validation, cross-device authoritative reward storage, boss rush and Android billing/rewarded ads. Premium, biome unlocks and physical Android testing remain open. Do not merge before validating the latest head.
+
 ## Latest Android-first Endless checkpoint — 15 November
 
 PR #132 now at 48964fa9247df8dbe8327abcc7688a8ff09537aa. Boss entry and wave completion share one gate; loaded finale must spawn exactly one boss before the wave can close. Sector details sit in the wave card and preview names match actual bosses. Eight targeted local checks passed, including the in-engine loaded finale boss defeat and advance. Fresh CI pending. Previous code details below are historical.
