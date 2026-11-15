@@ -2,6 +2,8 @@
 
 ## Endless operations checkpoint
 
+Latest #132 head `0806a57d084d37a2055df2948c5cfa695afbd8bb` adds distinct static edge silhouettes and palettes for five Endless regions. Targeted suite 11/11, including drawing bounds in portrait, landscape and tablet sizes. Fresh browser CI and visual review pending. Boss rush, premium and rewarded ads remain open.
+
 Draft #132, head 6edd0fa60b182fd4d2845d46132baedddc027a8a. Adds the Operations panel, seven-day supply with gear choice, 24 gear items and four slots, first sector clear gear, daily/weekly/career tasks, 30-tier free season and up to 12 hours of local offline parts. Data remains device-local per owner; no purchase or ad grants. Ten targeted local tests passed. Next: browser validation, cross-device authoritative reward storage, boss rush and Android billing/rewarded ads. Premium, biome unlocks and physical Android testing remain open. Do not merge before validating the latest head.
 
 ## Latest Android-first Endless checkpoint — 15 November
