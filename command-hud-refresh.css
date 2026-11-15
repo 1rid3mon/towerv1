@@ -29,14 +29,15 @@ body:not([data-game-mode="story"]) #hud-quick-stats>div{min-width:0;margin-left:
 .signal-training [hidden]{display:none!important}
 
 /* Keep workshop controls clear of the floating companion and transient notices. */
-body:has(#tab-casino:not(.hidden)) #game-mascot{visibility:hidden;pointer-events:none}
-body:has(#tab-casino:not(.hidden)) #game-mascot-bubble{visibility:hidden;pointer-events:none}
-body:has(#tab-casino:not(.hidden)) #toast-msg{bottom:auto!important;top:84px;max-width:calc(100vw - 32px)}
+body:has(#upgrade-drawer:not(.-translate-x-full) #tab-casino:not(.hidden)) #game-mascot{visibility:hidden;pointer-events:none}
+body:has(#upgrade-drawer:not(.-translate-x-full) #tab-casino:not(.hidden)) #game-mascot-bubble{visibility:hidden;pointer-events:none}
+body:has(#upgrade-drawer:not(.-translate-x-full) #tab-casino:not(.hidden)) #toast-msg{bottom:auto!important;top:84px;max-width:calc(100vw - 32px)}
 #tab-casino{padding-bottom:80px;scroll-padding-bottom:80px}
 
 /* Opt-in wave tradeoffs keep the combat board and primary touch controls clear. */
-.endless-tactics{position:fixed;left:50%;transform:translateX(-50%);top:112px;z-index:45;max-width:min(440px,88vw);padding:8px 12px;color:#e6eef2;background:#0b1c29f2;border:1px solid #8aafbc;border-radius:10px;font:12px system-ui}
-.endless-tactics summary{cursor:pointer;min-height:28px;display:flex;align-items:center;justify-content:center}
+.endless-tactics{position:absolute;left:0;top:calc(100% + 8px);z-index:45;width:100%;box-sizing:border-box;pointer-events:auto;max-height:min(320px,calc(100dvh - 230px));overflow:auto;padding:8px 12px;color:#e6eef2;background:#0b1c29f2;border:1px solid #8aafbc;border-radius:10px;font:12px system-ui}
+.endless-tactics summary{cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center}
 .endless-tactics p{margin:8px 0}.endless-tactics button{display:block;min-height:44px;width:100%;margin:5px 0;padding:8px;background:#203d4b;color:#f3e4c5;border:1px solid #809ba7;border-radius:6px}
 body[data-game-mode="story"] .endless-tactics,body:has(#mode-main-menu:not(.menu-hidden)) .endless-tactics,body:has(#upgrade-drawer:not(.-translate-x-full) #tab-casino:not(.hidden)) .endless-tactics{display:none}
-@media(max-height:500px){.endless-tactics{top:70px;max-height:65dvh;overflow:auto}}
+body:not([data-game-mode="story"]) #endless-tactics *{font-size:12px!important;line-height:1.4!important}
+@media(max-height:500px){.endless-tactics{max-height:calc(100dvh - 170px)}}

@@ -1104,12 +1104,16 @@ function tacticMultiplier(){
  if(GameModeRuntime.isStoryActive()||endlessTactic.wave!==game.wave||endlessTactic.owner!==tacticOwner())return 1;
  return endlessTactic.choice==='assault'?1.08:endlessTactic.choice==='guard'?.92:1;
 }
+function resetEndlessTactics(){
+ endlessTactic={wave:0,choice:'balanced',locked:false};
+ const box=document.getElementById('endless-tactics');if(box){box.hidden=true;box.open=false;}
+}
 function offerEndlessTactics(){
  if(GameModeRuntime.isStoryActive())return;
  endlessTactic={wave:game.wave,owner:tacticOwner(),choice:'balanced',locked:false};
  let box=document.getElementById('endless-tactics');
- if(!box){box=document.createElement('details');box.id='endless-tactics';box.className='endless-tactics';document.body.appendChild(box)}
- box.innerHTML='';const summary=document.createElement('summary'),description=document.createElement('p'),choices=document.createElement('div'),buttons=[];summary.textContent='DALGA '+game.wave+' · TAKTİK SEÇ';description.textContent='Yalnız bu dalga. Seçmezsen Dengeli devam eder. Para harcanmaz.';box.appendChild(summary);box.appendChild(description);box.appendChild(choices);
+ if(!box){box=document.createElement('details');box.id='endless-tactics';box.className='endless-tactics';(document.getElementById('hud-top-bar')||document.body).appendChild(box)}
+ box.hidden=false;box.open=false;box.innerHTML='';const summary=document.createElement('summary'),description=document.createElement('p'),choices=document.createElement('div'),buttons=[];summary.textContent='DALGA '+game.wave+' · TAKTİK SEÇ';description.textContent='Yalnız bu dalga. Seçmezsen Dengeli devam eder. Para harcanmaz.';box.appendChild(summary);box.appendChild(description);box.appendChild(choices);
  const options=[['assault','TAARRUZ','Verilen ve alınan hasar +%8'],['guard','KORUMA','Verilen ve alınan hasar −%8'],['balanced','DENGELİ','Standart hasar ve savunma']];
  for(const [id,title,description] of options){const b=document.createElement('button');b.textContent=title+' · '+description;b.onclick=()=>{if(GameModeRuntime.isStoryActive()||endlessTactic.locked||endlessTactic.wave!==game.wave||endlessTactic.owner!==tacticOwner())return;endlessTactic.choice=id;endlessTactic.locked=true;box.open=false;summary.textContent='DALGA '+game.wave+' · '+title;buttons.forEach(button=>button.disabled=true)};buttons.push(b);choices.appendChild(b)}
 }
@@ -1227,6 +1231,7 @@ function recoverFromDefeat() {
         if (typeof showToast === 'function') showToast(storyLanguage() === 'en' ? 'Core rebooted. The mission continues.' : 'Çekirdek yeniden başlatıldı. Görev devam ediyor.');
         return;
     }
+    resetEndlessTactics();
     isDefeated = false; document.getElementById('defeat-overlay').classList.add('hidden'); enemies = []; projectiles = [];
     tower.freezeTimer = 0; tower.freezeImmunityTimer = 0; tower.frostSlowTimer = 0; waveFrostSpawns = 0;
 

@@ -369,7 +369,10 @@ function toggleUpgradeDrawer() {
         // Combat deliberately skips hidden upgrade DOM work. Opening while paused
         // must refresh affordability from the gold earned since the previous visit.
         refreshUpgradeButtonsState();
-    } else drawer.classList.add('-translate-x-full');
+    } else {
+        window.SignalTraining?.pause();
+        drawer.classList.add('-translate-x-full');
+    }
     syncHudPositionsWithDrawer();
 }
 
@@ -681,6 +684,7 @@ function openPrestigeConfirm() {
         if (window._syncShadow) window._syncShadow(); // büyük ruh kazancı anti-cheat tarafından geri alınmasın
         game.stats.prestiges++;
         game.wave = getStartWaveLevel();
+        if (typeof resetEndlessTactics === 'function') resetEndlessTactics();
         game.highestWave = Math.max(game.highestWave, game.wave);
         game.waveKills = 0;
         game.gold = game.wave === 1 ? 25 : Math.round(25 + getWaveBaseGold(game.wave) * 6 * getGoldMultiplier());
