@@ -7,6 +7,10 @@ const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http:
  for(const [width,height] of [[390,844],[844,390],[1032,850]]){
   const context=await browser.newContext({viewport:{width,height},hasTouch:true});await context.route(/firestore\.googleapis\.com|identitytoolkit\.googleapis\.com|securetoken\.googleapis\.com/,r=>r.abort());const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4224/',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.SignalTraining&&typeof game!=='undefined');await page.locator('#mode-main-menu button').filter({hasText:'Sonsuz Mod'}).click();await page.evaluate(()=>{isPaused=true});
+  assert.equal(await page.locator('#ls-sound-optin').isVisible(),false,'Console sound belongs in Settings');
+  await page.evaluate(()=>{startLootboxModalAnimation('item',1,[],0);clearTimeout(lootboxAnimTimer)});
+  await page.locator('#loot-close-always').tap();
+  assert.equal(await page.locator('#lootbox-anim-modal').isVisible(),false,'A stalled reveal can be dismissed');
   await page.screenshot({path:path.join(out,'endless-hud-'+width+'.png')});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
   const balance=await page.evaluate(()=>({gold:game.gold,crystals:game.crystals}));await page.evaluate(()=>offerEndlessTactics());await page.locator('#endless-tactics summary').tap();
   const layout=await page.evaluate(()=>{const t=document.getElementById('endless-tactics').getBoundingClientRect(),h=document.getElementById('hud-top-bar').getBoundingClientRect();return {top:t.top,bottom:t.bottom,left:t.left,right:t.right,hudBottom:h.bottom,width:innerWidth,height:innerHeight}});assert.ok(layout.top>=layout.hudBottom,'Tactics must not cover HP/wave controls');assert.ok(layout.bottom<=layout.height&&layout.left>=0&&layout.right<=layout.width,'Tactics fits the viewport');

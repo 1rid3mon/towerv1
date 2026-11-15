@@ -982,9 +982,11 @@ function startLootboxModalAnimation(boxType, count, entries, refundCrystals) {
         }
     }
 
-    lootboxAnimTimer = setTimeout(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
         revealLootboxCards();
-    }, 950);
+    } else {
+        lootboxAnimTimer = setTimeout(revealLootboxCards, 950);
+    }
 }
 
 function skipLootboxAnim() {
@@ -993,7 +995,9 @@ function skipLootboxAnim() {
 }
 
 function revealLootboxCards() {
-    if (!currentLootSession) return;
+    if (!currentLootSession || currentLootSession.revealed) return;
+    currentLootSession.revealed = true;
+    clearTimeout(lootboxAnimTimer);
     const { boxType, count, entries, refundCrystals } = currentLootSession;
 
     const stageChest = document.getElementById('loot-stage-chest');

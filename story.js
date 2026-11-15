@@ -686,8 +686,14 @@ function startStoryMission(missionNumber = 1) {
         };
         frame.src = sourceForStage(missionNumber);
         frame.title = 'LOST SIGNAL · İç İstasyon · Görev ' + missionNumber;
-        frame.style.cssText = 'width:100%;height:100%;border:0';
+        frame.style.cssText = 'width:100%;height:calc(100% - 48px);border:0;display:block';
+        const missionExit = document.createElement('button');
+        missionExit.id = 'story-interior-exit';
+        missionExit.type = 'button';
+        missionExit.textContent = storyLanguage() === 'en' ? 'Return to missions' : 'Görev listesine dön';
+        missionExit.style.cssText = 'display:block;width:100%;height:48px;background:#102333;color:#e2f4f8;border-top:1px solid #4b95ac;font:700 14px system-ui';
         overlay.appendChild(frame);
+        overlay.appendChild(missionExit);
         document.body.appendChild(overlay);
         let completionPending = false;
         const cleanup = () => {
@@ -697,6 +703,7 @@ function startStoryMission(missionNumber = 1) {
             const next = document.getElementById('story-start-mission' + ((episodeEnd || missionNumber) + 1));
             if (next && !next.disabled) next.focus({ preventScroll: true });
         };
+        missionExit.onclick = cleanup;
         const advanceEpisode = nextStage => {
             // Confirmation already reached the child; all steps have a durable checkpoint.
             frame.style.display = 'none';

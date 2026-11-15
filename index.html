@@ -1443,6 +1443,7 @@
                 <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
+            <button type="button" id="ls-sound-optin" aria-pressed="false" class="min-h-11 rounded-lg border border-slate-600 px-3 text-sm">KONSOL SESİ: KAPALI</button>
             <div class="space-y-1.5">
                 <label for="language-select" class="text-xs font-semibold text-slate-300 block">Dil / Language</label>
                 <select id="language-select" onchange="setGameLanguage(this.value)" class="w-full rounded-xl bg-slate-800 border border-slate-700 text-slate-100 text-sm p-2.5">
@@ -1491,7 +1492,9 @@
         </div>
     </div>
 
-    <div id="lootbox-anim-modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-xl flex flex-col items-center justify-center p-4 z-50 overflow-hidden select-none">
+    <div id="lootbox-anim-modal" role="dialog" aria-modal="true" aria-label="Sandık ödülleri" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-xl flex flex-col items-center justify-center p-4 z-50 overflow-hidden select-none">
+        <button type="button" id="loot-close-always" onclick="closeLootboxModal()" class="absolute top-3 right-3 z-30 min-h-11 rounded-lg border border-slate-500 bg-slate-900 px-4 text-white">Kapat</button>
+
         <div id="loot-bg-rays" class="absolute w-[650px] h-[650px] rounded-full pointer-events-none opacity-35 rays-spinning" style="background: conic-gradient(from 0deg, transparent 0deg 20deg, rgba(250, 204, 21, 0.35) 20deg 40deg, transparent 40deg 60deg, rgba(236, 72, 153, 0.35) 60deg 80deg, transparent 80deg 100deg, rgba(59, 130, 246, 0.35) 100deg 120deg, transparent 120deg 140deg, rgba(168, 85, 247, 0.35) 140deg 160deg, transparent 160deg 180deg, rgba(250, 204, 21, 0.35) 180deg 200deg, transparent 200deg 220deg, rgba(236, 72, 153, 0.35) 220deg 240deg, transparent 240deg 260deg, rgba(59, 130, 246, 0.35) 260deg 280deg, transparent 280deg 300deg, rgba(168, 85, 247, 0.35) 300deg 320deg, transparent 320deg 340deg, rgba(250, 204, 21, 0.35) 340deg 360deg); filter: blur(18px);"></div>
 
         <div id="loot-flash-burst" class="hidden absolute inset-0 bg-white pointer-events-none z-20"></div>
@@ -1502,7 +1505,7 @@
                 <i id="loot-chest-icon" class="fa-solid fa-crown text-6xl text-amber-300 drop-shadow-[0_0_20px_rgba(250,204,21,0.9)]"></i>
                 <div class="absolute -inset-2 rounded-3xl border border-white/20 animate-ping opacity-30"></div>
             </div>
-            <button onclick="skipLootboxAnim()" class="px-4 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-tech font-bold border border-white/10 transition">
+            <button onclick="skipLootboxAnim()" class="min-h-11 px-4 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-tech font-bold border border-white/10 transition">
                 Hızlı Aç <i class="fa-solid fa-forward ml-1"></i>
             </button>
         </div>
@@ -1732,7 +1735,6 @@
         <span class="battle-sfx-dot" aria-hidden="true"></span><span id="battle-sfx-label">SFX AÇIK</span>
     </button>
 
-    <button type="button" id="ls-sound-optin" aria-pressed="false" style="position:fixed;right:12px;bottom:12px;z-index:40;padding:7px 10px;border:1px solid #69737a;background:#19232a;color:#d4c4a4;font:600 11px sans-serif">KONSOL SESİ: KAPALI</button>
 <!-- OYUN DOSYALARI -->
 <script src="mode-runtime.js"></script>
     <script src="data.js"></script>
