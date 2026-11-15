@@ -2,8 +2,8 @@
 
 ## CURRENT RESUME POINTER — 14 November 21:24 UTC
 
-- Latest code: PR #130 `overhaul/expedition-tactics`, commit `fde30e694ea734fffa0ca32895d6b42040096187`. This includes the entire #120–129 stack. Do not resume from game code on this docs-only branch.
-- Current integration run: `43642501737`, running. Check its jobs, repair actual failures, inspect screenshots, then merge #130 when verified (user authorization already given).
+- Latest code: PR #130 `overhaul/expedition-tactics`, commit `926015baabe3fef8d400cb6ebba953f8c5ab9fdf`. This includes the entire #120–129 stack. Do not resume from game code on this docs-only branch.
+- Current integration run: latest head CI pending; discover via commit runs. Check its jobs, repair actual failures, inspect screenshots, then merge #130 when verified (user authorization already given).
 - Local: 233/233 non-Firestore-emulator tests passed. Includes 11 interior-controller and 4 engine/module regressions. Physical iPad and natural episode durations NOT measured.
 - Prior #130 head run `43641270867` found a DOM-adapter failure in the Endless-wave unit test. Replaced innerHTML lookup dependencies with explicitly created nodes; test passes. Later run `43641678326` was superseded by an Exit/Map overlap correction; do not count cancellation as success.
 - Last verified main `52d0929213c4dd3f85162e4192893b8bfdaaad53` (#129 merged after all five jobs in 43640945209 passed). #121–128 closed as included in #129, #120 auto-recognized as merged. Latest merge deployment not checked yet. Previous Vercel production `dpl_2SiNczn4TDog4fQAPYRuY1wr2j7f` READY for that SHA (metadata only). No manual deployment or configuration changes.
@@ -317,3 +317,8 @@ New #130 https://github.com/1rid3mon/towerv1/pull/130 at 0d3e13f2c98d68a6dcf4d2f
 ## Browser follow-up and first merge — 21:24 UTC
 
 PR #129 merged at 52d0929213c4dd3f85162e4192893b8bfdaaad53 after all five jobs passed. #130 remains pending on fde30e694ea734fffa0ca32895d6b42040096187, run 43642501737. The previous #130 WebKit failure was a real-keyboard test overshooting a narrow corridor (y269.45; player radius13; opening starts260). Vertical approach now uses actual analog joystick at quarter speed, retaining collisions and the 6500ms timeout. A newly added visual assertion also incorrectly assumed every early exit control was #quit; it now includes #leave. No production game change in these two test commits. Chromium annex-record and boss-warning screenshots inspected: readable record, visible caps/telegraph and separate Exit/Map. New tactic screenshot still pending. Main merge authorization remains valid; continue until #130 is verified and merged. No physical iPad or natural pacing claim.
+
+
+## Merge continuation — 15 November
+
+User reconfirmed merge. #130 run 43642501737 ended 3/5: WebKit boss counter assertion raced a screenshot against the 1.5s telegraph; Chromium tactic UI was hidden by a wrong menu class selector (.hidden vs actual .menu-hidden). Latest head 926015baabe3fef8d400cb6ebba953f8c5ab9fdf fixes menu visibility and restores tactics after leaving the workshop drawer. Boss screenshot now follows the actual counter and the assertion checks durable counter occurrence, not the 1.8s visual flash. Real click and counter assertion retained. 15 relevant local controller/engine tests pass; new CI pending. Do not claim merged until merge result succeeds.
