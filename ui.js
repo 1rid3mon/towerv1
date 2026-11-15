@@ -1427,6 +1427,11 @@ function updateHUD() {
     setElText('ui-hud-regen', `${formatNumber(getTowerRegen())}/sn`);
     setElText('ui-hud-armor', armorVal);
     setElText('ui-wave-badge', `DALGA ${game.wave}`);
+    if (window.EndlessSectors && !GameModeRuntime.isStoryActive()) {
+        const sector = window.EndlessSectors.describe(game.wave);
+        setElText('ui-wave-badge', `SEKTÖR ${sector.sector} · ${sector.stage}/10`);
+        setElText('ui-sector-detail', `${sector.name} · ${sector.bossWave ? (sector.stage === 10 ? 'Sektör boss’u' : 'Ara boss') : sector.remaining + ' aşama sonra boss'} · ${sector.bossName}`);
+    } else setElText('ui-sector-detail', '');
     const bossWarn = document.getElementById('ui-boss-warning');
     if (bossWarn) bossWarn.classList.toggle('hidden', game.wave % 5 !== 0);
     setElText('ui-wave-progress-text', `${game.waveKills} / ${game.waveTargetKills}`);

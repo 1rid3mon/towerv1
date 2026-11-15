@@ -1,3 +1,4 @@
+let sectorBossWaveKey = '';
 // Client diagnostic ledger: gameplay rewards may legitimately exceed a fixed delta.
 // This is not server authority; modified clients still require backend validation.
 function creditGameplayCrystals(amount) {
@@ -278,7 +279,9 @@ function spawnEnemy(isBoss = false) {
         gold = baseGold * (game.holdWave ? 2.5 : 6.0);
 
         const bossPool = ['tank_boss', 'ranged_boss', 'speed_boss', 'frost_boss', 'leviathan'];
-        const chosenBoss = bossPool[Math.floor(Math.random() * bossPool.length)];
+        const chosenBoss = window.EndlessSectors && !GameModeRuntime.isStoryActive()
+            ? window.EndlessSectors.describe(w).boss
+            : bossPool[Math.floor(Math.random() * bossPool.length)];
         subType = chosenBoss;
 
         if (chosenBoss === 'tank_boss') {
@@ -588,6 +591,13 @@ function updateGame(dt) {
     }
 
     const isBossWave = game.wave % 5 === 0;
+    if (window.EndlessSectors && !GameModeRuntime.isStoryActive()) {
+        const key = `${tacticOwner()}:${game.stats.prestiges}:${game.wave}`;
+        if (sectorBossWaveKey !== key) {
+            sectorBossWaveKey = key;
+            if (isBossWave && !enemies.some(enemy => enemy.type === 'boss')) spawnEnemy(true);
+        }
+    }
     const isSwarmWave = game.wave % 3 === 0;
     const baseCap = 9 + Math.floor(game.wave / 6);
 
@@ -1105,6 +1115,7 @@ function tacticMultiplier(){
  return endlessTactic.choice==='assault'?1.08:endlessTactic.choice==='guard'?.92:1;
 }
 function resetEndlessTactics(){
+ sectorBossWaveKey = '';
  endlessTactic={wave:0,choice:'balanced',locked:false};
  const box=document.getElementById('endless-tactics');if(box){box.hidden=true;box.open=false;}
 }
@@ -1147,6 +1158,8 @@ function completeWave() {
         }
         return;
     }
+    // A surviving boss must be defeated before its wave can advance.
+    if (enemies.some(enemy => enemy.type === 'boss' && enemy.hp > 0)) return;
     const completedWaveNumber = game.wave;
     const wasHoldWave = game.holdWave;
     let waveRewardGold = 0;
