@@ -1,5 +1,9 @@
 # LOST SIGNAL overhaul progress
 
+## Web release bugfix checkpoint — 16 November Türkiye
+
+User deferred Android and requested web bug fixes followed by main merge. #132 head `ee6e9a4c79531223d103eb5ce864025a7487cd93`, run `43761615044` pending. Parent Story exit is outside the iframe and reachable during a child dialog; console sound moved into Settings; lootbox has always-available close, reduced-motion reveal and idempotent reveal. Existing purchase results persist before animation. 87 targeted local tests passed; new browser regressions cover child-modal exit, a stalled chest dismissal and sound control placement. Resume #132 and merge the verified head after checks (already authorized).
+
 ## Daily boss rush checkpoint
 
 Draft #132 at `01e467a42fd320a50e9b946a56b3e7e49f17601d`: Operations has a daily, turn-based boss rush with four rotating patterns, a previewed gear reward, and resumable per-account local state. Duplicate gear pays eight parts. Targeted local suite 12/12. Browser integration and visual verification pending. Premium pass and rewarded ads require Android packaging, store product setup and verified native purchase/ad events. No Android project exists in this checkout.
