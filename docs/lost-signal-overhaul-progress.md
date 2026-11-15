@@ -1,5 +1,9 @@
 # LOST SIGNAL overhaul progress
 
+## Latest verified web release — 16 November Türkiye
+
+PR #132 merged into main at `ef01f4bf8154785d9291c62de5f88c1d031f120f` after all five jobs in run `43763193586` passed. Vercel production `dpl_DQe7qcqwyWifmCJTUMfuhhouM1Kh` READY for this exact SHA. Includes the new Endless sector and operations package plus Story parent-level exit, chest dismissal and sound control relocation. Chromium landscape tactics screenshot inspected; radio/toast can still visually overlap part of the open tactics panel. Physical device and post-merge live gameplay not tested this turn. Android, premium billing and rewarded ads deferred by user. Resume game code from main.
+
 ## Web release bugfix checkpoint — 16 November Türkiye
 
 Latest head `71d28c79787263119dc76eba0a1f7640673810c1`, run `43763193586`. Earlier run `43762910037` exposed an actual tactics HUD overflow in Chromium. Added viewport/resize-aware scroll bounds and rect diagnostics, preserving assertions. 86 targeted engine/story regressions passed after this fix. Browser verification pending. Main merge authorized after checks.
