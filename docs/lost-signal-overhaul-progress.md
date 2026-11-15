@@ -2,6 +2,8 @@
 
 ## Web release bugfix checkpoint — 16 November Türkiye
 
+Latest PR #132 head `2758a358af454535424f77ec33f0be4312fa4a42`, run `43762910037` in progress. Prior run `43761615044` passed Chromium Story exit regression, both exploration jobs and Firestore. Chromium smoke was canceled during campaign checks at the job budget; the HUD/chest step was skipped. Latest commit only moves HUD/chest earlier and raises Chromium job budget 12 to 25 minutes; no assertions relaxed. Check latest run before merging.
+
 User deferred Android and requested web bug fixes followed by main merge. #132 head `ee6e9a4c79531223d103eb5ce864025a7487cd93`, run `43761615044` pending. Parent Story exit is outside the iframe and reachable during a child dialog; console sound moved into Settings; lootbox has always-available close, reduced-motion reveal and idempotent reveal. Existing purchase results persist before animation. 87 targeted local tests passed; new browser regressions cover child-modal exit, a stalled chest dismissal and sound control placement. Resume #132 and merge the verified head after checks (already authorized).
 
 ## Daily boss rush checkpoint
