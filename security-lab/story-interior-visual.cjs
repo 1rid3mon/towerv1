@@ -9,6 +9,7 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   const file=mission===1?'story-interior-mission01.html':mission<=5?'story-interior-missions02-05.html':mission<=10?'story-interior-missions06-10.html':mission<=15?'story-interior-missions11-15.html':mission<=20?'story-interior-missions16-20.html':'story-interior-missions21-27.html';
   const page=await browser.newPage({viewport:{width:1032,height:850},hasTouch:true}),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4223/'+file+'?mission='+mission+'&episode='+mission);await page.waitForFunction(()=>!!window.StoryInteriorArt);await page.waitForTimeout(120);
+  if(await page.locator('#map-open').count()){const quit=await page.locator('#quit, #leave').boundingBox(),map=await page.locator('#map-open').boundingBox();if(quit)assert.ok(quit.y+quit.height<=map.y,'Exit and map controls must not overlap')}
   await page.screenshot({path:path.join(out,'episode-'+Math.ceil(mission/3)+'.png')});assert.deepEqual(errors,[]);await page.close();
  }
  console.log('All nine episode presentation assets loaded and rendered ('+engine+')');

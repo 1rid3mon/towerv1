@@ -82,9 +82,9 @@ function finish(text){if(complete)return;complete=true;combat=false;show('<h2>'+
 function beginBattle(count,health){
  round++;combat=true;linkUsedWave=false;breaches=0;enemies.length=0;
  if(round===1){initialHP=mission===24&&memory==='preserve'?29:24;hp=initialHP}
- for(let i=0;i<count;i++){const startX=782+i%2*39,startY=126+i*47;enemies.push({x:startX,y:startY,startX,startY,hp:health,speed:mission>=22&&mission<=24?27+i*3:14+i*2,breachUntil:0,isFinalBoss:mission===27&&round===3&&i===count-1,telegraphUntil:0})}
+ for(let i=0;i<count;i++){const startX=782+i%2*39,startY=126+i*47;enemies.push({x:startX,y:startY,startX,startY,hp:health,speed:mission>=22&&mission<=24?27+i*3:14+i*2,breachUntil:0,isFinalBoss:mission===27&&round===3&&i===count-1,telegraphUntil:0,parts:[2,2]})}
  timer=0;hud();
- say('SAVUNMA '+round,'Düşmanları ekranda seçip hedefle. Mor bağlantı etkinse sağdaki MOR DESTEK düğmesi kalkan aktarır. '+(mission===27&&round===3?'Çapa Yıkıcı sarı bir darbe hazırladığında uyarı halkası görünür; saldırıyı Piko’nun kalkanıyla kes. ':'')+'Çekirdek dayanıklılığı sıfıra inerse dalgayı tekrar başlatabilirsin.');
+ say('SAVUNMA '+round,'Düşmanları ekranda seçip hedefle. Mor bağlantı etkinse sağdaki MOR DESTEK düğmesi kalkan aktarır. '+(mission===27&&round===3?'Çapa Yıkıcı sarı bir darbe hazırladığında uyarı halkası görünür; saldırıyı Piko’nun kalkanıyla kes. İki yan güç kapsülünü ikişer isabetle kırarak darbenin hasarını azaltabilirsin. ':'')+'Çekirdek dayanıklılığı sıfıra inerse dalgayı tekrar başlatabilirsin.');
 }
 function updateLinkButton(){
  const b=document.getElementById('link');if(!b)return;
@@ -286,6 +286,7 @@ if(combat&&mission>=22&&mission<=24){ctx.strokeStyle='#f5c27d';ctx.lineWidth=3;c
 for(const s of stations){const d=Math.hypot(player.x-s.x,player.y-s.y);if(window.StoryInteriorArt?.station){StoryInteriorArt.station(ctx,s,d<75);continue;}ctx.fillStyle=d<75?'#46a8a3':'#27627a';ctx.fillRect(s.x-23,s.y-20,46,40);ctx.strokeStyle='#a6e8ff';ctx.strokeRect(s.x-23,s.y-20,46,40);ctx.fillStyle='#ecfcff';ctx.font='12px system-ui';ctx.fillText(s.name,s.x,s.y-28);if(d<75){ctx.fillStyle='#eaffb6';ctx.fillText('ETKİLEŞ',s.x,s.y+38)}}
 for(const patrol of patrols(time).filter(p=>p.active)){ctx.fillStyle='rgba(245,88,105,0.17)';ctx.beginPath();ctx.arc(patrol.x,patrol.y,patrol.radius,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fa8b8f';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#f47787';ctx.fillRect(patrol.x-13,patrol.y-13,26,26);ctx.fillStyle='#ffe0d7';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText('DEVRIYE',patrol.x,patrol.y-24)}
 for(const e of enemies.filter(e=>e.hp>0)){
+ if(e.isFinalBoss){ctx.save();ctx.font='bold 11px system-ui';ctx.textAlign='center';for(let i=0;i<2;i++){const x=e.x+(i?55:-55),y=e.y;ctx.strokeStyle=e.parts[i]>0?'#f1ca83':'#607f81';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(e.x,y);ctx.lineTo(x,y);ctx.stroke();ctx.fillStyle=e.parts[i]>0?'#79613b':'#26383b';ctx.fillRect(x-16,y-18,32,36);ctx.strokeRect(x-16,y-18,32,36);ctx.fillStyle='#24333e';ctx.fillRect(x-11,y-13,22,26);ctx.fillStyle=e.parts[i]>0?'#efcc88':'#59726e';ctx.fillRect(x-14,y-15,4,30);ctx.fillRect(x+10,y-15,4,30);ctx.fillStyle='#fff4cd';ctx.fillText(e.parts[i]>0?String(e.parts[i]):'×',x,y+4)}ctx.restore()}
  if(e.isFinalBoss&&window.StoryInteriorArt?.boss){StoryInteriorArt.boss(ctx,e,time)}else if(e.isFinalBoss){
   const r=22+Math.sin(time/210)*1.8;ctx.save();ctx.translate(e.x,e.y);
   ctx.fillStyle='#3a233d';ctx.strokeStyle='#f3b67b';ctx.lineWidth=3;ctx.beginPath();
@@ -299,6 +300,7 @@ if(window.StoryInteriorArt)StoryInteriorArt.pilot(ctx,player,mission,time,true);
 canvas.addEventListener('pointerdown',e=>{
  if(!combat||dialog||complete)return;
  const {scale,ox,oy}=camera(),x=e.clientX/scale+ox,y=e.clientY/scale+oy;
+ const boss=enemies.find(f=>f.isFinalBoss&&f.hp>0);if(boss){const part=[0,1].find(i=>boss.parts[i]>0&&Math.hypot(boss.x+(i?55:-55)-x,boss.y-y)<23);if(part!==undefined){boss.parts[part]--;beam={x,y,until:performance.now()+180};hud();return}}
  const target=enemies.find(f=>f.hp>0&&Math.hypot(f.x-x,f.y-y)<39);if(!target)return;
  target.hp--;beam={x:target.x,y:target.y,until:performance.now()+180};
  if(enemies.every(f=>f.hp<=0))finishWave();else hud();
@@ -319,7 +321,7 @@ function tick(t){
   }}else{
   const boss=enemies.find(e=>e.isFinalBoss&&e.hp>0),now=performance.now();
   if(boss&&timer>3.5&&!boss.telegraphUntil){boss.telegraphUntil=now+1500;hud()}
-  if(boss&&boss.telegraphUntil&&now>=boss.telegraphUntil){boss.telegraphUntil=0;timer=0;hp-=4;hud();if(hp<=0)restart()}
+  if(boss&&boss.telegraphUntil&&now>=boss.telegraphUntil){boss.telegraphUntil=0;timer=0;hp-=2+boss.parts.filter(n=>n>0).length;hud();if(hp<=0)restart()}
   else if(!boss&&timer>3.5&&enemies.some(e=>e.hp>0)){
    timer=0;hp-=mission===27?4:3;hud();if(hp<=0)restart();
   }

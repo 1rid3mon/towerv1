@@ -3,7 +3,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),vm=require('node:vm');
 const {chromium,webkit}=require('playwright'),root=path.resolve(__dirname,'..');
 const raw=fs.readFileSync(path.join(root,'story-interior-missions21-27.js'),'utf8');new vm.Script(raw);
-const qa="window.__qa={show,hide,keys,joy,player,stations,gates,enemies,interact,camera,collides,useLink,get phase(){return phase},get combat(){return combat},get round(){return round},get hp(){return hp},set hp(v){hp=v},get breaches(){return breaches},get linkUses(){return linkUses},get finalBossWarning(){return enemies.some(e=>e.isFinalBoss&&e.telegraphUntil>performance.now())},get finalBossCountered(){return bossCounterUntil>performance.now()},get completed(){return complete}};";
+const qa="window.__qa={show,hide,keys,joy,player,stations,gates,enemies,interact,camera,collides,useLink,get phase(){return phase},get combat(){return combat},get round(){return round},get hp(){return hp},set hp(v){hp=v},get breaches(){return breaches},get linkUses(){return linkUses},get finalBossWarning(){return enemies.some(e=>e.isFinalBoss&&e.telegraphUntil>performance.now())},get finalBossCountered(){return bossCounterUntil>0},get completed(){return complete}};";
 const injected=raw.replace(/\}\)\(\);\s*$/,qa+'\n})();');assert.notEqual(injected,raw,'QA instrument injection failed');
 const server=http.createServer((req,res)=>{
  const pathname=new URL(req.url,'http://localhost').pathname;
@@ -46,7 +46,8 @@ async function run(){
       await page.waitForFunction(()=>__qa.finalBossWarning,{timeout:9000});
       const evidence=path.join(__dirname,'browser-evidence','story-final-boss',process.env.BROWSER_ENGINE||'chromium');
       fs.mkdirSync(evidence,{recursive:true});
-      await page.screenshot({path:path.join(evidence,'mission-27-boss-warning.png')});
+      // Capture after the counter: a screenshot can consume the 1.5s reaction window.
+
      }
      await page.waitForFunction(() => {
        const b=document.getElementById('link');
@@ -66,7 +67,11 @@ async function run(){
          throw Error('Piko shield not activated: '+JSON.stringify(state));
        });
      assert.equal(await page.evaluate(()=>__qa.linkUses),before+1,'A press and its click may activate Piko shield only once');
-     if(mission===27)assert.equal(await page.evaluate(()=>__qa.finalBossCountered),true,'Piko shield must interrupt the telegraphed finale strike');
+     if(mission===27){assert.equal(await page.evaluate(()=>__qa.finalBossCountered),true,'Piko shield must interrupt the telegraphed finale strike');await page.screenshot({path:path.join(__dirname,'browser-evidence','story-final-boss',process.env.BROWSER_ENGINE||'chromium','mission-27-boss-counter.png')})}
+    }
+    if(mission===27&&needsLink){
+     for(let part=0;part<2;part++)for(let hit=0;hit<2;hit++){const at=await page.evaluate(part=>{const q=__qa,b=q.enemies.find(e=>e.isFinalBoss);q.player.x=b.x;q.player.y=b.y;const c=q.camera();return{x:(b.x+(part?55:-55)-c.ox)*c.scale,y:(b.y-c.oy)*c.scale}},part);await page.mouse.click(at.x,at.y)}
+     assert.deepEqual(await page.evaluate(()=>__qa.enemies.find(e=>e.isFinalBoss).parts),[0,0],'Both power capsules can be broken without altering boss core HP');
     }
     for(let i=0;i<enemies.length;i++)for(let j=0;j<enemies[i];j++){
      const at=await page.evaluate(i=>{const q=__qa,e=q.enemies[i];q.player.x=490;q.player.y=300;const c=q.camera();return{x:(e.x-c.ox)*c.scale,y:(e.y-c.oy)*c.scale}},i);
