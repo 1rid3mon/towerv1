@@ -1,5 +1,9 @@
 # LOST SIGNAL overhaul progress
 
+## Latest Android-first Endless checkpoint — 15 November
+
+User authorized sector and boss development first, with portrait phone, landscape and tablet support. Draft PR #132 on overhaul/endless-sectors at 1e1b41c1d3d0e91bbf5e965beb15e08bab702571 includes #131 and the first ten-stage sector mapping, stable region boss identity, HUD progress, surviving-boss wave gate and boss respawn on reload. Seven targeted tests passed. Browser validation, boss reload integration tests, landscape screenshot review and reward/scenery expansion remain. Main is still 21ab47637a68a759eaaedf3331ebfdf156e71865. Resume code from #132. Earlier #131 CI had four successes and cancelled Chromium smoke, not a full pass. Next inspect #132 CI and add direct boss gate/reload browser coverage before merge. Android packaging and ads/pass are planning only.
+
 ## CURRENT RESUME POINTER — 15 November, PR #131 validation
 
 - Latest bugfix package: draft #131 `overhaul/mobile-session-reliability`, head `04b0102a769d4f821957dd5717969a76b5f7341e`, CI `43729045211` pending. Resume this branch for code; main below remains the last verified release.
