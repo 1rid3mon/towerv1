@@ -1,13 +1,14 @@
 # LOST SIGNAL overhaul progress
 
-## CURRENT RESUME POINTER — 14 November 21:24 UTC
+## CURRENT RESUME POINTER — 15 November, PR #130 merged
 
-- Latest code: PR #130 `overhaul/expedition-tactics`, commit `926015baabe3fef8d400cb6ebba953f8c5ab9fdf`. This includes the entire #120–129 stack. Do not resume from game code on this docs-only branch.
-- Current integration run: latest head CI pending; discover via commit runs. Check its jobs, repair actual failures, inspect screenshots, then merge #130 when verified (user authorization already given).
-- Local: 233/233 non-Firestore-emulator tests passed. Includes 11 interior-controller and 4 engine/module regressions. Physical iPad and natural episode durations NOT measured.
-- Prior #130 head run `43641270867` found a DOM-adapter failure in the Endless-wave unit test. Replaced innerHTML lookup dependencies with explicitly created nodes; test passes. Later run `43641678326` was superseded by an Exit/Map overlap correction; do not count cancellation as success.
-- Last verified main `52d0929213c4dd3f85162e4192893b8bfdaaad53` (#129 merged after all five jobs in 43640945209 passed). #121–128 closed as included in #129, #120 auto-recognized as merged. Latest merge deployment not checked yet. Previous Vercel production `dpl_2SiNczn4TDog4fQAPYRuY1wr2j7f` READY for that SHA (metadata only). No manual deployment or configuration changes.
-- Content scope: mission 11 push-cell side room and session notebook record; Piko scan 11–15 / shield14; boss27 capsules; per-wave account-isolated Endless tactics. Not every episode is expanded yet; full localization and physical-device/pacing review remain.
+- Resume game code from main `21ab47637a68a759eaaedf3331ebfdf156e71865`. PR #130 merged successfully; tested head `926015baabe3fef8d400cb6ebba953f8c5ab9fdf`. Includes #120–129. This branch is documentation only.
+- Integrated Actions run `43725745026`: all FIVE jobs successful (Chromium smoke, WebKit smoke, both overhaul browser jobs, Firestore emulator). Do not rerun historical green CI. Earlier failed/superseded runs are not counted as passes.
+- Chromium phone/tablet Endless tactics and boss-counter screenshots reviewed. WebKit phone tactics and optional annex record screenshots reviewed: controls/text visible in these frames. Automated browser validation is not physical iPad testing.
+- Vercel automatic production deployment `dpl_EGZSzGhZBktQa6EHYsxwoXLUv18L` is READY for exact main SHA `21ab47637a68a759eaaedf3331ebfdf156e71865`, alias https://towerv1-murex.vercel.app/. This is deployment metadata, not a post-merge live gameplay test. No manual deployment or settings change.
+- Local prior suite: 233/233 non-emulator tests passed; latest fixes: 15 relevant actual-controller/engine tests passed. Current CI independently passed Firestore emulator.
+- Shipped scope: mission 11 push-cell maintenance annex and session notebook record; Piko scan 11–15, door/reset in 11, one shield per wave in 14; final boss27 breakable capsules; per-wave account-isolated Endless tactics. Includes art/navigation stack and mobile input/movement fixes.
+- Still incomplete: distinct expanded gameplay across every episode, full localization, broader art/HUD polish, physical iPad comfort/performance review, and measured natural episode duration. Nine episodes target 8–12 minutes EACH (72–108 minutes total target), not measured playtime. Do not report the whole overhaul complete.
 
 Older entries below are historical and their merge restrictions/statuses are superseded by this pointer and subsequent checkpoints.
 
@@ -322,3 +323,8 @@ PR #129 merged at 52d0929213c4dd3f85162e4192893b8bfdaaad53 after all five jobs p
 ## Merge continuation — 15 November
 
 User reconfirmed merge. #130 run 43642501737 ended 3/5: WebKit boss counter assertion raced a screenshot against the 1.5s telegraph; Chromium tactic UI was hidden by a wrong menu class selector (.hidden vs actual .menu-hidden). Latest head 926015baabe3fef8d400cb6ebba953f8c5ab9fdf fixes menu visibility and restores tactics after leaving the workshop drawer. Boss screenshot now follows the actual counter and the assertion checks durable counter occurrence, not the 1.8s visual flash. Real click and counter assertion retained. 15 relevant local controller/engine tests pass; new CI pending. Do not claim merged until merge result succeeds.
+
+
+## Verified release checkpoint — 15 November
+
+PR #130 merged into main as 21ab47637a68a759eaaedf3331ebfdf156e71865 after run 43725745026 passed all five jobs. Fixed Endless visibility to use the actual menu-hidden class and only suppress tactics while the workshop drawer is open. Moved boss-counter screenshot after the successful real click and checked durable counter occurrence; gameplay telegraph and test thresholds unchanged. Production Git deployment dpl_EGZSzGhZBktQa6EHYsxwoXLUv18L READY for this exact merge SHA. User can test https://towerv1-murex.vercel.app/. Remaining scope is explicitly listed in the current pointer; physical iPad and pacing are not verified.
