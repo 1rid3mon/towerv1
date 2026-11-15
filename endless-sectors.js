@@ -2,11 +2,11 @@
 (function (root) {
     'use strict';
     const regions = [
-        ['Dış İstasyon', 'tank_boss', 'Zırhlı Muhafız'],
-        ['Kırık Röle', 'ranged_boss', 'Topçu Gözcü'],
-        ['İyon Geçidi', 'speed_boss', 'İyon Avcısı'],
-        ['Donmuş Yörünge', 'frost_boss', 'Buz Çekirdeği'],
-        ['Sessiz Uçurum', 'leviathan', 'Leviathan']
+        ['Dış İstasyon', 'tank_boss', 'Zırhlı Titan Behemoth'],
+        ['Kırık Röle', 'ranged_boss', 'Hiperiyon Topçusu'],
+        ['İyon Geçidi', 'speed_boss', 'Kızıl Fırtına Vektörü'],
+        ['Donmuş Yörünge', 'frost_boss', 'Kutup Hükümdarı Kryos'],
+        ['Sessiz Uçurum', 'leviathan', 'Kozmik Leviathan']
     ];
     function describe(value) {
         const wave = Math.max(1, Math.floor(Number(value) || 1));

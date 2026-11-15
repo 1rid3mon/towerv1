@@ -252,6 +252,16 @@ function handleCanvasPointerDown(e) {
 }
 canvas.addEventListener('pointerdown', handleCanvasPointerDown, { passive: false });
 
+function ensureSectorBoss() {
+    if (!window.EndlessSectors || GameModeRuntime.isStoryActive()) return;
+    const key = JSON.stringify([tacticOwner(), game.stats.prestiges, game.wave]);
+    if (sectorBossWaveKey === key) return;
+    sectorBossWaveKey = key;
+    if (window.EndlessSectors.describe(game.wave).bossWave && !enemies.some(enemy => enemy.type === 'boss')) {
+        spawnEnemy(true);
+    }
+}
+
 function spawnEnemy(isBoss = false) {
     const angle = Math.random() * Math.PI * 2;
     const spawnDist = Math.max(canvas.width, canvas.height) * 0.55 + 40;
@@ -591,13 +601,7 @@ function updateGame(dt) {
     }
 
     const isBossWave = game.wave % 5 === 0;
-    if (window.EndlessSectors && !GameModeRuntime.isStoryActive()) {
-        const key = `${tacticOwner()}:${game.stats.prestiges}:${game.wave}`;
-        if (sectorBossWaveKey !== key) {
-            sectorBossWaveKey = key;
-            if (isBossWave && !enemies.some(enemy => enemy.type === 'boss')) spawnEnemy(true);
-        }
-    }
+    ensureSectorBoss();
     const isSwarmWave = game.wave % 3 === 0;
     const baseCap = 9 + Math.floor(game.wave / 6);
 
@@ -1158,6 +1162,7 @@ function completeWave() {
         }
         return;
     }
+    ensureSectorBoss();
     // A surviving boss must be defeated before its wave can advance.
     if (enemies.some(enemy => enemy.type === 'boss' && enemy.hp > 0)) return;
     const completedWaveNumber = game.wave;
@@ -1205,7 +1210,8 @@ function completeWave() {
     }
     waveFrostSpawns = 0;
     game.waveKills = 0; game.waveTargetKills = Math.min(45, 14 + Math.floor(game.wave * 0.25)); tower.hp = Math.min(tower.maxHp, tower.hp + tower.maxHp * 0.15);
-    if (!game.holdWave && game.wave % 5 === 0 && !enemies.some(e => e.type === 'boss')) spawnEnemy(true);
+    if (window.EndlessSectors) ensureSectorBoss();
+    else if (!game.holdWave && game.wave % 5 === 0 && !enemies.some(e => e.type === 'boss')) spawnEnemy(true);
     if (!wasHoldWave) offerEndlessTactics();
     updatePrestigeUI(); refreshUpgradeButtonsState(); saveGame(true);
 }
