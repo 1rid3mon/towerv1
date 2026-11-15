@@ -2466,6 +2466,9 @@ function renderGame() {
 
     if (window.LostSignalLivingSpace) window.LostSignalLivingSpace.draw(ctx, canvas.width, canvas.height, theme, game.wave, nowThemeTime);
     if (window.LostSignalThemeAtmosphere) window.LostSignalThemeAtmosphere.draw(ctx, canvas.width, canvas.height, theme, game.wave, nowThemeTime);
+    if (typeof GameModeRuntime !== 'undefined' && !GameModeRuntime.isStoryActive()) {
+        window.EndlessSectorScenery?.draw(ctx, canvas.width, canvas.height, game.wave);
+    }
     // V2.4 visual polish: a restrained tactical frame and vignette unify all themes.
     // Pure rendering pass: no game state, timing, economy, or combat values are modified.
     {
