@@ -1,5 +1,9 @@
 # LOST SIGNAL overhaul progress
 
+## Daily boss rush checkpoint
+
+Draft #132 at `01e467a42fd320a50e9b946a56b3e7e49f17601d`: Operations has a daily, turn-based boss rush with four rotating patterns, a previewed gear reward, and resumable per-account local state. Duplicate gear pays eight parts. Targeted local suite 12/12. Browser integration and visual verification pending. Premium pass and rewarded ads require Android packaging, store product setup and verified native purchase/ad events. No Android project exists in this checkout.
+
 ## Endless operations checkpoint
 
 Latest #132 head `0806a57d084d37a2055df2948c5cfa695afbd8bb` adds distinct static edge silhouettes and palettes for five Endless regions. Targeted suite 11/11, including drawing bounds in portrait, landscape and tablet sizes. Fresh browser CI and visual review pending. Boss rush, premium and rewarded ads remain open.
