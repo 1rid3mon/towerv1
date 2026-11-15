@@ -313,17 +313,17 @@ function getTowerDamage() {
     const lvl = Math.max(1, game.upgrades.damage);
     const base = (8 + (lvl - 1) * 2.2) * Math.pow(1.045, lvl - 1);
     const milestone = getLevelMilestoneMult(lvl);
-    return Math.round(base * milestone * getPermDamageMult());
+    return Math.round(base * milestone * getPermDamageMult() * (1 + (window.EndlessOperations?.bonus('damage') || 0)));
 }
 
 function getTowerFireRate() {
     const lvl = Math.min(50, Math.max(1, game.upgrades.attackSpeed));
-    return 0.90 + (lvl - 1) * 0.055 + getItemStatBonus('speed');
+    return (0.90 + (lvl - 1) * 0.055 + getItemStatBonus('speed')) * (1 + (window.EndlessOperations?.bonus('speed') || 0));
 }
 
 function getTowerRange() {
     const lvl = Math.min(40, Math.max(1, game.upgrades.range));
-    return 130 + (lvl - 1) * 4.0 + getItemStatBonus('range');
+    return (130 + (lvl - 1) * 4.0 + getItemStatBonus('range')) * (1 + (window.EndlessOperations?.bonus('range') || 0));
 }
 
 function getTowerCritChance() {
@@ -344,7 +344,7 @@ function getTowerMaxHp() {
     const lvl = Math.max(1, game.upgrades.maxHp);
     const base = (100 + (lvl - 1) * 20) * Math.pow(1.042, lvl - 1);
     const milestone = getLevelMilestoneMult(lvl);
-    return Math.round(base * milestone * (1 + getItemStatBonus('hp')));
+    return Math.round(base * milestone * (1 + getItemStatBonus('hp')) * (1 + (window.EndlessOperations?.bonus('hp') || 0)));
 }
 
 function getTowerRegen() {

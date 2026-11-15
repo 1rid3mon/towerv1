@@ -1212,7 +1212,10 @@ function completeWave() {
     game.waveKills = 0; game.waveTargetKills = Math.min(45, 14 + Math.floor(game.wave * 0.25)); tower.hp = Math.min(tower.maxHp, tower.hp + tower.maxHp * 0.15);
     if (window.EndlessSectors) ensureSectorBoss();
     else if (!game.holdWave && game.wave % 5 === 0 && !enemies.some(e => e.type === 'boss')) spawnEnemy(true);
-    if (!wasHoldWave) offerEndlessTactics();
+    if (!wasHoldWave) {
+        window.EndlessOperations?.record(completedWaveNumber);
+        offerEndlessTactics();
+    }
     updatePrestigeUI(); refreshUpgradeButtonsState(); saveGame(true);
 }
 
