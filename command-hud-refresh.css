@@ -38,5 +38,5 @@ body:has(#tab-casino:not(.hidden)) #toast-msg{bottom:auto!important;top:84px;max
 .endless-tactics{position:fixed;left:50%;transform:translateX(-50%);top:112px;z-index:45;max-width:min(440px,88vw);padding:8px 12px;color:#e6eef2;background:#0b1c29f2;border:1px solid #8aafbc;border-radius:10px;font:12px system-ui}
 .endless-tactics summary{cursor:pointer;min-height:28px;display:flex;align-items:center;justify-content:center}
 .endless-tactics p{margin:8px 0}.endless-tactics button{display:block;min-height:44px;width:100%;margin:5px 0;padding:8px;background:#203d4b;color:#f3e4c5;border:1px solid #809ba7;border-radius:6px}
-body[data-game-mode="story"] .endless-tactics,body:has(#mode-main-menu:not(.hidden)) .endless-tactics,body:has(#tab-casino:not(.hidden)) .endless-tactics{display:none}
+body[data-game-mode="story"] .endless-tactics,body:has(#mode-main-menu:not(.menu-hidden)) .endless-tactics,body:has(#tab-casino:not(.hidden)) .endless-tactics{display:none}
 @media(max-height:500px){.endless-tactics{top:70px;max-height:65dvh;overflow:auto}}
