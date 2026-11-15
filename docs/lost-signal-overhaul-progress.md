@@ -1,6 +1,9 @@
 # LOST SIGNAL overhaul progress
 
-## CURRENT RESUME POINTER — 15 November, PR #130 merged
+## CURRENT RESUME POINTER — 15 November, PR #131 validation
+
+- Latest bugfix package: draft #131 `overhaul/mobile-session-reliability`, head `04b0102a769d4f821957dd5717969a76b5f7341e`, CI `43729045211` pending. Resume this branch for code; main below remains the last verified release.
+- Fixes tactic/HP overlap, Piko visibility after closing workshop, pulse pause on drawer close, unfinished training reset on account switch, stale tactics after defeat/prestige. Targeted tests 13/13 passed. Browser assertions include portrait, landscape and tablet. Not browser-verified yet.
 
 - Resume game code from main `21ab47637a68a759eaaedf3331ebfdf156e71865`. PR #130 merged successfully; tested head `926015baabe3fef8d400cb6ebba953f8c5ab9fdf`. Includes #120–129. This branch is documentation only.
 - Integrated Actions run `43725745026`: all FIVE jobs successful (Chromium smoke, WebKit smoke, both overhaul browser jobs, Firestore emulator). Do not rerun historical green CI. Earlier failed/superseded runs are not counted as passes.
