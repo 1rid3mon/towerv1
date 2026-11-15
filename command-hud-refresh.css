@@ -47,7 +47,7 @@ body[data-game-mode="story"] #operations-open{display:none}
 #endless-operations{box-sizing:border-box;width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;color:#dfedf1;background:#10212d;border:1px solid #5a949e;border-radius:14px;padding:16px;font:14px/1.45 system-ui}
 #endless-operations::backdrop{background:#050d17d9}
 #endless-operations form{text-align:right}
-#endless-operations nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:8px 0}
+#endless-operations nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(85px,1fr));gap:4px;margin:8px 0}
 #endless-operations button{min-height:44px;padding:6px;margin:2px 3px 2px 0;border:1px solid #618891;border-radius:6px;background:#204150;color:#f2fbfc;touch-action:manipulation}
 #endless-operations button:disabled{opacity:.55}
 #endless-operations section p{margin:8px 0}

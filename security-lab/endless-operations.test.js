@@ -34,3 +34,16 @@ test('offline gains cap at twelve hours, and story cannot earn rewards or gain e
     resumed.ops.record(20);
     assert.equal(storage.get(key),saved);
 });
+
+test('daily boss patterns rotate and finish only once', () => {
+    const sandbox = {};
+    vm.runInNewContext(fs.readFileSync(require.resolve('../endless-boss-rush.js'),'utf8'),sandbox);
+    const rush = sandbox.EndlessBossRush;
+    assert.notEqual(rush.challenge(0).item,rush.challenge(1).item);
+    const start = {day:0,step:0,hp:2,result:''};
+    const win = rush.challenge(0).pattern.reduce((fight,action)=>rush.turn(fight,action),start);
+    assert.equal(win.result,'won');
+    assert.equal(rush.turn(win,'strike'),win);
+    const miss = rush.turn(start,'strike');
+    assert.equal(rush.turn(miss,'guard').result,'lost');
+});

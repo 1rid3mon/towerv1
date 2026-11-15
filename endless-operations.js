@@ -145,6 +145,8 @@
                 const cost=8+level*6;
                 button(level>=5?'Son seviye':'Geliştir · '+cost,()=>{state.parts-=cost;state.owned[item.id]++;},level>=5||state.parts<cost);
             }
+        } else if (tab==='boss') {
+            renderBoss(state, day, line, button, content);
         } else if (tab==='tasks') {
             for(const [period,stat,target,xp,label] of tasks) {
                 const bucket=state[period], count=Math.min(target,bucket[stat]||0), claim='claimed_'+stat;
@@ -163,6 +165,33 @@
             for(let level=1;level<=30;level++) line('Kademe '+level+' · 6 parça'+(level<=state.claimed?' · alındı':''));
         }
     }
+    function renderBoss(state, day, line, button, content) {
+        const rush = window.EndlessBossRush;
+        const boss = rush.challenge(day);
+        const fight = state.rush?.day === day ? state.rush : null;
+        line(boss.name + ' · Günlük boss akını');
+        line('Zafer ödülü · ' + gear[boss.item].name + ' veya 8 parça');
+        if (!fight) {
+            button('Akını başlat', () => { state.rush = {day,step:0,hp:2,result:''}; });
+            return;
+        }
+        if (fight.result) {
+            line(fight.result === 'won' ? 'Zafer · Ödül alındı.' : 'Yenildin · Sonraki akın yarın.');
+            return;
+        }
+        line('Gövde bütünlüğü ' + fight.hp + '/2 · Hamle ' + (fight.step+1) + '/' + boss.pattern.length);
+        if (fight.feedback) line(fight.feedback);
+        const cue = document.createElement('p');
+        cue.setAttribute('role','status');
+        cue.textContent = boss.pattern[fight.step] === 'guard' ? 'Boss saldırıya hazırlanıyor.' : 'Boss’un zırhı açık.';
+        content.append(cue);
+        for (const [id,label] of [['strike','Ateş et'],['guard','Kalkan kur']]) {
+            button(label, () => {
+                state.rush = rush.turn(fight,id);
+                if (state.rush.result === 'won') grant(state,gear[boss.item]);
+            });
+        }
+    }
     function mount() {
         const anchor=document.getElementById('hud-wave-card');
         if (!anchor) return;
@@ -170,7 +199,7 @@
         anchor.append(open);
         panel=document.createElement('dialog');panel.id='endless-operations';panel.setAttribute('aria-label','Endless operasyonları');
         panel.innerHTML='<form method="dialog"><button aria-label="Kapat">Kapat</button></form><nav aria-label="Operasyon menüsü"></nav><section></section>';
-        for(const [id,label] of [['supply','İkmal'],['gear','Ekipman'],['tasks','Görevler'],['season','Sezon']]) {
+        for(const [id,label] of [['supply','İkmal'],['gear','Ekipman'],['boss','Boss Akını'],['tasks','Görevler'],['season','Sezon']]) {
             const b=document.createElement('button');b.type='button';b.textContent=label;
             b.onclick=()=>{tab=id;render();};panel.querySelector('nav').append(b);
         }
