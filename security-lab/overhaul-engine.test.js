@@ -58,3 +58,22 @@ test('temporary tactics expire by wave and owner and never affect Story',()=>{
  run("endlessTactic.owner='another-player'");assert.equal(run('tacticMultiplier()'),1);
  run("endlessTactic.owner=tacticOwner();startStoryMission(1)");assert.equal(run('tacticMultiplier()'),1);
 });
+test('defeat recovery clears the previous wave tactic and stale panel',()=>{
+ const {run}=setup();run("GameModeRuntime.leaveStory();game.wave=30;offerEndlessTactics();endlessTactic.choice='assault';endlessTactic.locked=true;recoverFromDefeat()");
+ assert.equal(run('tacticMultiplier()'),1);assert.equal(run("document.getElementById('endless-tactics').hidden"),true);
+ run('game.wave=30');assert.equal(run('tacticMultiplier()'),1,'returning to the same wave cannot revive a stale tactic');
+ run('offerEndlessTactics()');assert.equal(run("document.getElementById('endless-tactics').hidden"),false);assert.equal(run('endlessTactic.locked'),false);
+});
+
+test('a loaded sector finale spawns its boss once and cannot advance until the boss dies', () => {
+ const {run,sandbox}=setup();
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'../endless-sectors.js'),'utf8'),sandbox);
+ run('GameModeRuntime.leaveStory();game.wave=10;game.waveKills=game.waveTargetKills;completeWave()');
+ assert.equal(run('game.wave'),10);
+ assert.equal(run('enemies.filter(e=>e.type==="boss").length'),1);
+ assert.equal(run('enemies.find(e=>e.type==="boss").subType'),'tank_boss');
+ run('completeWave()');
+ assert.equal(run('enemies.filter(e=>e.type==="boss").length'),1);
+ run('killEnemy(enemies.find(e=>e.type==="boss"))');
+ assert.equal(run('game.wave'),11);
+});

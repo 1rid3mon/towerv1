@@ -148,7 +148,7 @@ jobs:
 
   browser-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -160,6 +160,9 @@ jobs:
       - name: Install Chromium
         working-directory: security-lab
         run: npx playwright install --with-deps chromium
+      - name: Verify skill workshop, saved records and Endless HUD
+        working-directory: security-lab
+        run: node signal-training-browser.cjs
       - name: Verify V12 combat in desktop and mobile Chromium
         working-directory: security-lab
         run: node v12-browser.cjs
@@ -206,9 +209,6 @@ jobs:
       - name: Capture all nine interior episode art views
         working-directory: security-lab
         run: node story-interior-visual.cjs
-      - name: Verify skill workshop, saved records and Endless HUD
-        working-directory: security-lab
-        run: node signal-training-browser.cjs
       - name: Preserve guest-only browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -236,6 +236,9 @@ jobs:
       - name: Install WebKit
         working-directory: security-lab
         run: npx playwright install --with-deps webkit
+      - name: Verify skill workshop, saved records and Endless HUD
+        working-directory: security-lab
+        run: node signal-training-browser.cjs
       - name: Verify V12 combat in WebKit tablet and mobile
         working-directory: security-lab
         run: node v12-browser.cjs
@@ -273,9 +276,6 @@ jobs:
       - name: Capture all nine interior episode art views
         working-directory: security-lab
         run: node story-interior-visual.cjs
-      - name: Verify skill workshop, saved records and Endless HUD
-        working-directory: security-lab
-        run: node signal-training-browser.cjs
       - name: Preserve WebKit evidence
         if: always()
         uses: actions/upload-artifact@v4

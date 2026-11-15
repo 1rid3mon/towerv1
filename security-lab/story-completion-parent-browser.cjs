@@ -47,7 +47,12 @@ try{
    await replay.waitFor({state:'visible',timeout:4500});
    const child=await (await replay.elementHandle()).contentFrame();
    await child.waitForFunction(()=>document.readyState==='complete',{timeout:4500});
-   await child.evaluate(()=>parent.postMessage({type:'lost-signal-interior-close'},location.origin));
+   if (mission===2) {
+     await child.evaluate(()=>document.getElementById('modal').classList.add('open'));
+     await page.locator('#story-interior-exit').tap();
+   } else {
+     await child.evaluate(()=>parent.postMessage({type:'lost-signal-interior-close'},location.origin));
+   }
    await replay.waitFor({state:'detached',timeout:4500});
    console.log('Completion/return/reopen pass:',mission);
  }

@@ -369,7 +369,10 @@ function toggleUpgradeDrawer() {
         // Combat deliberately skips hidden upgrade DOM work. Opening while paused
         // must refresh affordability from the gold earned since the previous visit.
         refreshUpgradeButtonsState();
-    } else drawer.classList.add('-translate-x-full');
+    } else {
+        window.SignalTraining?.pause();
+        drawer.classList.add('-translate-x-full');
+    }
     syncHudPositionsWithDrawer();
 }
 
@@ -681,6 +684,7 @@ function openPrestigeConfirm() {
         if (window._syncShadow) window._syncShadow(); // büyük ruh kazancı anti-cheat tarafından geri alınmasın
         game.stats.prestiges++;
         game.wave = getStartWaveLevel();
+        if (typeof resetEndlessTactics === 'function') resetEndlessTactics();
         game.highestWave = Math.max(game.highestWave, game.wave);
         game.waveKills = 0;
         game.gold = game.wave === 1 ? 25 : Math.round(25 + getWaveBaseGold(game.wave) * 6 * getGoldMultiplier());
@@ -978,9 +982,11 @@ function startLootboxModalAnimation(boxType, count, entries, refundCrystals) {
         }
     }
 
-    lootboxAnimTimer = setTimeout(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
         revealLootboxCards();
-    }, 950);
+    } else {
+        lootboxAnimTimer = setTimeout(revealLootboxCards, 950);
+    }
 }
 
 function skipLootboxAnim() {
@@ -989,7 +995,9 @@ function skipLootboxAnim() {
 }
 
 function revealLootboxCards() {
-    if (!currentLootSession) return;
+    if (!currentLootSession || currentLootSession.revealed) return;
+    currentLootSession.revealed = true;
+    clearTimeout(lootboxAnimTimer);
     const { boxType, count, entries, refundCrystals } = currentLootSession;
 
     const stageChest = document.getElementById('loot-stage-chest');
@@ -1423,6 +1431,11 @@ function updateHUD() {
     setElText('ui-hud-regen', `${formatNumber(getTowerRegen())}/sn`);
     setElText('ui-hud-armor', armorVal);
     setElText('ui-wave-badge', `DALGA ${game.wave}`);
+    if (window.EndlessSectors && !GameModeRuntime.isStoryActive()) {
+        const sector = window.EndlessSectors.describe(game.wave);
+        setElText('ui-wave-badge', `SEKTÖR ${sector.sector} · ${sector.stage}/10`);
+        setElText('ui-sector-detail', `${sector.name} · ${sector.bossWave ? (sector.stage === 10 ? 'Sektör boss’u' : 'Ara boss') : sector.remaining + ' aşama sonra boss'} · ${sector.bossName}`);
+    } else setElText('ui-sector-detail', '');
     const bossWarn = document.getElementById('ui-boss-warning');
     if (bossWarn) bossWarn.classList.toggle('hidden', game.wave % 5 !== 0);
     setElText('ui-wave-progress-text', `${game.waveKills} / ${game.waveTargetKills}`);
