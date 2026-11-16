@@ -28,6 +28,40 @@
         return 'towerEndlessOperationsV1:' + (typeof currentUser !== 'undefined' && currentUser?.uid ? currentUser.uid : 'guest');
     }
     let cachedKey = '', cached = null, panel, tab = 'supply';
+    function counter(value, fallback = 0) {
+        return Number.isSafeInteger(value) && value >= 0 ? value : fallback;
+    }
+
+    function normalizeProgress(value) {
+        const progress = {};
+        if (Number.isSafeInteger(value?.period)) progress.period = value.period;
+        for (const stat of ['waves', 'bosses', 'sectors']) {
+            progress[stat] = counter(value?.[stat]);
+            if (value?.['claimed_' + stat] === true) progress['claimed_' + stat] = true;
+        }
+        return progress;
+    }
+
+    function normalizeSave(saved, defaults) {
+        if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return defaults;
+        const state = { ...defaults, ...saved };
+        for (const key of ['day', 'stamps', 'parts', 'cleared', 'xp', 'claimed', 'season', 'activeAt', 'offline']) {
+            state[key] = counter(saved[key], defaults[key]);
+        }
+        state.claimed = Math.min(state.claimed, 30);
+        state.offline = Math.min(state.offline, 360);
+        for (const key of ['daily', 'weekly', 'career']) state[key] = normalizeProgress(saved[key]);
+        state.owned = {};
+        state.equipped = {};
+        for (const item of gear) {
+            const level = counter(saved.owned?.[item.id]);
+            if (!level) continue;
+            state.owned[item.id] = Math.min(level, 5);
+            if (saved.equipped?.[item.group] === item.id) state.equipped[item.group] = item.id;
+        }
+        return state;
+    }
+
     function load() {
         const key = ownerKey();
         if (cachedKey === key && cached) return cached;
@@ -38,9 +72,9 @@
             daily:{}, weekly:{}, career:{}, xp:0, claimed:0, season:Math.floor(now/DAY/30),
             activeAt:now, offline:0 };
         cachedKey = key;
-        cached = { ...defaults, ...saved };
-        if (saved && typeof saved.activeAt === 'number') {
-            const hours = Math.floor(Math.min(12 * 3600000, Math.max(0, now - saved.activeAt)) / 3600000);
+        cached = normalizeSave(saved, defaults);
+        if (cached.activeAt < now) {
+            const hours = Math.floor(Math.min(12 * 3600000, Math.max(0, now - cached.activeAt)) / 3600000);
             cached.offline = Math.min(360, cached.offline + hours * Math.min(30, Math.max(0, cached.cleared)));
         }
         cached.activeAt = now;
@@ -171,10 +205,14 @@
                 already ? 'Bir gün kaçırırsan ilerlemen sıfırlanmaz.' : 'Atölyede ekipmanlarını geliştirmek için kullan.', 'supply');
             if(next===6 && !already) {
                 for (const item of gear.filter(item=>item.rank===0)) button(item.name+' seç',()=>{
-                    grant(state,item);state.stamps++;state.day=day;
+                    const claimDay = periods(state);
+                    if (state.day >= claimDay) return;
+                    grant(state,item);state.stamps++;state.day=claimDay;
                 });
             } else button(already?'Bugünkü ikmal alındı':'Ödülü al',()=>{
-                state.parts+=supply[next];state.stamps++;state.day=day;
+                const claimDay = periods(state);
+                if (state.day >= claimDay) return;
+                state.parts+=supply[next];state.stamps++;state.day=claimDay;
             },already).classList.add('operations-primary');
             card('Çevrimdışı ikmal', state.offline ? state.offline+' ekipman parçası depoda hazır.' : 'Sektör tamamla; uzaktayken istasyonun parça biriktirsin.', 'offline');
             line('En fazla 12 saat birikir.');
@@ -188,7 +226,10 @@
                 target.querySelector('.operations-card-art').innerHTML = icon(['weapon','reactor','armor','radar'][item.group]);
                 target.dataset.owned = String(!!level);
                 if (!level) continue;
-                button(equipped?'Takılı':'Tak',()=>{state.equipped[item.group]=item.id;},equipped);
+                button(equipped?'Çıkar':'Tak',()=>{
+                    if (state.equipped[item.group] === item.id) delete state.equipped[item.group];
+                    else state.equipped[item.group] = item.id;
+                });
                 const cost=8+level*6;
                 button(level>=5?'Son seviye':'Geliştir · '+cost,()=>{state.parts-=cost;state.owned[item.id]++;},level>=5||state.parts<cost);
             }
