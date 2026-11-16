@@ -1,5 +1,9 @@
 # LOST SIGNAL overhaul progress
 
+## Marked Endless UI redesign — 16 November
+
+Draft #133 head `59e76c66b4bcbf62e945a2ee7395b89d22a37e98` covers user-marked tactics, wave clear banner, sector card and Operations. Collapsed tactics is compact, wave clear reward uses compact number formatting and a bottom toast, HP no longer stretches to match the sector card and supply shows all seven days in a responsive grid. Operations cards and five scenery silhouettes remain in the PR. 7 targeted local tests pass. Browser assertions for Operations layout and new screenshots pending. Main remains on the #132 release until validated.
+
 ## Latest verified web release — 16 November Türkiye
 
 PR #132 merged into main at `ef01f4bf8154785d9291c62de5f88c1d031f120f` after all five jobs in run `43763193586` passed. Vercel production `dpl_DQe7qcqwyWifmCJTUMfuhhouM1Kh` READY for this exact SHA. Includes the new Endless sector and operations package plus Story parent-level exit, chest dismissal and sound control relocation. Chromium landscape tactics screenshot inspected; radio/toast can still visually overlap part of the open tactics panel. Physical device and post-merge live gameplay not tested this turn. Android, premium billing and rewarded ads deferred by user. Resume game code from main.
