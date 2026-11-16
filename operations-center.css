@@ -196,3 +196,7 @@ body:has(#defeat-overlay:not(.hidden)) :is(#hud-top-bar, #hud-quick-stats, #hud-
         display: none;
     }
 }
+
+/* Mobile meta specification minimum reading size. */
+#endless-operations :is(.operations-eyebrow, .operations-reward-state, .operations-track small, .operations-track strong, nav button, #operations-wallet) { font-size: 12px; }
+#endless-operations .operations-card p, #endless-operations .operations-supply-hero p { font-size: 14px; }
