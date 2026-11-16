@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict');
 const {chromium,webkit}=require('playwright'),root=path.resolve(__dirname,'..'),engine=process.env.BROWSER_ENGINE==='webkit'?'webkit':'chromium';
-const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname,file=path.resolve(root,'.'+(pathname==='/'?'/index.html':pathname));if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){res.writeHead(404).end();return}res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html');fs.createReadStream(file).pipe(res)});
+const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname,file=path.resolve(root,'.'+(pathname==='/'?'/index.html':pathname));if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){res.writeHead(404).end();return}res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.svg')?'image/svg+xml':file.endsWith('.png')?'image/png':'text/html');fs.createReadStream(file).pipe(res)});
 (async()=>{await new Promise(r=>server.listen(4224,'127.0.0.1',r));const browser=await({chromium,webkit})[engine].launch({headless:true});try{
  const out=path.join(__dirname,'browser-evidence','signal-training',engine);fs.mkdirSync(out,{recursive:true});
  for(const [width,height] of [[390,844],[844,390],[1032,850]]){
@@ -11,13 +11,31 @@ const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http:
   await page.evaluate(()=>{startLootboxModalAnimation('item',1,[],0);clearTimeout(lootboxAnimTimer)});
   await page.locator('#loot-close-always').tap();
   assert.equal(await page.locator('#lootbox-anim-modal').isVisible(),false,'A stalled reveal can be dismissed');
+  await page.evaluate(()=>EndlessOperations.record(10));
   await page.locator('#operations-open').tap();
   const operations=page.locator('#endless-operations');
   assert.equal(await operations.locator('.operations-track li').count(),7);
   assert.ok(await operations.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'Operations fits the viewport');
+  await operations.locator('.operations-supply-hero img').evaluate(img=>img.decode());
+  assert.ok(await operations.locator('.operations-supply-hero img').evaluate(img=>img.naturalWidth>0),'Piko illustration loads');
+  const closeRect=await operations.getByRole('button',{name:'Kapat',exact:true}).boundingBox();
+  assert.ok(closeRect.x>=0&&closeRect.x+closeRect.width<=width&&closeRect.y>=0&&closeRect.y+closeRect.height<=height,'Close stays inside viewport');
   await operations.screenshot({path:path.join(out,'operations-supply-'+width+'.png')});
+  await operations.getByRole('button',{name:'Ödülü al',exact:true}).tap();
+  assert.equal(await operations.locator('#operations-wallet').innerText(),'6 PARÇA');
+  assert.equal(await operations.getByRole('button',{name:'Bugünkü ikmal alındı',exact:true}).isDisabled(),true);
+  assert.equal(await operations.locator('.operations-track [data-state="claimed"]').count(),1);
+
   await operations.getByRole('button',{name:'Ekipman',exact:true}).tap();
   assert.equal(await operations.locator('[data-accent^="gear"]').count(),24);
+  await operations.getByRole('button',{name:'Tak',exact:true}).tap();
+  assert.equal(await operations.getByRole('button',{name:'Takılı',exact:true}).isDisabled(),true);
+  await operations.screenshot({path:path.join(out,'operations-gear-'+width+'.png')});
+  for(const tab of ['Boss Akını','Görevler','Sezon']) {
+   await operations.getByRole('button',{name:tab,exact:true}).tap();
+   assert.ok(await operations.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'Tab fits: '+tab);
+  }
+
   await operations.getByRole('button',{name:'Kapat',exact:true}).tap();
   await page.screenshot({path:path.join(out,'endless-hud-'+width+'.png')});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
   const balance=await page.evaluate(()=>({gold:game.gold,crystals:game.crystals}));await page.evaluate(()=>offerEndlessTactics());await page.locator('#endless-tactics summary').tap();

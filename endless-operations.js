@@ -92,10 +92,15 @@
         const set = equipped.filter(id=>gear[id]?.rank===item.rank).length >= 2 ? .02 : 0;
         return Math.min(.18,.025+item.rank*.01+(state.owned[item.id]-1)*.015+set);
     }
+    function icon(name) {
+        return '<svg class="operations-icon" aria-hidden="true" viewBox="0 0 80 80"><use href="assets/operations/icons.svg#'+name+'"></use></svg>';
+    }
     function render() {
         if (!panel || !active()) return;
         const state = load(), day = periods(state), content = panel.querySelector('section');
         content.replaceChildren();
+        content.dataset.view = tab;
+        panel.querySelector('#operations-wallet').textContent = state.parts + ' PARÇA';
         let target = content;
         function card(title, meta, accent = '') {
             const node = document.createElement('article');
@@ -105,9 +110,14 @@
             heading.textContent = title;
             const detail = document.createElement('p');
             detail.textContent = meta;
-            node.append(heading, detail);
+            const art = document.createElement('div');
+            art.className = 'operations-card-art';
+            const kind = accent.startsWith('gear') ? 'parts' : ({supply:'crate',boss:'boss',task:'tasks',season:'season'})[accent] || 'radar';
+            art.innerHTML = icon(kind);
+            node.append(art, heading, detail);
             content.append(node);
             target = node;
+            return node;
         }
         panel.querySelectorAll('nav button').forEach(button => {
             button.setAttribute('aria-pressed', String(button.dataset.tab === tab));
@@ -129,40 +139,54 @@
                 render();
             };
             target.append(b);
+            return b;
         }
-        card('Operasyon Merkezi', state.parts + ' ekipman parçası', 'hero');
         target = content;
         if (tab==='supply') {
-            const next = state.stamps % 7;
-            card('Günlük ikmal', 'Piko istasyon teslimatını hazırladı.', 'supply');
+            const next = state.stamps % 7, already = state.day >= day;
+            const current = already ? (state.stamps + 6) % 7 : next;
+            const hero = document.createElement('div');
+            hero.className = 'operations-supply-hero';
+            hero.innerHTML = '<img src="assets/operations/piko-supply.png" alt="Piko" width="144" height="144"><div><span class="operations-eyebrow">İSTASYON İKMALİ</span><h3>Günlük ikmal</h3><p></p></div>';
+            hero.querySelector('p').textContent = already ? 'Bugünkü teslimat alındı. Yarın görüşürüz, komutan.' : (next+1)+'. gün ödülün hazır, komutan.';
+            content.append(hero);
             const track = document.createElement('ol'); track.className='operations-track';
             [...supply,'Ekipman'].forEach((reward,i)=>{
                 const cell = document.createElement('li');
+                const claimed = i < current || (already && i === current);
+                cell.dataset.state = claimed ? 'claimed' : i === current ? 'ready' : 'locked';
                 const dayLabel = document.createElement('small');
                 dayLabel.textContent = (i+1) + '. gün';
+                const art = document.createElement('span'); art.innerHTML = icon(i===6?'crate':'parts');
                 const amount = document.createElement('strong');
-                amount.textContent = typeof reward === 'number' ? '+' + reward : reward;
-                cell.append(dayLabel, amount);
-                if(i===next) cell.setAttribute('aria-current','step');
+                amount.textContent = typeof reward === 'number' ? reward+' parça' : 'Ekipman seç';
+                const status = document.createElement('span'); status.className='operations-reward-state';
+                status.textContent = claimed ? '✓ Alındı' : i===current ? 'Hazır' : i===6 ? 'Büyük ikmal' : 'Sıradaki';
+                cell.append(dayLabel,art,amount,status);
+                if(i===current) cell.setAttribute('aria-current','step');
                 track.append(cell);
             });
-            target.append(track);
-            const already = state.day >= day;
+            content.append(track);
+            card(already ? 'Teslimat tamamlandı' : next===6 ? 'Ekipmanını seç' : supply[next]+' ekipman parçası',
+                already ? 'Bir gün kaçırırsan ilerlemen sıfırlanmaz.' : 'Atölyede ekipmanlarını geliştirmek için kullan.', 'supply');
             if(next===6 && !already) {
                 for (const item of gear.filter(item=>item.rank===0)) button(item.name+' seç',()=>{
                     grant(state,item);state.stamps++;state.day=day;
                 });
-            } else button(already?'Bugünkü ikmal alındı':'İkmali al · '+supply[next]+' parça',()=>{
+            } else button(already?'Bugünkü ikmal alındı':'Ödülü al',()=>{
                 state.parts+=supply[next];state.stamps++;state.day=day;
-            },already);
-            card('Çevrimdışı depo', 'İstasyonda biriken parçalar.', 'supply');
-            button('Çevrimdışı ikmali al · '+state.offline+' parça',()=>{
+            },already).classList.add('operations-primary');
+            card('Çevrimdışı ikmal', state.offline ? state.offline+' ekipman parçası depoda hazır.' : 'Sektör tamamla; uzaktayken istasyonun parça biriktirsin.', 'offline');
+            line('En fazla 12 saat birikir.');
+            button('İkmali topla · '+state.offline+' parça',()=>{
                 state.parts+=state.offline;state.offline=0;
-            },!state.offline);
+            },!state.offline).classList.add('operations-secondary');
         } else if (tab==='gear') {
             for(const item of gear) {
                 const level=state.owned[item.id]||0, equipped=state.equipped[item.group]===item.id;
                 card(item.name, item.slot+' · '+['Standart','Standart','Nadir','Nadir','Epik','Efsane'][item.rank]+(level?' · Sv. '+level:' · Kilitli'), 'gear'+item.rank);
+                target.querySelector('.operations-card-art').innerHTML = icon(['weapon','reactor','armor','radar'][item.group]);
+                target.dataset.owned = String(!!level);
                 if (!level) continue;
                 button(equipped?'Takılı':'Tak',()=>{state.equipped[item.group]=item.id;},equipped);
                 const cost=8+level*6;
@@ -175,6 +199,7 @@
             for(const [period,stat,target,xp,label] of tasks) {
                 const bucket=state[period], count=Math.min(target,bucket[stat]||0), claim='claimed_'+stat;
                 card(label, ({daily:'Günlük',weekly:'Haftalık',career:'Gelişim'})[period]+' · '+count+'/'+target, 'task');
+                const progress=document.createElement('progress');progress.max=target;progress.value=count;progress.setAttribute('aria-label',label);content.lastElementChild.append(progress);
                 button(bucket[claim]?'Alındı':xp+' sezon XP al',()=>{bucket[claim]=true;state.xp+=xp;},count<target||!!bucket[claim]);
             }
             const back=document.createElement('button');back.type='button';back.textContent='Savaşa dön';
@@ -222,10 +247,11 @@
         const open=document.createElement('button');open.id='operations-open';open.type='button';open.textContent='Operasyonlar';
         anchor.append(open);
         panel=document.createElement('dialog');panel.id='endless-operations';panel.setAttribute('aria-label','Endless operasyonları');
-        panel.innerHTML='<form method="dialog"><button aria-label="Kapat">Kapat</button></form><nav aria-label="Operasyon menüsü"></nav><section></section>';
+        panel.innerHTML='<header class="operations-header"><div><span class="operations-eyebrow">LOST SIGNAL / KOMUTA GÜVERTESİ</span><h2>OPERASYON MERKEZİ</h2></div><span id="operations-wallet"></span><form method="dialog"><button aria-label="Kapat" autofocus>×</button></form></header><div class="operations-layout"><nav aria-label="Operasyon menüsü"></nav><section aria-label="Operasyon içeriği" tabindex="-1"></section></div>';
+        panel.addEventListener('close',()=>{open.focus({preventScroll:true});});
         for(const [id,label] of [['supply','İkmal'],['gear','Ekipman'],['boss','Boss Akını'],['tasks','Görevler'],['season','Sezon']]) {
-            const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.tab=id;
-            b.onclick=()=>{tab=id;render();};panel.querySelector('nav').append(b);
+            const b=document.createElement('button');b.type='button';b.innerHTML=icon(({supply:'crate',gear:'armor',boss:'boss',tasks:'tasks',season:'season'})[id])+'<span>'+label+'</span>';b.dataset.tab=id;
+            b.onclick=()=>{tab=id;render();panel.querySelector('section').scrollTop=0;};panel.querySelector('nav').append(b);
         }
         document.body.append(panel);
         open.onclick=()=>{if(active()){render();panel.showModal();}};
