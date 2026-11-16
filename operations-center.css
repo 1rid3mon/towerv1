@@ -120,3 +120,40 @@ body:not([data-game-mode="story"]) #btn-hold-wave{min-height:44px;font-size:10px
  body:not([data-game-mode="story"]) #operations-open{min-height:44px;margin-top:3px}
  body:not([data-game-mode="story"]) #hud-wave-card>div:nth-child(2){padding-top:2px}
 }
+
+/* Keep the primary supply action visible on short landscape screens. */
+@media (min-width: 700px) and (max-height: 500px) {
+    #endless-operations section[data-view="supply"] {
+        gap: 8px;
+    }
+
+    .operations-supply-hero {
+        min-height: 56px;
+    }
+
+    .operations-supply-hero img {
+        width: 56px;
+        height: 56px;
+    }
+
+    .operations-track .operations-icon {
+        height: 30px;
+    }
+
+    #endless-operations .operations-card[data-accent="supply"] {
+        grid-column: 1 / -1;
+        padding: 8px 10px;
+    }
+}
+
+/* The defeat state owns the board until its recovery flow completes. */
+body:has(#defeat-overlay:not(.hidden)) :is(#hud-top-bar, #hud-quick-stats, #hud-bottom-controls) {
+    visibility: hidden;
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+    #btn-pause, #btn-speed {
+        min-width: 44px;
+        min-height: 44px;
+    }
+}
