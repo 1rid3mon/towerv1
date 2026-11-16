@@ -1,5 +1,9 @@
 # LOST SIGNAL overhaul progress
 
+## Endless UI release — 16 November
+
+PR #133 merged at `61ba8daca927e88297e6051c133595cab559ceb2`. Run 43814511605 passed the changed Operations and HUD browser step in Chromium and WebKit at phone, landscape and tablet sizes. Other campaign checks still running at merge. Production READY for this merge via dpl_3wjkm2V14t7QXCKbHtDBJ3wxY8vQ. Physical iPad review remains open.
+
 ## Marked Endless UI redesign — 16 November
 
 Draft #133 head `59e76c66b4bcbf62e945a2ee7395b89d22a37e98` covers user-marked tactics, wave clear banner, sector card and Operations. Collapsed tactics is compact, wave clear reward uses compact number formatting and a bottom toast, HP no longer stretches to match the sector card and supply shows all seven days in a responsive grid. Operations cards and five scenery silhouettes remain in the PR. 7 targeted local tests pass. Browser assertions for Operations layout and new screenshots pending. Main remains on the #132 release until validated.
