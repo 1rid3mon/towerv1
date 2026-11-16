@@ -181,7 +181,7 @@
             const current = already ? (state.stamps + 6) % 7 : next;
             const hero = document.createElement('div');
             hero.className = 'operations-supply-hero';
-            hero.innerHTML = '<img src="assets/operations/piko-supply.png" alt="Piko" width="144" height="144"><div><span class="operations-eyebrow">İSTASYON İKMALİ</span><h3>Günlük ikmal</h3><p></p></div>';
+            hero.innerHTML = '<div><span class="operations-eyebrow">İSTASYON İKMALİ</span><h3>Günlük ikmal</h3><p></p></div>';
             hero.querySelector('p').textContent = already ? 'Bugünkü teslimat alındı. Yarın görüşürüz, komutan.' : (next+1)+'. gün ödülün hazır, komutan.';
             content.append(hero);
             const track = document.createElement('ol'); track.className='operations-track';
