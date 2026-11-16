@@ -55,3 +55,21 @@ body[data-game-mode="story"] #operations-open{display:none}
 .operations-track{display:flex;gap:6px;overflow:auto;padding:8px 0;list-style:none}
 .operations-track li{flex:0 0 auto;padding:8px;border:1px solid #4a6975;border-radius:6px}
 .operations-track [aria-current]{background:#2c5c66;color:white}
+
+/* Operations uses the station palette and full-size touch targets. */
+#endless-operations{width:min(720px,calc(100vw - 20px));padding:clamp(10px,2vw,20px);background:#0b1521;border-color:#345768;box-shadow:0 18px 64px #02060dbb}
+#endless-operations nav{position:sticky;top:-1px;z-index:2;background:#0b1521;padding:6px 0}
+#endless-operations nav button{background:#111f2d;border-color:#344c60}
+#endless-operations nav button[aria-pressed="true"]{background:#213f4c;border-color:#74c9c6;color:#ddfffc}
+.operations-card{--accent:#70b6bd;position:relative;padding:14px;margin-block:8px;border:1px solid #344d61;border-inline-start:3px solid var(--accent);border-radius:10px;background:linear-gradient(135deg,#152838,#101b2b 72%);overflow-wrap:anywhere}
+.operations-card h3{margin:0;color:#eef7fb;font-size:16px;font-weight:750}
+#endless-operations .operations-card p{margin:4px 0 10px;color:#b6c9d5}
+.operations-card[data-accent="hero"]{padding:20px;background:radial-gradient(ellipse at 92% 10%,#295665,transparent 66%),#112231}
+.operations-card[data-accent="hero"] h3{font-size:clamp(20px,5vw,30px)}
+.operations-card[data-accent="supply"]{--accent:#dfba76}
+.operations-card[data-accent="gear2"],.operations-card[data-accent="gear3"]{--accent:#70aef0}
+.operations-card[data-accent="gear4"],.operations-card[data-accent="season"]{--accent:#ba9cfa}
+.operations-card[data-accent="gear5"]{--accent:#f0c178}
+.operations-card[data-accent="boss"]{--accent:#ed947e}
+#endless-operations .operations-track li{min-width:76px;text-align:center;background:#101923}
+#endless-operations .operations-track [aria-current]{background:#314752;border-color:#efc37e;color:#ffe4ad}

@@ -96,8 +96,24 @@
         if (!panel || !active()) return;
         const state = load(), day = periods(state), content = panel.querySelector('section');
         content.replaceChildren();
+        let target = content;
+        function card(title, meta, accent = '') {
+            const node = document.createElement('article');
+            node.className = 'operations-card';
+            if (accent) node.dataset.accent = accent;
+            const heading = document.createElement('h3');
+            heading.textContent = title;
+            const detail = document.createElement('p');
+            detail.textContent = meta;
+            node.append(heading, detail);
+            content.append(node);
+            target = node;
+        }
+        panel.querySelectorAll('nav button').forEach(button => {
+            button.setAttribute('aria-pressed', String(button.dataset.tab === tab));
+        });
         function line(value) {
-            const p = document.createElement('p'); p.textContent = value; content.append(p);
+            const p = document.createElement('p'); p.textContent = value; target.append(p);
         }
         function button(label, action, blocked=false) {
             const b = document.createElement('button');
@@ -112,19 +128,20 @@
                 }
                 render();
             };
-            content.append(b);
+            target.append(b);
         }
-        line(state.parts+' ekipman parçası');
+        card('Operasyon Merkezi', state.parts + ' ekipman parçası', 'hero');
+        target = content;
         if (tab==='supply') {
             const next = state.stamps % 7;
-            line('Piko · Günlük ikmal');
+            card('Günlük ikmal', 'Piko istasyon teslimatını hazırladı.', 'supply');
             const track = document.createElement('ol'); track.className='operations-track';
             [...supply,'Ekipman'].forEach((reward,i)=>{
                 const cell=document.createElement('li'); cell.textContent=(i+1)+'. gün · '+reward;
                 if(i===next) cell.setAttribute('aria-current','step');
                 track.append(cell);
             });
-            content.append(track);
+            target.append(track);
             const already = state.day >= day;
             if(next===6 && !already) {
                 for (const item of gear.filter(item=>item.rank===0)) button(item.name+' seç',()=>{
@@ -133,36 +150,38 @@
             } else button(already?'Bugünkü ikmal alındı':'İkmali al · '+supply[next]+' parça',()=>{
                 state.parts+=supply[next];state.stamps++;state.day=day;
             },already);
+            card('Çevrimdışı depo', 'İstasyonda biriken parçalar.', 'supply');
             button('Çevrimdışı ikmali al · '+state.offline+' parça',()=>{
                 state.parts+=state.offline;state.offline=0;
             },!state.offline);
         } else if (tab==='gear') {
             for(const item of gear) {
                 const level=state.owned[item.id]||0, equipped=state.equipped[item.group]===item.id;
-                line(item.slot+' · '+item.name+' · '+['Standart','Standart','Nadir','Nadir','Epik','Efsane'][item.rank]+(level?' · Sv. '+level:' · Kilitli'));
+                card(item.name, item.slot+' · '+['Standart','Standart','Nadir','Nadir','Epik','Efsane'][item.rank]+(level?' · Sv. '+level:' · Kilitli'), 'gear'+item.rank);
                 if (!level) continue;
                 button(equipped?'Takılı':'Tak',()=>{state.equipped[item.group]=item.id;},equipped);
                 const cost=8+level*6;
                 button(level>=5?'Son seviye':'Geliştir · '+cost,()=>{state.parts-=cost;state.owned[item.id]++;},level>=5||state.parts<cost);
             }
         } else if (tab==='boss') {
-            renderBoss(state, day, line, button, content);
+            card('Günlük Boss Akını', 'Saldırı işaretini oku ve doğru hamleyi seç.', 'boss');
+            renderBoss(state, day, line, button, target);
         } else if (tab==='tasks') {
             for(const [period,stat,target,xp,label] of tasks) {
                 const bucket=state[period], count=Math.min(target,bucket[stat]||0), claim='claimed_'+stat;
-                line(({daily:'Günlük',weekly:'Haftalık',career:'Gelişim'})[period]+' · '+label+' · '+count+'/'+target);
+                card(label, ({daily:'Günlük',weekly:'Haftalık',career:'Gelişim'})[period]+' · '+count+'/'+target, 'task');
                 button(bucket[claim]?'Alındı':xp+' sezon XP al',()=>{bucket[claim]=true;state.xp+=xp;},count<target||!!bucket[claim]);
             }
             const back=document.createElement('button');back.type='button';back.textContent='Savaşa dön';
             back.onclick=()=>panel.close();content.append(back);
         } else {
             const tier=Math.min(30,Math.floor(state.xp/XP_PER_TIER));
-            line('Sinyal Sezonu · '+tier+'/30 · '+state.xp+' XP');
-            const progress=document.createElement('progress');progress.max=30*XP_PER_TIER;progress.value=Math.min(progress.max,state.xp);progress.setAttribute('aria-label','Sezon ilerlemesi');content.append(progress);
+            card('Sinyal Sezonu', tier+'/30 kademe · '+state.xp+' XP', 'season');
+            const progress=document.createElement('progress');progress.max=30*XP_PER_TIER;progress.value=Math.min(progress.max,state.xp);progress.setAttribute('aria-label','Sezon ilerlemesi');target.append(progress);
             button('Hepsini al · '+((tier-state.claimed)*6)+' parça',()=>{
                 state.parts+=(tier-state.claimed)*6;state.claimed=tier;
             },tier<=state.claimed);
-            for(let level=1;level<=30;level++) line('Kademe '+level+' · 6 parça'+(level<=state.claimed?' · alındı':''));
+            for(let level=1;level<=30;level++) card('Kademe '+level, '6 parça · '+(level<=state.claimed?'Alındı':level<=tier?'Hazır':'Kilitli'), 'season');
         }
     }
     function renderBoss(state, day, line, button, content) {
@@ -200,7 +219,7 @@
         panel=document.createElement('dialog');panel.id='endless-operations';panel.setAttribute('aria-label','Endless operasyonları');
         panel.innerHTML='<form method="dialog"><button aria-label="Kapat">Kapat</button></form><nav aria-label="Operasyon menüsü"></nav><section></section>';
         for(const [id,label] of [['supply','İkmal'],['gear','Ekipman'],['boss','Boss Akını'],['tasks','Görevler'],['season','Sezon']]) {
-            const b=document.createElement('button');b.type='button';b.textContent=label;
+            const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.tab=id;
             b.onclick=()=>{tab=id;render();};panel.querySelector('nav').append(b);
         }
         document.body.append(panel);
