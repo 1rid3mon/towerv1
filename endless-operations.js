@@ -137,7 +137,12 @@
             card('Günlük ikmal', 'Piko istasyon teslimatını hazırladı.', 'supply');
             const track = document.createElement('ol'); track.className='operations-track';
             [...supply,'Ekipman'].forEach((reward,i)=>{
-                const cell=document.createElement('li'); cell.textContent=(i+1)+'. gün · '+reward;
+                const cell = document.createElement('li');
+                const dayLabel = document.createElement('small');
+                dayLabel.textContent = (i+1) + '. gün';
+                const amount = document.createElement('strong');
+                amount.textContent = typeof reward === 'number' ? '+' + reward : reward;
+                cell.append(dayLabel, amount);
                 if(i===next) cell.setAttribute('aria-current','step');
                 track.append(cell);
             });

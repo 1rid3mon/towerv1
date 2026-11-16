@@ -73,3 +73,25 @@ body[data-game-mode="story"] #operations-open{display:none}
 .operations-card[data-accent="boss"]{--accent:#ed947e}
 #endless-operations .operations-track li{min-width:76px;text-align:center;background:#101923}
 #endless-operations .operations-track [aria-current]{background:#314752;border-color:#efc37e;color:#ffe4ad}
+
+/* Keep the HUD compact while leaving battle and reward information readable. */
+body:not([data-game-mode="story"]) #hud-top-bar{align-items:start!important}
+body:not([data-game-mode="story"]) #hud-wave-card{border-top:2px solid #668dcb!important}
+#ui-sector-detail{white-space:pre-line;color:#d9e6f5}
+#operations-open{align-self:flex-start;background:#1b3048;border-color:#55769a;color:#e0eeff;font-weight:700;padding-inline:12px}
+.endless-tactics:not([open]){width:max-content;max-width:100%;padding:0 11px;border-color:#506278;background:#152333}
+.endless-tactics:not([open]) summary{gap:8px;font-weight:700}
+.endless-tactics:not([open]) summary::before{content:"◆";color:#eac177;font-size:9px}
+.endless-tactics:not([open]) summary::after{content:"⌄";color:#b8cfe1}
+body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"]{top:auto;bottom:max(58px,calc(env(safe-area-inset-bottom) + 50px));width:max-content;max-width:calc(100vw - 24px)}
+body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"] .battle-frame{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding:8px 11px;border-radius:8px!important}
+body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"] :is(.battle-kicker,.battle-subtitle){display:none}
+body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"] .battle-title{font-size:14px;line-height:1.2}
+body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"] .battle-rewards{margin:0}
+body:has(#endless-tactics[open]) #battle-moment[data-kind="clear"]{visibility:hidden}
+#endless-operations .operations-track{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;overflow:visible}
+#endless-operations .operations-track li{min-width:0;padding:8px 3px}
+.operations-track small,.operations-track strong{display:block}
+.operations-track small{color:#a7bbc9;font-size:11px}
+.operations-track strong{margin-top:5px;color:inherit;font-size:clamp(11px,2.5vw,16px)}
+@media(max-width:490px){#endless-operations .operations-track{grid-template-columns:repeat(4,minmax(0,1fr))}}
