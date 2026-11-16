@@ -397,23 +397,6 @@ function syncHudPositionsWithDrawer() {
     }
 }
 
-function formatNumber(num) {
-    if (num === null || num === undefined || isNaN(num)) return '0';
-    if (!Number.isFinite(num)) return '∞';
-    const abs = Math.abs(num);
-    if (abs < 1000) return Math.floor(num).toString();
-
-    const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
-    const tier = Math.floor(Math.log10(abs) / 3);
-
-    if (tier < suffixes.length) {
-        const scaled = num / Math.pow(10, tier * 3);
-        return (scaled >= 100 ? scaled.toFixed(1) : scaled.toFixed(2)) + suffixes[tier];
-    }
-    const exp = Math.floor(Math.log10(abs));
-    const mantissa = (num / Math.pow(10, exp)).toFixed(2);
-    return `${mantissa}e${exp}`;
-}
 
 function setDeviceMode(mode) {
     if (typeof game === 'undefined') return;
