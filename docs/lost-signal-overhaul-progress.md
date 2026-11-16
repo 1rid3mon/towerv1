@@ -1,5 +1,9 @@
 # LOST SIGNAL overhaul progress
 
+## Approved concept implementation — 16 November
+
+User rejected the previous polish and approved the new illustrated command-center concept. Draft PR #134, branch `overhaul/command-center-concept`, head `1703afd18e106b0be32bfa5e597d2f56b343cd00`, run `43822190487`. Implements illustrated Operations, new Piko supply asset, reward tiles, equipment icons, task progress, responsive persistent navigation/close and compact sector HUD. 12 targeted local tests passed. Chromium/WebKit and actual screenshots pending. Main remains `61ba8da`; do not claim the concept battlefield/tower/enemy artwork is implemented. Android/billing/ads deferred. Details: docs/command-center-redesign.md on #134. Resume from #134, not this docs-only branch.
+
 ## Endless UI release — 16 November
 
 PR #133 merged at `61ba8daca927e88297e6051c133595cab559ceb2`. Run 43814511605 passed the changed Operations and HUD browser step in Chromium and WebKit at phone, landscape and tablet sizes. Other campaign checks still running at merge. Production READY for this merge via dpl_3wjkm2V14t7QXCKbHtDBJ3wxY8vQ. Physical iPad review remains open.
