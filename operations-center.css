@@ -157,3 +157,42 @@ body:has(#defeat-overlay:not(.hidden)) :is(#hud-top-bar, #hud-quick-stats, #hud-
         min-height: 44px;
     }
 }
+
+@media (orientation: landscape) and (max-height: 500px) {
+    #story-mode-screen :is(.story-exit, .story-primary) {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .story-shell:has(#story-mission-view:not([hidden])) .story-hero {
+        padding: 10px 14px;
+    }
+
+    .story-shell:has(#story-mission-view:not([hidden])) .story-title {
+        font-size: 28px;
+        line-height: 1.1;
+        margin: 4px 0;
+    }
+
+    .story-shell:has(#story-mission-view:not([hidden])) .story-hero > .story-lead,
+    #story-mission-view .story-campaign-subtitle {
+        display: none;
+    }
+
+    #story-mission-view .story-campaign-progress {
+        padding: 8px 12px;
+        margin: 8px 0;
+    }
+
+    body:not([data-game-mode="story"]) #hud-wave-card {
+        min-height: 0;
+    }
+
+    body:not([data-game-mode="story"]) #hud-wave-card::after {
+        display: none;
+    }
+
+    .sector-boss svg {
+        display: none;
+    }
+}
