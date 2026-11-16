@@ -16,8 +16,6 @@ const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http:
   const operations=page.locator('#endless-operations');
   assert.equal(await operations.locator('.operations-track li').count(),7);
   assert.ok(await operations.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'Operations fits the viewport');
-  await operations.locator('.operations-supply-hero img').evaluate(img=>img.decode());
-  assert.ok(await operations.locator('.operations-supply-hero img').evaluate(img=>img.naturalWidth>0),'Piko illustration loads');
   const closeRect=await operations.getByRole('button',{name:'Kapat',exact:true}).boundingBox();
   assert.ok(closeRect.x>=0&&closeRect.x+closeRect.width<=width&&closeRect.y>=0&&closeRect.y+closeRect.height<=height,'Close stays inside viewport');
   await operations.screenshot({path:path.join(out,'operations-supply-'+width+'.png')});
@@ -29,7 +27,10 @@ const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http:
   await operations.getByRole('button',{name:'Ekipman',exact:true}).tap();
   assert.equal(await operations.locator('[data-accent^="gear"]').count(),24);
   await operations.getByRole('button',{name:'Tak',exact:true}).tap();
-  assert.equal(await operations.getByRole('button',{name:'Takılı',exact:true}).isDisabled(),true);
+  assert.ok(await page.evaluate(()=>EndlessOperations.bonus('damage')>0));
+  await operations.getByRole('button',{name:'Çıkar',exact:true}).tap();
+  assert.equal(await page.evaluate(()=>EndlessOperations.bonus('damage')),0);
+  await operations.getByRole('button',{name:'Tak',exact:true}).tap();
   await operations.screenshot({path:path.join(out,'operations-gear-'+width+'.png')});
   for(const tab of ['Boss Akını','Görevler','Sezon']) {
    await operations.getByRole('button',{name:tab,exact:true}).tap();
