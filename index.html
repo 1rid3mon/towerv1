@@ -991,7 +991,11 @@
                             </div>
                             <span id="ui-wave-progress-text" class="text-[10px] sm:text-xs font-tech text-slate-300">0 / 15</span>
                         </div>
-                        <p id="ui-sector-detail" style="font-size:11px;line-height:1.4;margin:4px 0;overflow-wrap:anywhere"></p>
+                        <div id="ui-sector-detail" class="sector-brief">
+                            <strong id="ui-sector-name"></strong>
+                            <div id="ui-sector-stages" class="sector-stages" aria-label="Sektör aşamaları"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                            <div class="sector-boss"><svg aria-hidden="true" viewBox="0 0 80 80"><use href="assets/operations/icons.svg#boss"></use></svg><div><small id="ui-sector-countdown"></small><span id="ui-sector-boss-name"></span></div></div>
+                        </div>
                         <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-1 border border-slate-700/50">
                             <div id="ui-wave-bar" class="h-full bg-gradient-to-r from-blue-600 to-indigo-400 transition-all duration-200" style="width: 0%"></div>
                         </div>
@@ -1781,6 +1785,7 @@
 <link rel="stylesheet" href="commanders-quarters-v13.css">
 <script src="commanders-quarters-v13.js"></script>
 <link rel="stylesheet" href="station-director-v14.css">
+<link rel="stylesheet" href="operations-center.css">
 <script src="station-systems-v14.js"></script>
 <script src="piko-companion-v3.js"></script>
 <script src="station-navigation-v16.js"></script>

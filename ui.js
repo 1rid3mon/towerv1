@@ -1435,8 +1435,25 @@ function updateHUD() {
     if (window.EndlessSectors && !GameModeRuntime.isStoryActive()) {
         const sector = window.EndlessSectors.describe(game.wave);
         setElText('ui-wave-badge', `SEKTÖR ${sector.sector} · ${sector.stage}/10`);
-        setElText('ui-sector-detail', `${sector.name}\n${sector.bossWave ? (sector.stage === 10 ? 'Sektör boss’u' : 'Ara boss') : sector.remaining + ' aşama sonra boss'} · ${sector.bossName}`);
-    } else setElText('ui-sector-detail', '');
+        const brief = document.getElementById('ui-sector-detail');
+        if (brief) {
+            brief.hidden = false;
+            if (brief.dataset.wave !== String(game.wave)) {
+                brief.dataset.wave = String(game.wave);
+                setElText('ui-sector-name', sector.name);
+                setElText('ui-sector-countdown', sector.bossWave ? (sector.stage === 10 ? 'SEKTÖR BOSS’U' : 'ARA BOSS') : 'BOSS’A '+sector.remaining+' AŞAMA');
+                setElText('ui-sector-boss-name', sector.bossName);
+                const stages = document.getElementById('ui-sector-stages');
+                if (stages) {
+                    stages.setAttribute('aria-label', 'Aşama '+sector.stage+' / 10');
+                    Array.from(stages.children).forEach((node,i)=>{node.dataset.state = i+1<sector.stage?'done':i+1===sector.stage?'current':'pending';});
+                }
+            }
+        }
+    } else {
+        const brief = document.getElementById('ui-sector-detail');
+        if (brief) brief.hidden = true;
+    }
     const bossWarn = document.getElementById('ui-boss-warning');
     if (bossWarn) bossWarn.classList.toggle('hidden', game.wave % 5 !== 0);
     setElText('ui-wave-progress-text', `${game.waveKills} / ${game.waveTargetKills}`);

@@ -1,0 +1,122 @@
+/* Approved command-center concept: layout is native UI, art never contains text. */
+#endless-operations{--ops-cyan:#6aefe8;--ops-amber:#f3c578;width:min(1120px,calc(100vw - 24px));height:min(680px,calc(100dvh - 24px));max-height:calc(100dvh - 24px);padding:0;border:1px solid #5c8d9b;border-radius:16px;background:radial-gradient(ellipse at 75% 0,#14333f 0,transparent 60%),#07131f;color:#e9f3f8;box-shadow:0 24px 90px #000b,inset 0 0 0 5px #132834;overflow:hidden;font:14px/1.45 Inter,system-ui,sans-serif}
+#endless-operations[open]{display:flex;flex-direction:column}
+#endless-operations::backdrop{background:#020812dd}
+#endless-operations *{box-sizing:border-box}
+#endless-operations .operations-header{display:flex;align-items:center;gap:16px;flex:none;min-height:76px;padding:12px 20px;border-bottom:1px solid #365263;background:linear-gradient(110deg,#122936,#081723);position:relative}
+.operations-eyebrow{display:block;font-size:9px;font-weight:700;letter-spacing:.18em;color:#83b9c9}
+#endless-operations h2{font:700 clamp(17px,2.5vw,24px)/1.1 Rajdhani,system-ui;margin:5px 0 0;letter-spacing:.07em;color:#effaff}
+#endless-operations #operations-wallet{margin-left:auto;white-space:nowrap;color:#f4ca80;font-size:12px;font-weight:700;padding:8px 10px;border:1px solid #6f6346;border-radius:5px;background:#252a29}
+#endless-operations form{margin:0}
+#endless-operations form button{width:44px;height:44px;padding:0;margin:0;border-color:#69b9c5;background:#12303f;color:#adfbff;font-size:30px;line-height:1}
+#endless-operations .operations-layout{display:grid;grid-template-columns:164px minmax(0,1fr);min-height:0;flex:1}
+#endless-operations nav{position:static;display:flex;flex-direction:column;align-items:stretch;gap:8px;margin:0;padding:18px 10px;background:#081520;border-right:1px solid #274657;overflow:auto}
+#endless-operations button{font:600 13px/1.25 Inter,system-ui;min-height:44px;border-radius:6px;padding:10px 12px;margin:5px 6px 0 0;border:1px solid #4c7282;background:linear-gradient(#234153,#162b3c);color:#e6f4fa;cursor:pointer;touch-action:manipulation;transition:border-color .15s,background .15s}
+#endless-operations button:hover:not(:disabled){border-color:#9ef4f2;background:#224f5f}
+#endless-operations button:focus-visible{outline:3px solid #f4cc83;outline-offset:2px}
+#endless-operations button:disabled{cursor:default;opacity:.5}
+#endless-operations nav button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;margin:0;padding:8px;min-height:52px;background:linear-gradient(110deg,#152c3b,#0c1d2b);border-color:#334d60;flex:none}
+#endless-operations nav button[aria-pressed="true"]{border-color:#62e5e0;background:linear-gradient(100deg,#1c5963,#122e3d);box-shadow:inset 3px 0 #72fff1,0 0 12px #3bced51c;color:#fff}
+.operations-icon{display:block;width:64px;height:64px;flex:none}
+#endless-operations nav .operations-icon{width:30px;height:30px}
+#endless-operations section{overflow:auto;overscroll-behavior:contain;min-width:0;padding:18px 22px 24px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-content:start;scrollbar-color:#486f81 #0b1b29}
+.operations-card{margin:0;padding:16px;border:1px solid #375266;border-radius:9px;background:linear-gradient(125deg,#1a3041,#0b1d2d);border-top:2px solid var(--accent);min-width:0;position:relative}
+.operations-card h3{font:700 17px/1.3 Rajdhani,system-ui;color:#effbff;margin:0 0 5px}
+#endless-operations .operations-card p{font-size:12px;line-height:1.5;color:#a7c0ce;margin:4px 0 10px}
+.operations-card-art{float:right;margin:0 0 8px 12px;filter:drop-shadow(0 6px 5px #0007)}
+#endless-operations section[data-view="supply"]{gap:12px}
+.operations-supply-hero{grid-column:1/-1;display:flex;align-items:center;gap:18px;min-height:118px;background:radial-gradient(ellipse at 10% 70%,#1c54624a,transparent 60%);border-bottom:1px solid #294b5a;padding-bottom:4px}
+.operations-supply-hero img{width:126px;height:126px;object-fit:contain;flex:none;filter:drop-shadow(0 6px 12px #052b39)}
+#endless-operations .operations-supply-hero h3{font:700 30px/1.15 Rajdhani,system-ui;letter-spacing:.02em;margin:5px 0}
+#endless-operations .operations-supply-hero p{color:#f3c578;font-size:13px;margin:6px 0}
+#endless-operations .operations-track{grid-column:1/-1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;padding:0;margin:0;overflow:visible;list-style:none}
+#endless-operations .operations-track li{position:relative;padding:9px 3px 7px;min-width:0;border:1px solid #476477;border-radius:7px;background:linear-gradient(145deg,#1e364c,#0a1829);text-align:center}
+.operations-track .operations-icon{width:min(100%,65px);height:60px;margin:auto;filter:drop-shadow(0 5px 5px #0008)}
+#endless-operations .operations-track li:last-child{border-color:#b68c43;background:linear-gradient(145deg,#423a2b,#1b2430)}
+#endless-operations .operations-track li[aria-current]{border:2px solid #69f4ec;background:linear-gradient(145deg,#215363,#102d3c);box-shadow:0 0 14px #35d5cf30}
+.operations-track small{font-size:11px;color:#c3d8e4}
+.operations-track strong{font-size:11px;margin:3px 0;color:#f2f7fa}
+.operations-reward-state{display:block;font-size:9px;color:#86a9bd;margin-top:3px}
+[data-state="claimed"] .operations-reward-state{color:#77e9b2}
+[data-state="ready"] .operations-reward-state{color:#9bfff3}
+#endless-operations button.operations-primary{background:linear-gradient(#49e0d8,#168f9c);border-color:#84fff4;color:#032b39;box-shadow:0 3px 12px #16acaf25;font-weight:800;min-width:150px}
+#endless-operations button.operations-secondary{background:linear-gradient(#f2ca7e,#bc863a);border-color:#ffdf9a;color:#322515;font-weight:800}
+.operations-card[data-accent="offline"]{--accent:#e7c277}
+#endless-operations section[data-view="gear"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+[data-view="gear"] .operations-card-art{float:none;margin:0 auto 8px;display:flex;justify-content:center}
+[data-view="gear"] .operations-card{border-top-color:var(--accent);text-align:center}
+[data-view="gear"] .operations-card[data-owned="false"] .operations-card-art{opacity:.5;filter:grayscale(.5)}
+#endless-operations [data-view="boss"] .operations-card{grid-column:1/-1;min-height:200px}
+[data-view="boss"] .operations-card-art .operations-icon{width:110px;height:110px}
+#endless-operations [data-view="season"] .operations-card:first-child{grid-column:1/-1}
+#endless-operations progress{height:8px;width:100%;accent-color:#64e6dc;margin:6px 0 10px}
+@media(min-width:700px) and (max-height:500px){
+ #endless-operations{height:calc(100dvh - 16px);max-height:calc(100dvh - 16px);width:calc(100vw - 20px)}
+ #endless-operations .operations-header{min-height:58px;padding:6px 14px}
+ #endless-operations h2{font-size:19px}
+ #endless-operations .operations-layout{grid-template-columns:135px minmax(0,1fr)}
+ #endless-operations nav{padding:10px 8px;gap:4px}
+ #endless-operations nav button{min-height:44px;font-size:11px}
+ #endless-operations nav .operations-icon{width:25px;height:25px}
+ #endless-operations section{padding:10px 14px 16px;gap:8px}
+ .operations-supply-hero{min-height:66px;gap:10px}
+ .operations-supply-hero img{width:72px;height:72px}
+ #endless-operations .operations-supply-hero h3{font-size:23px}
+ #endless-operations .operations-supply-hero p{font-size:11px}
+ #endless-operations .operations-track{gap:5px}
+ .operations-track .operations-icon{height:40px}
+ #endless-operations .operations-track li{padding:5px 2px}
+ .operations-card{padding:10px}
+ .operations-card-art .operations-icon{width:46px;height:46px}
+}
+@media(max-width:699px){
+ #endless-operations{width:calc(100vw - 16px);height:calc(100dvh - 20px);border-radius:12px}
+ #endless-operations .operations-header{padding:10px;gap:6px}
+ #endless-operations .operations-eyebrow{font-size:8px;letter-spacing:.08em}
+ #endless-operations #operations-wallet{font-size:10px;padding:6px}
+ #endless-operations h2{font-size:17px}
+ #endless-operations .operations-layout{display:flex;flex-direction:column}
+ #endless-operations nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:8px;flex:none;border-right:0;border-bottom:1px solid #294b5a;overflow:visible}
+ #endless-operations nav button{flex-direction:column;gap:3px;padding:5px 1px;min-height:58px;font-size:10px;text-align:center;justify-content:center}
+ #endless-operations nav .operations-icon{width:24px;height:24px}
+ #endless-operations section{padding:12px;grid-template-columns:1fr;gap:10px}
+ #endless-operations section[data-view="gear"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #endless-operations .operations-track{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+ .operations-supply-hero{gap:8px;min-height:100px}
+ .operations-supply-hero img{width:90px;height:100px}
+ #endless-operations .operations-supply-hero h3{font-size:26px}
+ .operations-track .operations-icon{height:44px}
+ .operations-card{padding:13px}
+}
+@media(prefers-reduced-motion:reduce){#endless-operations button{transition:none}}
+
+/* Battle HUD: information grouped into a compact navigation rail. */
+body:not([data-game-mode="story"]) #hud-top-bar{width:min(440px,calc(100% - 16px));gap:6px!important}
+body:not([data-game-mode="story"]) :is(#hud-hp-card,#hud-wave-card){background:linear-gradient(135deg,#142c3aee,#071522f5)!important;border:1px solid #416071!important;border-radius:7px!important;box-shadow:inset 0 2px #7bf8e526,0 6px 20px #0005!important}
+body:not([data-game-mode="story"]) #hud-hp-card{justify-content:flex-start!important;gap:8px}
+body:not([data-game-mode="story"]) #ui-wave-badge{background:transparent;border:0;padding:0;color:#f0f7ff;font-size:13px;letter-spacing:.06em}
+.sector-brief{margin:7px 0 8px;white-space:normal!important}
+.sector-brief[hidden]{display:none}
+#ui-sector-name{display:block;color:#a8c9d7;font-size:11px;font-weight:500}
+.sector-stages{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin:8px 0}
+.sector-stages span{height:6px;border-radius:2px;background:#0d2031;border:1px solid #426277}
+.sector-stages [data-state="done"]{background:#55d5cf;border-color:#82eee2}
+.sector-stages [data-state="current"]{background:#e7c37d;border-color:#ffdda0}
+.sector-boss{display:flex;align-items:center;gap:7px;padding:5px 6px;border:1px solid #624843;border-radius:5px;background:linear-gradient(100deg,#3d2b2d88,#102030)}
+.sector-boss svg{width:32px;height:32px;flex:none}
+.sector-boss div{min-width:0}
+.sector-boss small{display:block;font-size:8px;letter-spacing:.08em;color:#efbd86}
+#ui-sector-boss-name{display:block;font-size:10px;line-height:1.3;color:#dceaf0}
+body:not([data-game-mode="story"]) #operations-open{width:100%;margin-top:6px;min-height:44px;border-color:#4d9caa;background:linear-gradient(120deg,#1c5261,#102b3f);letter-spacing:.05em;color:#dffff8;font-size:12px}
+body:not([data-game-mode="story"]) #operations-open::before{content:'◈';margin-right:8px;color:#79efe4}
+body:not([data-game-mode="story"]) #btn-hold-wave{min-height:44px;font-size:10px}
+@media(min-width:1000px) and (min-height:600px){body:not([data-game-mode="story"]) #hud-top-bar{width:228px;grid-template-columns:1fr}}
+@media(max-height:500px){
+ body:not([data-game-mode="story"]) #hud-top-bar{width:360px}
+ body:not([data-game-mode="story"]) #hud-hp-card{padding:8px!important}
+ body:not([data-game-mode="story"]) #hud-wave-card{padding:7px!important}
+ .sector-boss{padding:3px 4px}.sector-boss svg{width:25px;height:25px}
+ .sector-stages{margin:5px 0}.sector-brief{margin:3px 0}
+ body:not([data-game-mode="story"]) #operations-open{min-height:44px;margin-top:3px}
+ body:not([data-game-mode="story"]) #hud-wave-card>div:nth-child(2){padding-top:2px}
+}
