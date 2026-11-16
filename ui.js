@@ -238,6 +238,7 @@ function addBattleReward(label, amount = null) {
 }
 function formatBattleNumber(value) {
     const number = Math.max(0, Math.round(Number(value) || 0));
+    if (number >= 10000) return formatNumber(number);
     try { return new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(number); }
     catch (error) { return String(number); }
 }
@@ -1434,7 +1435,7 @@ function updateHUD() {
     if (window.EndlessSectors && !GameModeRuntime.isStoryActive()) {
         const sector = window.EndlessSectors.describe(game.wave);
         setElText('ui-wave-badge', `SEKTÖR ${sector.sector} · ${sector.stage}/10`);
-        setElText('ui-sector-detail', `${sector.name} · ${sector.bossWave ? (sector.stage === 10 ? 'Sektör boss’u' : 'Ara boss') : sector.remaining + ' aşama sonra boss'} · ${sector.bossName}`);
+        setElText('ui-sector-detail', `${sector.name}\n${sector.bossWave ? (sector.stage === 10 ? 'Sektör boss’u' : 'Ara boss') : sector.remaining + ' aşama sonra boss'} · ${sector.bossName}`);
     } else setElText('ui-sector-detail', '');
     const bossWarn = document.getElementById('ui-boss-warning');
     if (bossWarn) bossWarn.classList.toggle('hidden', game.wave % 5 !== 0);

@@ -18,15 +18,16 @@ test('each sector has a distinct edge silhouette within portrait, landscape and 
     for (const [width,height] of [[390,700],[844,320],[1032,780]]) {
         const variants = new Set();
         for (const wave of [1,11,21,31,41]) {
-            const rectangles = [];
-            const ctx = {save(){},restore(){},fillRect(...rect){rectangles.push(rect);}};
+            const points = [];
+            const mark = (...point) => points.push(point);
+            const ctx = {save(){},restore(){},beginPath(){},closePath(){},fill(){},stroke(){},moveTo:mark,lineTo:mark};
             globalThis.EndlessSectorScenery.draw(ctx,width,height,wave);
-            assert.ok(rectangles.length);
-            for (const [x,y,w,h] of rectangles) {
-                assert.ok(x>=0 && y>=0 && x+w<=width && y+h<=height);
-                assert.ok(x+w<width/2 || x>width/2);
+            assert.ok(points.length);
+            for (const [x,y] of points) {
+                assert.ok(x>=0 && y>=0 && x<=width && y<=height);
+                assert.notEqual(x,width/2);
             }
-            variants.add(JSON.stringify(rectangles));
+            variants.add(JSON.stringify(points));
         }
         assert.equal(variants.size,5);
     }

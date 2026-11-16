@@ -11,6 +11,14 @@ const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http:
   await page.evaluate(()=>{startLootboxModalAnimation('item',1,[],0);clearTimeout(lootboxAnimTimer)});
   await page.locator('#loot-close-always').tap();
   assert.equal(await page.locator('#lootbox-anim-modal').isVisible(),false,'A stalled reveal can be dismissed');
+  await page.locator('#operations-open').tap();
+  const operations=page.locator('#endless-operations');
+  assert.equal(await operations.locator('.operations-track li').count(),7);
+  assert.ok(await operations.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'Operations fits the viewport');
+  await operations.screenshot({path:path.join(out,'operations-supply-'+width+'.png')});
+  await operations.getByRole('button',{name:'Ekipman',exact:true}).tap();
+  assert.equal(await operations.locator('[data-accent^="gear"]').count(),24);
+  await operations.getByRole('button',{name:'Kapat',exact:true}).tap();
   await page.screenshot({path:path.join(out,'endless-hud-'+width+'.png')});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
   const balance=await page.evaluate(()=>({gold:game.gold,crystals:game.crystals}));await page.evaluate(()=>offerEndlessTactics());await page.locator('#endless-tactics summary').tap();
   await page.locator('#endless-tactics[open]').waitFor();
