@@ -413,10 +413,21 @@ function calculatePendingSouls() {
 
 // Yedek sürüm: ui_8.js'deki (daha gelişmiş) formatNumber varsa o kullanılır, dosya sırası fark etmez.
 function formatNumber(num) {
-    if (typeof num !== 'number' || !Number.isFinite(num) || num < 0) return '0';
-    if (num < 1000) return Math.floor(num).toString();
-    let tier = Math.floor(Math.log10(num) / 3);
-    let scaled = Number((num / Math.pow(1000, tier)).toPrecision(3));
+    if (typeof num === 'bigint') num = num.toString();
+    let tier, scaled;
+    if (typeof num === 'string') {
+        if (!/^\d+$/.test(num)) return '0';
+        const digits = num.replace(/^0+(?=\d)/, '');
+        if (digits.length <= 3) return digits;
+        tier = Math.floor((digits.length - 1) / 3);
+        const prefix = digits.slice(0, 4);
+        scaled = Number((Number(prefix) / Math.pow(10, prefix.length - (digits.length - tier * 3))).toPrecision(3));
+    } else {
+        if (typeof num !== 'number' || !Number.isFinite(num) || num < 0) return '0';
+        if (num < 1000) return Math.floor(num).toString();
+        tier = Math.floor(Math.log10(num) / 3);
+        scaled = Number((num / Math.pow(1000, tier)).toPrecision(3));
+    }
     if (scaled >= 1000) {
         tier++;
         scaled = 1;

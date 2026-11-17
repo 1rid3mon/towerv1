@@ -495,7 +495,7 @@ function updateGame(dt) {
         }
         return;
     }
-    if (isPaused) return;
+    if (isPaused || document.querySelector?.('#meta-center[open], #endless-operations[open]')) return;
 
     playTimeAccum += dt;
     if (playTimeAccum >= 1) { game.stats.playTimeSeconds += Math.floor(playTimeAccum); playTimeAccum %= 1; }
@@ -512,6 +512,8 @@ function updateGame(dt) {
     const frameEnemies = enemies, frameProjectiles = projectiles;
     const frameInvalidated = () => enemies !== frameEnemies || projectiles !== frameProjectiles || isPaused || isDefeated;
     const simDt = dt * gameSpeed;
+    window.MetaRuntime?.tick(simDt);
+    if (frameInvalidated()) return;
     // V14 anomalies affect Endless only; Story combat and saves remain isolated.
     const v14Anomaly = (window.TowerStationSystemsV14 && !GameModeRuntime.isStoryActive())
         ? window.TowerStationSystemsV14.anomalyFor(game.wave, false) : null;
@@ -1095,6 +1097,7 @@ function killEnemy(enemy) {
 }
 
 function damageTower(rawDamage, attacker) {
+    if (attacker?.metaSilenced > 0) return;
     rawDamage *= tacticMultiplier();
     if (window.TowerOverhaulV11) rawDamage = window.TowerOverhaulV11.incoming(rawDamage);
     const armorVal = getTowerArmor();
@@ -1105,7 +1108,7 @@ function damageTower(rawDamage, attacker) {
         if (ref > 0) dealDamageToEnemy(attacker, ref, false, '#fb7185');
     }
 
-    let rem = reduced;
+    let rem = window.MetaRuntime ? window.MetaRuntime.absorb(reduced) : reduced;
     if (tower.shield > 0) { if (tower.shield >= rem) { tower.shield -= rem; rem = 0; } else { rem -= tower.shield; tower.shield = 0; } }
     if (rem > 0) { tower.hp -= rem; if (window.TowerCombatV12) window.TowerCombatV12.incoming(tower.x, tower.y, '#e5b36b'); createParticles(tower.x, tower.y, '#ef4444', 5, 50); if (typeof playBattleCue === 'function') playBattleCue('towerHit'); }
     if (tower.hp <= 0) { tower.hp = 0; triggerTowerDefeat(); }
@@ -1227,6 +1230,7 @@ function completeWave() {
     else if (!game.holdWave && game.wave % 5 === 0 && !enemies.some(e => e.type === 'boss')) spawnEnemy(true);
     if (!wasHoldWave) {
         window.EndlessOperations?.record(completedWaveNumber);
+        window.MetaRuntime?.wave(completedWaveNumber);
         offerEndlessTactics();
     }
     updatePrestigeUI(); refreshUpgradeButtonsState(); saveGame(true);
