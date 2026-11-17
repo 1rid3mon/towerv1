@@ -305,6 +305,18 @@
             for(let level=1;level<=30;level++) card('Kademe '+level, '6 parça · '+(level<=state.claimed?'Alındı':level<=tier?'Hazır':'Kilitli'), 'season');
         }
     }
+    function eventBriefing(now = Date.now()) {
+        const day = window.MetaModel.localDay(now);
+        const end = new Date(now);
+        const todayReset = new Date(now);
+        todayReset.setHours(window.MetaConfig.daily.resetHour, 0, 0, 0);
+        if (now >= todayReset.getTime()) end.setDate(end.getDate() + 1);
+        end.setHours(window.MetaConfig.daily.resetHour, 0, 0, 0);
+        const boss = window.EndlessBossRush.challenge(day);
+        const fight = load().rush;
+        return {day, endsAt:end.getTime(), boss:boss.name, reward:gear[boss.item].name+' / 8 Parça', result:fight?.day===day ? fight.result : ''};
+    }
+
     function renderBoss(state, day, line, button, content) {
         const rush = window.EndlessBossRush;
         const boss = rush.challenge(day);
@@ -354,7 +366,7 @@
         window.setInterval(heartbeat,60000);
         window.addEventListener('pagehide',heartbeat);
     }
-    window.EndlessOperations=Object.freeze({record,bonus,open:openTab,read:()=>load(),transactMeta});
+    window.EndlessOperations=Object.freeze({record,bonus,eventBriefing,open:openTab,read:()=>load(),transactMeta});
     if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mount,{once:true});
     else mount();
 })();

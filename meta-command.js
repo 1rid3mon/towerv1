@@ -44,7 +44,7 @@ function mount(){
 }
 function refresh(force=false){
  if(!bar||typeof game==='undefined'||!R())return;
- const active=matchMedia('(orientation:landscape)').matches&&document.body.dataset.gameMode!=='story'&&!window.GameModeRuntime?.isStoryActive()&&document.getElementById('mode-main-menu')?.classList.contains('hidden');
+ const active=matchMedia('(orientation:landscape)').matches&&document.body.dataset.gameMode!=='story'&&!window.GameModeRuntime?.isStoryActive()&&document.getElementById('mode-main-menu')?.classList.contains('menu-hidden');
  document.body.classList.toggle('meta-command-active',!!active);
  if(!active){stop();return;}
  R().prepare();const m=R().getState();

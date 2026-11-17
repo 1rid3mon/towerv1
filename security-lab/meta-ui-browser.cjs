@@ -22,6 +22,11 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  await page.locator('#meta-center').getByRole('button',{name:'Olasılıklar',exact:true}).click();await page.locator('#meta-overlay').waitFor({state:'visible'});assert.match(await page.locator('#meta-overlay').innerText(),/40%/);await page.goBack();await page.locator('#meta-overlay').waitFor({state:'hidden'});assert.equal(await page.locator('#meta-center').isVisible(),true);
  await page.evaluate(()=>MetaRuntime.route('supply'));await page.getByRole('button',{name:'Topla · 12 Parça',exact:true}).click();assert.equal(await page.evaluate(()=>MetaRuntime.getState().offline.pending),0);assert.equal(await page.evaluate(()=>MetaRuntime.action('offline').ok),false);
  await page.evaluate(()=>MetaRuntime.route('archive'));await page.locator('#meta-center .meta-close').click();await page.locator('#meta-center').waitFor({state:'hidden'});
+ await page.locator('#mode-main-menu button').filter({hasText:'Sonsuz Mod'}).click();
+ await page.locator('#meta-command-bar').waitFor({state:'visible'});
+ const hud=await page.evaluate(()=>({field:document.querySelector('#gameCanvas').getBoundingClientRect().height,height:innerHeight}));
+ await page.screenshot({path:path.join(evidence,width+'x'+height+'-battle.png')});
+ assert.ok(hud.field/hud.height>=0.85,'Battle canvas has at least 85% viewport height: '+JSON.stringify(hud));
  assert.deepEqual(errors,[],'runtime console errors');if(network.length)throw new Error('External layout dependencies failed; screenshots are not visual acceptance: '+network.join(', '));
  }catch(error){failures.push({viewport:width+'x'+height,error:error.message,errors,network});await page.screenshot({path:path.join(evidence,width+'x'+height+'-failure.png')}).catch(()=>{});}finally{await context.close();}}
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));fs.writeFileSync(path.join(evidence,'report.json'),JSON.stringify({reports,failures},null,2));}

@@ -63,9 +63,14 @@ function route(view){
  prepare();
  if(['boss','gear','tasks'].includes(view)){window.MetaUI?.close();window.EndlessOperations.open(view);}
  else if(['upgrade','station'].includes(view)){window.MetaUI?.close();window.MetaCommand?.openUpgrades();}
- else if(view==='battle'){window.MetaUI?.close();if (!document.getElementById('mode-main-menu')?.classList.contains('hidden')) enterGameMode('endless');}
+ else if(view==='battle'){window.MetaUI?.close();if (!document.getElementById('mode-main-menu')?.classList.contains('menu-hidden')) enterGameMode('endless');}
  else if(view==='main'){window.MetaUI?.close();returnToMainMenu();}
  else window.MetaUI?.open(view);
+}
+function startEvent(day){
+ const event=window.EndlessOperations.eventBriefing();
+ if(event.day!==day){window.MetaUI?.notify('Etkinlik sona erdi.');window.MetaUI?.refresh();return;}
+ route('boss');
 }
 function wave(waveNumber){
  if(!allowed())return;prepare();
@@ -107,7 +112,7 @@ function tick(dt){
 }
 function absorb(amount){if(!allowed())return amount;const used=Math.min(barrier,amount);barrier-=used;return amount-used;}
 function showNext(){
- if(autoCount>=2||!queue.length||!allowed()||document.querySelector('dialog[open]')||document.querySelector('#mode-main-menu:not(.hidden)'))return;
+ if(autoCount>=2||!queue.length||!allowed()||document.querySelector('dialog[open]')||document.querySelector('#mode-main-menu:not(.menu-hidden)'))return;
  autoCount++;window.MetaUI?.open(queue.shift());
 }
 function seen(){
@@ -119,6 +124,6 @@ document.addEventListener('visibilitychange',()=>{
  if(document.hidden)seen();else {const gap=Date.now()-state().offline.activeAt;change('resume',null,d=>{M.touchReturn(d);M.accrueOffline(d,Date.now(),legacy().cleared);return {ok:true};});if(gap>=300000&&state().offline.pending)queue.push('offline');window.MetaUI?.refresh();}
 });
 window.addEventListener('pagehide',seen);
-window.MetaRuntime=Object.freeze({getState:()=>JSON.parse(JSON.stringify(state())),getLegacy:()=>JSON.parse(JSON.stringify(legacy())),prepare,action,creditCost,route,wave,bonus,useSkill,tick,absorb,cooldown:slot=>cooldowns[state().archive.skillSlots[slot]]||0,pending:()=>queue.slice()});
+window.MetaRuntime=Object.freeze({getState:()=>JSON.parse(JSON.stringify(state())),getLegacy:()=>JSON.parse(JSON.stringify(legacy())),prepare,action,creditCost,route,eventBriefing:()=>window.EndlessOperations.eventBriefing(),startEvent,wave,bonus,useSkill,tick,absorb,cooldown:slot=>cooldowns[state().archive.skillSlots[slot]]||0,pending:()=>queue.slice()});
 window.addEventListener('load',()=>{prepare();window.setInterval(showNext,900);});
 })();
