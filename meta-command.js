@@ -46,6 +46,9 @@ function refresh(force=false){
  if(!bar||typeof game==='undefined'||!R())return;
  const active=matchMedia('(orientation:landscape)').matches&&document.body.dataset.gameMode!=='story'&&!window.GameModeRuntime?.isStoryActive()&&document.getElementById('mode-main-menu')?.classList.contains('menu-hidden');
  document.body.classList.toggle('meta-command-active',!!active);
+ const tactics = document.getElementById('endless-tactics');
+ const tacticsHost = active ? bar : document.getElementById('hud-top-bar');
+ if(tactics && tacticsHost && tactics.parentElement!==tacticsHost)tacticsHost.append(tactics);
  if(!active){stop();return;}
  R().prepare();const m=R().getState();
  const wave=game.wave,sector=Math.ceil(wave/10),step=(wave-1)%10+1;

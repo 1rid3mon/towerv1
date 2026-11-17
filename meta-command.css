@@ -22,3 +22,4 @@ body.meta-command-active:has(#defeat-overlay:not(.hidden)) :is(#meta-command-rai
 body.meta-command-active #meta-command-shortcuts{display:flex;position:fixed;top:52px;left:68px;gap:4px;z-index:25}
 #meta-command-shortcuts button{min-height:44px;min-width:44px;padding:4px 10px;border:1px solid #4c7282;border-radius:6px;background:#102838;color:#e9f3f8;font:600 12px Inter,system-ui,sans-serif}
 body.meta-command-active:has(#defeat-overlay:not(.hidden)) #meta-command-shortcuts{visibility:hidden}
+body.meta-command-active #meta-command-bar .endless-tactics{position:fixed;top:52px;left:auto;right:8px;width:min(290px,38vw);z-index:45}

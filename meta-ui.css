@@ -84,3 +84,8 @@
 .meta-body.meta-event{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-content:start}
 .meta-event-art{aspect-ratio:16/9;min-width:0;max-height:185px;display:flex;align-items:end;padding:10px;border:1px solid #426779;border-radius:8px;background:radial-gradient(ellipse at 50% 38%,#398c94 0%,#174550 21%,transparent 45%),repeating-radial-gradient(ellipse at 50% 38%,#102833 0 10px,#182334 11px 14px)}
 .meta-event-art p{margin:0;background:#07131f;color:#e9f3f8;padding:6px 8px;border-radius:4px}
+#meta-overlay.meta-season-preview{width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;border-radius:0}
+#meta-overlay.meta-season-preview .meta-overlay-content{flex:1;display:grid;place-items:center}
+.meta-season-feature{text-align:center}
+.meta-season-emblem{display:grid;place-items:center;margin:0 auto 12px;width:clamp(88px,25dvh,164px);aspect-ratio:1;border:1px solid #f3c578;border-radius:25%;background:radial-gradient(#322b1e,#0a1928 75%);color:#f3c578;box-shadow:0 0 32px #f3c57835}
+#meta-overlay .meta-season-emblem{font-size:clamp(50px,15dvh,96px)}
