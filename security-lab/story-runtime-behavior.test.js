@@ -154,7 +154,7 @@ test('opening the paused upgrade drawer refreshes stale affordability and permit
   const {sandbox,run,nodes}=runtime(9);
   const ui=fs.readFileSync(path.join(__dirname,'..','ui.js'),'utf8');
   sandbox.updateLootboxCollectionCounters=()=>{};
-  vm.runInContext(ui.slice(ui.indexOf('function toggleUpgradeDrawer()'),ui.indexOf('function formatNumber(')),sandbox);
+  vm.runInContext(ui.slice(ui.indexOf('function toggleUpgradeDrawer()'),ui.indexOf('function setDeviceMode(')),sandbox);
   vm.runInContext(ui.slice(ui.indexOf('function refreshUpgradeButtonsState()'),ui.indexOf('function renderCompanionStars(')),sandbox);
   run('game.gold=0;isDrawerOpen=false;isPaused=true;refreshUpgradeButtonsState()');
   assert.equal(nodes.get('upg-btn-damage').disabled,true);

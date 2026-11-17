@@ -644,7 +644,10 @@ function startStoryMission(missionNumber = 1) {
     // while the story sandbox is active, game.wave is the mission wave, not the saved Endless wave.
     // Never auto-abort an unfinished mission.
     if (GameModeRuntime.storySession?.active) {
-        if (!GameModeRuntime.storySession.completed) return;
+        if (!GameModeRuntime.storySession.completed) {
+            showToast(storyLanguage() === 'en' ? 'Exit the active mission first.' : 'Önce açık görevden çık.');
+            return;
+        }
         exitStoryBattle(false);
     }
     const parentAuthorizedLaunch = isIsolatedStoryRuntime() &&
@@ -740,7 +743,13 @@ function startStoryMission(missionNumber = 1) {
             exitButton.style.cssText = 'padding:14px 18px;background:#26394c;color:#fff;border:1px solid #789caf;border-radius:10px;font:700 15px system-ui;cursor:pointer';
             exitButton.onclick = () => cleanup();
             continueButton.onclick = () => {
-                if (!overlay.isConnected || !getStoryProgress()['mission' + missionNumber + 'Complete']) return;
+                if (!overlay.isConnected) return;
+                if (!getStoryProgress()['mission' + missionNumber + 'Complete']) {
+                    description.textContent = 'Ara kayıt bulunamadı. Görev listesine dönüp bu aşamayı yeniden aç.';
+                    exitButton.textContent = 'GÖREV LİSTESİNE DÖN';
+                    exitButton.focus();
+                    return;
+                }
                 continueButton.disabled = true;
                 continueButton.textContent = 'AÇILIYOR…';
                 missionNumber = nextStage;
@@ -761,7 +770,7 @@ function startStoryMission(missionNumber = 1) {
         const onMessage = event => {
             if (event.origin !== window.location.origin || event.source !== frame.contentWindow || !event.data) return;
             if (event.data.type === 'lost-signal-interior-close') {
-                if (!completionPending) cleanup();
+                cleanup();
                 return;
             }
             if (event.data.type !== 'lost-signal-interior-mission-complete' ||
@@ -1772,7 +1781,15 @@ function chooseStorySignalSource(source) {
 }
 function exitStoryBattle(toMainMenu = false) {
     const session = GameModeRuntime.storySession;
-    if (!session || !session.active || !session.snapshot) return;
+    if (!session?.active) return;
+    if (!session.snapshot) {
+        if (isIsolatedStoryRuntime()) {
+            window.parent.postMessage({ type: 'tower-story-runtime-close' }, window.location.origin);
+        } else {
+            showToast(storyLanguage() === 'en' ? 'The mission state could not be restored.' : 'Görev durumu geri yüklenemedi.');
+        }
+        return;
+    }
     const s = session.snapshot;
     game = s.game; tower = s.tower; enemies = s.enemies; projectiles = s.projectiles;
     particles = s.particles; floatingTexts = s.floatingTexts; lightningBeams = s.lightningBeams;

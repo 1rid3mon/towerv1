@@ -27,7 +27,43 @@
     function ownerKey() {
         return 'towerEndlessOperationsV1:' + (typeof currentUser !== 'undefined' && currentUser?.uid ? currentUser.uid : 'guest');
     }
-    let cachedKey = '', cached = null, panel, tab = 'supply';
+    let cachedKey = '', cached = null, committed = null, blocked = false, panel, tab = 'supply';
+    function counter(value, fallback = 0) {
+        return Number.isSafeInteger(value) && value >= 0 ? value : fallback;
+    }
+
+    function normalizeProgress(value) {
+        const progress = {};
+        if (Number.isSafeInteger(value?.period)) progress.period = value.period;
+        for (const stat of ['waves', 'bosses', 'sectors']) {
+            progress[stat] = counter(value?.[stat]);
+            if (value?.['claimed_' + stat] === true) progress['claimed_' + stat] = true;
+        }
+        return progress;
+    }
+
+    function normalizeSave(saved, defaults) {
+        if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return defaults;
+        const state = { ...defaults };
+        state.revision = counter(saved.revision);
+        if (saved.rush && typeof saved.rush === 'object' && !Array.isArray(saved.rush)) state.rush = { day:counter(saved.rush.day), step:Math.min(10,counter(saved.rush.step)), hp:Math.min(2,counter(saved.rush.hp)), result:['won','lost'].includes(saved.rush.result)?saved.rush.result:'', feedback:typeof saved.rush.feedback==='string'?saved.rush.feedback:'' };
+        for (const key of ['day', 'stamps', 'parts', 'cleared', 'xp', 'claimed', 'season', 'activeAt', 'offline']) {
+            state[key] = counter(saved[key], defaults[key]);
+        }
+        state.claimed = Math.min(state.claimed, 30);
+        state.offline = Math.min(state.offline, 360);
+        for (const key of ['daily', 'weekly', 'career']) state[key] = normalizeProgress(saved[key]);
+        state.owned = {};
+        state.equipped = {};
+        for (const item of gear) {
+            const level = counter(saved.owned?.[item.id]);
+            if (!level) continue;
+            state.owned[item.id] = Math.min(level, 5);
+            if (saved.equipped?.[item.group] === item.id) state.equipped[item.group] = item.id;
+        }
+        return state;
+    }
+
     function load() {
         const key = ownerKey();
         if (cachedKey === key && cached) return cached;
@@ -38,9 +74,21 @@
             daily:{}, weekly:{}, career:{}, xp:0, claimed:0, season:Math.floor(now/DAY/30),
             activeAt:now, offline:0 };
         cachedKey = key;
-        cached = { ...defaults, ...saved };
-        if (saved && typeof saved.activeAt === 'number') {
-            const hours = Math.floor(Math.min(12 * 3600000, Math.max(0, now - saved.activeAt)) / 3600000);
+        blocked = false;
+        if (window._verifySaveSignature && ((saved?.meta && !saved._sig) || (saved?._sig && !window._verifySaveSignature(saved)))) blocked = true;
+        cached = normalizeSave(blocked ? null : saved, defaults);
+        if (window.MetaModel) {
+            if (saved && !saved.meta && !blocked) {
+                try { if (!localStorage.getItem(key + ':legacy-backup')) localStorage.setItem(key + ':legacy-backup', JSON.stringify(saved)); }
+                catch { blocked = true; }
+            }
+            cached.meta = !blocked && saved?.meta ? window.MetaModel.sanitizeMeta(saved.meta, now) : window.MetaModel.migrateLegacy(cached, now);
+            cached.parts = cached.meta.currencies.parca;
+        }
+        committed = JSON.parse(JSON.stringify(cached));
+        if (blocked && typeof showToast === 'function') showToast('Operasyon kaydı doğrulanamadı. Asıl kayıt korundu.');
+        if (!window.MetaModel && cached.activeAt < now) {
+            const hours = Math.floor(Math.min(12 * 3600000, Math.max(0, now - cached.activeAt)) / 3600000);
             cached.offline = Math.min(360, cached.offline + hours * Math.min(30, Math.max(0, cached.cleared)));
         }
         cached.activeAt = now;
@@ -48,11 +96,46 @@
         return cached;
     }
     function persist() {
-        try { localStorage.setItem(cachedKey, JSON.stringify(cached)); return true; }
-        catch { return false; }
+        if (blocked) return false;
+        try {
+            if (cached.meta && window.MetaModel) {
+                if (cached.parts !== cached.meta.currencies.parca) {
+                    const result = window.MetaModel.transaction(cached.meta, 'operations:' + (counter(cached.revision) + 1), 'operations', draft => {
+                        if (!Number.isSafeInteger(cached.parts) || cached.parts < 0) return {ok:false,message:'Geçersiz parça işlemi.'};
+                        draft.currencies.parca = cached.parts; return {ok:true};
+                    });
+                    if (!result.ok) throw new Error(result.message);
+                    cached.meta = result.state;
+                }
+                cached.revision = counter(cached.revision) + 1;
+                cached._sigVersion = 2;
+                if (window._generateSaveSignature) cached._sig = window._generateSaveSignature(cached);
+            }
+            localStorage.setItem(cachedKey, JSON.stringify(cached));
+            committed = JSON.parse(JSON.stringify(cached));
+            return true;
+        } catch {
+            if (committed) cached = JSON.parse(JSON.stringify(committed));
+            return false;
+        }
+    }
+    function transactMeta(id, reason, mutate) {
+        if (!active() || (typeof isDuplicateTab !== 'undefined' && isDuplicateTab)) return {ok:false,message:'Bu oturumda işlem yapılamaz.'};
+        const state = load();
+        if (blocked || !window.MetaModel) return {ok:false,message:'Kayıt doğrulanamadı. Asıl kayıt korundu.'};
+        const result = window.MetaModel.transaction(state.meta, id, reason, mutate);
+        if (!result.ok) return result;
+        state.meta = result.state; state.parts = result.state.currencies.parca;
+        if (!persist()) return {ok:false,message:'İşlem kaydedilemedi; kaynakların korunuyor.'};
+        return result;
+    }
+    function openTab(next = 'supply') {
+        if (!active() || !panel) return;
+        if (window.MetaRuntime && ['supply','season'].includes(next)) { window.MetaRuntime.route(next); return; }
+        tab = next; render(); if (!panel.open) panel.showModal();
     }
     function periods(state) {
-        const day = Math.floor(Date.now()/DAY);
+        const day = window.MetaModel ? window.MetaModel.localDay(Date.now()) : Math.floor(Date.now()/DAY);
         const week = Math.floor((day+3)/7);
         const season = Math.floor(day/30);
         if (state.daily.period !== day) state.daily = { period:day };
@@ -87,10 +170,10 @@
         if (!active()) return 0;
         const state = load();
         const item = gear[Object.values(state.equipped).find(id=>gear[id]?.stat===stat)];
-        if (!item || !state.owned[item.id]) return 0;
+        if (!item || !state.owned[item.id]) return window.MetaRuntime?.bonus(stat) || 0;
         const equipped = Object.values(state.equipped).filter(id=>state.owned[id]);
         const set = equipped.filter(id=>gear[id]?.rank===item.rank).length >= 2 ? .02 : 0;
-        return Math.min(.18,.025+item.rank*.01+(state.owned[item.id]-1)*.015+set);
+        return Math.min(.18,.025+item.rank*.01+(state.owned[item.id]-1)*.015+set) + (window.MetaRuntime?.bonus(stat) || 0);
     }
     function icon(name) {
         return '<svg class="operations-icon" aria-hidden="true" viewBox="0 0 80 80"><use href="assets/operations/icons.svg#'+name+'"></use></svg>';
@@ -131,6 +214,7 @@
             b.onclick = () => {
                 if (!active() || ownerKey()!==cachedKey) { panel.close(); return; }
                 const previous = JSON.stringify(state);
+                if (blocked) { window.MetaUI?.notify('Kayıt doğrulanamadı; asıl kayıt korundu.'); return; }
                 action();
                 if (!persist()) {
                     cached = JSON.parse(previous);
@@ -147,7 +231,7 @@
             const current = already ? (state.stamps + 6) % 7 : next;
             const hero = document.createElement('div');
             hero.className = 'operations-supply-hero';
-            hero.innerHTML = '<img src="assets/operations/piko-supply.png" alt="Piko" width="144" height="144"><div><span class="operations-eyebrow">İSTASYON İKMALİ</span><h3>Günlük ikmal</h3><p></p></div>';
+            hero.innerHTML = '<div><span class="operations-eyebrow">İSTASYON İKMALİ</span><h3>Günlük ikmal</h3><p></p></div>';
             hero.querySelector('p').textContent = already ? 'Bugünkü teslimat alındı. Yarın görüşürüz, komutan.' : (next+1)+'. gün ödülün hazır, komutan.';
             content.append(hero);
             const track = document.createElement('ol'); track.className='operations-track';
@@ -171,10 +255,14 @@
                 already ? 'Bir gün kaçırırsan ilerlemen sıfırlanmaz.' : 'Atölyede ekipmanlarını geliştirmek için kullan.', 'supply');
             if(next===6 && !already) {
                 for (const item of gear.filter(item=>item.rank===0)) button(item.name+' seç',()=>{
-                    grant(state,item);state.stamps++;state.day=day;
+                    const claimDay = periods(state);
+                    if (state.day >= claimDay) return;
+                    grant(state,item);state.stamps++;state.day=claimDay;
                 });
             } else button(already?'Bugünkü ikmal alındı':'Ödülü al',()=>{
-                state.parts+=supply[next];state.stamps++;state.day=day;
+                const claimDay = periods(state);
+                if (state.day >= claimDay) return;
+                state.parts+=supply[next];state.stamps++;state.day=claimDay;
             },already).classList.add('operations-primary');
             card('Çevrimdışı ikmal', state.offline ? state.offline+' ekipman parçası depoda hazır.' : 'Sektör tamamla; uzaktayken istasyonun parça biriktirsin.', 'offline');
             line('En fazla 12 saat birikir.');
@@ -188,9 +276,12 @@
                 target.querySelector('.operations-card-art').innerHTML = icon(['weapon','reactor','armor','radar'][item.group]);
                 target.dataset.owned = String(!!level);
                 if (!level) continue;
-                button(equipped?'Takılı':'Tak',()=>{state.equipped[item.group]=item.id;},equipped);
+                button(equipped?'Çıkar':'Tak',()=>{
+                    if (state.equipped[item.group] === item.id) delete state.equipped[item.group];
+                    else state.equipped[item.group] = item.id;
+                });
                 const cost=8+level*6;
-                button(level>=5?'Son seviye':'Geliştir · '+cost,()=>{state.parts-=cost;state.owned[item.id]++;},level>=5||state.parts<cost);
+                button(level>=5?'Son seviye':'Geliştir · '+cost,()=>{if(state.parts<cost||state.owned[item.id]>=5){window.MetaUI?.notify('Yetersiz parça veya son seviye.');return;}state.parts-=cost;state.owned[item.id]++;},level>=5||state.parts<cost);
             }
         } else if (tab==='boss') {
             card('Günlük Boss Akını', 'Saldırı işaretini oku ve doğru hamleyi seç.', 'boss');
@@ -200,7 +291,7 @@
                 const bucket=state[period], count=Math.min(target,bucket[stat]||0), claim='claimed_'+stat;
                 card(label, ({daily:'Günlük',weekly:'Haftalık',career:'Gelişim'})[period]+' · '+count+'/'+target, 'task');
                 const progress=document.createElement('progress');progress.max=target;progress.value=count;progress.setAttribute('aria-label',label);content.lastElementChild.append(progress);
-                button(bucket[claim]?'Alındı':xp+' sezon XP al',()=>{bucket[claim]=true;state.xp+=xp;},count<target||!!bucket[claim]);
+                button(bucket[claim]?'Alındı':xp+' sezon XP al',()=>{if(bucket[claim]||(bucket[stat]||0)<target)return;bucket[claim]=true;state.xp+=xp;if(state.meta)state.meta.season.xp+=xp;},count<target||!!bucket[claim]);
             }
             const back=document.createElement('button');back.type='button';back.textContent='Savaşa dön';
             back.onclick=()=>panel.close();content.append(back);
@@ -214,6 +305,18 @@
             for(let level=1;level<=30;level++) card('Kademe '+level, '6 parça · '+(level<=state.claimed?'Alındı':level<=tier?'Hazır':'Kilitli'), 'season');
         }
     }
+    function eventBriefing(now = Date.now()) {
+        const day = window.MetaModel.localDay(now);
+        const end = new Date(now);
+        const todayReset = new Date(now);
+        todayReset.setHours(window.MetaConfig.daily.resetHour, 0, 0, 0);
+        if (now >= todayReset.getTime()) end.setDate(end.getDate() + 1);
+        end.setHours(window.MetaConfig.daily.resetHour, 0, 0, 0);
+        const boss = window.EndlessBossRush.challenge(day);
+        const fight = load().rush;
+        return {day, endsAt:end.getTime(), boss:boss.name, reward:gear[boss.item].name+' / 8 Parça', result:fight?.day===day ? fight.result : ''};
+    }
+
     function renderBoss(state, day, line, button, content) {
         const rush = window.EndlessBossRush;
         const boss = rush.challenge(day);
@@ -251,18 +354,19 @@
         panel.addEventListener('close',()=>{open.focus({preventScroll:true});});
         for(const [id,label] of [['supply','İkmal'],['gear','Ekipman'],['boss','Boss Akını'],['tasks','Görevler'],['season','Sezon']]) {
             const b=document.createElement('button');b.type='button';b.innerHTML=icon(({supply:'crate',gear:'armor',boss:'boss',tasks:'tasks',season:'season'})[id])+'<span>'+label+'</span>';b.dataset.tab=id;
-            b.onclick=()=>{tab=id;render();panel.querySelector('section').scrollTop=0;};panel.querySelector('nav').append(b);
+            b.onclick=()=>{if(window.MetaRuntime&&['supply','season'].includes(id)){panel.close();window.MetaRuntime.route(id);return;}tab=id;render();panel.querySelector('section').scrollTop=0;};panel.querySelector('nav').append(b);
         }
         document.body.append(panel);
-        open.onclick=()=>{if(active()){render();panel.showModal();}};
+        open.onclick=()=>openTab();
         function heartbeat() {
             if (!active() || document.hidden || !cached) return;
-            const state=load();state.activeAt=Date.now();persist();
+            if (typeof isPaused !== 'undefined' && isPaused) return;
+            const state=load();state.activeAt=Math.max(state.activeAt,Date.now());persist();
         }
         window.setInterval(heartbeat,60000);
         window.addEventListener('pagehide',heartbeat);
     }
-    window.EndlessOperations=Object.freeze({record,bonus});
+    window.EndlessOperations=Object.freeze({record,bonus,eventBriefing,open:openTab,read:()=>load(),transactMeta});
     if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mount,{once:true});
     else mount();
 })();

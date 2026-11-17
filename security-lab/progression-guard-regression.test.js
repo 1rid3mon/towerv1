@@ -309,7 +309,7 @@ test('completed Story Mode session is cleaned before the Endless unlock check, w
   const cleanup = body.indexOf('exitStoryBattle(false);');
   const unlockGate = body.indexOf('if (!parentAuthorizedLaunch && !updateStoryUnlockUI())');
   assert.ok(cleanup >= 0 && unlockGate > cleanup, 'completed story replay must restore Endless state before checking the Endless wave requirement');
-  assert.match(body, /if \(!GameModeRuntime\.storySession\.completed\) return;/);
+  assert.match(body, /if \(!GameModeRuntime\.storySession\.completed\) \{\s*showToast\([\s\S]*?\);\s*return;\s*\}/);
 });
 
 
