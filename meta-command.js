@@ -26,6 +26,9 @@ function mount(){
  bar.append(status,btn('1×',()=>{toggleGameSpeed();refresh(true);}),btn('Duraklat',()=>{togglePause();refresh(true);}),btn('Menü',()=>window.MetaUI.open('menu')));
  rail=document.createElement('nav');rail.id='meta-command-rail';rail.setAttribute('aria-label','Komuta şeridi');
  for(const [name,view]of[['Arşiv','archive'],['İstasyon','station'],['Sefer','event'],['Sezon','season'],['Depo','supply']]){const b=btn(name,()=>R().route(view));b.dataset.view=view;rail.append(b);}
+ const shortcuts = document.createElement('div');
+ shortcuts.id = 'meta-command-shortcuts';
+ shortcuts.append(btn('Boss Akını', () => R().route('boss')), btn('Görevler', () => R().route('tasks')));
  skills=document.createElement('div');skills.id='meta-command-skills';
  for(let i=0;i<6;i++){const b=btn(String(i+1),()=>{const r=R().useSkill(i);message(r.message);});b.setAttribute('aria-label','Protokol yuvası '+(i+1));skills.append(b);}
  skills.append(btn('OTO',()=>{const r=R().action('autoSkills');message(r.message);refresh(true);}));
@@ -35,7 +38,7 @@ function mount(){
  const head=document.createElement('header');for(const value of [1,10,'MAX'])head.append(btn(value==='MAX'?'MAKS':'×'+value,()=>{setBuyMultiplier(value);refresh(true);}));head.append(btn('Kapat',openUpgrades));
  const rows=document.createElement('div');rows.className='meta-upgrade-rows';
  for(const [key,def]of Object.entries(UPGRADE_DEFS)){const row=document.createElement('div'),label=document.createElement('span');row.className='meta-upgrade-row';label.dataset.label=key;label.textContent=def.name;row.append(label,upgradeButton(key));rows.append(row);}
- drawer.append(head,rows);document.body.append(bar,rail,skills,shelf,drawer);
+ drawer.append(head,rows);document.body.append(bar,rail,shortcuts,skills,shelf,drawer);
  window.addEventListener('blur',stop);document.addEventListener('visibilitychange',stop);
  document.addEventListener('meta-state-changed',()=>refresh(true));window.setInterval(refresh,250);refresh(true);
 }
@@ -46,7 +49,7 @@ function refresh(force=false){
  if(!active){stop();return;}
  R().prepare();const m=R().getState();
  const wave=game.wave,sector=Math.ceil(wave/10),step=(wave-1)%10+1;
- document.getElementById('meta-command-status').textContent='SEKTÖR '+sector+' · '+step+'/10  |  CAN '+fmt(tower.hp)+'  |  '+fmt(game.gold)+' Altın  |  Güç '+fmt(getTowerDamage());
+ document.getElementById('meta-command-status').textContent='SEKTÖR '+sector+' · '+step+'/10  |  CAN '+fmt(tower.hp)+'  |  '+fmt(game.gold)+' Altın  |  '+fmt(m.currencies.kredi)+' Kredi  |  '+fmt(m.currencies.kristal)+' Kristal  |  Güç '+fmt(getTowerDamage());
  bar.children[1].textContent=gameSpeed+'×';bar.children[2].textContent=isPaused?'Devam':'Duraklat';bar.children[2].setAttribute('aria-pressed',String(isPaused));
  const stamp=game.gold+':'+JSON.stringify(game.upgrades)+':'+buyMultiplier;
  if(force===true||stamp!==lastStamp){lastStamp=stamp;

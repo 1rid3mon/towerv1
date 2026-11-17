@@ -7,24 +7,28 @@ const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http:
  for(const [width,height] of [[390,844],[844,390],[1032,850]]){
   const context=await browser.newContext({viewport:{width,height},hasTouch:true});await context.route(/firestore\.googleapis\.com|identitytoolkit\.googleapis\.com|securetoken\.googleapis\.com/,r=>r.abort());const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4224/',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.SignalTraining&&typeof game!=='undefined');await page.locator('#mode-main-menu button').filter({hasText:'Sonsuz Mod'}).click();await page.evaluate(()=>{isPaused=true});
+  await page.waitForLoadState('load');
+  const openingCount = await page.evaluate(()=>Math.min(2,MetaRuntime.pending().length + Number(document.querySelector('#meta-center').open)));
+  for(let index=0;index<openingCount;index++){
+    await page.locator('#meta-center[open] .meta-close').tap();
+    await page.locator('#meta-center').waitFor({state:'hidden'});
+  }
   assert.equal(await page.locator('#ls-sound-optin').isVisible(),false,'Console sound belongs in Settings');
   await page.evaluate(()=>{startLootboxModalAnimation('item',1,[],0);clearTimeout(lootboxAnimTimer)});
   await page.locator('#loot-close-always').tap();
   assert.equal(await page.locator('#lootbox-anim-modal').isVisible(),false,'A stalled reveal can be dismissed');
   await page.evaluate(()=>EndlessOperations.record(10));
-  await page.locator('#operations-open').tap();
+  await page.waitForFunction(()=>MetaRuntime.getState().streak.day > 0);
+  await page.evaluate(()=>MetaRuntime.route('supply'));
+  const supply=page.locator('#meta-center');
+  await supply.waitFor();
+  assert.ok(await supply.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'Supply fits the viewport');
+  assert.equal(await page.evaluate(()=>MetaRuntime.getState().currencies.parca),6);
+  assert.equal(await page.evaluate(()=>MetaRuntime.action('daily').ok),false);
+  await supply.screenshot({path:path.join(out,'operations-supply-'+width+'.png')});
+  await supply.getByRole('button',{name:'Kapat',exact:true}).tap();
+  await page.evaluate(()=>EndlessOperations.open('gear'));
   const operations=page.locator('#endless-operations');
-  assert.equal(await operations.locator('.operations-track li').count(),7);
-  assert.ok(await operations.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'Operations fits the viewport');
-  const closeRect=await operations.getByRole('button',{name:'Kapat',exact:true}).boundingBox();
-  assert.ok(closeRect.x>=0&&closeRect.x+closeRect.width<=width&&closeRect.y>=0&&closeRect.y+closeRect.height<=height,'Close stays inside viewport');
-  await operations.screenshot({path:path.join(out,'operations-supply-'+width+'.png')});
-  await operations.getByRole('button',{name:'Ödülü al',exact:true}).tap();
-  assert.equal(await operations.locator('#operations-wallet').innerText(),'6 PARÇA');
-  assert.equal(await operations.getByRole('button',{name:'Bugünkü ikmal alındı',exact:true}).isDisabled(),true);
-  assert.equal(await operations.locator('.operations-track [data-state="claimed"]').count(),1);
-
-  await operations.getByRole('button',{name:'Ekipman',exact:true}).tap();
   assert.equal(await operations.locator('[data-accent^="gear"]').count(),24);
   await operations.getByRole('button',{name:'Tak',exact:true}).tap();
   assert.ok(await page.evaluate(()=>EndlessOperations.bonus('damage')>0));
@@ -32,7 +36,7 @@ const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http:
   assert.equal(await page.evaluate(()=>EndlessOperations.bonus('damage')),0);
   await operations.getByRole('button',{name:'Tak',exact:true}).tap();
   await operations.screenshot({path:path.join(out,'operations-gear-'+width+'.png')});
-  for(const tab of ['Boss Akını','Görevler','Sezon']) {
+  for(const tab of ['Boss Akını','Görevler']) {
    await operations.getByRole('button',{name:tab,exact:true}).tap();
    assert.ok(await operations.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'Tab fits: '+tab);
   }

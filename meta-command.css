@@ -18,3 +18,7 @@ body.meta-command-active :is(#hud-top-bar,#hud-quick-stats,#hud-bottom-controls,
 body.meta-command-active:has(#defeat-overlay:not(.hidden)) :is(#meta-command-rail,#meta-command-skills,#meta-command-shelf,#meta-command-upgrades){visibility:hidden}
 @media(max-width:800px){body.meta-command-active #meta-command-shelf{bottom:60px;max-width:300px}body.meta-command-active #meta-command-upgrades:not([hidden]){bottom:108px;max-height:196px}}
 @media(prefers-reduced-motion:reduce){#meta-command-upgrades{transition:none}}
+#meta-command-shortcuts{display:none}
+body.meta-command-active #meta-command-shortcuts{display:flex;position:fixed;top:52px;left:68px;gap:4px;z-index:25}
+#meta-command-shortcuts button{min-height:44px;min-width:44px;padding:4px 10px;border:1px solid #4c7282;border-radius:6px;background:#102838;color:#e9f3f8;font:600 12px Inter,system-ui,sans-serif}
+body.meta-command-active:has(#defeat-overlay:not(.hidden)) #meta-command-shortcuts{visibility:hidden}

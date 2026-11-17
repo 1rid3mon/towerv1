@@ -18,6 +18,7 @@ skills:[
 summon:{equipment:{one:100,ten:900},skill:{one:120,ten:1080},pityEnabled:false,pityAfter:50,pityTier:3},
 fusion:{copiesPerLevel:15,maxLevel:20,partsPerLevel:0},skillUnlockSectors:[0,0,5,10,15,20],
 daily:{resetHour:4,resetGapDays:7,rewards:[6,8,10,12,14,16,24],kristal:150,kredi:100},
+creditUpgrade:{baseCost:100,growthNumerator:5,growthDenominator:4,maxLevel:50,damagePerLevel:.02},
 waveRewards:{kristal:3,kredi:20,xp:10},
 offline:{maxHours:12,maxCleared:30,maxPending:360,hourMs:3600000,popupMinutes:5},
 returnEvent:{absenceDays:7,durationDays:20,retriggerDays:30,warningHours:48,taskDays:7,tasks:[{id:'login',target:1,reward:10},{id:'waves',target:3,reward:10},{id:'bosses',target:1,reward:15},{id:'summons',target:1,reward:15},{id:'fusions',target:1,reward:20}]},

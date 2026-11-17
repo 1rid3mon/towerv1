@@ -13,6 +13,10 @@ function change(name,id,fn){
  if(r.ok)document.dispatchEvent(new Event('meta-state-changed'));
  return r.ok?{...r.result,ok:true,message:r.message}:r;
 }
+function creditCost(level) {
+ const {baseCost,growthNumerator,growthDenominator}=C.creditUpgrade;
+ return BigInt(baseCost)*BigInt(growthNumerator)**BigInt(level)/BigInt(growthDenominator)**BigInt(level);
+}
 function action(name,args={}){
  const s=state(),now=Date.now(),type=args.type==='skills'?'skill':args.type;
  switch(name){
@@ -30,6 +34,14 @@ function action(name,args={}){
  });
  case 'returnClaim':return change(name,'return:'+s.returnEvent.startedAt+':'+args.day+':'+args.task,d=>M.claimReturn(d,now,args.day,args.task));
  case 'noticeDismiss':return change(name,'notice:'+M.localDay(now),d=>{d.notice.dismissedDay=M.localDay(now);return {ok:true};});
+ case 'creditUpgrade':return change(name,null,d=>{
+  if(d.creditLevel>=C.creditUpgrade.maxLevel)return {ok:false,message:'Son seviyeye ulaştın.'};
+  const cost=creditCost(d.creditLevel);
+  if(BigInt(d.currencies.kredi)<cost)return {ok:false,message:'Yeterli Kredi yok.'};
+  d.currencies.kredi=(BigInt(d.currencies.kredi)-cost).toString();
+  d.creditLevel++;
+  return {ok:true,message:'Kalıcı hasar yükseltildi.'};
+ });
  case 'autoSkills':return change(name,null,d=>{d.autoSkills=!d.autoSkills;return {ok:true,message:d.autoSkills?'Protokoller otomatik.':'Protokoller elle.'};});
  default:return {ok:false,message:'Bu işlem kullanılamıyor.'};
  }
@@ -51,7 +63,7 @@ function route(view){
  prepare();
  if(['boss','gear','tasks'].includes(view)){window.MetaUI?.close();window.EndlessOperations.open(view);}
  else if(['upgrade','station'].includes(view)){window.MetaUI?.close();window.MetaCommand?.openUpgrades();}
- else if(view==='battle'){window.MetaUI?.close();document.getElementById('mode-endless-button')?.click();}
+ else if(view==='battle'){window.MetaUI?.close();if (!document.getElementById('mode-main-menu')?.classList.contains('hidden')) enterGameMode('endless');}
  else if(view==='main'){window.MetaUI?.close();returnToMainMenu();}
  else window.MetaUI?.open(view);
 }
@@ -70,7 +82,7 @@ function bonus(stat){
  if(!allowed()||!ready||stat!=='damage')return 0;
  const a=state().archive;let owned=0,equipped=0;
  for(const item of C.equipment){const level=a.equipment[item.id]?.level||0;owned+=level*item.bonus;if(a.equippedWeapon===item.id)equipped=level*item.bonus*3;}
- return owned+equipped;
+ return owned+equipped+state().creditLevel*C.creditUpgrade.damagePerLevel;
 }
 function useSkill(slot,automatic=false){
  if(!allowed()||typeof isPaused==='undefined'||isPaused||isDefeated)return {ok:false,message:'Protokol için aktif savaş gerekli.'};
@@ -107,6 +119,6 @@ document.addEventListener('visibilitychange',()=>{
  if(document.hidden)seen();else {const gap=Date.now()-state().offline.activeAt;change('resume',null,d=>{M.touchReturn(d);M.accrueOffline(d,Date.now(),legacy().cleared);return {ok:true};});if(gap>=300000&&state().offline.pending)queue.push('offline');window.MetaUI?.refresh();}
 });
 window.addEventListener('pagehide',seen);
-window.MetaRuntime=Object.freeze({getState:()=>JSON.parse(JSON.stringify(state())),getLegacy:()=>JSON.parse(JSON.stringify(legacy())),prepare,action,route,wave,bonus,useSkill,tick,absorb,cooldown:slot=>cooldowns[state().archive.skillSlots[slot]]||0,pending:()=>queue.slice()});
+window.MetaRuntime=Object.freeze({getState:()=>JSON.parse(JSON.stringify(state())),getLegacy:()=>JSON.parse(JSON.stringify(legacy())),prepare,action,creditCost,route,wave,bonus,useSkill,tick,absorb,cooldown:slot=>cooldowns[state().archive.skillSlots[slot]]||0,pending:()=>queue.slice()});
 window.addEventListener('load',()=>{prepare();window.setInterval(showNext,900);});
 })();
