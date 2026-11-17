@@ -1057,7 +1057,7 @@
                         <button onclick="setBuyMultiplier(10)" id="mult-10" class="px-2.5 py-0.5 rounded text-xs font-tech font-bold text-slate-400 hover:text-white transition">10x</button>
                         <button onclick="setBuyMultiplier('MAX')" id="mult-MAX" class="px-2.5 py-0.5 rounded text-xs font-tech font-bold text-slate-400 hover:text-white transition">MAX</button>
                     </div>
-                    <button onclick="toggleUpgradeDrawer()" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
+                    <button onclick="toggleUpgradeDrawer()" data-workshop-close aria-label="Atölyeyi kapat" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1759,6 +1759,8 @@
 <script src="lost-signal-combat-art-v17.js"></script>
 <script src="render.js"></script>
 <script src="fluidity-v16.js"></script>
+<script src="data/fx-config.js"></script>
+<script src="fx-director.js"></script>
 <script src="endless-sectors.js"></script>
 <script src="endless-sector-scenery.js"></script>
 <script src="endless-boss-rush.js"></script>

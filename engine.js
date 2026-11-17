@@ -1384,12 +1384,16 @@ function gameLoop(now) {
     const dt = Math.min(0.1, (now - lastFrameTime) / 1000);
     lastFrameTime = now;
 
+    const updateStart = performance.now();
     updateGame(dt);
     if (!combatFramePacer || combatFramePacer.shouldRender(now, { paused: isPaused || isDefeated, hidden: document.hidden })) {
         const drawStart = performance.now();
         renderGame();
         if (combatFramePacer && !isPaused && !isDefeated) {
-            combatFramePacer.observeRenderCost(performance.now() - drawStart);
+            const finishedAt = performance.now();
+            combatFramePacer.observeRenderCost(finishedAt - drawStart);
+            if (!document.hidden && !GameModeRuntime.isStoryActive()) window.Fx?.observeFrame(now, finishedAt - updateStart);
+            else window.Fx?.resetSampling();
         }
     }
 
