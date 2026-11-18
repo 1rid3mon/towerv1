@@ -1040,6 +1040,7 @@ function dealDamageToEnemy(enemy, amount, isCrit = false, color = '#ffffff', app
     amount *= tacticMultiplier();
     enemy.hp -= amount; enemy.hitFlash = 1;
     if (window.TowerCombatV12) window.TowerCombatV12.hit(enemy.x, enemy.y, color, isCrit, enemy.type === 'boss');
+    if (isCrit) window.Fx?.emit('critical');
     if (typeof playBattleCue === 'function') playBattleCue(isCrit ? 'critical' : 'impact');
     addFloatingText(enemy.x, enemy.y, formatNumber(amount) + (isCrit ? '!' : ''), color, isCrit ? 14 : 11);
 
@@ -1055,12 +1056,13 @@ function killEnemy(enemy) {
     const goldEarned = Math.max(1, Math.round(enemy.gold)); game.gold += goldEarned;
     addFloatingText(enemy.x, enemy.y - 10, `+${formatNumber(goldEarned)} 🪙`, '#fbbf24', 11);
 
+    let visualCrystals = 0;
     const crystalChance = getCrystalDropChance() * (game.holdWave ? 0.35 : 1.0);
     const crystalMult = getCrystalDropMult();
     if (enemy.type === 'boss') {
         const baseBossCrystals = Math.round((5 + Math.floor(game.wave * 0.75)) * crystalMult);
         const c = game.holdWave ? Math.max(1, Math.round(baseBossCrystals * 0.35)) : baseBossCrystals;
-        creditGameplayCrystals(c); game.stats.bossKills++;
+        creditGameplayCrystals(c); visualCrystals = c; game.stats.bossKills++;
         addFloatingText(enemy.x, enemy.y - 24, `+${formatNumber(c)} 💎`, '#22d3ee', 15);
         showToast(`${enemy.name || 'Boss'} İmha Edildi! +${formatNumber(c)} Kristal!`);
         if (typeof showBattleMoment === 'function') {
@@ -1071,10 +1073,11 @@ function killEnemy(enemy) {
         }
     } else if (Math.random() * 100 < crystalChance) {
         const cAmt = Math.max(1, Math.round(crystalMult));
-        creditGameplayCrystals(cAmt);
+        creditGameplayCrystals(cAmt); visualCrystals = cAmt;
         addFloatingText(enemy.x, enemy.y - 22, `+${cAmt} 💎`, '#22d3ee', 13);
     }
 
+    window.Fx?.emit('enemyKill', { x: enemy.x, y: enemy.y, gold: goldEarned, crystals: visualCrystals, boss: enemy.type === 'boss' });
     createParticles(enemy.x, enemy.y, enemy.color, enemy.type === 'boss' ? 24 : 10, 85);
     rings.push({ x: enemy.x, y: enemy.y, radius: enemy.radius * 0.5, color: enemy.color, life: 1.0, isBossDeath: enemy.type === 'boss' });
     if (enemy.type === 'boss') {
@@ -1385,7 +1388,10 @@ function gameLoop(now) {
     lastFrameTime = now;
 
     const updateStart = performance.now();
-    updateGame(dt);
+    const fxActive = !isPaused && !isDefeated && !document.hidden && !GameModeRuntime.isStoryActive();
+    if (fxActive) window.Fx?.updateVisuals(dt, tower);
+    else if (isDefeated || document.hidden || GameModeRuntime.isStoryActive()) window.Fx?.clearVisuals();
+    updateGame(dt * (fxActive ? (window.Fx?.simulationScale() ?? 1) : 1));
     if (!combatFramePacer || combatFramePacer.shouldRender(now, { paused: isPaused || isDefeated, hidden: document.hidden })) {
         const drawStart = performance.now();
         renderGame();
@@ -1442,7 +1448,7 @@ window.onload = function () {
     tower.shield = getTowerMaxShield();
 
     applyBodyClasses();
-    setDeviceMode(game.deviceMode || 'pc');
+    setDeviceMode(game.deviceMode || 'auto');
     updateHoldWaveButton();
     buildUpgradesUI();
     buildInventoryUI();

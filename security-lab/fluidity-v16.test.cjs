@@ -65,7 +65,12 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const render = fs.readFileSync(path.join(root, 'render.js'), 'utf8');
 assert.ok(html.indexOf('fluidity-v16.js') > html.indexOf('render.js'));
 assert.ok(html.indexOf('fluidity-v16.js') < html.indexOf('engine.js'));
-assert.match(engine, /updateGame\(dt\);\s*if \(!combatFramePacer/);
+// Simulation must run even on frames skipped by the render pacer. FX may scale
+// simulation time for a bounded hitstop, but must not move it inside the gate.
+const loop = engine.slice(engine.indexOf('function gameLoop(now)'), engine.indexOf("window.addEventListener('storage'"));
+assert.match(loop, /updateGame\(dt \* \(fxActive/);
+assert.ok(loop.indexOf('updateGame(') < loop.indexOf('if (!combatFramePacer'));
+assert.ok(loop.indexOf('updateVisuals(dt, tower)') < loop.indexOf('updateGame('));
 assert.match(engine, /shiftViewport\(previousWidth, previousHeight, nextWidth, nextHeight/);
 assert.match(render, /c\.fillText\(d\.qteTimer\.toFixed\(1\) \+ 's'/);
 console.log('PASS V16 120Hz/90Hz pacing, adaptive frame cost, pause/visibility, resize anchoring and QTE timer');

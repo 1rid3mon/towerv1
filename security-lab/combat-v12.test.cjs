@@ -24,3 +24,15 @@ assert.equal(w.TowerCombatV12.diagnostics().count,2);
 w.TowerCombatV12.render(ctx,.08);
 assert.equal(w.TowerCombatV12.diagnostics().count,2);
 console.log('PASS V12 cosmetic feedback: capped effects, render, cleanup, reduced motion, low quality, invalid coords, boss double pulse');
+// Normal death has a 60ms compressed core then a short fragment burst.
+for(let i=0;i<20;i++)w.TowerCombatV12.render(ctx,.08);
+let scales=0,fills=0;
+Object.assign(ctx,{translate(){},scale(x,y){assert.equal(x,1.25);assert.equal(y,.75);scales++},fill(){fills++}});
+w.TowerCombatV12.death(20,20,'#aabbcc',false);
+w.TowerCombatV12.render(ctx,.02);
+assert.equal(scales,1);assert.ok(fills>0);
+const coreFills=fills;
+w.TowerCombatV12.render(ctx,.06);
+assert.equal(fills-coreFills,8);
+for(let i=0;i<5;i++)w.TowerCombatV12.render(ctx,.08);
+assert.equal(w.TowerCombatV12.diagnostics().count,0);

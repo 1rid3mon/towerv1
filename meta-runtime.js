@@ -4,7 +4,7 @@
 const C=window.MetaConfig,M=window.MetaModel;
 let ready=false,preparing=false,lastOwner='',queue=[],autoCount=0,cooldowns={},barrier=0,barrierTime=0;
 const owner=()=>typeof currentUser!=='undefined'&&currentUser?.uid||'guest';
-const allowed=()=>document.body.dataset.gameMode!=='story'&&!window.GameModeRuntime?.isStoryActive()&&!(typeof isDuplicateTab!=='undefined'&&isDuplicateTab);
+const allowed=()=>document.getElementById('story-mode-screen')?.getAttribute('aria-hidden')!=='false'&&document.body.dataset.gameMode!=='story'&&!window.GameModeRuntime?.isStoryActive()&&!(typeof isDuplicateTab!=='undefined'&&isDuplicateTab);
 const legacy=()=>window.EndlessOperations.read();
 const state=()=>legacy().meta;
 function change(name,id,fn){
@@ -33,6 +33,7 @@ function action(name,args={}){
   d.currencies.kristal-=C.season.premiumCost;d.season.premiumUnlocked=true;return {ok:true,message:'Seçkin ve Kayıp şeritleri açıldı.'};
  });
  case 'returnClaim':return change(name,'return:'+s.returnEvent.startedAt+':'+args.day+':'+args.task,d=>M.claimReturn(d,now,args.day,args.task));
+ case 'noticeSeen':return change(name,null,d=>{if(typeof args.id!=='string'||args.id.length>80||['__proto__','constructor','prototype'].includes(args.id))return {ok:false};d.seenNotices[args.id]=true;const keys=Object.keys(d.seenNotices);if(keys.length>128)delete d.seenNotices[keys[0]];return {ok:true};});
  case 'noticeDismiss':return change(name,'notice:'+M.localDay(now),d=>{d.notice.dismissedDay=M.localDay(now);return {ok:true};});
  case 'creditUpgrade':return change(name,null,d=>{
   if(d.creditLevel>=C.creditUpgrade.maxLevel)return {ok:false,message:'Son seviyeye ulaştın.'};
@@ -55,7 +56,7 @@ function prepare(){
   const daily=action('daily');if(daily.ok)queue.push('streak');
   if(Date.now()-oldSeen>=300000&&state().offline.pending)queue.push('offline');
   if(state().returnEvent.startedAt&&Date.now()<state().returnEvent.endsAt)queue.push('return');
-  if(window.MetaNotices?.length&&state().notice.dismissedDay!==M.localDay(Date.now()))queue.push('notice');
+  // Notices travel through the nonblocking station radio, never the startup modal queue.
  }else window.MetaUI?.notify(r.message);
  ready=true;preparing=false;document.dispatchEvent(new Event('meta-runtime-ready'));
 }

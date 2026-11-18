@@ -17,6 +17,7 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  await page.goto('http://127.0.0.1:4184/',{waitUntil:'networkidle'});await page.waitForFunction(()=>window.MetaRuntime&&window.MetaUI&&window.EndlessOperations);
  await page.evaluate(()=>{MetaRuntime.prepare();const result=EndlessOperations.transactMeta('qa:fixture','disposable test fixture',d=>{d.currencies.kristal=10000;d.archive.equipment.weapon_0={level:1,copies:15,seen:false};d.archive.skills.ark={level:1,copies:15,seen:false};d.season.xp=180;d.offline.pending=12;d.returnEvent.startedAt=Date.now()-86400000;d.returnEvent.endsAt=Date.now()+19*86400000;d.returnEvent.lastTriggerAt=d.returnEvent.startedAt;d.progress.waves=6;d.progress.logins=2;return {ok:true};});if(!result.ok)throw new Error(result.message);});
  for(const view of ['archive','skills','supply','streak','season','return','event','notice']){await page.evaluate(v=>MetaRuntime.route(v),view);if(view==='season'){
+ await page.locator('#meta-center').getByRole('button',{name:'Sezon ödülü',exact:true}).click();
  await page.locator('#meta-overlay.meta-season-preview[open]').waitFor();
  await page.screenshot({path:path.join(evidence,width+'x'+height+'-season-preview.png')});
  await page.locator('#meta-overlay').getByRole('button',{name:'Geçide git'}).click();
@@ -29,6 +30,22 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  await page.evaluate(()=>MetaRuntime.route('archive'));await page.locator('#meta-center .meta-close').click();await page.locator('#meta-center').waitFor({state:'hidden'});
  await page.locator('#mode-main-menu button').filter({hasText:'Sonsuz Mod'}).click();
  await page.locator('#meta-command-bar').waitFor({state:'visible'});
+ // Startup rewards are completed with actual controls before checking battle/settings.
+ for(let i=0;i<3;i++){await page.waitForTimeout(350);if(await page.locator('#meta-center[open]').count())await page.locator('#meta-center .meta-close').click();}
+ await page.evaluate(()=>{isPaused=false;});
+ await page.locator('#meta-command-bar button[aria-label="Ses ve ayarlar"]').click();
+ await page.locator('#settings-modal').waitFor({state:'visible'});
+ assert.equal(await page.evaluate(()=>isPaused),true,'settings pauses battle');
+ const settings=await page.evaluate(()=>{const p=document.querySelector('.signal-settings-shell'),r=p.getBoundingClientRect();return{overflow:p.scrollWidth>p.clientWidth+1,outside:r.right>innerWidth+1,small:[...p.querySelectorAll('button,select,summary')].filter(e=>e.getClientRects().length).filter(e=>{const r=e.getBoundingClientRect();return r.height<44||r.width<44;}).map(e=>e.textContent)};});
+ assert.equal(settings.overflow,false);assert.equal(settings.outside,false);assert.deepEqual(settings.small,[]);
+ await page.screenshot({path:path.join(evidence,width+'x'+height+'-settings.png')});
+ await page.locator('#settings-modal header button').click();
+ assert.equal(await page.evaluate(()=>isPaused),false,'settings resumes previously running battle');
+ await page.waitForTimeout(150);
+ await page.evaluate(()=>{isPaused=true;openSettingsModal();});
+ await page.goBack();await page.locator('#settings-modal').waitFor({state:'hidden'});
+ assert.equal(await page.evaluate(()=>isPaused),true,'already paused remains paused');
+ await page.evaluate(()=>{isPaused=false;});
  const hud=await page.evaluate(()=>({field:document.querySelector('#gameCanvas').getBoundingClientRect().height,height:innerHeight}));
  await page.screenshot({path:path.join(evidence,width+'x'+height+'-battle.png')});
  assert.ok(hud.field/hud.height>=0.85,'Battle canvas has at least 85% viewport height: '+JSON.stringify(hud));
