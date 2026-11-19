@@ -14,9 +14,15 @@ jobs:
           node-version: 22
       - run: npm install --no-audit --no-fund
         working-directory: security-lab
-      - run: npx playwright install --with-deps chromium
+      - name: Choose installed Chrome or install bundled Chromium
         working-directory: security-lab
-      - run: node --test security-lab/meta-model.test.js security-lab/meta-radio.test.cjs security-lab/meta-fx-preferences.test.cjs security-lab/fx-director.test.cjs security-lab/endless-operations.test.js
+        run: |
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "CHROMIUM_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - run: node --test security-lab/meta-model.test.js security-lab/meta-command-state.test.cjs security-lab/meta-radio.test.cjs security-lab/meta-fx-preferences.test.cjs security-lab/fx-director.test.cjs security-lab/endless-operations.test.js
       - run: node security-lab/meta-ui-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
