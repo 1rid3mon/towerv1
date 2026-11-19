@@ -113,9 +113,11 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
   assert.equal(await page.locator('[data-upgrade-row="damage"] .workshop-next').innerText(),offer.predicted,'displayed forecast uses actual bulk count');
   await page.locator('[data-upgrade-row="damage"] [data-upgrade="damage"]').tap();
   const purchased=await page.evaluate(()=>({level:game.upgrades.damage,gold:game.gold,value:UPGRADE_DEFS.damage.getValueText(game.upgrades.damage)}));
+  assert.equal(await page.locator('[data-workshop-multiplier="'+multiplier+'"]').getAttribute('aria-pressed'),'true','selected bulk amount stays synchronized');
   assert.equal(purchased.level,offer.level+offer.count,'one touch buys selected amount once');assert.equal(purchased.gold,offer.gold-offer.cost,'one touch debits exact cost once');assert.equal(purchased.value,offer.predicted,'shown value matches actual purchased effect');
  }
  await page.evaluate(()=>{game.gold=100000;game.upgrades.damage=9;window._syncShadow?.();setBuyMultiplier(1);MetaCommand.refresh(true);renderGame();});
+ await page.waitForTimeout(200);
  await page.screenshot({path:path.join(evidence,width+'x'+height+'-workshop-preview.png')});
  await page.keyboard.press('Escape');await page.locator('#meta-command-upgrades').waitFor({state:'hidden'});
  assert.equal(await page.evaluate(()=>document.body.classList.contains('command-workshop-open')),false,'Escape closes workshop');

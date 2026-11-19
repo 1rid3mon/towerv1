@@ -86,3 +86,5 @@ body.command-workshop-open #meta-command-shelf{max-width:58px}body.command-works
 @media(max-height:500px){#meta-command-upgrades .workshop-header{min-height:52px;padding:4px 8px;gap:5px}.workshop-heading small{display:none}.workshop-heading strong{font-size:18px}#meta-command-upgrades .workshop-categories{padding:2px 8px}#meta-command-upgrades .workshop-card{grid-template-columns:56px minmax(0,1fr) 80px;gap:6px;min-height:100px;padding:8px 6px}#meta-command-upgrades .workshop-art{width:56px;height:64px}#meta-command-upgrades .workshop-art svg{width:64px;height:64px}.workshop-name-line h3{font-size:13px}.workshop-description{margin:4px 0;font-size:12px}.workshop-name-line{gap:3px}.workshop-level{padding:3px;font-size:12px}.workshop-preview{gap:3px}.workshop-next{font-size:12px}}
 @media(prefers-reduced-motion:reduce){body.meta-command-active #meta-command-upgrades:not([hidden]){animation:none}}
 html[data-meta-reduced=true] #meta-command-upgrades{animation:none!important}
+/* The full cost gets the width on narrow phones; maxed cards keep their check. */
+#meta-command-upgrades .workshop-purchase button[data-maxed=false] .command-upgrade-arrow{display:none}
