@@ -38,6 +38,14 @@ function unwind(layer){if(history.state?.metaUI===layer){suppressPop++;history.b
 function mount(){if(dialog||!document.body)return;dialog=el('dialog');dialog.id='meta-center';dialog.setAttribute('aria-labelledby','meta-title');const header=el('header',null,'meta-header');title=el('h2',t('title'));title.id='meta-title';wallet=el('div',null,'meta-wallet');const closeBtn=button('×',close,'meta-close');closeBtn.setAttribute('aria-label',t('close'));header.append(title,wallet,closeBtn);nav=el('nav',null,'meta-nav');nav.setAttribute('aria-label',t('menu'));body=el('div',null,'meta-body');footer=el('footer',null,'meta-footer');const layout=el('div',null,'meta-layout'),main=el('div',null,'meta-main');main.append(body,footer);layout.append(nav,main);dialog.append(header,layout);overlay=el('dialog');overlay.id='meta-overlay';overlay.setAttribute('aria-labelledby','meta-overlay-title');const toast=el('div');toast.id='meta-toast';toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');document.body.append(dialog,overlay,toast);dialog.addEventListener('cancel',e=>{e.preventDefault();close();});overlay.addEventListener('cancel',e=>{e.preventDefault();closeOverlay();});dialog.addEventListener('close',()=>{document.body.style.overflow=oldOverflow;document.dispatchEvent(new Event('meta-dialog-closed'));});window.addEventListener('popstate',()=>{if(suppressPop){suppressPop--;return;}if(overlay.open)overlay.close();else if(dialog.open)dialog.close();});document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});}
 function open(next='menu'){mount();if(!dialog)return;if(next==='notice'&&!window.MetaNotices?.length)return;dialog.classList.toggle('meta-notice-panel',next==='notice');view=next==='gear'?'archive':next==='offline'?'supply':next;if(next==='skills'){view='archive';type='skills';}else if(next==='archive'||next==='gear'){type='equipment';}selected=null;if(!dialog.open){oldOverflow=document.body.style.overflow;document.body.style.overflow='hidden';dialog.showModal();push('main');}refresh();}
 function close(){if(overlay?.open){closeOverlay();return;}if(!dialog?.open)return;dialog.close();unwind('main');}
+function closeForRoute(callback){
+ // Consume both owned history entries before the next screen can push its own.
+ const depth=history.state?.metaUI==='overlay'?(dialog?.open?2:1):history.state?.metaUI==='main'?1:0;
+ if(overlay?.open){clearTimeout(seasonPreviewTimer);overlay.close();}
+ if(dialog?.open)dialog.close();
+ if(!depth){callback();return;}
+ suppressPop++;window.addEventListener('popstate',callback,{once:true});history.go(-depth);
+}
 function closeOverlay(){if(!overlay?.open)return;clearTimeout(seasonPreviewTimer);overlay.classList.remove('meta-season-preview');overlay.close();unwind('overlay');}
 function popup(heading,content,buttons){motionReduced();const already=overlay.open;clearTimeout(seasonPreviewTimer);overlay.classList.remove('meta-season-preview');if(already)overlay.close();overlay.replaceChildren();const h=el('header',null,'meta-header'),name=el('h2',heading);name.id='meta-overlay-title';const x=button('×',closeOverlay,'meta-close');x.setAttribute('aria-label',t('close'));h.append(name,x);const c=el('div',null,'meta-overlay-content');c.append(content);const f=el('footer',null,'meta-overlay-footer');(buttons||[button(t('done'),closeOverlay)]).forEach(b=>f.append(b));overlay.append(h,c,f);overlay.showModal();if(!already)push('overlay');}
 function probabilities(){const wrap=el('div');wrap.append(el('p',t('probabilityNote')));const table=el('table'),catalog=C()[type]||[],rates=new Map();for(const r of C().rarities||[]){let rarity=r.id;if(type==='skills')while(rarity>0&&!catalog.some(i=>i.rarity===rarity))rarity--;rates.set(rarity,(rates.get(rarity)||0)+r.probability);}for(const [id,rate]of rates){if(!rate)continue;const tr=el('tr');tr.append(el('th',C().rarities[id]?.name),el('td',rate.toLocaleString('tr-TR')+'%'));table.append(tr);}wrap.append(table);popup(t('probability'),wrap);}
@@ -49,7 +57,7 @@ function renderSupply(m){body.classList.add('meta-cards');const c=card(body,t('o
 function renderStreak(m){
  const day=m.streak?.day||1,total=m.streak?.totalDays||day,reduced=window.Fx?.settings().reduced||matchMedia('(prefers-reduced-motion: reduce)').matches;
  body.classList.add('meta-streak');body.dataset.reduced=String(reduced);
- const number=el('strong',String(day),'meta-streak-number');
+ const number=el('strong',String(total),'meta-streak-number');
  body.append(number,el('h3',t('streakLine')),el('p',t('dailyAuto')));
  const rail=el('div',null,'meta-three-rewards'),rewards=C().daily?.rewards||[];
  for(let offset=0;offset<3;offset++){const index=(day-1+offset)%7,c=card(rail,t(['today','tomorrow','nextDay'][offset]),rewards[index]+' '+t('parca'));c.style.setProperty('--card-delay',(300+offset*80)+'ms');c.append(el('strong',offset===0?t('claimed'):t('day')+' '+(index+1)));}
@@ -57,8 +65,8 @@ function renderStreak(m){
  if([3,7,14,30].includes(total))body.append(el('strong',t('milestone'),'meta-milestone'));
  footerAction(t('done'),close,true);
  const started=performance.now();let done=reduced;
- function finish(){done=true;number.textContent=String(day);line.textContent=t('dailySignalLine');body.classList.add('meta-streak-skip');dialog.querySelectorAll('.meta-wallet-flight').forEach(e=>e.remove());}
- if(!reduced){number.textContent='0';const frame=now=>{if(done||!number.isConnected)return;const f=Math.min(1,(now-started)/500);number.textContent=String(Math.round(day*(1-Math.pow(1-f,3))));if(f<1)requestAnimationFrame(frame);};requestAnimationFrame(frame);}
+ function finish(){done=true;number.textContent=String(total);line.textContent=t('dailySignalLine');body.classList.add('meta-streak-skip');dialog.querySelectorAll('.meta-wallet-flight').forEach(e=>e.remove());}
+ if(!reduced){number.textContent='0';const frame=now=>{if(done||!number.isConnected)return;const f=Math.min(1,(now-started)/500);number.textContent=String(Math.round(total*(1-Math.pow(1-f,3))));if(f<1)requestAnimationFrame(frame);};requestAnimationFrame(frame);}
  if(!reduced){line.textContent='';const full=t('dailySignalLine');const type=now=>{if(done||!line.isConnected)return;line.textContent=full.slice(0,Math.max(0,Math.floor((now-started-1300)/18)));if(line.textContent.length<full.length)requestAnimationFrame(type);};requestAnimationFrame(type);}
  body.onclick=finish;
 }
@@ -101,12 +109,12 @@ const upgrade=card(body,t('creditUpgrade'),t('level')+' '+level+' · +'+(level*C
 upgrade.append(button(level>=C().creditUpgrade.maxLevel?t('maxLevel'):t('upgrade')+' · '+n(R().creditCost(level))+' '+t('kredi'),()=>action('creditUpgrade')));
 
 const controls=card(body,t('battleControls'),'');
-controls.append(button(t('settings'),()=>{close();openSettingsModal();}),button(t('workshop'),()=>{close();if(!isDrawerOpen)toggleUpgradeDrawer();}),button(t('mainMenu'),()=>R()?.route?.('main')));
+controls.append(button(t('settings'),()=>closeForRoute(openSettingsModal)),button(t('workshop'),()=>closeForRoute(()=>{if(!isDrawerOpen)toggleUpgradeDrawer();})),button(t('mainMenu'),()=>R()?.route?.('main')));
 for(const v of ['archive','supply','streak','season','return','event','notice']){const c=card(body,t(v),'');c.append(button(t(v),()=>open(v)));}}
 // Radio cards stay outside the modal layer and never change pause state.
 let radioQueue,radioCard,radioBadge,radioId='',radioOwner='',radioTimer;
 const radioHistory=new Map();
-function radioNotices(){return [...new Map([...(window.MetaNotices||[]),...radioHistory.values()].map(n=>[n.id,n])).values()];}
+function radioNotices(){return [...new Map([...(window.MetaNotices||[]),...radioHistory.values()].map(n=>[n.id,n])).values()].filter(n=>MetaModel.noticeEligible(n,Date.now(),window.MetaBuild||2));}
 function radioBusy(){
  const settings=document.getElementById('settings-modal'),cinema=document.getElementById('boss-cinema-v15'),moment=document.getElementById('battle-moment');
  return document.hidden||document.body.dataset.gameMode==='story'||document.getElementById('story-mode-screen')?.getAttribute('aria-hidden')==='false'||
@@ -116,10 +124,10 @@ function radioBusy(){
 }
 function radioTick(){
  if(!R())return;
- document.documentElement.dataset.metaReduced=String(window.Fx?.settings().reduced===true);
+ motionReduced();
  const account=typeof currentUser!=='undefined'&&currentUser?.uid||'guest';
- if(!radioQueue||account!==radioOwner){radioOwner=account;radioQueue=MetaModel.createNoticeQueue(state().seenNotices);radioHistory.clear();radioId='';}
- for(const notice of window.MetaNotices||[]){const now=Date.now();if((!notice.validFrom||now>=Date.parse(notice.validFrom))&&(!notice.validTo||now<=Date.parse(notice.validTo)))radioQueue.enqueue(notice);}
+ if(!radioQueue||account!==radioOwner){radioOwner=account;radioQueue=MetaModel.createNoticeQueue(state().seenNotices,window.MetaBuild||2);radioHistory.clear();radioId='';}
+ for(const notice of radioNotices())radioQueue.enqueue(notice);
  const season=state().season;
  if(season){const tier=Math.min(C().season.tiers,Math.floor(season.xp/C().season.xpPerTier));const notice={id:'season:'+season.period+':'+tier,type:'sezon',title:t('seasonTitle')+' · '+t('tier')+' '+tier,body:C().season.partsPerTier+' '+t('parca')+' / '+t('tier'),action:{route:'season'}};if(radioQueue.enqueue(notice))radioHistory.set(notice.id,notice);}
  const entry=radioQueue.tick(Date.now(),radioBusy());
@@ -129,5 +137,5 @@ function radioTick(){
  if(!entry)radioId='';
 }
 function startRadio(){if(!radioTimer)radioTimer=setInterval(radioTick,250);}
-window.MetaUI=Object.freeze({open,close,notify,refresh,showResults,showSeasonPreview});document.addEventListener('meta-runtime-ready',()=>{mount();refresh();startRadio();});document.addEventListener('meta-state-changed',refresh);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
+window.MetaUI=Object.freeze({open,close,closeForRoute,notify,refresh,showResults,showSeasonPreview});document.addEventListener('meta-runtime-ready',()=>{mount();refresh();startRadio();});document.addEventListener('meta-state-changed',refresh);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
 })();

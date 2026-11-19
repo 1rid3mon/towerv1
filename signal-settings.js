@@ -54,7 +54,7 @@
         }
         const feel = section('feelSection');
         toggle(feel,'vibration',()=>Fx.settings().vibration,()=>Fx.configure({vibration:!Fx.settings().vibration}));
-        toggle(feel,'reduceMotion',()=>Fx.settings().reducedMotion,()=>Fx.configure({reducedMotion:!Fx.settings().reducedMotion}));
+        toggle(feel,'reduceMotion',()=>Fx.settings().reducedMotion,()=>{document.documentElement.dataset.metaReduced=String(Fx.configure({reducedMotion:!Fx.settings().reducedMotion}).reduced);});
         select(feel,'intensity',['auto','low','medium','high'].map(k=>[k,t(k==='auto'?'automatic':k)]),()=>Fx.settings().intensity,value=>Fx.configure({intensity:value}));
         const device = section('deviceSection');
         try { const saved=localStorage.getItem('lostSignal:device');if(['auto','phone','tablet','pc'].includes(saved))game.deviceMode=saved; } catch {}

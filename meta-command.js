@@ -34,6 +34,7 @@ function mount(){
  for(const [name,view]of[['Arşiv','archive'],['İstasyon','station'],['Sefer','event'],['Sezon','season'],['Depo','supply']]){const b=btn(name,()=>R().route(view));b.dataset.view=view;b.innerHTML=icon(view)+'<span>'+name+'</span>';rail.append(b);}
  const shortcuts = document.createElement('div');
  shortcuts.id = 'meta-command-shortcuts';
+ const sectorBoss=btn('◉',()=>{const d=EndlessSectors.describe(game.wave);if(d.bossWave&&!isPaused&&!isDefeated){ensureSectorBoss();refresh(true);}else message(t('bossIn')+' '+d.remaining+' '+t('stages'));});sectorBoss.id='signal-sector-boss';shortcuts.append(sectorBoss);
  shortcuts.append(btn('Boss Akını', () => R().route('boss')), btn('Görevler', () => R().route('tasks')));
  skills=document.createElement('div');skills.id='meta-command-skills';
  for(let i=0;i<6;i++){const b=btn(String(i+1),()=>{const r=R().useSkill(i);message(r.message);});b.setAttribute('aria-label','Protokol yuvası '+(i+1));skills.append(b);}
@@ -61,7 +62,7 @@ function refresh(force=false){
  const descriptor=EndlessSectors.describe(wave), bossActive=typeof enemies!=='undefined'&&enemies.some(e=>e.type==='boss'&&e.hp>0);
  const sectorLabel=document.getElementById('signal-sector-label');sectorLabel.textContent=sector+' · '+step+'/10';sectorLabel.title=descriptor.name+' · '+(bossActive?t('bossActive'):descriptor.bossName);
  const dots=document.querySelectorAll('.signal-stage-dots i');dots.forEach((dot,i)=>{dot.dataset.state=i+1<step?'done':i+1===step?'current':'next';dot.dataset.boss=String(i===4||i===9);});
- document.querySelector('.signal-sector').dataset.boss=String(bossActive);
+ document.querySelector('.signal-sector').dataset.boss=String(bossActive);const bossButton=document.getElementById('signal-sector-boss');bossButton.textContent=bossActive?'◉':descriptor.remaining;bossButton.dataset.ready=String(descriptor.bossWave&&!bossActive);bossButton.setAttribute('aria-label',bossActive?t('bossActive'):descriptor.bossWave?t('callBoss'):t('bossIn')+' '+descriptor.remaining+' '+t('stages'));bossButton.title=bossButton.getAttribute('aria-label');
  const hp=Math.max(0,Math.min(1,tower.hp/Math.max(1,tower.maxHp)));document.body.dataset.healthLow=String(hp<.25&&!isDefeated);document.getElementById('signal-health-label').textContent=(hp<.25?'! ':'♥ ')+fmt(tower.hp);document.getElementById('signal-health-fill').style.width=hp*100+'%';document.querySelector('.signal-health').dataset.low=String(hp<.25);
  for(const [key,value,label]of[['gold',window.Fx?.displayValue?.('gold',game.gold)??game.gold,t('battleGold')],['credit',m.currencies.kredi,t('kredi')],['crystal',m.currencies.kristal,t('kristal')],['power',getTowerDamage(),t('power')]]){const el=document.getElementById('signal-'+key),next=fmt(value);if(el.textContent!==next){el.textContent=next;if(!window.Fx?.settings().reduced)el.animate?.([{transform:'scale(1.12)'},{transform:'scale(1)'}],{duration:120});}el.parentElement.setAttribute('aria-label',label+' '+next);el.parentElement.title=label;}
  const xp=Math.min(100,m.season.xp/(MetaConfig.season.tiers*MetaConfig.season.xpPerTier)*100);const progress=document.getElementById('signal-season-progress');progress.style.setProperty('--season-progress',xp+'%');progress.setAttribute('aria-valuenow',String(Math.round(xp)));

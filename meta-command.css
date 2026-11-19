@@ -45,3 +45,8 @@ body[data-health-low=true] #canvas-container::after{content:'';position:absolute
 html[data-meta-reduced=true] :is(#meta-command-bar,#meta-command-rail,#meta-command-skills,#meta-command-shelf,.signal-settings) button:active{transform:none}
 html[data-meta-reduced=true] body[data-health-low=true] #canvas-container::after{animation:none;opacity:.18}
 @media(prefers-reduced-motion:reduce){body[data-health-low=true] #canvas-container::after{animation:none;opacity:.18}:is(#meta-command-bar,#meta-command-rail,#meta-command-skills,#meta-command-shelf,.signal-settings) button:active{transform:none}}
+#meta-command-shortcuts #signal-sector-boss{width:48px;height:48px;min-width:48px;min-height:48px;border-radius:50%;border-color:#ba6754;color:#f5c8aa;background:radial-gradient(#64372f,#201b23);font-size:18px;padding:0}
+#signal-sector-boss[data-ready=true]{animation:signal-boss-ready 1.4s ease-in-out infinite}
+@keyframes signal-boss-ready{50%{box-shadow:0 0 14px #e98d6655}}
+@media(prefers-reduced-motion:reduce){#signal-sector-boss[data-ready=true]{animation:none}}
+html[data-meta-reduced=true] #signal-sector-boss[data-ready=true]{animation:none}

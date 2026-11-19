@@ -41,3 +41,24 @@ test('continuous daily milestone counter survives weekly reward cycles without c
  assert.equal(M.claimDaily(saved,now+36*86400000).ok,true);
  assert.equal(saved.streak.totalDays,1);
 });
+test('radio notices obey build/date gates and cannot emerge after expiring in the queue',()=>{
+ const notice={id:'scheduled',validFrom:100,validTo:200,minBuild:3};
+ assert.equal(M.noticeEligible(notice,99,3),false);
+ assert.equal(M.noticeEligible(notice,100,2),false);
+ assert.equal(M.noticeEligible(notice,100,3),true);
+ assert.equal(M.noticeEligible(notice,200,3),false);
+ assert.equal(M.noticeEligible({...notice,validFrom:'broken'},150,3),false);
+ assert.equal(M.noticeEligible({...notice,minBuild:NaN},150,3),false);
+ const q=M.createNoticeQueue({},3);q.enqueue(notice,100);q.tick(150,true);
+ assert.equal(q.tick(201),null);
+ assert.equal(q.pending,0);
+});
+test('external routes unwind overlay and parent history before opening next panel',()=>{
+ const vm=require('node:vm'),fs=require('node:fs'),src=fs.readFileSync(require.resolve('../meta-ui.js'),'utf8');
+ const fn=src.slice(src.indexOf('function closeForRoute('),src.indexOf('function closeOverlay()'));
+ let pop;const events=[];
+ const context={history:{state:{metaUI:'overlay'},go:depth=>events.push(['history',depth])},dialog:{open:true,close:()=>events.push('main closed')},overlay:{open:true,close:()=>events.push('overlay closed')},clearTimeout:()=>{},seasonPreviewTimer:0,suppressPop:0,window:{addEventListener:(name,callback)=>{assert.equal(name,'popstate');pop=callback;}}};
+ vm.createContext(context);vm.runInContext(fn+';closeForRoute(()=>{});',context);
+ assert.deepEqual(events,['overlay closed','main closed',['history',-2]]);
+ assert.equal(context.suppressPop,1);assert.equal(typeof pop,'function');
+});

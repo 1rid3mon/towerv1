@@ -400,8 +400,13 @@ function syncHudPositionsWithDrawer() {
 }
 
 
+let devicePreferenceInitialized = false;
 function setDeviceMode(mode) {
     if (typeof game === 'undefined') return;
+    if (!devicePreferenceInitialized) {
+        devicePreferenceInitialized = true;
+        try { const saved = localStorage.getItem('lostSignal:device'); if (['auto','phone','tablet','pc'].includes(saved)) mode = saved; } catch {}
+    }
     game.deviceMode = ['auto', 'phone', 'tablet', 'pc'].includes(mode) ? mode : 'auto';
     try { localStorage.setItem('lostSignal:device', game.deviceMode); } catch {}
     applyBodyClasses();

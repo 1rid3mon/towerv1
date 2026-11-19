@@ -152,3 +152,62 @@ test('arrival halo lasts 120ms and draw budget records it without extra economic
     fx.beginFrame(); fx.drawHalos(ctx); assert.equal(arcs, 1);
     assert.equal(collected, 1);
 });
+
+test('auto downgrade immediately releases visual debt even before another animation frame', () => {
+    const fx = createDirector();
+    fx.emit('enemyKill', {x:0,y:0,gold:9});
+    assert.equal(fx.dropCount, 1);
+    for(let now=0;now<=2000;now+=40)fx.observeFrame(now,23);
+    assert.equal(fx.settings().effectiveIntensity,'low');
+    assert.equal(fx.dropCount,0);
+    fx.configure({intensity:'medium'});
+    assert.equal(fx.displayValue('gold',9),9);
+});
+
+test('five kills within two seconds trigger one chain with a cooldown', () => {
+    let now = 0, chains = 0;
+    const fx = createDirector({clock:()=>now});
+    fx.on('chain', ({count}) => {assert.equal(count,5); chains++;});
+    for(let i=0;i<4;i++){now=i*100;fx.emit('enemyKill',{x:0,y:0,gold:1});}
+    assert.equal(chains,0);
+    now=400;fx.emit('enemyKill',{x:0,y:0,gold:1});assert.equal(chains,1);
+    for(let i=0;i<20;i++){now=500+i*20;fx.emit('enemyKill',{x:0,y:0,gold:1});}
+    assert.equal(chains,1);
+    fx.clearVisuals();now=5000;
+    for(let i=0;i<5;i++){now+=600;fx.emit('enemyKill',{x:0,y:0,gold:1});}
+    assert.equal(chains,1,'spaced kills are not a chain');
+});
+
+test('repeated critical hits cannot extend a stop indefinitely', () => {
+    let now=0;
+    const fx=createDirector({clock:()=>now});
+    fx.emit('critical');
+    for(now=5;now<120;now+=5){fx.emit('critical');assert.equal(fx.simulationScale(),now<40?0:1);}
+    fx.emit('critical');assert.equal(fx.simulationScale(),0);
+});
+
+test('a failed presentation callback cannot interrupt later reward listeners', () => {
+    const fx=createDirector();let called=false,warnings=0;
+    const previous=console.warn;console.warn=()=>warnings++;
+    try {
+        fx.on('collected',()=>{throw new Error('presentation only');});
+        fx.on('collected',()=>{called=true;});
+        fx.emit('enemyKill',{x:0,y:0,gold:1});fx.pickAt(0,0);fx.updateVisuals(.01,{x:0,y:0});
+        assert.equal(fx.displayValue('gold',1),1);assert.equal(called,true);assert.equal(warnings,1);
+    } finally {console.warn=previous;}
+});
+
+test('unsupported or throwing vibration adapters return false after gesture without error', () => {
+    for(const vibrate of [()=>undefined,()=>{throw Error('unsupported');}]){
+        const fx=createDirector({vibrate});fx.unlockHaptics();assert.equal(fx.haptic(8),false);
+    }
+});
+
+test('combat warning rings stay outside the reduced-motion cosmetic render gate', () => {
+    const fs=require('node:fs');
+    const source=fs.readFileSync(require.resolve('../render.js'),'utf8');
+    const render=source.slice(source.indexOf('function renderGame()'));
+    assert.ok(render.indexOf('for (const r of rings)')<render.indexOf('window.Fx?.beginFrame()'));
+    const ringBlock=render.slice(render.indexOf('for (const r of rings)'),render.indexOf('for (const r of rings)')+2500);
+    assert.doesNotMatch(ringBlock,/takeBudget|settings\(\)\.reduced/);
+});

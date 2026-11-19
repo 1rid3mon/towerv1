@@ -2971,6 +2971,7 @@ function renderGame() {
     window.Fx?.beginFrame();
     window.Fx?.drawVisuals(ctx);
     window.Fx?.drawHalos(ctx);
+    window.Fx?.drawChain(ctx, tower);
     if (window.TowerCombatV12) window.TowerCombatV12.render(ctx, Math.min(0.05, Math.max(0, (typeof dt !== 'undefined' ? dt : 1 / 60))));
     for (const pt of particles) { if (window.Fx && !window.Fx.takeBudget()) break; ctx.save(); ctx.globalAlpha = pt.alpha; ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fillStyle = pt.color; ctx.fill(); ctx.restore(); }
     for (const ft of floatingTexts) {

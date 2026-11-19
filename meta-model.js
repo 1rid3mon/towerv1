@@ -66,16 +66,28 @@ function touchReturn(m,now=Date.now()){now=timestamp(now);const r=m.returnEvent;
 function claimReturn(m,now=Date.now(),day=1,task='login'){now=timestamp(now);const r=m.returnEvent,spec=C.returnEvent.tasks.find(t=>t.id===task),key=day+':'+task;if(!r.startedAt||now<r.startedAt||now>=r.endsAt||!Number.isInteger(day)||day<1||day>C.returnEvent.taskDays||!spec||localDay(now)-localDay(r.startedAt)<day-1||r.tasks[key])return fail('Dönüş ikmali hazır değil');const count=task==='login'?Math.max(0,m.progress.logins-r.baseline.logins):Math.max(0,m.progress[task]-r.baseline[task]);if(count<spec.target*day)return fail('Görev tamamlanmadı');if(!addParts(m,spec.reward))return fail('Para sınırı');r.tasks[key]=true;return ok('Dönüş görevi alındı');}
 function claimSeason(m,now=Date.now()){const period=Math.floor(timestamp(now)/C.dayMs/C.season.days),s=m.season;if(period<s.period)return fail('Saat geriye alındı');if(period>s.period){s.period=period;s.xp=0;s.claimed=0;s.premiumClaimed=0;s.premiumUnlocked=false;return ok('Yeni sezon başladı');}const tier=Math.min(C.season.tiers,Math.floor(s.xp/C.season.xpPerTier)),free=Math.max(0,tier-s.claimed),premium=s.premiumUnlocked?Math.max(0,tier-s.premiumClaimed):0,reward=free*C.season.partsPerTier+premium*(C.season.premiumPartsPerTier+C.season.elitePartsPerTier);if(!reward)return fail('Sezon ödülü hazır değil');if(!addParts(m,reward))return fail('Para sınırı');s.claimed=Math.max(s.claimed,tier);if(s.premiumUnlocked)s.premiumClaimed=Math.max(s.premiumClaimed,tier);return ok('Sezon ödülleri alındı');}
 // Presentation queue never mutates rewards or gameplay pause state.
-function createNoticeQueue(seen = {}) {
+function noticeEligible(notice,now=Date.now(),build=2){
+ if(!validId(notice?.id)||!Number.isFinite(now))return false;
+ const date=value=>typeof value==='number'?value:Date.parse(value);
+ if(notice.validFrom!=null&&(!Number.isFinite(date(notice.validFrom))||now<date(notice.validFrom)))return false;
+ if(notice.validTo!=null&&(!Number.isFinite(date(notice.validTo))||now>=date(notice.validTo)))return false;
+ if(notice.minBuild!=null){const minimum=Number(notice.minBuild);if(!Number.isFinite(minimum)||minimum<0||minimum>build)return false;}
+ return true;
+}
+function createNoticeQueue(seen = {},build=2) {
  const pending=[],known=new Set(Object.keys(object(seen))),archive=[];
  let active=null,until=0,nextAt=0;
  return Object.freeze({
-  enqueue(notice){if(!validId(notice?.id)||known.has(notice.id))return false;known.add(notice.id);pending.push(notice);archive.push(notice);return true;},
-  tick(now,busy=false){if(active&&(busy||now>=until)){active=null;nextAt=now+2000;}if(!active&&!busy&&now>=nextAt&&pending.length){active=pending.shift();until=now+6000;}return active;},
+  enqueue(notice,now=Date.now()){if(!noticeEligible(notice,now,build)||known.has(notice.id))return false;known.add(notice.id);pending.push(notice);archive.push(notice);return true;},
+  tick(now,busy=false){
+   if(active&&(busy||now>=until||!noticeEligible(active,now,build))){active=null;nextAt=now+2000;}
+   if(!active&&!busy&&now>=nextAt){while(pending.length&&!noticeEligible(pending[0],now,build))pending.shift();if(pending.length){active=pending.shift();until=now+6000;}}
+   return active;
+  },
   dismiss(now){active=null;nextAt=now+2000;},
   entries:()=>archive.slice(),
   get pending(){return pending.length;}
  });
 }
-return Object.freeze({createNoticeQueue,sanitizeMeta,migrateLegacy,transaction,summon,fuse,equip,localDay,claimDaily,accrueOffline,claimOffline,touchReturn,claimReturn,claimSeason});
+return Object.freeze({noticeEligible,createNoticeQueue,sanitizeMeta,migrateLegacy,transaction,summon,fuse,equip,localDay,claimDaily,accrueOffline,claimOffline,touchReturn,claimReturn,claimSeason});
 });

@@ -62,10 +62,11 @@ function prepare(){
 }
 function route(view){
  prepare();
- if(['boss','gear','tasks'].includes(view)){window.MetaUI?.close();window.EndlessOperations.open(view);}
- else if(['upgrade','station'].includes(view)){window.MetaUI?.close();window.MetaCommand?.openUpgrades();}
- else if(view==='battle'){window.MetaUI?.close();if (!document.getElementById('mode-main-menu')?.classList.contains('menu-hidden')) enterGameMode('endless');}
- else if(view==='main'){window.MetaUI?.close();returnToMainMenu();}
+ const leave=fn=>window.MetaUI?.closeForRoute?window.MetaUI.closeForRoute(fn):fn();
+ if(['boss','gear','tasks'].includes(view))leave(()=>window.EndlessOperations.open(view));
+ else if(['upgrade','station'].includes(view))leave(()=>window.MetaCommand?.openUpgrades());
+ else if(view==='battle')leave(()=>{if(!document.getElementById('mode-main-menu')?.classList.contains('menu-hidden'))enterGameMode('endless');});
+ else if(view==='main')leave(()=>returnToMainMenu());
  else window.MetaUI?.open(view);
 }
 function startEvent(day){

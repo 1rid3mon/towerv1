@@ -54,6 +54,26 @@
         const halos = Array.from({ length: 12 }, () => ({ age: 1, x: 0, y: 0 }));
         let haloCursor = 0, drawn = 0, updateCost = 0;
         let drawStart = 0;
+        const killTimes = new Float64Array(5);
+        killTimes.fill(-Infinity);
+        let killCursor = 0, chainUntil = 0, lastChain = -Infinity;
+        function recordKill() {
+            const now = clock();
+            killTimes[killCursor++ % 5] = now;
+            if (now - killTimes[killCursor % 5] <= 2000 && now - lastChain >= 2000) {
+                lastChain = now; chainUntil = now + 600;
+                emit('chain', { count: 5 });
+                globalThis.TowerCommandSounds?.play('collect', { step: 1 });
+            }
+        }
+        function drawChain(ctx, target) {
+            if (clock() >= chainUntil || !globalThis.MetaStrings?.chain) return;
+            ctx.save(); ctx.font = '600 12px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillStyle = '#071824'; ctx.fillRect(target.x - 52, target.y - 68, 104, 24);
+            ctx.strokeStyle = '#70dce6'; ctx.lineWidth = 1; ctx.strokeRect(target.x - 52, target.y - 68, 104, 24);
+            ctx.fillStyle = '#b8f5f4'; ctx.fillText(globalThis.MetaStrings.chain + ' ×5', target.x, target.y - 52);
+            ctx.restore();
+        }
         function beginFrame() { drawn = 0; drawStart = clock(); }
         function takeBudget() {
             const current = settings();
@@ -71,13 +91,14 @@
             const now = clock();
             if (!unlocked || !preferences.vibration || now - lastVibration < 80) return false;
             lastVibration = now;
-            try { return vibrate(pattern) !== false; } catch { return false; }
+            try { return vibrate(pattern) === true; } catch { return false; }
         }
         function clearVisuals() {
             for (const drop of drops) dropPool.release(drop);
             drops.clear(); pending.gold = pending.crystal = 0;
             stopUntil = slowUntil = shakeUntil = 0;
             for (const halo of halos) halo.age = 1;
+            chainUntil = 0; killTimes.fill(-Infinity); killCursor = 0;
         }
         function displayValue(kind, actual) {
             const current = settings();
@@ -223,6 +244,7 @@
             lastSample = now;
             if (now - slowSince >= config.slowWindowMs) {
                 automaticLow = true;
+                clearVisuals();
                 resetSampling();
                 onDowngrade();
             }
@@ -239,7 +261,10 @@
             const listeners = handlers.get(event);
             if (!listeners?.size) return;
             const current = settings();
-            for (const listener of listeners) listener(payload, current);
+            for (const listener of listeners) {
+                try { listener(payload, current); }
+                catch (error) { globalThis.console?.warn?.('Lost Signal FX callback failed:', event, error); }
+            }
         }
 
         function createPool(kind) {
@@ -263,13 +288,14 @@
 
         dropPool = createPool('drop');
         on('enemyKill', payload => {
+            recordKill();
             reward('gold', payload.gold, payload.x, payload.y, payload.boss);
             reward('crystal', payload.crystals || 0, payload.x, payload.y, payload.boss);
             if (payload.boss) { impact(true); globalThis.TowerCommandSounds?.play('boss'); }
         });
         on('critical', () => impact(false));
         return Object.freeze({ unlockHaptics, haptic, clearVisuals, displayValue, simulationScale,
-            updateVisuals, drawVisuals, drawHalos, applyShake, pickAt, beginFrame, takeBudget, diagnostics, get dropCount() { return drops.size; }, settings, configure, resetSampling, observeFrame, on, emit, createPool,
+            updateVisuals, drawVisuals, drawHalos, drawChain, applyShake, pickAt, beginFrame, takeBudget, diagnostics, get dropCount() { return drops.size; }, settings, configure, resetSampling, observeFrame, on, emit, createPool,
             frameBudgetMs: config.frameBudgetMs });
     }
 
