@@ -1,0 +1,21 @@
+.signal-settings{position:fixed;inset:0;z-index:90;background:#0006!important;backdrop-filter:none!important;padding:0!important;display:flex;justify-content:flex-end;align-items:stretch;color:#e7f6fb;font:14px/1.4 Inter,system-ui,sans-serif}
+.signal-settings.hidden{display:none!important}
+#settings-modal .signal-settings-shell{width:min(40vw,360px);max-width:100vw;height:100dvh;max-height:none;box-sizing:border-box;display:flex;flex-direction:column;background:linear-gradient(155deg,#112b39,#07121e 65%);border:1px solid #395766;border-left:4px solid #65e6df;border-radius:10px 0 0 10px;padding:0;animation:signal-panel-in 220ms cubic-bezier(.2,.8,.2,1);box-shadow:-15px 0 50px #0007}
+.signal-settings-header{min-height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border-bottom:1px solid #36515f;flex:none}
+.signal-settings-header h2{font-size:16px;font-weight:700;margin:0}.signal-settings-scroll{overflow:auto;overscroll-behavior:contain;padding:6px 12px 20px;min-height:0}
+.signal-settings button,.signal-settings select,.signal-settings summary{min-width:44px;min-height:44px;box-sizing:border-box;color:inherit;font:inherit;touch-action:manipulation}
+.signal-settings button,.signal-settings select{border:1px solid #486776;background:#102836;border-radius:7px;padding:6px 10px;cursor:pointer}
+.signal-settings-header button{font-size:26px}.signal-settings summary{display:flex;align-items:center;font-weight:700;letter-spacing:.08em;color:#7bdedb;cursor:pointer;list-style:none}.signal-settings summary::after{content:'+';margin-left:auto}.signal-settings details[open]>summary::after{content:'−'}
+.signal-settings-section{border-bottom:1px solid #294552;padding:2px 0 6px}.signal-settings-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:48px}.signal-settings-row>span{min-width:0}.signal-settings-row select{max-width:58%}.signal-switch{flex:none;font-size:12px!important}.signal-switch[aria-checked=true]{border-color:#66e5dc;background:#174b50}.signal-existing-toggle{display:block!important;position:static!important;transform:none!important;width:100%!important;margin:4px 0!important;min-height:44px!important;font-size:14px!important}
+.signal-settings #language-select{width:100%;margin:4px 0}.signal-settings-version{display:block;color:#86a7b7;font-size:12px;margin-top:14px}
+body:not(.signal-settings-open)>#ls-sound-toggle{display:none!important}
+@keyframes signal-panel-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@media(max-width:540px) and (orientation:portrait){#settings-modal .signal-settings-shell{width:min(90vw,360px)}}
+@media(prefers-reduced-motion:reduce){#settings-modal .signal-settings-shell{animation:none}}
+
+.signal-settings-closing .signal-settings-shell{animation:signal-panel-out 180ms cubic-bezier(.65,0,.35,1) forwards!important}
+@keyframes signal-panel-out{to{transform:translateX(100%);opacity:0}}
+html[data-meta-reduced=true] #settings-modal .signal-settings-shell{animation:none}
+html[data-meta-reduced=true] #settings-modal.signal-settings-closing .signal-settings-shell{animation:signal-panel-fade 120ms ease forwards!important}
+@keyframes signal-panel-fade{to{opacity:0}}
+@media(prefers-reduced-motion:reduce){#settings-modal.signal-settings-closing .signal-settings-shell{animation:signal-panel-fade 120ms ease forwards!important}}

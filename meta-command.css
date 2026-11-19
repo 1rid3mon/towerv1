@@ -1,8 +1,8 @@
 #meta-command-bar,#meta-command-rail,#meta-command-skills,#meta-command-shelf,#meta-command-upgrades{display:none;box-sizing:border-box;color:#e9f3f8;font:14px/1.25 Inter,system-ui,sans-serif;z-index:25;position:fixed}
 body.meta-command-active #meta-command-bar{display:flex;top:0;left:0;right:0;height:44px;align-items:center;background:#07131ff5;border-bottom:1px solid #416071;gap:4px;padding:0 max(4px,env(safe-area-inset-right)) 0 max(8px,env(safe-area-inset-left))}
 #meta-command-status{flex:1;min-width:0;font-size:12px;font-variant-numeric:tabular-nums;line-height:1.4}
-body.meta-command-active #meta-command-rail{display:flex;left:4px;top:52px;width:56px;gap:4px;flex-direction:column}
-body.meta-command-active #meta-command-skills{display:flex;left:68px;bottom:8px;gap:4px;max-width:calc(100vw - 76px)}
+body.meta-command-active #meta-command-rail{display:flex;left:4px;top:52px;width:72px;gap:4px;flex-direction:column;max-height:calc(100dvh - 60px);overflow:auto;scrollbar-width:none}
+body.meta-command-active #meta-command-skills{display:flex;left:84px;bottom:8px;gap:4px;max-width:calc(100vw - 92px)}
 body.meta-command-active #meta-command-shelf{display:flex;right:8px;bottom:8px;gap:4px;max-width:310px}
 body.meta-command-active #meta-command-upgrades:not([hidden]){display:flex;flex-direction:column;right:8px;bottom:60px;width:min(330px,45vw);max-height:204px;background:#0a1b29f5;border:1px solid #6aefe8;border-radius:8px;overflow:hidden}
 #meta-command-upgrades header{display:flex;flex:none;gap:4px;padding:4px}
@@ -10,8 +10,8 @@ body.meta-command-active #meta-command-upgrades:not([hidden]){display:flex;flex-
 :is(#meta-command-bar,#meta-command-rail,#meta-command-skills,#meta-command-shelf,#meta-command-upgrades) button{min-width:44px;min-height:44px;box-sizing:border-box;border:1px solid #4c7282;border-radius:6px;background:#102838;color:#e9f3f8;font:600 12px/1.2 Inter,system-ui,sans-serif;padding:4px;touch-action:manipulation;cursor:pointer}
 #meta-command-skills button{width:44px;height:44px;border-radius:50%;font-size:12px;background:linear-gradient(0deg,#1d5960 var(--ready,0%),#102838 0)}
 #meta-command-shelf button{background:#f3c578;color:#162532;max-width:118px}
-#meta-command-upgrades button[data-affordable=false]{color:#ffb2a8}#meta-command-rail button[data-badge=true]::after{content:'●';color:#ff887c;margin-left:3px}
-body.meta-command-active>#meta-command-rail button{width:56px}
+#meta-command-upgrades button[data-affordable=false]{color:#ffb2a8}#meta-command-rail button[data-badge=true]::after{content:'';position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#ff887c}
+body.meta-command-active>#meta-command-rail button{width:72px;min-height:56px;flex:none;white-space:nowrap;position:relative}
 body.meta-command-active>header,body.meta-command-active #main-body>header{display:none!important}
 body.meta-command-active #canvas-container{top:44px!important}
 body.meta-command-active :is(#hud-top-bar,#hud-quick-stats,#hud-bottom-controls,#battle-sfx-toggle,#game-mascot,#game-mascot-bubble){display:none!important}
@@ -19,7 +19,36 @@ body.meta-command-active:has(#defeat-overlay:not(.hidden)) :is(#meta-command-rai
 @media(max-width:800px){body.meta-command-active #meta-command-shelf{bottom:60px;max-width:300px}body.meta-command-active #meta-command-upgrades:not([hidden]){bottom:108px;max-height:196px}}
 @media(prefers-reduced-motion:reduce){#meta-command-upgrades{transition:none}}
 #meta-command-shortcuts{display:none}
-body.meta-command-active #meta-command-shortcuts{display:flex;position:fixed;top:52px;left:68px;gap:4px;z-index:25}
+body.meta-command-active #meta-command-shortcuts{display:flex;position:fixed;top:52px;left:84px;gap:4px;z-index:25}
 #meta-command-shortcuts button{min-height:44px;min-width:44px;padding:4px 10px;border:1px solid #4c7282;border-radius:6px;background:#102838;color:#e9f3f8;font:600 12px Inter,system-ui,sans-serif}
 body.meta-command-active:has(#defeat-overlay:not(.hidden)) #meta-command-shortcuts{visibility:hidden}
 body.meta-command-active #meta-command-bar .endless-tactics{position:fixed;top:52px;left:auto;right:8px;width:min(290px,38vw);z-index:45}
+/* J4: a shallow instrument strip, with the battlefield visible beneath it. */
+#meta-command-status{display:flex;align-items:center;gap:5px;height:44px;white-space:nowrap}
+.signal-sector{width:90px;flex:none;color:#afe8ea;display:flex;flex-direction:column;align-items:center;gap:3px}.signal-sector strong{font-size:12px;letter-spacing:.1em}.signal-stage-dots{display:flex;gap:3px}.signal-stage-dots i{width:5px;height:5px;border-radius:50%;background:#34505f}.signal-stage-dots i[data-state=done]{background:#65e5dd}.signal-stage-dots i[data-state=current]{background:#fff;box-shadow:0 0 5px #7afff4}.signal-stage-dots i[data-boss=true]{border-radius:0;transform:rotate(45deg);outline:1px solid #d9ae67}.signal-sector[data-boss=true]{color:#f6c17a}
+.signal-health{width:96px;flex:none;height:25px;position:relative;overflow:hidden;border:1px solid #3e7476;border-radius:5px;background:#0b222d;text-align:center}.signal-health span{position:relative;z-index:1;font-size:12px;line-height:23px}.signal-health i{position:absolute;inset:0 auto 0 0;background:#226663;opacity:.7;transition:width 180ms}.signal-health[data-low=true] i{background:#b74742}.signal-health[data-low=true]{border-color:#f18e79}
+.signal-pill{height:30px;min-width:46px;display:flex;align-items:center;gap:4px;padding:0 6px;background:#0d2230;border:1px solid #294858;border-radius:7px;color:#c2dce9}.signal-pill span{color:#71d8d4;font-size:17px}.signal-pill[data-currency=gold] span,.signal-pill[data-currency=credit] span{color:#edbe72}.signal-pill b{font-size:12px;font-variant-numeric:tabular-nums;font-weight:600}
+#signal-season-progress{position:absolute;bottom:-3px;left:0;right:0;height:3px;background:linear-gradient(to right,#69dcd6 var(--season-progress,0%),#123342 0);pointer-events:none}
+#meta-command-bar button{flex:none;width:44px;padding:0;background:transparent;border:0;border-left:1px solid #2a4857;border-radius:0;font-size:18px}
+#meta-command-bar svg,#meta-command-rail svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+body.meta-command-active>#meta-command-rail button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:linear-gradient(140deg,#173342eb,#081822eb);border-color:#3b5b6b;border-left:3px solid #528b94;box-shadow:0 3px 10px #0004}
+#meta-command-skills button{width:56px;height:56px;flex:none;font-size:12px;background:radial-gradient(circle at center,#102735 62%,transparent 64%),conic-gradient(#6adfd8 var(--ready,0%),#324957 0);border:1px solid #58808d;box-shadow:0 3px 8px #0005}
+body.meta-command-active #meta-command-skills{gap:3px}body.meta-command-active #meta-command-shelf{bottom:70px;max-width:300px}body.meta-command-active #meta-command-upgrades:not([hidden]){bottom:122px;max-height:calc(100dvh - 180px)}
+#meta-command-skills button:last-child{width:44px;border-radius:9px;background:#102838}#meta-command-skills button[aria-pressed=true]{border-color:#75e7c6;color:#75e7c6}
+@media(max-width:800px){#meta-command-status{gap:3px}.signal-pill{min-width:35px;padding:0 4px;gap:2px}.signal-health{width:78px}.signal-sector{width:80px}}
+@media(min-width:1050px){body.meta-command-active #meta-command-shelf{bottom:10px}body.meta-command-active #meta-command-upgrades:not([hidden]){bottom:64px}.signal-pill{min-width:65px}.signal-sector{width:112px}}
+:root{--ease-out:cubic-bezier(.2,.8,.2,1);--ease-spring:cubic-bezier(.34,1.56,.64,1);--ease-inout:cubic-bezier(.65,0,.35,1);--t-fast:90ms;--t-base:180ms;--t-slow:320ms;--t-reveal:600ms}
+:is(#meta-command-bar,#meta-command-rail,#meta-command-skills,#meta-command-shelf,#meta-center,#meta-overlay,.signal-settings) button{transition:transform 140ms var(--ease-spring),border-color 180ms var(--ease-out)}
+:is(#meta-command-bar,#meta-command-rail,#meta-command-skills,#meta-command-shelf,#meta-center,#meta-overlay,.signal-settings) button:active{transform:scale(.96)}
+body[data-health-low=true] #canvas-container::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:20;box-shadow:inset 0 0 40px #c34b3d;animation:signal-low-health 1.2s ease-in-out infinite}
+@keyframes signal-low-health{0%,100%{opacity:.08}50%{opacity:.25}}
+html[data-meta-reduced=true] :is(#meta-command-bar,#meta-command-rail,#meta-command-skills,#meta-command-shelf,.signal-settings) button:active{transform:none}
+html[data-meta-reduced=true] body[data-health-low=true] #canvas-container::after{animation:none;opacity:.18}
+@media(prefers-reduced-motion:reduce){body[data-health-low=true] #canvas-container::after{animation:none;opacity:.18}:is(#meta-command-bar,#meta-command-rail,#meta-command-skills,#meta-command-shelf,.signal-settings) button:active{transform:none}}
+#meta-command-shortcuts #signal-sector-boss{width:48px;height:48px;min-width:48px;min-height:48px;border-radius:50%;border-color:#ba6754;color:#f5c8aa;background:radial-gradient(#64372f,#201b23);font-size:18px;padding:0}
+#signal-sector-boss[data-ready=true]{animation:signal-boss-ready 1.4s ease-in-out infinite}
+@keyframes signal-boss-ready{50%{box-shadow:0 0 14px #e98d6655}}
+@media(prefers-reduced-motion:reduce){#signal-sector-boss[data-ready=true]{animation:none}}
+html[data-meta-reduced=true] #signal-sector-boss[data-ready=true]{animation:none}
+
+body.meta-command-active #mobilePanelToggleBtn{display:none!important}

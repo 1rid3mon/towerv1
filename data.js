@@ -193,7 +193,7 @@ function getDefaultState() {
     return {
         gold: 25, crystals: 15, souls: 0, wave: 1, highestWave: 1, waveKills: 0, waveTargetKills: 15,
         holdWave: false, holdWaveTimer: 0, consecutiveDefeats: 0, consecutiveHoldWins: 0,
-        deviceMode: 'pc',
+        deviceMode: 'auto',
         stats: { totalKills: 0, bossKills: 0, prestiges: 0, playTimeSeconds: 0 },
         settings: { showRange: true, showDamageText: true, activeTheme: 'aurora' },
         upgrades: {

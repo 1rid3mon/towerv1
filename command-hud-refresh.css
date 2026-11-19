@@ -95,3 +95,10 @@ body:has(#endless-tactics[open]) #battle-moment[data-kind="clear"]{visibility:hi
 .operations-track small{color:#a7bbc9;font-size:11px}
 .operations-track strong{margin-top:5px;color:inherit;font-size:clamp(11px,2.5vw,16px)}
 @media(max-width:490px){#endless-operations .operations-track{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+
+/* Keep touch controls usable in the original workshop as well as the quick HUD. */
+#upgrade-drawer :is(button[id^="mult-"], button[id^="upg-btn-"], [data-workshop-close]) {
+    min-width: 44px;
+    min-height: 44px;
+}

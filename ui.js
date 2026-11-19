@@ -5,6 +5,7 @@
 
 /* V2.7: original synthesized sci-fi SFX. Audio is cosmetic and never changes gameplay. */
 let battleSfxEnabled = true;
+try { battleSfxEnabled = localStorage.getItem('lostSignal:battleSfx') !== 'off'; } catch {}
 let battleAudioUnlocked = false;
 let battleAudioContext = null;
 let battleMasterGain = null;
@@ -126,6 +127,7 @@ function playBattleCue(kind) {
 }
 function toggleBattleSfx() {
     battleSfxEnabled = !battleSfxEnabled;
+    try { localStorage.setItem('lostSignal:battleSfx', battleSfxEnabled ? 'on' : 'off'); } catch {}
     const button = document.getElementById('battle-sfx-toggle');
     const label = document.getElementById('battle-sfx-label');
     if (button) {
@@ -398,11 +400,17 @@ function syncHudPositionsWithDrawer() {
 }
 
 
+let devicePreferenceInitialized = false;
 function setDeviceMode(mode) {
     if (typeof game === 'undefined') return;
-    game.deviceMode = mode;
+    if (!devicePreferenceInitialized) {
+        devicePreferenceInitialized = true;
+        try { const saved = localStorage.getItem('lostSignal:device'); if (['auto','phone','tablet','pc'].includes(saved)) mode = saved; } catch {}
+    }
+    game.deviceMode = ['auto', 'phone', 'tablet', 'pc'].includes(mode) ? mode : 'auto';
+    try { localStorage.setItem('lostSignal:device', game.deviceMode); } catch {}
     applyBodyClasses();
-    ['phone', 'tablet', 'pc'].forEach(m => {
+    ['auto', 'phone', 'tablet', 'pc'].forEach(m => {
         const btn = document.getElementById(`dev-${m}`);
         if (btn) btn.className = m === mode ? 'py-2 rounded-xl bg-blue-600 text-white text-xs font-tech font-bold border border-blue-500 transition' : 'py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-tech font-bold border border-slate-700 transition';
     });
@@ -413,7 +421,8 @@ function setDeviceMode(mode) {
 function applyBodyClasses() {
     const body = document.getElementById('main-body');
     if (!body || typeof game === 'undefined') return;
-    const dev = game.deviceMode || 'pc';
+    const preference = game.deviceMode || 'auto';
+    const dev = preference === 'auto' ? (Math.min(innerWidth, innerHeight) <= 500 ? 'phone' : matchMedia('(pointer:coarse)').matches ? 'tablet' : 'pc') : preference;
     body.className = `h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden device-${dev} color-pastel`;
     if (typeof GameModeRuntime !== 'undefined' &&
         typeof GameModeRuntime.isIsolatedStoryRuntime === 'function' &&
@@ -1376,8 +1385,8 @@ function buildInventoryUI() {
 
 function updateHUD() {
     if (typeof game === 'undefined' || typeof tower === 'undefined') return;
-    setElText('ui-gold', formatNumber(game.gold));
-    setElText('ui-crystals', formatNumber(game.crystals));
+    setElText('ui-gold', formatNumber(window.Fx?.displayValue?.('gold', game.gold) ?? game.gold));
+    setElText('ui-crystals', formatNumber(window.Fx?.displayValue?.('crystal', game.crystals) ?? game.crystals));
     setElText('ui-souls', formatNumber(game.souls));
     setElText('ui-hp-text', `${formatNumber(tower.hp)} / ${formatNumber(tower.maxHp)}`);
     const hpRatio = Math.max(0, Math.min(1, tower.hp / Math.max(1, tower.maxHp)));
@@ -1525,6 +1534,7 @@ function closeThemeModal() { const m = document.getElementById('theme-modal'); i
 function selectTheme(id) { const def = THEME_DEFS[id]; if (!def || game.highestWave < def.reqWave) return; game.settings.activeTheme = id; setElText('ui-theme-name', def.name.split(' ')[0]); openThemeModal(); saveGame(true); }
 
 function openSettingsModal() {
+    if (window.SignalSettings) { window.SignalSettings.open(); return; }
     setElText('stat-total-kills', formatNumber(game.stats.totalKills));
     setElText('stat-boss-kills', formatNumber(game.stats.bossKills));
     setElText('stat-max-wave', game.highestWave);
@@ -1532,7 +1542,7 @@ function openSettingsModal() {
     const m = document.getElementById('settings-modal');
     if (m) m.classList.remove('hidden');
 }
-function closeSettingsModal() { const m = document.getElementById('settings-modal'); if (m) m.classList.add('hidden'); }
+function closeSettingsModal() { if (window.SignalSettings) { window.SignalSettings.close(); return; } const m = document.getElementById('settings-modal'); if (m) m.classList.add('hidden'); }
 function openConfirmModal(title, desc, onYes) {
     setElText('confirm-title', title);
     setElText('confirm-desc', desc);

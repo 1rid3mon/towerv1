@@ -2091,6 +2091,8 @@ function renderGame() {
     const theme = game.settings.activeTheme || 'cyber';
     const nowThemeTime = performance.now();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    window.Fx?.applyShake(ctx);
 
     if (!window._themeEnvData) {
         window._themeEnvData = {
@@ -2966,8 +2968,12 @@ function renderGame() {
         ctx.restore();
     }
 
+    window.Fx?.beginFrame();
+    window.Fx?.drawVisuals(ctx);
+    window.Fx?.drawHalos(ctx);
+    window.Fx?.drawChain(ctx, tower);
     if (window.TowerCombatV12) window.TowerCombatV12.render(ctx, Math.min(0.05, Math.max(0, (typeof dt !== 'undefined' ? dt : 1 / 60))));
-    for (const pt of particles) { ctx.save(); ctx.globalAlpha = pt.alpha; ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fillStyle = pt.color; ctx.fill(); ctx.restore(); }
+    for (const pt of particles) { if (window.Fx && !window.Fx.takeBudget()) break; ctx.save(); ctx.globalAlpha = pt.alpha; ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fillStyle = pt.color; ctx.fill(); ctx.restore(); }
     for (const ft of floatingTexts) {
         ctx.save();
         ctx.globalAlpha = Math.max(0, ft.alpha);
@@ -2977,6 +2983,7 @@ function renderGame() {
         ctx.fillText(ft.text, ft.x, ft.y);
         ctx.restore();
     }
+    ctx.restore();
 }
 
 // =======================================================

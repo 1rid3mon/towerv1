@@ -6,14 +6,14 @@
   'use strict';
   const CAP = 46;
   const effects = [];
-  const reduced = () => !!(root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const reduced = () => root.Fx?.settings().reduced || !!(root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const lowQuality = () => {
     try {
       const q = game && game.settings && (game.settings.visualQuality || game.settings.graphicsQuality || game.settings.quality);
       return q === 'low' || q === 'off' || q === 0;
     } catch (_) { return false; }
   };
-  const canDraw = () => !reduced() && !lowQuality();
+  const canDraw = () => !reduced() && !lowQuality() && root.Fx?.settings().effectiveIntensity !== 'low';
   function add(x, y, type, color, scale) {
     if (!canDraw() || !Number.isFinite(x) || !Number.isFinite(y)) return;
     if (effects.length >= CAP) effects.shift();
@@ -37,10 +37,11 @@
     if (!canDraw()) {effects.length=0;return;}
     const step=Math.min(.08,Math.max(0,dt));
     for(let i=effects.length-1;i>=0;i--) {
-      const e=effects[i];e.life-=step*(e.type==='boss'?1.2:2.6);
+      const e=effects[i];e.life-=step*(e.type==='death'?1/.22:e.type==='boss'?1.2:2.6);
       if(e.life<=0){effects.splice(i,1);continue;}
       // Stage 1.6: bounded hardware signal ripples; retain the existing timing and
       // CAP so effects cannot bury attack telegraphs in a 400+ wave battle.
+      if(root.Fx && !root.Fx.takeBudget()) continue;
       const progress=1-e.life;
       const radius=Math.min(e.type==='boss'?74:24,
         ((e.type==='boss'?15:4)+progress*(e.type==='boss'?42:14)*e.scale));
@@ -61,6 +62,21 @@
         ctx.arc(e.x,e.y,radius,2.34,4.63);
       }
       ctx.stroke();
+      if(e.type==='death') {
+        // A short compressed core becomes eight original data fragments.
+        const age=progress*.22;
+        if(age<.06){
+          ctx.save(); ctx.translate(e.x,e.y); ctx.scale(1.25,.75);
+          ctx.fillStyle=e.color;ctx.beginPath();ctx.arc(0,0,8*(1-age/.08),0,Math.PI*2);ctx.fill();ctx.restore();
+        } else {
+          const count=root.Fx?.settings().effectiveIntensity==='high'?12:8;
+          for(let n=0;n<count;n++){
+            if(root.Fx && !root.Fx.takeBudget()) break;
+            const angle=n/count*Math.PI*2, travel=8+progress*22;
+            ctx.fillStyle=e.color;ctx.beginPath();ctx.arc(e.x+Math.cos(angle)*travel,e.y+Math.sin(angle)*travel,2.4*e.life+.4,0,Math.PI*2);ctx.fill();
+          }
+        }
+      }
       if(e.type==='critical'||e.type==='tower'){
         const d=radius*.75;
         ctx.beginPath();ctx.moveTo(e.x-d,e.y);ctx.lineTo(e.x+d,e.y);
