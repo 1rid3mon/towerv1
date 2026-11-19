@@ -19,10 +19,20 @@ test('each sector has a distinct edge silhouette within portrait, landscape and 
         const variants = new Set();
         for (const wave of [1,11,21,31,41]) {
             const points = [];
-            const mark = (...point) => points.push(point);
-            const ctx = {save(){},restore(){},beginPath(){},closePath(){},fill(){},stroke(){},moveTo:mark,lineTo:mark};
+            let transform = [1,1,0,0];
+            const stack=[];
+            const mark = (x,y) => points.push([x*transform[0]+transform[2],y*transform[1]+transform[3]]);
+            const ctx = {
+                save(){stack.push([...transform]);},restore(){transform=stack.pop();},
+                translate(x,y){transform[2]+=x*transform[0];transform[3]+=y*transform[1];},
+                scale(x,y){transform[0]*=x;transform[1]*=y;},
+                beginPath(){},closePath(){},fill(){},stroke(){},moveTo:mark,lineTo:mark,
+                fillRect(x,y,w,h){mark(x,y);mark(x+w,y+h);},
+                arc(x,y,r){mark(x-r,y-r);mark(x+r,y+r);}
+            };
             globalThis.EndlessSectorScenery.draw(ctx,width,height,wave);
             assert.ok(points.length);
+            assert.equal(stack.length,0,'canvas transform stack restored');
             for (const [x,y] of points) {
                 assert.ok(x>=0 && y>=0 && x<=width && y<=height);
                 assert.notEqual(x,width/2);

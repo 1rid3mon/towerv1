@@ -57,7 +57,9 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  await page.goBack();await page.locator('#settings-modal').waitFor({state:'hidden'});
  assert.equal(await page.evaluate(()=>isPaused),true,'already paused remains paused');
  await page.evaluate(()=>{isPaused=false;});
- const hud=await page.evaluate(()=>({field:document.querySelector('#gameCanvas').getBoundingClientRect().height,height:innerHeight}));
+ const hud=await page.evaluate(()=>{const ids=['meta-command-bar','meta-command-skills','meta-command-shelf'];return {field:document.querySelector('#gameCanvas').getBoundingClientRect().height,height:innerHeight,controls:ids.map(id=>{const r=document.getElementById(id).getBoundingClientRect();return {id,left:r.left,right:r.right,top:r.top,bottom:r.bottom};}),small:[...document.querySelectorAll('#meta-command-bar>button,#meta-command-skills>button,#meta-command-shelf>button')].filter(b=>{const r=b.getBoundingClientRect();return r.width<44||r.height<44;}).map(b=>b.getAttribute('aria-label')),skillArt:[...document.querySelectorAll('#meta-command-skills>button')].every(b=>!!b.querySelector('svg'))};});
+ assert.deepEqual(hud.small,[],'command touch targets');assert.equal(hud.skillArt,true,'each skill slot has independent SVG artwork');
+ assert.ok(hud.controls.every(r=>r.left>=0&&r.right<=width+1&&r.top>=0&&r.bottom<=height+1),'command surfaces stay inside viewport '+JSON.stringify(hud.controls));
  await page.screenshot({path:path.join(evidence,width+'x'+height+'-battle.png')});
  const actual=await page.evaluate(()=>({gold:game.gold,crystals:game.crystals}));
  await page.evaluate(()=>{for(let i=0;i<12;i++)Fx.emit('enemyKill',{x:tower.x-100+(i%4)*50,y:tower.y-60+Math.floor(i/4)*40,gold:1,crystals:0});});
@@ -70,10 +72,26 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  assert.ok(await page.evaluate(before=>game.gold>=before.gold&&game.crystals>=before.crystals,actual),'visual fixture never deducts currency');
 
  assert.ok(hud.field/hud.height>=0.85,'Battle canvas has at least 85% viewport height: '+JSON.stringify(hud));
+ await page.evaluate(()=>{offerEndlessTactics();MetaCommand.refresh(true);});
+ await page.locator('#endless-tactics summary').tap();
+ await page.locator('#endless-tactics[open]').waitFor();
+ await page.waitForTimeout(300);
+ await page.screenshot({path:path.join(evidence,width+'x'+height+'-tactic-redesign.png')});
+ await page.locator('#endless-tactics button').filter({hasText:'DENGELİ'}).tap();
+ assert.equal(await page.evaluate(()=>tacticMultiplier()),1,'third tactic remains touchable through HUD layers');
  await page.locator('#meta-radio:not([hidden])').waitFor({timeout:18000});
  assert.equal(await page.evaluate(()=>isPaused),false,'radio does not pause battle');
  const played=await page.evaluate(()=>game.stats.playTimeSeconds);await page.waitForTimeout(1250);
  assert.ok(await page.evaluate(before=>game.stats.playTimeSeconds>before,played),'simulation continues behind radio');
+ // Art acceptance: reproduce the user's late-game foundry theme with long numbers.
+ await page.evaluate(()=>{isPaused=true;game.wave=452;game.highestWave=452;game.gold=1.83e45;game.settings.activeTheme='cengiz';enemies.length=0;document.getElementById('endless-tactics').hidden=true;for(const [key,def]of Object.entries(UPGRADE_DEFS))game.upgrades[key]=Math.min(def.maxLevel,400);tower.maxHp=getTowerMaxHp();tower.hp=tower.maxHp;window._syncShadow?.();EndlessOperations.transactMeta('qa:art','disposable visual fixture',d=>{d.offline.cleared=45;return {ok:true};});MetaCommand.refresh(true);renderGame();});
+ await page.waitForTimeout(350);
+ const clippedUpgrades=await page.evaluate(()=>[...document.querySelectorAll('.command-upgrade-name,.command-upgrade-price')].filter(e=>e.scrollWidth>e.clientWidth+1).map(e=>e.textContent));assert.deepEqual(clippedUpgrades,[],'late-game upgrade names and prices fit');
+ await page.screenshot({path:path.join(evidence,width+'x'+height+'-foundry-redesign.png')});
+ await page.evaluate(()=>{game.settings.activeTheme='cyber';renderGame();});
+ await page.waitForTimeout(150);
+ await page.screenshot({path:path.join(evidence,width+'x'+height+'-cyber-redesign.png')});
+
  assert.deepEqual(errors,[],'runtime console errors');if(network.length)throw new Error('External layout dependencies failed; screenshots are not visual acceptance: '+network.join(', '));
  }catch(error){failures.push({viewport:width+'x'+height,error:error.message,stack:error.stack,errors,network});await page.screenshot({path:path.join(evidence,width+'x'+height+'-failure.png')}).catch(()=>{});}finally{await context.close();}}
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));fs.writeFileSync(path.join(evidence,'report.json'),JSON.stringify({reports,failures},null,2));}
