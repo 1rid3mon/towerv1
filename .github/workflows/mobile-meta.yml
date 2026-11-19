@@ -1,7 +1,7 @@
 name: Mobile meta acceptance
 on:
   pull_request:
-    paths: ['meta-*.js', 'meta-*.css', 'signal-settings.*', 'fx-director.js', 'data/fx-config.js', 'data/meta-*.js', 'endless-operations.js', 'security-lab/meta-*', '.github/workflows/mobile-meta.yml']
+    paths: ['data.js', 'index.html', 'data/station-art.js', 'meta-*.js', 'meta-*.css', 'signal-settings.*', 'fx-director.js', 'data/fx-config.js', 'data/meta-*.js', 'endless-operations.js', 'security-lab/meta-*', 'security-lab/station-art*', 'security-lab/workshop-*', '.github/workflows/mobile-meta.yml']
   workflow_dispatch:
 jobs:
   mobile-meta:
@@ -22,7 +22,7 @@ jobs:
           else
             npx playwright install --with-deps chromium
           fi
-      - run: node --test security-lab/meta-model.test.js security-lab/meta-command-state.test.cjs security-lab/meta-radio.test.cjs security-lab/meta-fx-preferences.test.cjs security-lab/fx-director.test.cjs security-lab/endless-operations.test.js
+      - run: node --test security-lab/station-art.test.cjs security-lab/workshop-preview.test.cjs security-lab/meta-model.test.js security-lab/meta-command-state.test.cjs security-lab/meta-radio.test.cjs security-lab/meta-fx-preferences.test.cjs security-lab/fx-director.test.cjs security-lab/endless-operations.test.js
       - run: node security-lab/meta-ui-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()

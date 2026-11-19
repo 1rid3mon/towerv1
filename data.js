@@ -110,23 +110,23 @@ const ITEM_DATABASE = {
 };
 
 const UPGRADE_DEFS = {
-    damage: { category: 'attack', name: 'Plazma Hasarı', icon: 'fa-solid fa-explosion', color: 'text-red-400', desc: 'Taban hasarı artırır. Her 10 ve 25 Sv. ekstra çarpan verir.', baseCost: 15, costScale: 1.165, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerDamage())} Hasar` },
-    attackSpeed: { category: 'attack', name: 'Atış Hızı', icon: 'fa-solid fa-gauge-high', color: 'text-amber-400', desc: 'Her Sv. +0.055/sn atış hızı (Maks 50 Sv: 3.60/sn).', baseCost: 35, costScale: 1.19, maxLevel: 50, getValueText: (lvl) => `${getTowerFireRate().toFixed(2)}/sn` },
-    range: { category: 'attack', name: 'Radar Menzili', icon: 'fa-solid fa-bullseye', color: 'text-blue-400', desc: 'Her Sv. +4 px nişancı menzili (Maks 40 Sv: 286 px).', baseCost: 30, costScale: 1.17, maxLevel: 40, getValueText: (lvl) => `${Math.round(getTowerRange())} px` },
-    critChance: { category: 'attack', name: 'Kritik Şansı', icon: 'fa-solid fa-bolt', color: 'text-purple-400', desc: 'Her seviye +%1.5 kritik şansı (Maks 48 Sv: %75).', baseCost: 45, costScale: 1.20, maxLevel: 48, getValueText: (lvl) => `%${Number(getTowerCritChance().toFixed(1))}` },
-    critMult: { category: 'attack', name: 'Kritik Çarpanı', icon: 'fa-solid fa-skull-crossbones', color: 'text-pink-400', desc: 'Her Sv. +0.08x ve 15 Sv.de +0.15x kritik hasar (Maks 100 Sv).', baseCost: 55, costScale: 1.18, maxLevel: 100, getValueText: (lvl) => `x${getTowerCritMult().toFixed(2)}` },
-    multishot: { category: 'attack', name: 'Çoklu Atış', icon: 'fa-solid fa-arrows-split-up-and-left', color: 'text-cyan-400', desc: 'Aynı anda vurulan hedef sayısı (Maks 5 Sv: +5 Hedef).', baseCost: 850, costScale: 4.2, maxLevel: 5, getValueText: (lvl) => `${getEffectiveMultishot()} Hedef` },
+    damage: { category: 'attack', name: 'Plazma Hasarı', icon: 'fa-solid fa-explosion', color: 'text-red-400', desc: 'Taban hasarı artırır. Her 10 ve 25 Sv. ekstra çarpan verir.', baseCost: 15, costScale: 1.165, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerDamage(lvl))} Hasar` },
+    attackSpeed: { category: 'attack', name: 'Atış Hızı', icon: 'fa-solid fa-gauge-high', color: 'text-amber-400', desc: 'Her Sv. +0.055/sn atış hızı (Maks 50 Sv: 3.60/sn).', baseCost: 35, costScale: 1.19, maxLevel: 50, getValueText: (lvl) => `${getTowerFireRate(lvl).toFixed(2)}/sn` },
+    range: { category: 'attack', name: 'Radar Menzili', icon: 'fa-solid fa-bullseye', color: 'text-blue-400', desc: 'Her Sv. +4 px nişancı menzili (Maks 40 Sv: 286 px).', baseCost: 30, costScale: 1.17, maxLevel: 40, getValueText: (lvl) => `${Math.round(getTowerRange(lvl))} px` },
+    critChance: { category: 'attack', name: 'Kritik Şansı', icon: 'fa-solid fa-bolt', color: 'text-purple-400', desc: 'Her seviye +%1.5 kritik şansı (Maks 48 Sv: %75).', baseCost: 45, costScale: 1.20, maxLevel: 48, getValueText: (lvl) => `%${Number(getTowerCritChance(lvl).toFixed(1))}` },
+    critMult: { category: 'attack', name: 'Kritik Çarpanı', icon: 'fa-solid fa-skull-crossbones', color: 'text-pink-400', desc: 'Her Sv. +0.08x ve 15 Sv.de +0.15x kritik hasar (Maks 100 Sv).', baseCost: 55, costScale: 1.18, maxLevel: 100, getValueText: (lvl) => `x${getTowerCritMult(lvl).toFixed(2)}` },
+    multishot: { category: 'attack', name: 'Çoklu Atış', icon: 'fa-solid fa-arrows-split-up-and-left', color: 'text-cyan-400', desc: 'Aynı anda vurulan hedef sayısı (Maks 5 Sv: +5 Hedef).', baseCost: 850, costScale: 4.2, maxLevel: 5, getValueText: (lvl) => `${getEffectiveMultishot(lvl)} Hedef` },
     bounce: { category: 'attack', name: 'Sekme (Zincir)', icon: 'fa-solid fa-share-nodes', color: 'text-indigo-400', desc: 'Merminin yakındaki düşmana sekmesi (%60 hasar, Maks 5 Sv).', baseCost: 600, costScale: 3.8, maxLevel: 5, getValueText: (lvl) => `${lvl} Sekme` },
-    knockback: { category: 'attack', name: 'Şok Dalgası', icon: 'fa-solid fa-wind', color: 'text-teal-400', desc: 'Vurulan düşmanları geri iter (Maks 3 Sv).', baseCost: 1500, costScale: 4.5, maxLevel: 3, getValueText: (lvl) => lvl === 0 ? 'Kapalı' : `Sv.${lvl} (${getTowerKnockback()}px)` },
+    knockback: { category: 'attack', name: 'Şok Dalgası', icon: 'fa-solid fa-wind', color: 'text-teal-400', desc: 'Vurulan düşmanları geri iter (Maks 3 Sv).', baseCost: 1500, costScale: 4.5, maxLevel: 3, getValueText: (lvl) => lvl === 0 ? 'Kapalı' : `Sv.${lvl} (${getTowerKnockback(lvl)}px)` },
 
-    maxHp: { category: 'defense', name: 'Titanyum Gövde', icon: 'fa-solid fa-heart', color: 'text-emerald-400', desc: 'Maksimum canı artırır. Her 10 ve 25 Sv. ekstra çarpan.', baseCost: 15, costScale: 1.155, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerMaxHp())} HP` },
-    hpRegen: { category: 'defense', name: 'Nano Onarım', icon: 'fa-solid fa-notes-medical', color: 'text-green-400', desc: 'Saniyede otomatik can yenileme (10 ve 25 Sv. çarpanlı).', baseCost: 25, costScale: 1.17, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerRegen())}/sn` },
-    armor: { category: 'defense', name: 'Reaktif Zırh', icon: 'fa-solid fa-shield', color: 'text-slate-300', desc: 'Düşman hasarını doğrudan emer (Maks %75 soğurma).', baseCost: 30, costScale: 1.175, maxLevel: 9999, getValueText: (lvl) => `-${formatNumber(getTowerArmor())} Hasar` },
-    shield: { category: 'defense', name: 'Plazma Kalkanı', icon: 'fa-solid fa-shield-virus', color: 'text-sky-400', desc: 'Saniyede %5 otomatik yenilenen enerji kalkanı.', baseCost: 65, costScale: 1.18, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerMaxShield())} Kalkan` },
-    lifesteal: { category: 'defense', name: 'Can Çalma', icon: 'fa-solid fa-droplet', color: 'text-rose-500', desc: 'Her Sv. +%0.35 can çalma (Maks 20 Sv: %7.0).', baseCost: 250, costScale: 1.28, maxLevel: 20, getValueText: (lvl) => `%${(getTowerLifesteal()*100).toFixed(2)}` },
-    thorns: { category: 'defense', name: 'Dikenli Zırh', icon: 'fa-solid fa-burst', color: 'text-rose-400', desc: 'Saldırana hasarı geri yansıtır (Her Sv. +%3, Maks %75).', baseCost: 50, costScale: 1.18, maxLevel: 25, getValueText: (lvl) => `%${getTowerThorns()}` },
+    maxHp: { category: 'defense', name: 'Titanyum Gövde', icon: 'fa-solid fa-heart', color: 'text-emerald-400', desc: 'Maksimum canı artırır. Her 10 ve 25 Sv. ekstra çarpan.', baseCost: 15, costScale: 1.155, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerMaxHp(lvl))} HP` },
+    hpRegen: { category: 'defense', name: 'Nano Onarım', icon: 'fa-solid fa-notes-medical', color: 'text-green-400', desc: 'Saniyede otomatik can yenileme (10 ve 25 Sv. çarpanlı).', baseCost: 25, costScale: 1.17, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerRegen(lvl))}/sn` },
+    armor: { category: 'defense', name: 'Reaktif Zırh', icon: 'fa-solid fa-shield', color: 'text-slate-300', desc: 'Düşman hasarını doğrudan emer (Maks %75 soğurma).', baseCost: 30, costScale: 1.175, maxLevel: 9999, getValueText: (lvl) => `-${formatNumber(getTowerArmor(lvl))} Hasar` },
+    shield: { category: 'defense', name: 'Plazma Kalkanı', icon: 'fa-solid fa-shield-virus', color: 'text-sky-400', desc: 'Saniyede %5 otomatik yenilenen enerji kalkanı.', baseCost: 65, costScale: 1.18, maxLevel: 9999, getValueText: (lvl) => `${formatNumber(getTowerMaxShield(lvl))} Kalkan` },
+    lifesteal: { category: 'defense', name: 'Can Çalma', icon: 'fa-solid fa-droplet', color: 'text-rose-500', desc: 'Her Sv. +%0.35 can çalma (Maks 20 Sv: %7.0).', baseCost: 250, costScale: 1.28, maxLevel: 20, getValueText: (lvl) => `%${(getTowerLifesteal(lvl)*100).toFixed(2)}` },
+    thorns: { category: 'defense', name: 'Dikenli Zırh', icon: 'fa-solid fa-burst', color: 'text-rose-400', desc: 'Saldırana hasarı geri yansıtır (Her Sv. +%3, Maks %75).', baseCost: 50, costScale: 1.18, maxLevel: 25, getValueText: (lvl) => `%${getTowerThorns(lvl)}` },
 
-    goldBonus: { category: 'economy', name: 'Ganimet Çarpanı', icon: 'fa-solid fa-sack-dollar', color: 'text-amber-400', desc: 'Her Sv. +%6 altın kazancı (Her 10 Sv. ekstra çarpan).', baseCost: 35, costScale: 1.19, maxLevel: 9999, getValueText: (lvl) => `x${getGoldMultiplier().toFixed(2)} Altın` },
+    goldBonus: { category: 'economy', name: 'Ganimet Çarpanı', icon: 'fa-solid fa-sack-dollar', color: 'text-amber-400', desc: 'Her Sv. +%6 altın kazancı (Her 10 Sv. ekstra çarpan).', baseCost: 35, costScale: 1.19, maxLevel: 9999, getValueText: (lvl) => `x${getGoldMultiplier(lvl).toFixed(2)} Altın` },
     waveGold: { category: 'economy', name: 'Dalga İkramiyesi', icon: 'fa-solid fa-award', color: 'text-yellow-400', desc: 'Dalga geçildiğinde ekstra altın ödülü verir.', baseCost: 50, costScale: 1.20, maxLevel: 9999, getValueText: (lvl) => `+${formatNumber(getWaveBonusPreview(lvl))}` },
     crystalChance: { category: 'economy', name: 'Kristal Sondajı', icon: 'fa-solid fa-gem', color: 'text-cyan-400', desc: 'Her Sv. +%0.45 şans ve +%8 kristal çarpanı (Maks 30 Sv).', baseCost: 120, costScale: 1.24, maxLevel: 30, getValueText: (lvl) => `%${getCrystalDropChance(lvl).toFixed(1)} (x${getCrystalDropMult(lvl).toFixed(1)})` },
     interest: { category: 'economy', name: 'Kuantum Bankası', icon: 'fa-solid fa-piggy-bank', color: 'text-emerald-400', desc: 'Dalga sonu kasa faizi: Her Sv. +%0.4 (Maks 15 Sv: %6.0).', baseCost: 300, costScale: 1.35, maxLevel: 15, getValueText: (lvl) => `%${(lvl * 0.4).toFixed(1)} Faiz` }
@@ -256,12 +256,12 @@ function getItemStatBonus(type) {
     return total;
 }
 
-function getEffectiveMultishot() {
+function getEffectiveMultishot(level = game.upgrades.multishot) {
     // Story mode only uses its mission-local upgrade level; Endless equipment cannot add barrels.
     if (typeof document !== 'undefined' && document.body?.dataset?.gameMode === 'story') {
-        return 1 + Math.max(0, Number(game.upgrades?.multishot) || 0);
+        return 1 + Math.max(0, Number(level) || 0);
     }
-    let base = 1 + game.upgrades.multishot;
+    let base = 1 + level;
     const equipped = new Set(Array.isArray(game.equippedItems) ? game.equippedItems : []);
     for (const itemId of equipped) {
         const item = ITEM_DATABASE[itemId];
@@ -309,64 +309,64 @@ function getPermDamageMult() {
     return (1 + game.prestigeUpgrades.permDamage * 0.20) * (1 + game.souls * 0.03) * (1 + (game.lootboxBonuses.extraDamagePct || 0) / 100) * itemMultBonus;
 }
 
-function getTowerDamage() {
-    const lvl = Math.max(1, game.upgrades.damage);
+function getTowerDamage(level = game.upgrades.damage) {
+    const lvl = Math.max(1, level);
     const base = (8 + (lvl - 1) * 2.2) * Math.pow(1.045, lvl - 1);
     const milestone = getLevelMilestoneMult(lvl);
     return Math.round(base * milestone * getPermDamageMult() * (1 + (window.EndlessOperations?.bonus('damage') || 0)));
 }
 
-function getTowerFireRate() {
-    const lvl = Math.min(50, Math.max(1, game.upgrades.attackSpeed));
+function getTowerFireRate(level = game.upgrades.attackSpeed) {
+    const lvl = Math.min(50, Math.max(1, level));
     return (0.90 + (lvl - 1) * 0.055 + getItemStatBonus('speed')) * (1 + (window.EndlessOperations?.bonus('speed') || 0));
 }
 
-function getTowerRange() {
-    const lvl = Math.min(40, Math.max(1, game.upgrades.range));
+function getTowerRange(level = game.upgrades.range) {
+    const lvl = Math.min(40, Math.max(1, level));
     return (130 + (lvl - 1) * 4.0 + getItemStatBonus('range')) * (1 + (window.EndlessOperations?.bonus('range') || 0));
 }
 
-function getTowerCritChance() {
+function getTowerCritChance(level = game.upgrades.critChance) {
     // 48 Seviye * %1.5 = %72 + %3 Taban = Tam %75! (Eşya takılırsa eşya bonusu ile %90'a kadar çıkabilir)
-    const lvl = Math.min(48, Math.max(0, game.upgrades.critChance || 0));
+    const lvl = Math.min(48, Math.max(0, level || 0));
     const baseAndUpgrade = Math.min(75, 3 + lvl * 1.5);
     return Math.min(90, +(baseAndUpgrade + getItemStatBonus('crit')).toFixed(1));
 }
 
-function getTowerCritMult() {
-    const lvl = Math.max(1, game.upgrades.critMult || 1);
+function getTowerCritMult(level = game.upgrades.critMult) {
+    const lvl = Math.max(1, level || 1);
     return 1.50 + (lvl - 1) * 0.08 + Math.floor(lvl / 15) * 0.15 + getItemStatBonus('critMult');
 }
 
-function getTowerKnockback() { const lvl = Math.min(3, game.upgrades.knockback || 0); return lvl <= 0 ? 0 : 6 + lvl * 3.0; }
+function getTowerKnockback(level = game.upgrades.knockback) { const lvl = Math.min(3, level || 0); return lvl <= 0 ? 0 : 6 + lvl * 3.0; }
 
-function getTowerMaxHp() {
-    const lvl = Math.max(1, game.upgrades.maxHp);
+function getTowerMaxHp(level = game.upgrades.maxHp) {
+    const lvl = Math.max(1, level);
     const base = (100 + (lvl - 1) * 20) * Math.pow(1.042, lvl - 1);
     const milestone = getLevelMilestoneMult(lvl);
     return Math.round(base * milestone * (1 + getItemStatBonus('hp')) * (1 + (window.EndlessOperations?.bonus('hp') || 0)));
 }
 
-function getTowerRegen() {
-    const lvl = game.upgrades.hpRegen || 0;
+function getTowerRegen(level = game.upgrades.hpRegen) {
+    const lvl = level || 0;
     const itemRegenPct = getItemStatBonus('regen');
     if (lvl === 0 && itemRegenPct === 0) return 0;
     const base = (0.8 + lvl * 0.7) * Math.pow(1.038, Math.max(0, lvl - 1)) * getLevelMilestoneMult(lvl);
     return Math.round(base * (1 + itemRegenPct) * 10) / 10;
 }
 
-function getTowerArmor() {
-    const lvl = game.upgrades.armor || 0;
+function getTowerArmor(level = game.upgrades.armor) {
+    const lvl = level || 0;
     const itemArmorPct = getItemStatBonus('armor');
     if (lvl === 0 && itemArmorPct === 0) return 0;
     const base = (1.0 + lvl * 1.2) * Math.pow(1.038, Math.max(0, lvl - 1)) * Math.pow(1.08, Math.floor(lvl / 10));
     return Math.round(base * (1 + itemArmorPct));
 }
 
-function getTowerThorns() { return Math.min(25, game.upgrades.thorns || 0) * 3; }
+function getTowerThorns(level = game.upgrades.thorns) { return Math.min(25, level || 0) * 3; }
 
-function getTowerMaxShield() {
-    const lvl = game.upgrades.shield || 0;
+function getTowerMaxShield(level = game.upgrades.shield) {
+    const lvl = level || 0;
     const itemShieldPct = getItemStatBonus('shield');
     const storyShield = typeof getStoryFinaleShieldBonus === 'function' ? getStoryFinaleShieldBonus() : 0;
     if (lvl === 0 && itemShieldPct === 0) return storyShield;
@@ -374,16 +374,16 @@ function getTowerMaxShield() {
     return Math.round(base * (1 + itemShieldPct)) + storyShield;
 }
 
-function getTowerLifesteal() { return Math.min(20, game.upgrades.lifesteal || 0) * 0.0035 + getItemStatBonus('lifesteal'); }
+function getTowerLifesteal(level = game.upgrades.lifesteal) { return Math.min(20, level || 0) * 0.0035 + getItemStatBonus('lifesteal'); }
 
 function getWaveBaseGold(w = game.wave) {
     return (4 + w * 1.2) * Math.pow(1.055, w - 1) * Math.pow(1.08, Math.floor(w / 10));
 }
 
-function getGoldMultiplier() {
+function getGoldMultiplier(level = game.upgrades.goldBonus) {
     // Story rewards must never inherit Endless economy, prestige, lootbox, or item bonuses.
     if (typeof document !== 'undefined' && document.body?.dataset?.gameMode === 'story') return 1;
-    const lvl = game.upgrades.goldBonus || 0;
+    const lvl = level || 0;
     const upgMult = (1 + lvl * 0.06) * Math.pow(1.06, Math.floor(lvl / 10));
     return upgMult * (1 + getItemStatBonus('gold')) * (1 + game.prestigeUpgrades.permGold * 0.20) * (1 + (game.lootboxBonuses.extraGoldPct || 0) / 100) * (game.holdWave ? 0.35 : 1.0);
 }

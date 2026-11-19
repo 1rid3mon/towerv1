@@ -92,6 +92,36 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  await page.waitForTimeout(150);
  await page.screenshot({path:path.join(evidence,width+'x'+height+'-cyber-redesign.png')});
 
+ // Workshop acceptance uses real touch purchases and exact stat forecasts.
+ const previousField=await page.evaluate(()=>{enemies.length=0;spawnEnemy(false);return {width:canvas.width,dx:enemies[0].x-tower.x,dy:enemies[0].y-tower.y};});
+ await page.locator('#meta-command-shelf .command-all-upgrades').tap();
+ await page.locator('#meta-command-upgrades:not([hidden])').waitFor();await page.waitForTimeout(220);
+ const openedField=await page.evaluate(()=>({width:canvas.width,dx:enemies[0].x-tower.x,dy:enemies[0].y-tower.y,coreX:document.querySelector('#gameCanvas').getBoundingClientRect().left+tower.x,drawerRight:document.querySelector('#meta-command-upgrades').getBoundingClientRect().right}));
+ assert.ok(openedField.width<previousField.width,'drawer reserves actual battlefield width');
+ assert.ok(openedField.coreX>openedField.drawerRight,'tower remains outside workshop');
+ assert.ok(Math.abs(openedField.dx-previousField.dx)<.01&&Math.abs(openedField.dy-previousField.dy)<.01,'opening preserves enemy positions relative to core');
+ for(const category of ['attack','defense','economy']){
+  await page.locator('[data-workshop-category="'+category+'"]').tap();
+  const workshop=await page.evaluate(()=>{const p=document.querySelector('#meta-command-upgrades'),r=p.getBoundingClientRect(),rows=[...p.querySelectorAll('.workshop-card:not([hidden])')];return {outside:r.left<0||r.top<0||r.right>innerWidth||r.bottom>innerHeight,overflow:p.scrollWidth>p.clientWidth+1,small:[...p.querySelectorAll('button')].filter(e=>e.getClientRects().length&&!e.closest('[hidden]')).filter(e=>{const r=e.getBoundingClientRect();return r.width<44||r.height<44;}).map(e=>e.getAttribute('aria-label')||e.textContent),illustrated:rows.every(e=>e.querySelector('.workshop-art svg[data-station-art]')?.getBoundingClientRect().width>=56),clipped:rows.flatMap(e=>[...e.querySelectorAll('h3,.workshop-level,.workshop-current,.workshop-next,.command-upgrade-price')]).filter(e=>e.scrollWidth>e.clientWidth+1).map(e=>e.textContent),allMaxDisabled:rows.filter(e=>e.dataset.maxed==='true').every(e=>e.querySelector('button').disabled)};});
+  reports.push({label:width+'x'+height+'-workshop-'+category,...workshop});
+  await page.screenshot({path:path.join(evidence,width+'x'+height+'-workshop-'+category+'.png')});
+  assert.equal(workshop.outside,false,'workshop viewport bounds');assert.equal(workshop.overflow,false,'workshop horizontal overflow');assert.deepEqual(workshop.small,[],'workshop 44px controls');assert.deepEqual(workshop.clipped,[],'full workshop labels and values fit');assert.ok(workshop.illustrated,'all upgrades have actual colored object artwork');assert.ok(workshop.allMaxDisabled,'maxed upgrades cannot be purchased');
+ }
+ await page.locator('[data-workshop-category="attack"]').tap();
+ for(const multiplier of [1,10,'MAX']){
+  const offer=await page.evaluate(multiplier=>{game.upgrades.damage=9;game.gold=100000;window._syncShadow?.();setBuyMultiplier(multiplier);MetaCommand.refresh(true);const info=getBulkUpgradeInfo('damage');return {level:game.upgrades.damage,gold:game.gold,count:info.count,cost:info.totalCost,predicted:UPGRADE_DEFS.damage.getValueText(game.upgrades.damage+info.count)};},multiplier);
+  assert.equal(await page.locator('[data-upgrade-row="damage"] .workshop-next').innerText(),offer.predicted,'displayed forecast uses actual bulk count');
+  await page.locator('[data-upgrade-row="damage"] [data-upgrade="damage"]').tap();
+  const purchased=await page.evaluate(()=>({level:game.upgrades.damage,gold:game.gold,value:UPGRADE_DEFS.damage.getValueText(game.upgrades.damage)}));
+  assert.equal(purchased.level,offer.level+offer.count,'one touch buys selected amount once');assert.equal(purchased.gold,offer.gold-offer.cost,'one touch debits exact cost once');assert.equal(purchased.value,offer.predicted,'shown value matches actual purchased effect');
+ }
+ await page.evaluate(()=>{game.gold=100000;game.upgrades.damage=9;window._syncShadow?.();setBuyMultiplier(1);MetaCommand.refresh(true);renderGame();});
+ await page.screenshot({path:path.join(evidence,width+'x'+height+'-workshop-preview.png')});
+ await page.keyboard.press('Escape');await page.locator('#meta-command-upgrades').waitFor({state:'hidden'});
+ assert.equal(await page.evaluate(()=>document.body.classList.contains('command-workshop-open')),false,'Escape closes workshop');
+ assert.equal(await page.evaluate(()=>canvas.width),previousField.width,'closing restores full field');
+ for(let i=0;i<2;i++){await page.locator('#meta-command-shelf .command-all-upgrades').tap();await page.locator('.workshop-close').tap();}
+ assert.equal(await page.evaluate(()=>canvas.width),previousField.width,'repeated toggles restore full field');
  assert.deepEqual(errors,[],'runtime console errors');if(network.length)throw new Error('External layout dependencies failed; screenshots are not visual acceptance: '+network.join(', '));
  }catch(error){failures.push({viewport:width+'x'+height,error:error.message,stack:error.stack,errors,network});await page.screenshot({path:path.join(evidence,width+'x'+height+'-failure.png')}).catch(()=>{});}finally{await context.close();}}
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));fs.writeFileSync(path.join(evidence,'report.json'),JSON.stringify({reports,failures},null,2));}
