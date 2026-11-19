@@ -1,11 +1,17 @@
 name: Mobile meta acceptance
 on:
   pull_request:
-    paths: ['meta-*.js', 'meta-*.css', 'signal-settings.*', 'fx-director.js', 'data/fx-config.js', 'data/meta-*.js', 'endless-operations.js', 'security-lab/meta-*', '.github/workflows/mobile-meta.yml']
+    paths: ['data.js', 'index.html', 'data/station-art.js', 'meta-*.js', 'meta-*.css', 'signal-settings.*', 'fx-director.js', 'data/fx-config.js', 'data/meta-*.js', 'endless-operations.js', 'security-lab/meta-*', 'security-lab/station-art*', 'security-lab/workshop-*', '.github/workflows/mobile-meta.yml']
   workflow_dispatch:
 jobs:
   mobile-meta:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    env:
+      BROWSER_ENGINE: ${{ matrix.browser }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -15,6 +21,7 @@ jobs:
       - run: npm install --no-audit --no-fund
         working-directory: security-lab
       - name: Choose installed Chrome or install bundled Chromium
+        if: matrix.browser == 'chromium'
         working-directory: security-lab
         run: |
           if command -v google-chrome >/dev/null 2>&1; then
@@ -22,10 +29,14 @@ jobs:
           else
             npx playwright install --with-deps chromium
           fi
-      - run: node --test security-lab/meta-model.test.js security-lab/meta-command-state.test.cjs security-lab/meta-radio.test.cjs security-lab/meta-fx-preferences.test.cjs security-lab/fx-director.test.cjs security-lab/endless-operations.test.js
+      - name: Install WebKit
+        if: matrix.browser == 'webkit'
+        run: npx playwright install --with-deps webkit
+        working-directory: security-lab
+      - run: node --test security-lab/station-art.test.cjs security-lab/workshop-preview.test.cjs security-lab/meta-model.test.js security-lab/meta-command-state.test.cjs security-lab/meta-radio.test.cjs security-lab/meta-fx-preferences.test.cjs security-lab/fx-director.test.cjs security-lab/endless-operations.test.js
       - run: node security-lab/meta-ui-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: mobile-meta-evidence
+          name: mobile-meta-evidence-${{ matrix.browser }}
           path: security-lab/browser-evidence/meta

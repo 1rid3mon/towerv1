@@ -1,6 +1,7 @@
 /* Landscape battle controls reuse the existing upgrade/combat functions. */
 (function(){'use strict';
-let bar,rail,skills,shelf,drawer,opened=false,holdTimer=0,heldAt=0,heldKey=null,lastStamp='',lastSeasonTier=null;
+let bar,rail,skills,shelf,drawer,opened=false,holdTimer=0,heldAt=0,heldKey=null,lastStamp='',lastSeasonTier=null,workshopCategory='attack',workshopOpener=null;
+const workshopRows=new Map();
 const R=()=>window.MetaRuntime, fmt=v=>formatNumber(v), message=m=>window.MetaUI?.notify(m), t=k=>window.MetaStrings[k]||k;
 const iconPaths={
  archive:'M5 4h14v16H5z M8 8h8 M8 12h6 M8 16h4 M3 7h2 M3 17h2',
@@ -31,9 +32,9 @@ const iconPaths={
 function icon(name){return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="'+(iconPaths[name]||iconPaths.pulse)+'"/></svg>';}
 function upgradeMarkup(button,key,info){
  const label=UPGRADE_DEFS[key].name,price=info.maxed?'MAKS':fmt(info.totalCost),onShelf=button.closest('#meta-command-shelf');
- const stamp=key+':'+price+':'+!!onShelf;
- if(button.dataset.surface!==stamp){button.dataset.surface=stamp;button.innerHTML='<span class="command-upgrade-icon">'+icon(key==='maxHp'?'shield':key==='damage'?'damage':'upgrade')+'</span><span class="command-upgrade-copy">'+(onShelf?'<span class="command-upgrade-name"></span>':'')+'<strong class="command-upgrade-price"></strong></span><span class="command-upgrade-arrow">'+icon('plus')+'</span>';if(onShelf)button.querySelector('.command-upgrade-name').textContent=window.MetaStrings.quickUpgradeNames[key]||label;const cost=button.querySelector('.command-upgrade-price');cost.innerHTML=icon('gold')+'<span></span>';cost.querySelector('span').textContent=price;}
- button.dataset.affordable=String(info.canAfford);button.setAttribute('aria-label',label+' · '+price+' '+t('battleGold'));button.title=label+' · '+price;
+ const stamp=key+':'+price+':'+!!onShelf+':'+!!info.maxed+':'+!!info.lockedReason;
+ if(button.dataset.surface!==stamp){button.dataset.surface=stamp;button.innerHTML='<span class="command-upgrade-icon">'+(window.StationArt?.svg(key)||icon('upgrade'))+'</span><span class="command-upgrade-copy">'+(onShelf?'<span class="command-upgrade-name"></span>':'')+'<strong class="command-upgrade-price"></strong></span><span class="command-upgrade-arrow">'+icon(info.maxed?'check':info.lockedReason?'lock':'plus')+'</span>';if(onShelf)button.querySelector('.command-upgrade-name').textContent=window.MetaStrings.quickUpgradeNames[key]||label;const cost=button.querySelector('.command-upgrade-price');cost.innerHTML=(info.maxed?'':icon('gold'))+'<span></span>';cost.querySelector('span').textContent=price;}
+ button.dataset.affordable=String(info.canAfford);button.disabled=!!(info.maxed||info.lockedReason);button.dataset.maxed=String(!!info.maxed);button.setAttribute('aria-label',label+' · '+price+' '+t('battleGold'));button.title=label+' · '+price;
 }
 function sectorBossState(descriptor,active){
  if(active)return 'active';
@@ -57,7 +58,24 @@ function upgradeButton(key){
  for(const event of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(event,stop);
  return b;
 }
-function openUpgrades(){opened=!opened;drawer.hidden=!opened;stop();refresh(true);}
+function chooseCategory(category){workshopCategory=category;stop();for(const row of workshopRows.values())row.hidden=row.dataset.category!==category;drawer.querySelectorAll('[data-workshop-category]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.workshopCategory===category)));}
+function openUpgrades(){
+ if(!drawer)return;opened=!opened;drawer.hidden=!opened;stop();
+ document.body.classList.toggle('command-workshop-open',opened);
+ if(opened){workshopOpener=document.activeElement;chooseCategory(workshopCategory);drawer.querySelector('[data-workshop-category="'+workshopCategory+'"]').focus();}
+ else if(workshopOpener?.isConnected)workshopOpener.focus();
+ if(typeof resizeCanvas==='function')resizeCanvas();refresh(true);
+}
+function refreshWorkshopRow(key,info){
+ const row=workshopRows.get(key);if(!row)return;
+ const def=UPGRADE_DEFS[key],level=game.upgrades[key],count=info.maxed?0:Math.max(1,info.count||1),target=Math.min(def.maxLevel,level+count);
+ row.querySelector('.workshop-level').textContent=t('level')+' '+fmt(level);
+ row.querySelector('.workshop-current').textContent=def.getValueText(level);
+ row.querySelector('.workshop-next').textContent=info.maxed?t('maxLevel'):def.getValueText(target);
+ row.querySelector('.workshop-gain').textContent=info.maxed?t('maxLevel'):info.lockedReason||'+'+count+' '+t('level');
+ row.dataset.maxed=String(!!info.maxed);
+}
+
 function mount(){
  if(!document.getElementById('canvas-container'))return;
  bar=document.createElement('div');bar.id='meta-command-bar';
@@ -80,10 +98,24 @@ function mount(){
  shelf=document.createElement('div');shelf.id='meta-command-shelf';
  const allUpgrades=btn('',openUpgrades);allUpgrades.className='command-all-upgrades';allUpgrades.innerHTML=icon('upgrade')+'<span>'+t('upgrade')+'</span>';allUpgrades.setAttribute('aria-label',t('workshop'));shelf.append(upgradeButton('damage'),upgradeButton('maxHp'),allUpgrades);
  drawer=document.createElement('section');drawer.id='meta-command-upgrades';drawer.hidden=true;drawer.setAttribute('aria-label','Hızlı yükseltmeler');
- const head=document.createElement('header');for(const value of [1,10,'MAX'])head.append(btn(value==='MAX'?'MAKS':'×'+value,()=>{setBuyMultiplier(value);refresh(true);}));head.append(btn('Kapat',openUpgrades));
+ const head=document.createElement('header');head.className='workshop-header';
+ const heading=document.createElement('div');heading.className='workshop-heading';heading.append(document.createElement('small'),document.createElement('strong'));heading.children[0].textContent=t('towerSystems');heading.children[1].textContent=t('workshop');
+ const multipliers=document.createElement('div');multipliers.className='workshop-multipliers';for(const value of [1,10,'MAX']){const b=btn(value==='MAX'?'MAKS':'×'+value,()=>{setBuyMultiplier(value);refresh(true);});b.dataset.workshopMultiplier=String(value);multipliers.append(b);}
+ const close=btn('',openUpgrades);close.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg>';close.className='workshop-close';close.setAttribute('aria-label',t('close'));head.append(heading,multipliers,close);
+ const categories=document.createElement('nav');categories.className='workshop-categories';categories.setAttribute('aria-label',t('upgradeCategories'));
+ for(const category of ['attack','defense','economy']){const b=btn(t(category),()=>chooseCategory(category));b.dataset.workshopCategory=category;categories.append(b);}
  const rows=document.createElement('div');rows.className='meta-upgrade-rows';
- for(const [key,def]of Object.entries(UPGRADE_DEFS)){const row=document.createElement('div'),label=document.createElement('span');row.className='meta-upgrade-row';label.dataset.label=key;label.textContent=def.name;row.append(label,upgradeButton(key));rows.append(row);}
- drawer.append(head,rows);document.body.append(bar,rail,shortcuts,skills,shelf,drawer);
+ for(const [key,def]of Object.entries(UPGRADE_DEFS)){
+  const row=document.createElement('article');row.className='meta-upgrade-row workshop-card';row.dataset.category=def.category;row.dataset.upgradeRow=key;
+  const art=document.createElement('div');art.className='workshop-art';art.setAttribute('aria-hidden','true');art.innerHTML=window.StationArt?.svg(key)||icon('upgrade');
+  const copy=document.createElement('div');copy.className='workshop-copy';
+  copy.innerHTML='<div class="workshop-name-line"><h3></h3><span class="workshop-level"></span></div><p class="workshop-description"></p><div class="workshop-preview"><span class="workshop-current"></span><span class="workshop-value-arrow" aria-hidden="true">→</span><strong class="workshop-next"></strong></div>';
+  copy.querySelector('h3').textContent=def.name;copy.querySelector('p').textContent=def.desc;copy.querySelector('p').title=def.desc;
+  const action=document.createElement('div');action.className='workshop-purchase';const gain=document.createElement('span');gain.className='workshop-gain';action.append(upgradeButton(key),gain);
+  row.append(art,copy,action);rows.append(row);workshopRows.set(key,row);
+ }
+ drawer.append(head,categories,rows);document.body.append(bar,rail,shortcuts,skills,shelf,drawer);chooseCategory(workshopCategory);
+ window.addEventListener('keydown',e=>{if(opened&&!e.defaultPrevented&&e.key==='Escape'&&!document.querySelector('dialog[open]')&&!document.body.classList.contains('signal-settings-open')){e.preventDefault();openUpgrades();}});
  window.addEventListener('blur',stop);document.addEventListener('visibilitychange',stop);
  document.addEventListener('click',e=>{if(e.target.closest('button')?.closest('#meta-center,#meta-overlay,#meta-command-rail,#meta-command-bar,#meta-command-skills,.signal-settings')){window.Fx?.haptic?.(8);window.TowerCommandSounds?.play('tap');}},{passive:true});
  document.addEventListener('meta-state-changed',()=>refresh(true));window.setInterval(refresh,250);refresh(true);
@@ -95,7 +127,7 @@ function refresh(force=false){
  const tactics = document.getElementById('endless-tactics');
  const tacticsHost = active ? bar : document.getElementById('hud-top-bar');
  if(tactics && tacticsHost && tactics.parentElement!==tacticsHost)tacticsHost.append(tactics);
- if(!active){document.body.removeAttribute('data-health-low');stop();return;}
+ if(!active){document.body.removeAttribute('data-health-low');if(opened){opened=false;drawer.hidden=true;document.body.classList.remove('command-workshop-open');resizeCanvas();}stop();return;}
  R().prepare();const m=R().getState();
  const wave=game.wave,sector=Math.ceil(wave/10),step=(wave-1)%10+1;
  const descriptor=EndlessSectors.describe(wave), bossActive=typeof enemies!=='undefined'&&enemies.some(e=>e.type==='boss'&&e.hp>0);
@@ -108,11 +140,13 @@ function refresh(force=false){
  bar.children[1].textContent=gameSpeed+'×';if(bar.children[2].dataset.paused!==String(isPaused)){bar.children[2].dataset.paused=String(isPaused);bar.children[2].innerHTML=icon(isPaused?'play':'pause');}bar.children[2].setAttribute('aria-label',isPaused?t('resume'):t('pause'));bar.children[2].setAttribute('aria-pressed',String(isPaused));
  const stamp=game.gold+':'+JSON.stringify(game.upgrades)+':'+buyMultiplier;
  if(force===true||stamp!==lastStamp){lastStamp=stamp;
-  const cheapest=Object.keys(UPGRADE_DEFS).filter(k=>!getBulkUpgradeInfo(k).maxed&&!getBulkUpgradeInfo(k).lockedReason).sort((a,b)=>getBulkUpgradeInfo(a).totalCost-getBulkUpgradeInfo(b).totalCost).slice(0,2);
+  const offers=new Map(Object.keys(UPGRADE_DEFS).map(k=>[k,getBulkUpgradeInfo(k)]));
+  const cheapest=[...offers.keys()].filter(k=>!offers.get(k).maxed&&!offers.get(k).lockedReason).sort((a,b)=>offers.get(a).totalCost-offers.get(b).totalCost).slice(0,2);
   // Rebind only when not holding: a pointer's target must stay stable until release.
   if(!heldKey)for(let i=0;i<2;i++){const b=shelf.children[i],key=cheapest[i];if(key&&b.dataset.upgrade!==key)b.replaceWith(upgradeButton(key));}
-  document.querySelectorAll('[data-upgrade]').forEach(b=>{const key=b.dataset.upgrade,info=getBulkUpgradeInfo(key);upgradeMarkup(b,key,info);});
-  document.querySelectorAll('[data-label]').forEach(e=>{const k=e.dataset.label;e.textContent=UPGRADE_DEFS[k].name+' · Sv.'+game.upgrades[k]+' · '+UPGRADE_DEFS[k].getValueText(game.upgrades[k]);});
+  document.querySelectorAll('[data-upgrade]').forEach(b=>{const key=b.dataset.upgrade,info=offers.get(key);upgradeMarkup(b,key,info);});
+  for(const [key,info]of offers)refreshWorkshopRow(key,info);
+  drawer.querySelectorAll('[data-workshop-multiplier]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.workshopMultiplier===String(buyMultiplier))));
  }
  m.archive.skillSlots.forEach((id,i)=>{const b=skills.children[i],item=MetaConfig.skills.find(x=>x.id===id),left=R().cooldown(i),unlock=MetaConfig.skillUnlockSectors[i],locked=(m.offline.cleared||0)<unlock;
  const symbol=item?({ark:'pulse',slow:'slow',shield:'shield',emp:'emp',overload:'overload',signal:'signal'}[item.id]||'pulse'):locked?'lock':['pulse','slow','shield','emp','overload','signal'][i];

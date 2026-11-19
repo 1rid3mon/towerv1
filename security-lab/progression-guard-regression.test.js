@@ -101,7 +101,7 @@ test('low-health and boss-wave HUD affordances remain present and motion-safe', 
 
 test('duplicate equipped IDs never stack the same item stat bonus', () => {
   const start = dataSource.indexOf('function getItemStatBonus(type)');
-  const end = dataSource.indexOf('function getEffectiveMultishot()', start);
+  const end = dataSource.indexOf('function getEffectiveMultishot(', start);
   assert.ok(start >= 0 && end > start, 'item bonus helper should exist');
   const sandbox = {
     game: { equippedItems: ['epic_crimson_archer', 'epic_crimson_archer'] },
@@ -117,7 +117,7 @@ test('duplicate equipped IDs never stack the same item stat bonus', () => {
 });
 
 test('duplicate equipped IDs never stack multishot either', () => {
-  const start = dataSource.indexOf('function getEffectiveMultishot()');
+  const start = dataSource.indexOf('function getEffectiveMultishot(');
   const end = dataSource.indexOf('function getBulkUpgradeInfo(', start);
   assert.ok(start >= 0 && end > start, 'multishot helper should exist');
   const sandbox = {
@@ -294,8 +294,8 @@ test('story mode hard-isolates multishot, economy, and companion multipliers', (
       gold_relic: { type: 'gold', val: 5 }
     }
   };
-  const multishot = extractFunction(dataSource, 'function getEffectiveMultishot()', 'function getBulkUpgradeInfo');
-  const gold = extractFunction(dataSource, 'function getGoldMultiplier()', 'function getWaveBonusPreview');
+  const multishot = extractFunction(dataSource, 'function getEffectiveMultishot(', 'function getBulkUpgradeInfo');
+  const gold = extractFunction(dataSource, 'function getGoldMultiplier(', 'function getWaveBonusPreview');
   const companion = extractFunction(dataSource, 'function getCompanionBoost()', 'function calculatePendingSouls');
   vm.runInNewContext(multishot + '\n' + gold + '\n' + companion + '\nglobalThis.result = [getEffectiveMultishot(), getGoldMultiplier(), getCompanionBoost()];', sandbox);
   assert.deepEqual(Array.from(sandbox.result), [1, 1, 1]);

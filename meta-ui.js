@@ -9,15 +9,22 @@ function el(tag,text,cls){const e=document.createElement(tag);if(text!==undefine
 function button(text,fn,cls){const b=el('button',text,cls);b.type='button';b.onclick=e=>{lastActionRect=b.getBoundingClientRect();fn(e);};return b;}
 function state(){return R()?.getState?.()||{};}function legacy(){return R()?.getLegacy?.()||state().legacy||{};}
 function notify(message){mount();const e=document.getElementById('meta-toast');(overlay?.open?overlay:dialog?.open?dialog:document.body).append(e);e.textContent=message||t('failed');clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.textContent='',2200);}
-function glyph(item,kind){
+function outlineGlyph(item,kind){
  const e=el('span',null,'meta-glyph');e.setAttribute('aria-hidden','true');e.style.setProperty('--rarity',colors[item?.rarity||0]);
  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 48 48');svg.setAttribute('width','48');svg.setAttribute('height','48');
  const paths=kind==='skills'?['M24 5 9 26h13l-2 17 19-25H26z','M24 5 8 12v14l16 16 16-16V12z','M8 24h32M24 8v32M12 12l24 24M12 36l24-24']:['M20 8h8v23h-8zM16 31h16v9H16zM16 14h16M21 4h6','M12 13h24v22H12zM18 7h12v6M18 35v6h12v-6M18 20h12v8H18z','M8 24 24 8l16 16-16 16zM17 24l7-7 7 7-7 7z'];
  const seed=String(item?.id||'').split('').reduce((sum,c)=>sum+c.charCodeAt(0),0),path=document.createElementNS(svg.namespaceURI,'path');path.setAttribute('d',paths[seed%paths.length]);path.setAttribute('fill','currentColor');path.setAttribute('fill-opacity','.15');path.setAttribute('stroke','currentColor');path.setAttribute('stroke-width','2');path.setAttribute('stroke-linejoin','round');svg.append(path);e.append(svg);return e;
 }
+function itemArt(key,color,cls='meta-item-art'){
+ const art=el('span',null,cls);art.setAttribute('aria-hidden','true');
+ if(window.StationArt)art.innerHTML=window.StationArt.svg(key,{color});
+ else art.append(outlineGlyph({id:key,rarity:0},'equipment'));
+ return art;
+}
+function glyph(item,kind){const art=itemArt(item?.id||'part',colors[item?.rarity||0],'meta-glyph meta-painted-item');art.style.setProperty('--rarity',colors[item?.rarity||0]);return art;}
 function motionReduced(){const reduced=window.Fx?.settings().reduced||matchMedia('(prefers-reduced-motion: reduce)').matches;document.documentElement.dataset.metaReduced=String(!!reduced);return reduced;}
 function badge(label){const b=el('small',null,'meta-badge');b.title=label;b.setAttribute('aria-label',label);return b;}
-function navIcon(key){const e=glyph({id:key,rarity:5},key==='skills'?'skills':'equipment');e.classList.add('meta-nav-icon');return e;}
+function navIcon(key){const e=outlineGlyph({id:key,rarity:5},key==='skills'?'skills':'equipment');e.classList.add('meta-nav-icon');return e;}
 function flyRewards(source,count=3){
  if(motionReduced()||!source||!wallet?.isConnected)return;
  const target=wallet.lastElementChild?.getBoundingClientRect();if(!target?.width)return;
@@ -81,26 +88,48 @@ function showSeasonPreview() {
   const tier = period === season.period ? Math.min(config.tiers, Math.floor(season.xp / config.xpPerTier)) : 0;
   const milestone = tier;
   const reward = el('article', null, 'meta-season-feature');
-  reward.append(el('span','◈','meta-season-emblem'),el('h3',t('seasonTitle')),
+  reward.append(itemArt('part','#e6b578','meta-season-emblem meta-painted-item'),el('h3',t('seasonTitle')),
     el('p',milestone ? t('tier') + ' ' + milestone : t('seasonStart')),
     el('strong',n(config.partsPerTier) + ' ' + t('parca') + ' / ' + t('tier')));
   popup(t('seasonPreview'),reward,[button(t('skip'),closeOverlay),button(t('viewPass'),closeOverlay,'meta-primary')]);
   overlay.classList.add('meta-season-preview');
   // Preview is opened explicitly, so keep it readable until dismissed.
 }
-function renderSeason(m){const s=m.season||{},tier=Math.min(C().season?.tiers||30,Math.floor((s.xp||0)/(C().season?.xpPerTier||60))),summary=el('div',null,'meta-season-summary');summary.append(el('strong',t('seasonTitle')),el('span',n(s.xp||0)+' '+t('xp')+' · '+tier+'/30'));progress(summary,(s.xp||0)%(C().season?.xpPerTier||60),C().season?.xpPerTier||60,t('seasonTitle'));body.append(summary);for(const track of ['elite','premium','free']){const row=el('section',null,'meta-season-row');row.append(el('h3',t(track)));const rail=el('div',null,'meta-track');for(let i=1;i<=30;i++){const unlocked=track==='free'||s.premiumUnlocked,claimed=i<=(track==='free'?(s.claimed||0):(s.premiumClaimed||0)),ready=i<=tier&&unlocked,c=button('',()=>unlocked?action('seasonClaim',{track,tier:i}):notify(t('premiumUnlock')+' · '+n(C().season?.premiumCost)+' '+t('kristal')),'meta-reward-cell');c.dataset.claimed=String(claimed);c.dataset.ready=String(ready&&!claimed);c.append(el('small',String(i)),el('strong',n(C().season?.partsPerTier||6)+' '+t('parca')),el('small',claimed?t('claimed'):ready?t('ready'):t('locked')));rail.append(c);}row.append(rail);body.append(row);}footerAction(t('claimAll'),()=>action('seasonClaim'),true);if(!s.premiumUnlocked)footerAction(t('premiumUnlock')+' · '+n(C().season?.premiumCost),()=>action('seasonUnlock'));else footer.append(el('span',t('premiumNote'),'meta-note'));footerAction(t('seasonPreview'),showSeasonPreview);footerAction(t('seasonTasks'),()=>R()?.route?.('tasks'));}
+function renderSeason(m){
+ const s=m.season||{},config=C().season,tier=Math.min(config.tiers,Math.floor((s.xp||0)/config.xpPerTier)),summary=el('div',null,'meta-season-summary'),copy=el('div',null,'meta-season-copy');
+ body.classList.add('meta-season-page');
+ copy.append(el('strong',t('seasonTitle')),el('span',t('tier')+' '+tier+' / '+config.tiers));
+ const next=el('div',null,'meta-season-next');next.append(el('strong',n(config.partsPerTier)+' '+t('parca')),el('small',tier===config.tiers?t('maxLevel'):n(config.xpPerTier-(s.xp||0)%config.xpPerTier)+' '+t('xp')+' → '+t('tier')+' '+(tier+1)));
+ summary.append(itemArt('part','#e6b578'),copy,next);progress(summary,tier===config.tiers?config.xpPerTier:(s.xp||0)%config.xpPerTier,config.xpPerTier,t('seasonTitle'));body.append(summary);
+ for(const track of ['elite','premium','free']){
+  const amount=track==='elite'?config.elitePartsPerTier:track==='premium'?config.premiumPartsPerTier:config.partsPerTier;
+  const row=el('section',null,'meta-season-row');row.dataset.track=track;row.append(el('h3',t(track)));
+  const rail=el('div',null,'meta-track');rail.setAttribute('aria-label',t(track));
+  for(let i=1;i<=config.tiers;i++){
+   const unlocked=track==='free'||s.premiumUnlocked,claimed=i<=(track==='free'?(s.claimed||0):(s.premiumClaimed||0)),ready=i<=tier&&unlocked;
+   const cell=button('',()=>unlocked?action('seasonClaim',{track,tier:i}):notify(t('premiumUnlock')+' · '+n(config.premiumCost)+' '+t('kristal')),'meta-reward-cell');
+   const status=claimed?t('claimed'):ready?t('ready'):t('locked');
+   cell.dataset.claimed=String(claimed);cell.dataset.ready=String(ready&&!claimed);cell.setAttribute('aria-label',t(track)+' · '+t('tier')+' '+i+' · '+amount+' '+t('parca')+' · '+status);
+   cell.append(el('small',String(i),'meta-reward-tier'),itemArt('part',track==='elite'?'#b4a3f4':track==='premium'?'#e6b578':'#70d9d5'),el('strong',n(amount)+' '+t('parca')),el('small',status,'meta-reward-state'));rail.append(cell);
+  }
+  row.append(rail);body.append(row);requestAnimationFrame(()=>{if(rail.isConnected)rail.scrollLeft=Math.max(0,tier-1)*(rail.firstElementChild.getBoundingClientRect().width+8);});
+ }
+ footerAction(t('claimAll'),()=>action('seasonClaim'),true);if(!s.premiumUnlocked)footerAction(t('premiumUnlock')+' · '+n(config.premiumCost),()=>action('seasonUnlock'));else footer.append(el('span',t('premiumNote'),'meta-note'));footerAction(t('seasonPreview'),showSeasonPreview);footerAction(t('seasonTasks'),()=>R()?.route?.('tasks'));
+}
 function renderReturn(m){const r=m.returnEvent||{};if(!r.startedAt){body.append(el('h3',t('returnTitle')),el('p',t('returnInactive')));return;}if(Date.now()>=r.endsAt){body.append(el('h3',t('expired')));return;}body.classList.add('meta-return');const days=el('nav',null,'meta-days');days.setAttribute('aria-label',t('day'));for(let d=1;d<=7;d++){const b=button(t('day')+' '+d,()=>{returnDay=d;refresh();});b.setAttribute('aria-pressed',String(d===returnDay));days.append(b);}const content=el('div',null,'meta-return-content');content.append(el('h3',t('returnTitle')),el('p',t('returnNote')+' '+t('expires')+' '+remaining(r.endsAt)));const list=el('div',null,'meta-cards');for(const task of C().returnEvent?.tasks||[]){const key=returnDay+':'+task.id,claimed=!!r.tasks?.[key],count=Math.max(0,(m.progress?.[task.id==='login'?'logins':task.id]||0)-(r.baseline?.[task.id==='login'?'logins':task.id]||0)),target=task.target*returnDay,c=card(list,t(task.id),(task.reward||0)+' '+t('parca'));progress(c,Math.min(target,count),target,t(task.id));c.append(el('p',Math.min(target,count)+' / '+target),button(claimed?t('claimed'):t('claim'),()=>action('returnClaim',{day:returnDay,task:task.id})),button(t('go'),()=>{const target={login:'supply',waves:'battle',bosses:'boss',summons:'archive',fusions:'archive'}[task.id];if(R()?.route)R().route(target);else open(target);}));}content.append(list);body.append(days,content);}
-function renderNotices(){body.classList.add('meta-cards','meta-notices');for(const notice of radioNotices()){const c=card(body,notice.title,notice.body);c.dataset.read=String(state().seenNotices?.[notice.id]===true);if(notice.detail)c.append(button(t('noticeDetails'),()=>{R().action('noticeSeen',{id:notice.id});popup(notice.title,el('p',notice.detail));}));if(notice.action?.route)c.append(button(t('go'),()=>R().route(notice.action.route)));}footerAction(t('done'),close,true);}
+function renderNotices(){body.classList.add('meta-cards','meta-notices');for(const notice of radioNotices()){const c=card(body,notice.title,notice.body);const kind=notice.type||'yenilik';c.dataset.category=kind;c.prepend(itemArt(({sezon:'part',odul:'crate',guncelleme:'overload',etkinlik:'ark',yenilik:'signal'})[kind]||'signal',({sezon:'#e6b578',odul:'#83d6b3',guncelleme:'#90b8eb',etkinlik:'#d59bed'})[kind]||'#70d9d5','meta-notice-art'));c.dataset.read=String(state().seenNotices?.[notice.id]===true);if(notice.detail)c.append(button(t('noticeDetails'),()=>{R().action('noticeSeen',{id:notice.id});popup(notice.title,el('p',notice.detail));}));if(notice.action?.route)c.append(button(t('go'),()=>R().route(notice.action.route)));}footerAction(t('done'),close,true);}
 function renderEvent(){
-  const event=R().eventBriefing();
-  const art=el('div',null,'meta-event-art');
-  art.append(el('p',t('expires')+' · '+remaining(event.endsAt)));
-  body.classList.add('meta-event');
-  body.append(art);
-  const briefing=card(body,t('bossTitle'),t('bossNote'));
-  briefing.append(el('strong',event.boss),el('p',t('eventReward')+' · '+event.reward));
-  if(event.result)briefing.append(el('p',t(event.result==='won'?'eventWon':'eventLost')));
-  footerAction(t(event.result?'eventSummary':'bossAction'),()=>R().startEvent(event.day),true);
+ const event=R().eventBriefing(),challenge=window.EndlessBossRush.challenge(event.day),art=el('div',null,'meta-event-art'),portrait=el('div',null,'meta-boss-portrait');
+ const bossId=({0:'tank_boss',6:'ranged_boss',12:'frost_boss',18:'leviathan'})[challenge.item]||'tank_boss';
+ portrait.setAttribute('role','img');portrait.setAttribute('aria-label',event.boss);portrait.dataset.boss=bossId;
+ if(bossId==='tank_boss'){const img=el('img');img.src='assets/enemies/v17/tank_boss/body.webp';img.alt='';portrait.append(img);}
+ else{const slot={ranged_boss:0,frost_boss:2,leviathan:3}[bossId];portrait.style.backgroundImage='url("assets/enemies/v17/atlas/bosses.webp")';portrait.style.backgroundSize='400% 100%';portrait.style.backgroundPosition=(slot/3*100)+'% 0';}
+ art.append(el('span',t('bossTitle'),'meta-event-kicker'),portrait,el('p',t('expires')+' · '+remaining(event.endsAt)));
+ body.classList.add('meta-event');body.append(art);
+ const briefing=card(body,event.boss,t('bossNote'));briefing.classList.add('meta-boss-briefing');
+ const reward=el('div',null,'meta-boss-reward');reward.append(itemArt('part','#e6b578'),el('p',t('eventReward')+' · '+event.reward));briefing.append(reward);
+ if(event.result)briefing.append(el('p',t(event.result==='won'?'eventWon':'eventLost')));
+ footerAction(t(event.result?'eventSummary':'bossAction'),()=>R().startEvent(event.day),true);
 }
 function renderMenu(){body.classList.add('meta-cards');
 const meta=state();
@@ -117,7 +146,7 @@ const radioHistory=new Map();
 function radioNotices(){return [...new Map([...(window.MetaNotices||[]),...radioHistory.values()].map(n=>[n.id,n])).values()].filter(n=>MetaModel.noticeEligible(n,Date.now(),window.MetaBuild||2));}
 function radioBusy(){
  const settings=document.getElementById('settings-modal'),cinema=document.getElementById('boss-cinema-v15'),moment=document.getElementById('battle-moment');
- return document.hidden||document.body.dataset.gameMode==='story'||document.getElementById('story-mode-screen')?.getAttribute('aria-hidden')==='false'||
+ return document.hidden||document.body.classList.contains('command-workshop-open')||document.body.dataset.gameMode==='story'||document.getElementById('story-mode-screen')?.getAttribute('aria-hidden')==='false'||
  !document.getElementById('mode-main-menu')?.classList.contains('menu-hidden')||!!document.querySelector('dialog[open]')||!!document.querySelector('#endless-tactics[open]:not([hidden])')||
  !!(settings&&!settings.classList.contains('hidden'))||!!(moment?.classList.contains('is-visible')&&['boss','bossKill','clear','loss','defeat'].includes(moment.dataset.kind))||!!(cinema&&Number(getComputedStyle(cinema).opacity)>.05)||
  (typeof isDefeated!=='undefined'&&isDefeated);

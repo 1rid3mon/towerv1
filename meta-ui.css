@@ -212,3 +212,54 @@ html[data-meta-reduced=true] .meta-radio-card{animation:none!important}
 
 /* Align station radio with the instrument strip's safe gutter. */
 .meta-radio-card{top:64px}
+/* Illustrated station rewards: silhouettes, materials and readable state hierarchy. */
+#meta-center .meta-painted-item,#meta-overlay .meta-painted-item{background:none;display:grid;place-items:center;overflow:visible}
+.meta-painted-item svg,.meta-item-art svg,.meta-notice-art svg{display:block;width:100%;height:100%;filter:drop-shadow(0 3px 3px #0005)}
+#meta-center .meta-item .meta-painted-item{width:52px;height:52px;margin:-2px 0 0}
+#meta-center .meta-detail>.meta-painted-item{width:112px;height:112px;margin:12px auto;filter:drop-shadow(0 0 24px color-mix(in srgb,var(--rarity) 14%,transparent))}
+#meta-overlay .meta-result .meta-painted-item{width:80px;height:80px;margin:0 auto 8px}
+#meta-overlay .meta-season-emblem.meta-painted-item{padding:12px;width:clamp(96px,27dvh,180px);height:clamp(96px,27dvh,180px);border-radius:16px}
+#meta-center .meta-item[data-owned=false] .meta-painted-item{opacity:.4;filter:saturate(.45)}
+#meta-center .meta-season-summary{display:grid;grid-template-columns:52px minmax(0,1fr) minmax(120px,auto);gap:4px 12px;align-items:center;margin-bottom:14px;padding:10px 14px;background:radial-gradient(ellipse at 0 0,#bb89402e,transparent 50%),linear-gradient(110deg,#242b30,#13212c);border-color:#e6b57830}
+.meta-season-summary>.meta-item-art{width:52px;height:52px;grid-row:1}
+.meta-season-copy,.meta-season-next{display:flex;flex-direction:column;gap:4px}
+#meta-center .meta-season-copy strong{color:#f0dfc1;letter-spacing:.07em;font-size:14px}
+#meta-center .meta-season-copy span{font-size:12px;color:#aabcc6}
+.meta-season-next{text-align:right}
+#meta-center .meta-season-next strong{font-size:16px;color:#e6bf84}
+#meta-center .meta-season-next small{font-size:12px;color:#94aebc}
+#meta-center .meta-season-summary progress{grid-column:1/-1;height:4px;min-height:4px;margin:2px 0 0}
+#meta-center .meta-season-row{grid-template-columns:68px minmax(0,1fr);padding:6px 0;margin:0;border-bottom:1px solid #ffffff07;--track-color:#70d9d5}
+#meta-center .meta-season-row[data-track=elite]{--track-color:#b4a3f4}
+#meta-center .meta-season-row[data-track=premium]{--track-color:#e6b578}
+#meta-center .meta-season-row h3{color:var(--track-color);letter-spacing:.09em;font-size:12px}
+#meta-center .meta-track{padding:3px 2px 8px;scroll-snap-type:x proximity}
+#meta-center .meta-reward-cell{position:relative;width:92px;min-height:112px;padding:5px 6px;gap:1px;align-items:center;scroll-snap-align:start;background:radial-gradient(ellipse at 50% 20%,color-mix(in srgb,var(--track-color) 10%,transparent),transparent 75%),#13212c;border-top:2px solid color-mix(in srgb,var(--track-color) 45%,#182833);border-radius:8px;box-shadow:0 4px 8px #0002}
+#meta-center .meta-reward-cell .meta-item-art{width:48px;height:48px;flex:none;margin:5px 0 1px}
+#meta-center .meta-reward-tier{position:absolute;top:5px;left:7px;color:var(--track-color);font-size:12px;font-variant-numeric:tabular-nums}
+#meta-center .meta-reward-cell strong{font-size:14px;font-weight:650;color:#e0eaf0}
+#meta-center .meta-reward-cell .meta-reward-state{font-size:12px;color:#96aab7}
+#meta-center .meta-reward-cell[data-ready=true]{border-color:color-mix(in srgb,var(--track-color) 60%,#182833);background:radial-gradient(ellipse at 50% 20%,color-mix(in srgb,var(--track-color) 22%,transparent),transparent 75%),#1b2d32;box-shadow:inset 0 0 15px color-mix(in srgb,var(--track-color) 7%,transparent)}
+#meta-center .meta-reward-cell[data-ready=true] .meta-reward-state{color:#bce8cf}
+#meta-center .meta-reward-cell[data-claimed=true]{opacity:.6;filter:saturate(.65)}
+#meta-center .meta-body.meta-event{grid-template-columns:minmax(220px,1.1fr) minmax(0,1fr);align-content:start;gap:16px}
+#meta-center .meta-event-art{position:relative;min-height:230px;max-height:none;aspect-ratio:auto;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;padding:12px;background:radial-gradient(ellipse at 50% 55%,#527c9b24,transparent 62%),linear-gradient(130deg,#142638,#091521);border:1px solid #7198b52b;border-radius:10px}
+.meta-event-art::before{content:'';position:absolute;width:170px;height:170px;top:50%;left:50%;transform:translate(-50%,-45%);border:1px solid #88b4c51c;border-radius:50%;box-shadow:0 0 0 18px #7caec505,0 0 0 19px #7caec50b;pointer-events:none}
+#meta-center .meta-event-kicker{align-self:flex-start;position:relative;z-index:1;font-size:12px;letter-spacing:.12em;color:#7b9fb4}
+.meta-boss-portrait{position:relative;width:190px;height:190px;flex:none;background-repeat:no-repeat;filter:drop-shadow(0 10px 10px #0008);z-index:1}
+.meta-boss-portrait img{width:100%;height:100%;object-fit:contain}
+#meta-center .meta-event-art>p{position:relative;z-index:1;width:100%;margin-top:auto;text-align:center;font-size:12px;letter-spacing:.03em;background:#07111caa;border:1px solid #8bb4c31a;color:#9fb9c9;border-radius:5px}
+#meta-center .meta-boss-briefing{border-top:2px solid #c39a6288;display:flex;flex-direction:column;justify-content:center;background:radial-gradient(ellipse at top,#54607813,transparent 60%),#13212d}
+#meta-center .meta-boss-briefing h3{font-size:21px;color:#e6d4b7;line-height:1.15;max-width:25ch;margin-bottom:12px}
+#meta-center .meta-boss-briefing>p{font-size:14px;line-height:1.5}
+.meta-boss-reward{display:flex;align-items:center;gap:10px;margin-top:14px;padding:10px 0 0;border-top:1px solid #ffffff0b}
+.meta-boss-reward .meta-item-art{width:48px;height:48px;flex:none}
+#meta-center .meta-boss-reward p{font-size:12px;color:#d9bd91}
+#meta-center .meta-notices .meta-card{position:relative;padding-top:15px;border-top-width:2px;border-top-color:#74b6c66b}
+.meta-notice-art{display:block;width:56px;height:56px;float:right;margin:0 0 8px 8px}
+#meta-center .meta-notices .meta-card[data-category=sezon]{border-top-color:#d6ab62; background:linear-gradient(140deg,#3c342947,#142330)}
+#meta-center .meta-notices .meta-card[data-category=odul]{border-top-color:#82cbb1}
+#meta-center .meta-notices .meta-card[data-category=guncelleme]{border-top-color:#7ca7d0}
+#meta-center .meta-notices .meta-card[data-category=etkinlik]{border-top-color:#b18ac9}
+@media(orientation:landscape) and (max-height:500px){#meta-center .meta-detail>.meta-painted-item{width:72px;height:72px;margin:8px auto}#meta-center .meta-season-summary{grid-template-columns:40px minmax(0,1fr) minmax(110px,auto);padding:7px 10px;gap:3px 8px;margin-bottom:5px}.meta-season-summary>.meta-item-art{width:40px;height:40px}#meta-center .meta-season-row{padding:3px 0}#meta-center .meta-reward-cell{min-height:84px;width:82px;padding:3px 5px}#meta-center .meta-reward-cell .meta-item-art{width:32px;height:32px;margin-top:4px}#meta-center .meta-reward-cell strong{font-size:12px}#meta-center .meta-track{padding-bottom:5px}#meta-center .meta-event-art{min-height:194px;padding:8px}.meta-boss-portrait{width:148px;height:148px}#meta-center .meta-boss-briefing h3{font-size:18px;margin-bottom:6px}.meta-boss-reward{margin-top:6px;padding-top:6px}}
+@media(max-width:540px){#meta-center .meta-season-summary{grid-template-columns:36px minmax(0,1fr)}.meta-season-summary>.meta-item-art{width:36px;height:36px}.meta-season-next{grid-column:1/-1;text-align:left;flex-direction:row;justify-content:space-between}#meta-center .meta-body.meta-event{grid-template-columns:1fr}.meta-boss-portrait{width:160px;height:160px}}
