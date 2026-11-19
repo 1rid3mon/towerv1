@@ -19,3 +19,25 @@ html[data-meta-reduced=true] #settings-modal .signal-settings-shell{animation:no
 html[data-meta-reduced=true] #settings-modal.signal-settings-closing .signal-settings-shell{animation:signal-panel-fade 120ms ease forwards!important}
 @keyframes signal-panel-fade{to{opacity:0}}
 @media(prefers-reduced-motion:reduce){#settings-modal.signal-settings-closing .signal-settings-shell{animation:signal-panel-fade 120ms ease forwards!important}}
+/* Match the station console: quiet dividers, warm text and tactile controls. */
+#settings-modal .signal-settings-shell{background:radial-gradient(ellipse at top right,#31545c21,transparent 60%),linear-gradient(160deg,#15232f,#0b141f 70%);border-color:#8ba9b533;border-left:2px solid #89d2c5a1;border-radius:12px 0 0 12px;box-shadow:-16px 0 55px #0008,0 1px 0 #ffffff0b inset}
+.signal-settings-header{min-height:52px;padding:0 12px 0 16px;background:linear-gradient(180deg,#1b2b37,#14222e);border-bottom-color:#ffffff12;box-shadow:0 1px 0 #0004}
+.signal-settings-header h2{font-weight:600;font-size:16px;letter-spacing:.09em;color:#deedf1}
+.signal-settings-scroll{padding:8px 14px 20px;scrollbar-width:thin;scrollbar-color:#48657066 transparent}
+.signal-settings button,.signal-settings select{background:linear-gradient(180deg,#21333f,#172632);border-color:#a3bfcc26;box-shadow:0 1px 0 #ffffff08 inset;border-radius:6px;color:#c6d9e1;font-weight:500}
+.signal-settings button:hover,.signal-settings select:hover{border-color:#8ccdc54d;background:#253c47}
+.signal-settings button:focus-visible,.signal-settings select:focus-visible,.signal-settings summary:focus-visible{outline:2px solid #e3bd80;outline-offset:2px}
+.signal-settings-header button{background:transparent;border-color:transparent;box-shadow:none;color:#91a9b8;width:44px;height:44px;border-radius:8px}
+.signal-settings-header button:hover{color:#eef8fb;background:#ffffff0a}
+.signal-settings-section{border-bottom-color:#ffffff0d;padding:4px 0 8px}
+.signal-settings summary{color:#b7d7d7;font-weight:600;font-size:12px;letter-spacing:.12em;gap:8px}
+.signal-settings summary::after{color:#6d929e;font-size:18px;font-weight:400}
+.signal-settings details[open]>summary{color:#a7e5d8}
+.signal-settings-row{min-height:48px;color:#b2c6d0;border-top:1px solid #ffffff04}
+.signal-settings-row>span{font-size:14px;line-height:1.35}
+.signal-settings-row select{font-size:14px;max-width:58%;padding:6px 8px}
+.signal-switch{position:relative;min-width:86px!important;padding-right:32px!important;text-align:left;color:#8fa7b5!important;background:#0c1823!important;border-color:#79929f26!important;box-shadow:0 1px 3px #0003 inset!important;font-weight:500}
+.signal-switch::after{content:'';position:absolute;width:14px;height:14px;right:10px;top:50%;margin-top:-7px;border-radius:50%;background:#506877;box-shadow:0 1px 2px #0004,0 1px 0 #aabec329 inset}
+.signal-switch[aria-checked=true]{color:#bfe8d9!important;background:linear-gradient(135deg,#25483f,#16312f)!important;border-color:#7cc8b33d!important}
+.signal-switch[aria-checked=true]::after{background:#8dd5bc;box-shadow:0 0 8px #77cdb526,0 1px 0 #d9ffee66 inset}
+.signal-settings-version{color:#667f8f;border-top:1px solid #ffffff08;padding-top:12px;letter-spacing:.06em}

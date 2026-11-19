@@ -141,3 +141,71 @@ html[data-meta-reduced=true] .meta-radio-card{animation:none!important}
 .meta-piko-line img{width:56px;height:56px;object-fit:contain;flex:none}
 .meta-piko-line span{max-width:290px;text-align:left}
 .meta-wallet-flight{position:fixed;z-index:10;color:#f3c578;font-size:22px!important;pointer-events:none;filter:drop-shadow(0 0 4px #f3c57888)}
+/* Command console finish: restrained framing, illuminated edges and ranked actions. */
+#meta-center,#meta-overlay{--meta-cyan:#81d9d3;--meta-amber:#e6b56b;--meta-line:#ffffff14;color:#e0e9ef;background:radial-gradient(ellipse at 85% 0,#24455030,transparent 55%),linear-gradient(155deg,#101c28,#080f19 72%);border-color:#90a9b637;border-radius:12px;box-shadow:0 24px 90px #000a,0 1px 0 #d3ecff12 inset}
+#meta-center::backdrop,#meta-overlay::backdrop{background:#030912cc}
+#meta-center .meta-header,#meta-overlay .meta-header{background:linear-gradient(180deg,#192733,#111d28);border-bottom:1px solid #ffffff12;box-shadow:0 1px 0 #0006;padding-left:16px}
+#meta-center h2,#meta-overlay h2{color:#e7f0f4;font-size:16px;font-weight:650;letter-spacing:.09em}
+#meta-center h3,#meta-overlay h3{font-weight:600;color:#d5e4ec;letter-spacing:.015em}
+#meta-center p,#meta-overlay p{color:#9fb3c0}
+#meta-center .meta-wallet{gap:8px}
+#meta-center .meta-wallet span{padding:5px 8px;border-radius:4px;background:#060c133d;border:1px solid #ffffff09;color:#c7d8df;font-variant-numeric:tabular-nums;white-space:nowrap}
+#meta-center button,#meta-overlay button{border-color:#9bb6c124;background:linear-gradient(180deg,#1b2b39,#14212e);border-radius:6px;color:#cbdbe5;box-shadow:0 1px 0 #ffffff08 inset,0 2px 3px #0002;font-weight:600;transition:background 120ms,border-color 120ms,box-shadow 120ms}
+#meta-center button:hover,#meta-overlay button:hover{border-color:#85c4cc65;background:linear-gradient(180deg,#233947,#192d3b)}
+#meta-center button:active,#meta-overlay button:active{background:#10212d;box-shadow:0 2px 4px #0005 inset}
+#meta-center button[aria-pressed=true]{border-color:#71c6c63d;background:linear-gradient(90deg,#25525277,#142932);box-shadow:inset 2px 0 #8adbd3;color:#e5fbf8}
+#meta-center button.meta-primary,#meta-overlay button.meta-primary{color:#f9e8cb;border-color:#d8a35b7d;background:linear-gradient(180deg,#715330,#483620);box-shadow:0 1px 0 #f4cc8540 inset,0 3px 8px #0004;letter-spacing:.025em}
+#meta-center button.meta-primary:hover,#meta-overlay button.meta-primary:hover{background:linear-gradient(180deg,#88643a,#5e4528);border-color:#efc784}
+#meta-center .meta-close,#meta-overlay .meta-close{background:#101c2733;border-color:transparent;box-shadow:none;color:#91a8b7;border-radius:8px}
+#meta-center .meta-close:hover,#meta-overlay .meta-close:hover{color:#eef7fb;background:#ffffff0a;border-color:#ffffff16}
+#meta-center .meta-nav{background:linear-gradient(180deg,#0a131e,#0d1722);border-right-color:#ffffff0c;gap:4px;padding-top:10px}
+#meta-center .meta-nav button{background:transparent;border-color:transparent;box-shadow:none;border-radius:5px;color:#819daa;font-weight:500;letter-spacing:.01em}
+#meta-center .meta-nav button:hover{background:#ffffff05;color:#d3e7ec}
+#meta-center .meta-nav button[aria-pressed=true]{background:linear-gradient(90deg,#2d646042,#15303922);color:#a7eee2;box-shadow:inset 2px 0 #8edbd0;border-color:transparent}
+#meta-center .meta-nav .meta-glyph{color:inherit;background:none}
+#meta-center .meta-body{scrollbar-width:thin;scrollbar-color:#47616b66 transparent}
+#meta-center .meta-footer,#meta-overlay .meta-overlay-footer{background:linear-gradient(180deg,#15222d,#101b26);border-top-color:#ffffff12;box-shadow:0 -5px 20px #0002}
+#meta-center .meta-card,#meta-overlay .meta-card{border:1px solid #9bb6c121;border-top-color:#a4c0cd32;border-radius:8px;background:radial-gradient(ellipse at 0 0,#41616b14,transparent 70%),linear-gradient(155deg,#172632,#101d29);box-shadow:0 4px 14px #0002;padding:14px}
+#meta-center .meta-card h3{color:#d3e3ea}
+#meta-center .meta-card button{background:#101c2880}
+#meta-center .meta-card button:hover{background:#263a48}
+#meta-center progress{appearance:none;border:none;border-radius:3px;background:#050c1480;overflow:hidden;accent-color:#7ecfc8}
+#meta-center progress::-webkit-progress-bar{background:#050c1480;border-radius:3px}
+#meta-center progress::-webkit-progress-value{background:linear-gradient(90deg,#3e8d8f,#8dd7ca);border-radius:3px}
+#meta-center progress::-moz-progress-bar{background:linear-gradient(90deg,#3e8d8f,#8dd7ca);border-radius:3px}
+#meta-center .meta-detail{background:radial-gradient(ellipse at 50% 25%,#39576a1c,transparent 60%),#101c28;border-right-color:#ffffff10}
+#meta-center .meta-detail>.meta-glyph{filter:drop-shadow(0 0 12px #91d2dc15);margin-top:16px;margin-bottom:12px}
+#meta-center .meta-detail-actions{background:#101c28;border-bottom-color:#ffffff12;padding-bottom:9px}
+#meta-center .meta-collection{background:#080f1730}
+#meta-center .meta-rarity-heading{color:#809ba9;letter-spacing:.08em;font-size:12px;border-bottom:1px solid #ffffff08;padding-bottom:7px;margin-top:14px}
+#meta-center .meta-item{border-color:#ffffff19;border-top-color:color-mix(in srgb,var(--rarity) 45%,#263442);background:radial-gradient(ellipse at 50% 30%,color-mix(in srgb,var(--rarity) 9%,transparent),transparent 75%),linear-gradient(160deg,#1a2834,#0e1722);box-shadow:0 1px 0 #ffffff05 inset,0 3px 8px #0002;border-radius:7px}
+#meta-center .meta-item:hover{border-color:color-mix(in srgb,var(--rarity) 60%,#263442);background-color:#26323f}
+#meta-center .meta-item[data-owned=false]{background:#0e1721;border-color:#ffffff0e;color:#71838e;box-shadow:none}
+#meta-center .meta-item[data-owned=false] .meta-glyph{opacity:.28;filter:saturate(.3)}
+#meta-center .meta-item[data-equipped=true]{box-shadow:inset 0 -2px #8bd8cb;border-color:#8bd8cb55}
+#meta-center .meta-item[aria-pressed=true]{outline:1px solid #edc485;outline-offset:2px;background:linear-gradient(150deg,#34352c,#19242c)}
+#meta-center .meta-item .meta-item-level{color:#afc3cd;background:#08111a9c;border-radius:2px;padding:0 2px;font-weight:500}
+#meta-center .meta-item .meta-item-count{color:#9cb0bb;font-variant-numeric:tabular-nums}
+#meta-center .meta-season-summary{padding:10px 12px;border:1px solid #d5ae6930;border-radius:7px;background:linear-gradient(110deg,#53452835,#10202a30);color:#d9bc8f}
+#meta-center .meta-season-row h3{letter-spacing:.1em;color:#8fa8b5}
+#meta-center .meta-reward-cell{background:linear-gradient(155deg,#192935,#101c28);border-color:#ffffff14;box-shadow:none;border-radius:6px}
+#meta-center .meta-reward-cell strong{color:#c3d5dd;font-weight:600}
+#meta-center .meta-reward-cell small{color:#8ea4b2}
+#meta-center .meta-reward-cell[data-ready=true]{border-color:#cba16366;background:linear-gradient(155deg,#49402c,#252b29);box-shadow:0 1px 0 #efcf8e18 inset}
+#meta-center .meta-reward-cell[data-ready=true] strong{color:#f0d6a4}
+#meta-center .meta-reward-cell[data-claimed=true]{opacity:.65;background:#0a1821;border-color:#71b9ad26}
+#meta-center .meta-streak-number{color:#ebc78e;text-shadow:0 0 35px #d2a86a22;letter-spacing:-.04em}
+#meta-center .meta-three-rewards .meta-card{border-top:2px solid #8196a234;border-left-width:1px}
+#meta-center .meta-three-rewards .meta-card:first-child{border-color:#cba36555;border-top-color:#dbb16f;background:linear-gradient(145deg,#4e432c55,#18232c);box-shadow:0 8px 20px #0003}
+#meta-center .meta-three-rewards .meta-card strong{color:#d9c29c;font-size:12px;letter-spacing:.06em}
+#meta-overlay .meta-result{border-color:color-mix(in srgb,var(--rarity) 45%,#24313d);border-top-width:2px;background:radial-gradient(ellipse at top,color-mix(in srgb,var(--rarity) 12%,transparent),transparent 65%),#13212d;box-shadow:0 6px 16px #0003;padding:14px 10px;border-radius:8px}
+#meta-overlay .meta-result strong{font-weight:600;letter-spacing:.02em}
+#meta-overlay .meta-season-emblem{border-color:#c9a76c66;border-radius:18%;background:radial-gradient(ellipse at 50% 20%,#6d57302e,transparent 70%),linear-gradient(145deg,#28302e,#101923);box-shadow:0 0 50px #d5ad6310,0 1px 0 #f4dba322 inset;color:#e5be7d}
+.meta-radio-card{border:1px solid #6a929b4d;border-left:2px solid #83cfc3;border-radius:8px;background:linear-gradient(115deg,#1b303a,#111f2b);box-shadow:0 8px 24px #0005,0 1px 0 #ffffff0a inset}
+.meta-radio-card strong{color:#cfe7e8;font-weight:600;letter-spacing:.04em}
+.meta-radio-card p{color:#90adb8}
+.meta-radio-card button{background:#23404a;border-color:#8dc9cc2b;color:#bceae4;box-shadow:0 1px 0 #ffffff08 inset}
+#meta-center.meta-notice-panel{border-left:2px solid #83cfc380;box-shadow:-12px 0 55px #0008}
+#meta-center .meta-notices [data-read=true]{opacity:.78}
+#meta-center .meta-event-art{border-color:#8aaba52e;border-radius:8px;box-shadow:0 1px 0 #ffffff08 inset}
+@media(orientation:landscape) and (max-height:500px){#meta-center .meta-card,#meta-overlay .meta-card{padding:10px}#meta-center .meta-detail>.meta-glyph{margin-top:8px;margin-bottom:8px}#meta-center .meta-season-summary{padding:7px 10px}}

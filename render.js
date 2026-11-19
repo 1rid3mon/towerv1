@@ -2169,53 +2169,12 @@ function renderGame() {
         }
         ctx.globalAlpha = 1;
     } else if (theme === 'cengiz') {
-        const grad = ctx.createRadialGradient(tx, ty, 30, tx, ty, maxDim * 0.8);
-        grad.addColorStop(0, '#3b1319'); grad.addColorStop(0.55, '#220c10'); grad.addColorStop(1, '#110608');
+        // The legacy red sector is now a copper foundry deck: wine shadows, cool
+        // graphite metal and restrained warm service lights, never toy weapon props.
+        const grad = ctx.createRadialGradient(tx, ty, 20, tx, ty, maxDim * .72);
+        grad.addColorStop(0, '#241e25'); grad.addColorStop(.48, '#1c141b'); grad.addColorStop(1, '#080e15');
         ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.save();
-        ctx.translate(tx, ty);
-        ctx.rotate(nowThemeTime * 0.0002);
-        ctx.strokeStyle = 'rgba(250, 204, 21, 0.12)'; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.arc(0, 0, 145, 0, Math.PI * 2); ctx.stroke();
-        ctx.beginPath(); ctx.arc(0, 0, 240, 0, Math.PI * 2); ctx.stroke();
-        for (let i = 0; i < 16; i++) {
-            const a = (i * Math.PI) / 8;
-            ctx.beginPath(); ctx.moveTo(Math.cos(a) * 145, Math.sin(a) * 145);
-            ctx.lineTo(Math.cos(a) * 175, Math.sin(a) * 175); ctx.stroke();
-        }
-        ctx.restore();
-
-        const swordPositions = [
-            [canvas.width * 0.14, canvas.height * 0.25, 0.25],
-            [canvas.width * 0.86, canvas.height * 0.24, -0.25],
-            [canvas.width * 0.16, canvas.height * 0.78, 0.18],
-            [canvas.width * 0.84, canvas.height * 0.76, -0.2]
-        ];
-        for (const [sx, sy, tilt] of swordPositions) {
-            ctx.save(); ctx.translate(sx, sy); ctx.rotate(tilt);
-            ctx.fillStyle = 'rgba(0,0,0,0.35)';
-            ctx.beginPath(); ctx.ellipse(0, 22, 22, 6, 0, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#64748b'; ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.2;
-            ctx.beginPath(); ctx.moveTo(-4, 22); ctx.lineTo(-5, -28); ctx.lineTo(0, -38); ctx.lineTo(5, -28); ctx.lineTo(4, 22); ctx.closePath(); ctx.fill(); ctx.stroke();
-            ctx.fillStyle = '#eab308';
-            ctx.fillRect(-14, -18, 28, 5);
-            ctx.fillStyle = '#7f1d1d'; ctx.fillRect(-3, -34, 6, 16);
-            ctx.beginPath(); ctx.arc(0, -36, 4.5, 0, Math.PI * 2); ctx.fillStyle = '#facc15'; ctx.fill();
-            const wave = Math.sin(nowThemeTime * 0.004 + sx) * 4;
-            ctx.fillStyle = 'rgba(220, 38, 38, 0.65)';
-            ctx.beginPath(); ctx.moveTo(12, -15); ctx.quadraticCurveTo(28, -10 + wave, 36, -4 + wave); ctx.lineTo(12, 2); ctx.closePath(); ctx.fill();
-            ctx.restore();
-        }
-
-        for (const em of env.embers) {
-            em.x = (em.x + em.vx + canvas.width) % canvas.width;
-            em.y = (em.y + em.vy + canvas.height) % canvas.height;
-            ctx.fillStyle = `rgba(251, 146, 60, ${em.alpha})`;
-            ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 6;
-            ctx.beginPath(); ctx.arc(em.x, em.y, em.r, 0, Math.PI * 2); ctx.fill();
-        }
-        ctx.shadowBlur = 0;
+        window.EndlessSectorScenery?.foundry(ctx, canvas.width, canvas.height, tx, ty);
 
     } else if (theme === 'snow') {
         const grad = ctx.createRadialGradient(tx, ty, 30, tx, ty, maxDim * 0.8);
@@ -2469,7 +2428,7 @@ function renderGame() {
     if (window.LostSignalLivingSpace) window.LostSignalLivingSpace.draw(ctx, canvas.width, canvas.height, theme, game.wave, nowThemeTime);
     if (window.LostSignalThemeAtmosphere) window.LostSignalThemeAtmosphere.draw(ctx, canvas.width, canvas.height, theme, game.wave, nowThemeTime);
     if (typeof GameModeRuntime !== 'undefined' && !GameModeRuntime.isStoryActive()) {
-        window.EndlessSectorScenery?.draw(ctx, canvas.width, canvas.height, game.wave);
+        window.EndlessSectorScenery?.draw(ctx, canvas.width, canvas.height, game.wave, theme);
     }
     // V2.4 visual polish: a restrained tactical frame and vignette unify all themes.
     // Pure rendering pass: no game state, timing, economy, or combat values are modified.
