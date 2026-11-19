@@ -50,3 +50,5 @@ html[data-meta-reduced=true] body[data-health-low=true] #canvas-container::after
 @keyframes signal-boss-ready{50%{box-shadow:0 0 14px #e98d6655}}
 @media(prefers-reduced-motion:reduce){#signal-sector-boss[data-ready=true]{animation:none}}
 html[data-meta-reduced=true] #signal-sector-boss[data-ready=true]{animation:none}
+
+body.meta-command-active #mobilePanelToggleBtn{display:none!important}

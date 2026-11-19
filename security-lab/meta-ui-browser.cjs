@@ -42,7 +42,15 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  const audioRows=await page.evaluate(()=>[...document.querySelectorAll('.signal-settings-section:first-child button')].map(e=>{const r=e.getBoundingClientRect();return r.top>=52&&r.bottom<=innerHeight;}));
  assert.deepEqual(audioRows,[true,true,true],'first three audio controls visible');
  await page.screenshot({path:path.join(evidence,width+'x'+height+'-settings.png')});
+ await page.locator('.signal-settings-section').filter({has:page.locator('summary',{hasText:'HİS'})}).locator('summary').click();
+ await page.getByRole('switch',{name:'Hareketi azalt',exact:true}).click();
+ assert.equal(await page.evaluate(()=>MetaRuntime.getState().fx.reducedMotion),true,'preference saved with account');
+ assert.equal(await page.evaluate(()=>Fx.settings().reduced),true,'motion setting applied');
+ await page.getByRole('switch',{name:'Hareketi azalt',exact:true}).click();
+ assert.equal(await page.evaluate(()=>MetaRuntime.getState().fx.reducedMotion),false);
+
  await page.locator('#settings-modal header button').click();
+ await page.locator('#settings-modal').waitFor({state:'hidden'});
  assert.equal(await page.evaluate(()=>isPaused),false,'settings resumes previously running battle');
  await page.waitForTimeout(150);
  await page.evaluate(()=>{isPaused=true;openSettingsModal();});
@@ -55,13 +63,17 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  await page.evaluate(()=>{for(let i=0;i<12;i++)Fx.emit('enemyKill',{x:tower.x-100+(i%4)*50,y:tower.y-60+Math.floor(i/4)*40,gold:1,crystals:0});});
  await page.waitForTimeout(280);
  await page.screenshot({path:path.join(evidence,width+'x'+height+'-reward-drops.png')});
- const performanceSample=await page.evaluate(()=>new Promise(resolve=>{const samples=[],start=performance.now();let previous=start;function sample(now){samples.push(now-previous);previous=now;if(now-start<2200)requestAnimationFrame(sample);else resolve({frames:samples.length,meanFrameMs:samples.reduce((a,b)=>a+b,0)/samples.length,fx:Fx.diagnostics()});}requestAnimationFrame(sample);}));
+ const performanceSample=await page.evaluate(()=>new Promise(resolve=>{const samples=[],start=performance.now();let previous=start,maxFxUpdateMs=0,maxDrops=0;function sample(now){samples.push(now-previous);previous=now;const fx=Fx.diagnostics();maxFxUpdateMs=Math.max(maxFxUpdateMs,fx.updateCostMs);maxDrops=Math.max(maxDrops,fx.drops);if(now-start<2200)requestAnimationFrame(sample);else resolve({maxFxUpdateMs,maxDrops,frames:samples.length,meanFrameMs:samples.reduce((a,b)=>a+b,0)/samples.length,fx:Fx.diagnostics()});}requestAnimationFrame(sample);}));
  reports.push({label:width+'x'+height+'-presentation-sample',...performanceSample});
  assert.ok(performanceSample.fx.drops<=60,'drop cap');
  assert.equal(await page.evaluate(()=>Fx.displayValue('gold',game.gold)),await page.evaluate(()=>game.gold),'all visual debt settles');
  assert.ok(await page.evaluate(before=>game.gold>=before.gold&&game.crystals>=before.crystals,actual),'visual fixture never deducts currency');
 
  assert.ok(hud.field/hud.height>=0.85,'Battle canvas has at least 85% viewport height: '+JSON.stringify(hud));
+ await page.locator('#meta-radio:not([hidden])').waitFor({timeout:18000});
+ assert.equal(await page.evaluate(()=>isPaused),false,'radio does not pause battle');
+ const played=await page.evaluate(()=>game.stats.playTimeSeconds);await page.waitForTimeout(1250);
+ assert.ok(await page.evaluate(before=>game.stats.playTimeSeconds>before,played),'simulation continues behind radio');
  assert.deepEqual(errors,[],'runtime console errors');if(network.length)throw new Error('External layout dependencies failed; screenshots are not visual acceptance: '+network.join(', '));
  }catch(error){failures.push({viewport:width+'x'+height,error:error.message,stack:error.stack,errors,network});await page.screenshot({path:path.join(evidence,width+'x'+height+'-failure.png')}).catch(()=>{});}finally{await context.close();}}
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));fs.writeFileSync(path.join(evidence,'report.json'),JSON.stringify({reports,failures},null,2));}

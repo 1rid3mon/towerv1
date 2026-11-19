@@ -1,7 +1,7 @@
 /* Presentation settings reuse existing controls and preserve the battle's pause state. */
 (function () {
     'use strict';
-    let modal, panel, returnFocus, resume = false, pushing = false;
+    let modal, panel, returnFocus, resume = false, pushing = false, closing = false;
     const t = key => window.MetaStrings[key] || key;
     function node(tag, cls, label) {
         const el = document.createElement(tag); el.className = cls;
@@ -29,6 +29,16 @@
         for (const [value,label] of values) { const option = node('option', '', label); option.value = value; input.append(option); }
         input.value = read(); input.onchange = () => action(input.value); row.append(input); host.append(row);
     }
+    function preference(patch) {
+        // Story keeps its save isolation; presentation preferences still work in its realm.
+        if(window.GameModeRuntime?.isStoryActive()||document.body.dataset.gameMode==='story') {
+            Fx.configure(patch);
+        } else {
+            const result=MetaRuntime.action('fxPreference',patch);
+            if(!result.ok){window.MetaUI?.notify(result.message||t('failed'));return;}
+        }
+        document.documentElement.dataset.metaReduced=String(Fx.settings().reduced);
+    }
     function mount() {
         modal = document.getElementById('settings-modal'); if (!modal) return;
         const language = document.getElementById('language-select');
@@ -53,16 +63,16 @@
             consoleButton.addEventListener('click',()=> { try { localStorage.setItem('lostSignal:console',TowerCommandSounds.isEnabled()?'on':'off'); } catch {} });
         }
         const feel = section('feelSection');
-        toggle(feel,'vibration',()=>Fx.settings().vibration,()=>Fx.configure({vibration:!Fx.settings().vibration}));
-        toggle(feel,'reduceMotion',()=>Fx.settings().reducedMotion,()=>{document.documentElement.dataset.metaReduced=String(Fx.configure({reducedMotion:!Fx.settings().reducedMotion}).reduced);});
-        select(feel,'intensity',['auto','low','medium','high'].map(k=>[k,t(k==='auto'?'automatic':k)]),()=>Fx.settings().intensity,value=>Fx.configure({intensity:value}));
+        toggle(feel,'vibration',()=>Fx.settings().vibration,()=>preference({vibration:!Fx.settings().vibration}));
+        toggle(feel,'reduceMotion',()=>Fx.settings().reducedMotion,()=>preference({reducedMotion:!Fx.settings().reducedMotion}));
+        select(feel,'intensity',['auto','low','medium','high'].map(k=>[k,t(k==='auto'?'automatic':k)]),()=>Fx.settings().intensity,value=>preference({intensity:value}));
         const device = section('deviceSection');
         try { const saved=localStorage.getItem('lostSignal:device');if(['auto','phone','tablet','pc'].includes(saved))game.deviceMode=saved; } catch {}
         if (language) { for (const option of language.options) option.textContent = ({tr:'TR · Türkçe',en:'EN · English',es:'ES · Español',de:'DE · Deutsch'})[option.value] || option.value; device.append(language); }
         select(device,'deviceMode',['auto','phone','tablet','pc'].map(k=>[k,t(k==='auto'?'automatic':k)]),()=>game.deviceMode||'auto',setDeviceMode);
         const account = section('accountSection');
-        const signIn = node('button','signal-existing-toggle',t('accountOpen')); signIn.onclick=()=>{close(); if(typeof openAuthModal==='function')openAuthModal();};account.append(signIn);
-        const reset = node('button','signal-existing-toggle',t('resetGame')); reset.onclick=()=>{close();openHardResetConfirm();};account.append(reset);
+        const signIn = node('button','signal-existing-toggle',t('accountOpen')); signIn.onclick=()=>close(false,()=>{if(typeof openAuthModal==='function')openAuthModal();});account.append(signIn);
+        const reset = node('button','signal-existing-toggle',t('resetGame')); reset.onclick=()=>close(false,openHardResetConfirm);account.append(reset);
         const stats = section('statsSection');
         for (const [key,id] of [['totalKills','stat-total-kills'],['bossKills','stat-boss-kills'],['highestWave','stat-max-wave']]) { const row=node('div','signal-settings-row',t(key)), value=node('strong','');value.id=id;row.append(value);stats.append(row); }
         panel.append(node('small','signal-settings-version','LOST SIGNAL · v2'));
@@ -91,12 +101,21 @@
         history.pushState({...history.state,signalSettings:true},'');pushing=true;
         modal.querySelector('header button').focus();
     }
-    function close(fromHistory=false) {
-        if(!modal||modal.classList.contains('hidden'))return;
-        modal.classList.add('hidden');document.body.classList.remove('signal-settings-open');
-        if(resume&&isPaused&&!isDefeated&&document.getElementById('mode-main-menu')?.classList.contains('menu-hidden'))togglePause();
-        resume=false;if(pushing&&!fromHistory&&history.state?.signalSettings)history.back();pushing=false;
-        if(returnFocus?.isConnected)returnFocus.focus();
+    function close(fromHistory=false,after) {
+        if(!modal||closing||modal.classList.contains('hidden'))return;
+        closing=true;modal.classList.add('signal-settings-closing');
+        const reduced=window.Fx?.settings().reduced;
+        setTimeout(()=>{
+            modal.classList.add('hidden');modal.classList.remove('signal-settings-closing');document.body.classList.remove('signal-settings-open');
+            if(resume&&isPaused&&!isDefeated&&document.getElementById('mode-main-menu')?.classList.contains('menu-hidden'))togglePause();
+            resume=false;closing=false;
+            if(pushing&&!fromHistory&&history.state?.signalSettings){
+                pushing=false;
+                if(after)addEventListener('popstate',after,{once:true});
+                history.back();
+            }else {pushing=false;if(after)after();}
+            if(returnFocus?.isConnected)returnFocus.focus();
+        },reduced?120:180);
     }
     window.SignalSettings={open,close};
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();

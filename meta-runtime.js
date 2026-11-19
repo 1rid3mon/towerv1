@@ -2,6 +2,8 @@
 (function () {
 'use strict';
 const C=window.MetaConfig,M=window.MetaModel;
+// Capture pre-account device preferences once; switching accounts must not copy the previous account.
+let legacyFx;try{legacyFx=M.sanitizeFx(JSON.parse(localStorage.getItem('lostSignal:fx')));}catch{legacyFx=M.sanitizeFx(null);} 
 let ready=false,preparing=false,lastOwner='',queue=[],autoCount=0,cooldowns={},barrier=0,barrierTime=0;
 const owner=()=>typeof currentUser!=='undefined'&&currentUser?.uid||'guest';
 const allowed=()=>document.getElementById('story-mode-screen')?.getAttribute('aria-hidden')!=='false'&&document.body.dataset.gameMode!=='story'&&!window.GameModeRuntime?.isStoryActive()&&!(typeof isDuplicateTab!=='undefined'&&isDuplicateTab);
@@ -17,9 +19,11 @@ function creditCost(level) {
  const {baseCost,growthNumerator,growthDenominator}=C.creditUpgrade;
  return BigInt(baseCost)*BigInt(growthNumerator)**BigInt(level)/BigInt(growthDenominator)**BigInt(level);
 }
+function applyFxPreferences(){const saved=state().fx,current=window.Fx?.settings();if(current&&['intensity','reducedMotion','vibration'].some(k=>saved[k]!==current[k]))window.Fx.configure(saved);}
 function action(name,args={}){
  const s=state(),now=Date.now(),type=args.type==='skills'?'skill':args.type;
  switch(name){
+ case 'fxPreference':{const result=change(name,null,d=>{d.fx=M.sanitizeFx({...d.fx,...args});d.fxInitialized=true;return {ok:true};});if(result.ok)applyFxPreferences();return result;}
  case 'summon':return change(name,null,d=>M.summon(d,type,args.count));
  case 'fuse':return change(name,null,d=>M.fuse(d,type,args.id??null));
  case 'equip':return change(name,null,d=>M.equip(d,type,args.id??null,args.slot??0,legacy().cleared));
@@ -51,8 +55,9 @@ function prepare(){
  if(!allowed()||preparing||(ready&&owner()===lastOwner))return;
  preparing=true;lastOwner=owner();queue=[];autoCount=0;cooldowns={};barrier=0;barrierTime=0;
  const oldSeen=state().offline.activeAt;
- const r=change('session',null,d=>{M.touchReturn(d);M.accrueOffline(d,Date.now(),legacy().cleared);return {ok:true};});
+ const r=change('session',null,d=>{if(!d.fxInitialized){d.fx={...legacyFx};d.fxInitialized=true;}M.touchReturn(d);M.accrueOffline(d,Date.now(),legacy().cleared);return {ok:true};});
  if(r.ok){
+  applyFxPreferences();
   const daily=action('daily');if(daily.ok)queue.push('streak');
   if(Date.now()-oldSeen>=300000&&state().offline.pending)queue.push('offline');
   if(state().returnEvent.startedAt&&Date.now()<state().returnEvent.endsAt)queue.push('return');

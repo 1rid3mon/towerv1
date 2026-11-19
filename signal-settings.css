@@ -12,3 +12,10 @@ body:not(.signal-settings-open)>#ls-sound-toggle{display:none!important}
 @keyframes signal-panel-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @media(max-width:540px) and (orientation:portrait){#settings-modal .signal-settings-shell{width:min(90vw,360px)}}
 @media(prefers-reduced-motion:reduce){#settings-modal .signal-settings-shell{animation:none}}
+
+.signal-settings-closing .signal-settings-shell{animation:signal-panel-out 180ms cubic-bezier(.65,0,.35,1) forwards!important}
+@keyframes signal-panel-out{to{transform:translateX(100%);opacity:0}}
+html[data-meta-reduced=true] #settings-modal .signal-settings-shell{animation:none}
+html[data-meta-reduced=true] #settings-modal.signal-settings-closing .signal-settings-shell{animation:signal-panel-fade 120ms ease forwards!important}
+@keyframes signal-panel-fade{to{opacity:0}}
+@media(prefers-reduced-motion:reduce){#settings-modal.signal-settings-closing .signal-settings-shell{animation:signal-panel-fade 120ms ease forwards!important}}
