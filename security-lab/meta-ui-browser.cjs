@@ -77,8 +77,9 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  const played=await page.evaluate(()=>game.stats.playTimeSeconds);await page.waitForTimeout(1250);
  assert.ok(await page.evaluate(before=>game.stats.playTimeSeconds>before,played),'simulation continues behind radio');
  // Art acceptance: reproduce the user's late-game foundry theme with long numbers.
- await page.evaluate(()=>{isPaused=true;game.wave=452;game.highestWave=452;game.gold=1.83e45;game.settings.activeTheme='cengiz';enemies.length=0;window._syncShadow?.();EndlessOperations.transactMeta('qa:art','disposable visual fixture',d=>{d.offline.cleared=45;return {ok:true};});MetaCommand.refresh(true);renderGame();});
+ await page.evaluate(()=>{isPaused=true;game.wave=452;game.highestWave=452;game.gold=1.83e45;game.settings.activeTheme='cengiz';enemies.length=0;for(const [key,def]of Object.entries(UPGRADE_DEFS))game.upgrades[key]=Math.min(def.maxLevel,400);tower.maxHp=getTowerMaxHp();tower.hp=tower.maxHp;window._syncShadow?.();EndlessOperations.transactMeta('qa:art','disposable visual fixture',d=>{d.offline.cleared=45;return {ok:true};});MetaCommand.refresh(true);renderGame();});
  await page.waitForTimeout(350);
+ const clippedUpgrades=await page.evaluate(()=>[...document.querySelectorAll('.command-upgrade-name,.command-upgrade-price')].filter(e=>e.scrollWidth>e.clientWidth+1).map(e=>e.textContent));assert.deepEqual(clippedUpgrades,[],'late-game upgrade names and prices fit');
  await page.screenshot({path:path.join(evidence,width+'x'+height+'-foundry-redesign.png')});
  await page.evaluate(()=>{game.settings.activeTheme='cyber';renderGame();});
  await page.waitForTimeout(150);

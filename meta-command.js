@@ -32,8 +32,8 @@ function icon(name){return '<svg viewBox="0 0 24 24" aria-hidden="true" focusabl
 function upgradeMarkup(button,key,info){
  const label=UPGRADE_DEFS[key].name,price=info.maxed?'MAKS':fmt(info.totalCost),onShelf=button.closest('#meta-command-shelf');
  const stamp=key+':'+price+':'+!!onShelf;
- if(button.dataset.surface!==stamp){button.dataset.surface=stamp;button.innerHTML='<span class="command-upgrade-icon">'+icon(key==='maxHp'?'shield':key==='damage'?'damage':'upgrade')+'</span><span class="command-upgrade-copy">'+(onShelf?'<span class="command-upgrade-name"></span>':'')+'<strong class="command-upgrade-price"></strong></span><span class="command-upgrade-arrow">'+icon('plus')+'</span>';if(onShelf)button.querySelector('.command-upgrade-name').textContent=label;button.querySelector('.command-upgrade-price').textContent=price;}
- button.dataset.affordable=String(info.canAfford);button.setAttribute('aria-label',label+' · '+price);button.title=label+' · '+price;
+ if(button.dataset.surface!==stamp){button.dataset.surface=stamp;button.innerHTML='<span class="command-upgrade-icon">'+icon(key==='maxHp'?'shield':key==='damage'?'damage':'upgrade')+'</span><span class="command-upgrade-copy">'+(onShelf?'<span class="command-upgrade-name"></span>':'')+'<strong class="command-upgrade-price"></strong></span><span class="command-upgrade-arrow">'+icon('plus')+'</span>';if(onShelf)button.querySelector('.command-upgrade-name').textContent=window.MetaStrings.quickUpgradeNames[key]||label;const cost=button.querySelector('.command-upgrade-price');cost.innerHTML=icon('gold')+'<span></span>';cost.querySelector('span').textContent=price;}
+ button.dataset.affordable=String(info.canAfford);button.setAttribute('aria-label',label+' · '+price+' '+t('battleGold'));button.title=label+' · '+price;
 }
 function sectorBossState(descriptor,active){
  if(active)return 'active';

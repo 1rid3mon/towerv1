@@ -54,3 +54,5 @@ body.meta-command-active:has(#defeat-overlay:not(.hidden)) :is(#meta-command-rai
 body[data-health-low=true] #canvas-container::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:20;box-shadow:inset 0 0 40px #c34b3d;animation:signal-low-health 1.2s ease-in-out infinite}@keyframes signal-low-health{0%,100%{opacity:.08}50%{opacity:.25}}
 @media(prefers-reduced-motion:reduce){#meta-command-upgrades,#signal-sector-boss[data-ready=true]{animation:none;transition:none}body[data-health-low=true] #canvas-container::after{animation:none;opacity:.18}}
 html[data-meta-reduced=true] #signal-sector-boss[data-ready=true]{animation:none}html[data-meta-reduced=true] body[data-health-low=true] #canvas-container::after{animation:none;opacity:.18}
+
+.command-upgrade-price{display:flex;align-items:center;gap:4px}.command-upgrade-price>svg{width:13px!important;height:13px!important;color:#c9a36f}

@@ -209,3 +209,6 @@ html[data-meta-reduced=true] .meta-radio-card{animation:none!important}
 #meta-center .meta-notices [data-read=true]{opacity:.78}
 #meta-center .meta-event-art{border-color:#8aaba52e;border-radius:8px;box-shadow:0 1px 0 #ffffff08 inset}
 @media(orientation:landscape) and (max-height:500px){#meta-center .meta-card,#meta-overlay .meta-card{padding:10px}#meta-center .meta-detail>.meta-glyph{margin-top:8px;margin-bottom:8px}#meta-center .meta-season-summary{padding:7px 10px}}
+
+/* Align station radio with the instrument strip's safe gutter. */
+.meta-radio-card{top:64px}
