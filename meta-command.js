@@ -2,15 +2,14 @@
 (function(){'use strict';
 let bar,rail,skills,shelf,drawer,opened=false,holdTimer=0,heldAt=0,heldKey=null,lastStamp='';
 const R=()=>window.MetaRuntime, fmt=v=>formatNumber(v), message=m=>window.MetaUI?.notify(m), t=k=>window.MetaStrings[k]||k;
-const icons={archive:'◇',station:'⌂',event:'⌁',season:'✧',supply:'▣'};
 function icon(name){return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+({archive:'M4 5h16v14H4z M8 9h8 M8 13h5',station:'M3 11l9-8 9 8 M6 10v11h12V10 M10 21v-7h4v7',event:'M3 17l5-5 4 2 8-10 M14 4h6v6',season:'M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z',supply:'M3 7l9-4 9 4v13H3z M3 7l9 5 9-5 M12 12v8',settings:'M5 5l14 14 M19 5L5 19 M12 3v18 M3 12h18'})[name]+'"/></svg>';}
 function btn(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=fn;return b;}
 function stop(){clearTimeout(holdTimer);heldKey=null;}
 function buy(key){
  const before=game.upgrades[key],info=getBulkUpgradeInfo(key);
- if(info.lockedReason||info.maxed||!info.canAfford){message(info.lockedReason|| (info.maxed?'Son seviyeye ulaştın.':'✕ Yeterli savaş altını yok.'));stop();return;}
+ if(info.lockedReason||info.maxed||!info.canAfford){message(info.lockedReason|| (info.maxed?'Son seviyeye ulaştın.':'✕ Yeterli savaş altını yok.'));window.Fx?.haptic?.(20);if(!window.Fx?.settings().reduced)document.querySelectorAll('[data-upgrade="'+key+'"]').forEach(b=>b.animate?.([{transform:'translateX(-4px)'},{transform:'translateX(4px)'},{transform:'translateX(0)'}],{duration:140}));stop();return;}
  const value=UPGRADE_DEFS[key].getValueText(before);buyUpgrade(key);
- if(game.upgrades[key]>before)message(value+' → '+UPGRADE_DEFS[key].getValueText(game.upgrades[key]));
+ if(game.upgrades[key]>before){message(value+' → '+UPGRADE_DEFS[key].getValueText(game.upgrades[key]));window.Fx?.haptic?.(12);window.TowerCommandSounds?.play('confirm');}
  refresh(true);
 }
 function repeat(){if(!heldKey)return;buy(heldKey);if(heldKey)holdTimer=setTimeout(repeat,performance.now()-heldAt>=1000?60:120);}
@@ -56,14 +55,14 @@ function refresh(force=false){
  const tactics = document.getElementById('endless-tactics');
  const tacticsHost = active ? bar : document.getElementById('hud-top-bar');
  if(tactics && tacticsHost && tactics.parentElement!==tacticsHost)tacticsHost.append(tactics);
- if(!active){stop();return;}
+ if(!active){document.body.removeAttribute('data-health-low');stop();return;}
  R().prepare();const m=R().getState();
  const wave=game.wave,sector=Math.ceil(wave/10),step=(wave-1)%10+1;
  const descriptor=EndlessSectors.describe(wave), bossActive=typeof enemies!=='undefined'&&enemies.some(e=>e.type==='boss'&&e.hp>0);
  const sectorLabel=document.getElementById('signal-sector-label');sectorLabel.textContent=sector+' · '+step+'/10';sectorLabel.title=descriptor.name+' · '+(bossActive?t('bossActive'):descriptor.bossName);
  const dots=document.querySelectorAll('.signal-stage-dots i');dots.forEach((dot,i)=>{dot.dataset.state=i+1<step?'done':i+1===step?'current':'next';dot.dataset.boss=String(i===4||i===9);});
  document.querySelector('.signal-sector').dataset.boss=String(bossActive);
- const hp=Math.max(0,Math.min(1,tower.hp/Math.max(1,tower.maxHp)));document.getElementById('signal-health-label').textContent=(hp<.25?'! ':'♥ ')+fmt(tower.hp);document.getElementById('signal-health-fill').style.width=hp*100+'%';document.querySelector('.signal-health').dataset.low=String(hp<.25);
+ const hp=Math.max(0,Math.min(1,tower.hp/Math.max(1,tower.maxHp)));document.body.dataset.healthLow=String(hp<.25&&!isDefeated);document.getElementById('signal-health-label').textContent=(hp<.25?'! ':'♥ ')+fmt(tower.hp);document.getElementById('signal-health-fill').style.width=hp*100+'%';document.querySelector('.signal-health').dataset.low=String(hp<.25);
  for(const [key,value,label]of[['gold',window.Fx?.displayValue?.('gold',game.gold)??game.gold,t('battleGold')],['credit',m.currencies.kredi,t('kredi')],['crystal',m.currencies.kristal,t('kristal')],['power',getTowerDamage(),t('power')]]){const el=document.getElementById('signal-'+key),next=fmt(value);if(el.textContent!==next){el.textContent=next;if(!window.Fx?.settings().reduced)el.animate?.([{transform:'scale(1.12)'},{transform:'scale(1)'}],{duration:120});}el.parentElement.setAttribute('aria-label',label+' '+next);el.parentElement.title=label;}
  const xp=Math.min(100,m.season.xp/(MetaConfig.season.tiers*MetaConfig.season.xpPerTier)*100);const progress=document.getElementById('signal-season-progress');progress.style.setProperty('--season-progress',xp+'%');progress.setAttribute('aria-valuenow',String(Math.round(xp)));
  bar.children[1].textContent=gameSpeed+'×';bar.children[2].textContent=isPaused?'▶':'Ⅱ';bar.children[2].setAttribute('aria-label',isPaused?t('resume'):t('pause'));bar.children[2].setAttribute('aria-pressed',String(isPaused));

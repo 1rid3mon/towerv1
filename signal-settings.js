@@ -57,6 +57,7 @@
         toggle(feel,'reduceMotion',()=>Fx.settings().reducedMotion,()=>Fx.configure({reducedMotion:!Fx.settings().reducedMotion}));
         select(feel,'intensity',['auto','low','medium','high'].map(k=>[k,t(k==='auto'?'automatic':k)]),()=>Fx.settings().intensity,value=>Fx.configure({intensity:value}));
         const device = section('deviceSection');
+        try { const saved=localStorage.getItem('lostSignal:device');if(['auto','phone','tablet','pc'].includes(saved))game.deviceMode=saved; } catch {}
         if (language) { for (const option of language.options) option.textContent = ({tr:'TR · Türkçe',en:'EN · English',es:'ES · Español',de:'DE · Deutsch'})[option.value] || option.value; device.append(language); }
         select(device,'deviceMode',['auto','phone','tablet','pc'].map(k=>[k,t(k==='auto'?'automatic':k)]),()=>game.deviceMode||'auto',setDeviceMode);
         const account = section('accountSection');
@@ -81,6 +82,8 @@
     }
     function open() {
         if(!modal)mount(); if(!modal||!modal.classList.contains('hidden'))return;
+        // Opening from a native meta dialog must wait until its history unwind completes.
+        if(history.state?.metaUI){setTimeout(open,60);return;}
         returnFocus=document.activeElement; resume=!isPaused; if(resume)togglePause();
         setElText('stat-total-kills',formatNumber(game.stats.totalKills));setElText('stat-boss-kills',formatNumber(game.stats.bossKills));setElText('stat-max-wave',game.highestWave);
         modal.classList.remove('hidden'); document.body.classList.add('signal-settings-open');

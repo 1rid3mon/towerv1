@@ -133,3 +133,11 @@
 @keyframes meta-reward-flight{0%{opacity:0;transform:translate(0,0) scale(.5)}20%{opacity:1}100%{opacity:0;transform:translate(100px,-140px) scale(.2)}}
 html[data-meta-reduced=true] :is(#meta-center,#meta-overlay,.meta-radio-card) *{animation:none!important;transition:opacity 120ms!important}
 html[data-meta-reduced=true] .meta-radio-card{animation:none!important}
+#meta-center .meta-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+#meta-center .meta-nav .meta-nav-icon{width:24px;height:24px;flex:none;margin:0}
+#meta-center .meta-nav-icon svg{width:24px;height:24px}
+#meta-command-rail .meta-radio-badge{position:relative;left:auto;top:auto;flex:none;min-height:44px}
+#meta-center .meta-piko-line{display:flex;justify-content:center;align-items:center;gap:8px;min-height:56px;animation:none}
+.meta-piko-line img{width:56px;height:56px;object-fit:contain;flex:none}
+.meta-piko-line span{max-width:290px;text-align:left}
+.meta-wallet-flight{position:fixed;z-index:10;color:#f3c578;font-size:22px!important;pointer-events:none;filter:drop-shadow(0 0 4px #f3c57888)}
