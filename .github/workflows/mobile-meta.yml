@@ -1,7 +1,7 @@
 name: Mobile meta acceptance
 on:
   pull_request:
-    paths: ['data.js', 'index.html', 'data/station-art.js', 'meta-*.js', 'meta-*.css', 'signal-settings.*', 'fx-director.js', 'data/fx-config.js', 'data/meta-*.js', 'endless-operations.js', 'security-lab/meta-*', 'security-lab/station-art*', 'security-lab/workshop-*', '.github/workflows/mobile-meta.yml']
+    paths: ['data.js', 'index.html', 'data/station-art.js', 'assets/station/foundry/**', 'meta-*.js', 'meta-*.css', 'signal-settings.*', 'fx-director.js', 'data/fx-config.js', 'data/meta-*.js', 'endless-operations.js', 'security-lab/meta-*', 'security-lab/station-art*', 'security-lab/workshop-*', '.github/workflows/mobile-meta.yml']
   workflow_dispatch:
 jobs:
   mobile-meta:
