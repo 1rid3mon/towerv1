@@ -88,3 +88,36 @@ body.command-workshop-open #meta-command-shelf{max-width:58px}body.command-works
 html[data-meta-reduced=true] #meta-command-upgrades{animation:none!important}
 /* The full cost gets the width on narrow phones; maxed cards keep their check. */
 #meta-command-upgrades .workshop-purchase button[data-maxed=false] .command-upgrade-arrow{display:none}
+
+
+#meta-command-upgrades .workshop-art .station-sprite {
+  display: block;
+  width: 80px;
+  height: 80px;
+  max-width: none;
+  object-fit: contain;
+}
+#meta-command-shelf .command-upgrade-icon .station-sprite {
+  display: block;
+  width: 40px;
+  height: 40px;
+  max-width: none;
+  object-fit: contain;
+}
+@media (max-height: 500px) {
+  #meta-command-upgrades .workshop-art .station-sprite {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+#meta-command-upgrades .workshop-purchase button[data-affordable="true"]:not(:disabled) {
+  background: linear-gradient(155deg,
+    color-mix(in srgb, var(--workshop-accent) 28%, #1d3040),
+    #172938);
+  border-color: color-mix(in srgb, var(--workshop-accent) 55%, #263b4d);
+  box-shadow: inset 0 1px #ffffff20, 0 3px 8px #0003;
+}
+#meta-command-upgrades .workshop-purchase button[data-affordable="true"]:not(:disabled) .command-upgrade-price {
+  color: #fff4df;
+}

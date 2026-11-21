@@ -263,3 +263,14 @@ html[data-meta-reduced=true] .meta-radio-card{animation:none!important}
 #meta-center .meta-notices .meta-card[data-category=etkinlik]{border-top-color:#b18ac9}
 @media(orientation:landscape) and (max-height:500px){#meta-center .meta-detail>.meta-painted-item{width:72px;height:72px;margin:8px auto}#meta-center .meta-season-summary{grid-template-columns:40px minmax(0,1fr) minmax(110px,auto);padding:7px 10px;gap:3px 8px;margin-bottom:5px}.meta-season-summary>.meta-item-art{width:40px;height:40px}#meta-center .meta-season-row{padding:3px 0}#meta-center .meta-reward-cell{min-height:84px;width:82px;padding:3px 5px}#meta-center .meta-reward-cell .meta-item-art{width:32px;height:32px;margin-top:4px}#meta-center .meta-reward-cell strong{font-size:12px}#meta-center .meta-track{padding-bottom:5px}#meta-center .meta-event-art{min-height:194px;padding:8px}.meta-boss-portrait{width:148px;height:148px}#meta-center .meta-boss-briefing h3{font-size:18px;margin-bottom:6px}.meta-boss-reward{margin-top:6px;padding-top:6px}}
 @media(max-width:540px){#meta-center .meta-season-summary{grid-template-columns:36px minmax(0,1fr)}.meta-season-summary>.meta-item-art{width:36px;height:36px}.meta-season-next{grid-column:1/-1;text-align:left;flex-direction:row;justify-content:space-between}#meta-center .meta-body.meta-event{grid-template-columns:1fr}.meta-boss-portrait{width:160px;height:160px}}
+
+
+.meta-painted-item .station-sprite,
+.meta-item-art .station-sprite,
+.meta-notice-art .station-sprite {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 3px #0006);
+}

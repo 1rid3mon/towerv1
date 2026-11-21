@@ -33,7 +33,7 @@ function icon(name){return '<svg viewBox="0 0 24 24" aria-hidden="true" focusabl
 function upgradeMarkup(button,key,info){
  const label=UPGRADE_DEFS[key].name,price=info.maxed?'MAKS':fmt(info.totalCost),onShelf=button.closest('#meta-command-shelf');
  const stamp=key+':'+price+':'+!!onShelf+':'+!!info.maxed+':'+!!info.lockedReason;
- if(button.dataset.surface!==stamp){button.dataset.surface=stamp;button.innerHTML='<span class="command-upgrade-icon">'+(window.StationArt?.svg(key)||icon('upgrade'))+'</span><span class="command-upgrade-copy">'+(onShelf?'<span class="command-upgrade-name"></span>':'')+'<strong class="command-upgrade-price"></strong></span><span class="command-upgrade-arrow">'+icon(info.maxed?'check':info.lockedReason?'lock':'plus')+'</span>';if(onShelf)button.querySelector('.command-upgrade-name').textContent=window.MetaStrings.quickUpgradeNames[key]||label;const cost=button.querySelector('.command-upgrade-price');cost.innerHTML=(info.maxed?'':icon('gold'))+'<span></span>';cost.querySelector('span').textContent=price;}
+ if(button.dataset.surface!==stamp){button.dataset.surface=stamp;button.innerHTML='<span class="command-upgrade-icon">'+(window.StationArt?.markup(key)||icon('upgrade'))+'</span><span class="command-upgrade-copy">'+(onShelf?'<span class="command-upgrade-name"></span>':'')+'<strong class="command-upgrade-price"></strong></span><span class="command-upgrade-arrow">'+icon(info.maxed?'check':info.lockedReason?'lock':'plus')+'</span>';if(onShelf)button.querySelector('.command-upgrade-name').textContent=window.MetaStrings.quickUpgradeNames[key]||label;const cost=button.querySelector('.command-upgrade-price');cost.innerHTML=(info.maxed?'':icon('gold'))+'<span></span>';cost.querySelector('span').textContent=price;}
  button.dataset.affordable=String(info.canAfford);button.disabled=!!(info.maxed||info.lockedReason);button.dataset.maxed=String(!!info.maxed);button.setAttribute('aria-label',label+' · '+price+' '+t('battleGold'));button.title=label+' · '+price;
 }
 function sectorBossState(descriptor,active){
@@ -107,7 +107,7 @@ function mount(){
  const rows=document.createElement('div');rows.className='meta-upgrade-rows';
  for(const [key,def]of Object.entries(UPGRADE_DEFS)){
   const row=document.createElement('article');row.className='meta-upgrade-row workshop-card';row.dataset.category=def.category;row.dataset.upgradeRow=key;
-  const art=document.createElement('div');art.className='workshop-art';art.setAttribute('aria-hidden','true');art.innerHTML=window.StationArt?.svg(key)||icon('upgrade');
+  const art=document.createElement('div');art.className='workshop-art';art.setAttribute('aria-hidden','true');art.innerHTML=window.StationArt?.markup(key)||icon('upgrade');
   const copy=document.createElement('div');copy.className='workshop-copy';
   copy.innerHTML='<div class="workshop-name-line"><h3></h3><span class="workshop-level"></span></div><p class="workshop-description"></p><div class="workshop-preview"><span class="workshop-current"></span><span class="workshop-value-arrow" aria-hidden="true">→</span><strong class="workshop-next"></strong></div>';
   copy.querySelector('h3').textContent=def.name;copy.querySelector('p').textContent=def.desc;copy.querySelector('p').title=def.desc;

@@ -17,7 +17,7 @@ function outlineGlyph(item,kind){
 }
 function itemArt(key,color,cls='meta-item-art'){
  const art=el('span',null,cls);art.setAttribute('aria-hidden','true');
- if(window.StationArt)art.innerHTML=window.StationArt.svg(key,{color});
+ if(window.StationArt)art.innerHTML=window.StationArt.markup(key,{color});
  else art.append(outlineGlyph({id:key,rarity:0},'equipment'));
  return art;
 }

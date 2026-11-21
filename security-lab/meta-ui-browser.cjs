@@ -22,6 +22,9 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  await page.screenshot({path:path.join(evidence,width+'x'+height+'-season-preview.png')});
  await page.locator('#meta-overlay').getByRole('button',{name:'Geçide git'}).click();
  }
+ if(['season','event'].includes(view)) {
+  await page.waitForFunction(()=>[...document.querySelectorAll('#meta-center img.station-sprite')].some(img=>img.complete&&img.naturalWidth===192));
+ }
  await inspect(page,width+'x'+height+'-'+view);}
  await page.evaluate(()=>MetaRuntime.route('archive'));
  await page.getByRole('button',{name:'Çağır ×1 · 100',exact:true}).click();await page.locator('#meta-overlay').waitFor({state:'visible'});assert.ok((await page.locator('.meta-result').count())===1);await page.locator('#meta-overlay').getByRole('button',{name:'Devam',exact:true}).click();await page.locator('#meta-overlay').waitFor({state:'hidden'});
@@ -102,7 +105,14 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  assert.ok(Math.abs(openedField.dx-previousField.dx)<.01&&Math.abs(openedField.dy-previousField.dy)<.01,'opening preserves enemy positions relative to core');
  for(const category of ['attack','defense','economy']){
   await page.locator('[data-workshop-category="'+category+'"]').tap();
-  const workshop=await page.evaluate(()=>{const p=document.querySelector('#meta-command-upgrades'),r=p.getBoundingClientRect(),rows=[...p.querySelectorAll('.workshop-card:not([hidden])')];return {outside:r.left<0||r.top<0||r.right>innerWidth||r.bottom>innerHeight,overflow:p.scrollWidth>p.clientWidth+1,small:[...p.querySelectorAll('button')].filter(e=>e.getClientRects().length&&!e.closest('[hidden]')).filter(e=>{const r=e.getBoundingClientRect();return r.width<44||r.height<44;}).map(e=>e.getAttribute('aria-label')||e.textContent),illustrated:rows.every(e=>e.querySelector('.workshop-art svg[data-station-art]')?.getBoundingClientRect().width>=56),clipped:rows.flatMap(e=>[...e.querySelectorAll('h3,.workshop-level,.workshop-current,.workshop-next,.command-upgrade-price')]).filter(e=>e.scrollWidth>e.clientWidth+1).map(e=>e.textContent),allMaxDisabled:rows.filter(e=>e.dataset.maxed==='true').every(e=>e.querySelector('button').disabled)};});
+  if(category!=='economy') {
+   const expected=category==='attack'?['damage','range']:['maxHp'];
+   await page.waitForFunction(keys=>keys.every(key=>{
+    const img=document.querySelector('.workshop-art img[data-station-art="'+key+'"]');
+    return img?.complete&&img.naturalWidth===192;
+   }),expected);
+  }
+  const workshop=await page.evaluate(()=>{const p=document.querySelector('#meta-command-upgrades'),r=p.getBoundingClientRect(),rows=[...p.querySelectorAll('.workshop-card:not([hidden])')];return {outside:r.left<0||r.top<0||r.right>innerWidth||r.bottom>innerHeight,overflow:p.scrollWidth>p.clientWidth+1,small:[...p.querySelectorAll('button')].filter(e=>e.getClientRects().length&&!e.closest('[hidden]')).filter(e=>{const r=e.getBoundingClientRect();return r.width<44||r.height<44;}).map(e=>e.getAttribute('aria-label')||e.textContent),illustrated:rows.every(e=>e.querySelector('.workshop-art [data-station-art]')?.getBoundingClientRect().width>=56),clipped:rows.flatMap(e=>[...e.querySelectorAll('h3,.workshop-level,.workshop-current,.workshop-next,.command-upgrade-price')]).filter(e=>e.scrollWidth>e.clientWidth+1).map(e=>e.textContent),allMaxDisabled:rows.filter(e=>e.dataset.maxed==='true').every(e=>e.querySelector('button').disabled)};});
   reports.push({label:width+'x'+height+'-workshop-'+category,...workshop});
   await page.screenshot({path:path.join(evidence,width+'x'+height+'-workshop-'+category+'.png')});
   assert.equal(workshop.outside,false,'workshop viewport bounds');assert.equal(workshop.overflow,false,'workshop horizontal overflow');assert.deepEqual(workshop.small,[],'workshop 44px controls');assert.deepEqual(workshop.clipped,[],'full workshop labels and values fit');assert.ok(workshop.illustrated,'all upgrades have actual colored object artwork');assert.ok(workshop.allMaxDisabled,'maxed upgrades cannot be purchased');

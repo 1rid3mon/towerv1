@@ -66,5 +66,17 @@
         }
         return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" aria-hidden="true" focusable="false" data-station-art="${keys.includes(key)?key:'crate'}"><defs><linearGradient id="${id}m" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#a3b6c0"/><stop offset=".24" stop-color="#657d8a"/><stop offset=".55" stop-color="#354d60"/><stop offset="1" stop-color="#1b2d40"/></linearGradient><linearGradient id="${id}d" x2=".7" y2="1"><stop stop-color="#24364a"/><stop offset="1" stop-color="#091524"/></linearGradient><linearGradient id="${id}g" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#f0fcff"/><stop offset=".22" stop-color="${color}"/><stop offset="1" stop-color="${color}" stop-opacity=".35"/></linearGradient><linearGradient id="${id}l" x2=".6" y2="1"><stop stop-color="#fffce4"/><stop offset=".4" stop-color="${color}"/><stop offset="1" stop-color="${color}" stop-opacity=".55"/></linearGradient><radialGradient id="${id}a"><stop stop-color="${color}" stop-opacity=".2"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></radialGradient></defs><circle cx="48" cy="48" r="45" fill="url(#${id}a)"/><ellipse cx="48" cy="82" rx="30" ry="7" fill="#030b15" opacity=".6"/>${art}</svg>`;
     }
-    return Object.freeze({svg,keys});
+    const sprites = Object.freeze({
+        damage: 'plasma',
+        maxHp: 'hull',
+        range: 'radar',
+        part: 'salvage'
+    });
+
+    function markup(key, options) {
+        if (!Object.hasOwn(sprites, key)) return svg(key, options);
+        return `<img class="station-sprite" data-station-art="${key}" src="assets/station/foundry/${sprites[key]}.webp" alt="" width="192" height="192" decoding="async" draggable="false">`;
+    }
+
+    return Object.freeze({svg, keys, markup});
 });
