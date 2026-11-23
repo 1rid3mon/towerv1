@@ -35,12 +35,6 @@ body:has(#upgrade-drawer:not(.-translate-x-full) #tab-casino:not(.hidden)) #toas
 #tab-casino{padding-bottom:80px;scroll-padding-bottom:80px}
 
 /* Opt-in wave tradeoffs keep the combat board and primary touch controls clear. */
-.endless-tactics{position:absolute;left:0;top:calc(100% + 8px);z-index:45;width:100%;box-sizing:border-box;pointer-events:auto;max-height:min(320px,calc(100dvh - 230px));overflow:auto;padding:8px 12px;color:#e6eef2;background:#0b1c29f2;border:1px solid #8aafbc;border-radius:10px;font:12px system-ui}
-.endless-tactics summary{cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center}
-.endless-tactics p{margin:8px 0}.endless-tactics button{display:block;min-height:44px;width:100%;margin:5px 0;padding:8px;background:#203d4b;color:#f3e4c5;border:1px solid #809ba7;border-radius:6px}
-body[data-game-mode="story"] .endless-tactics,body:has(#mode-main-menu:not(.menu-hidden)) .endless-tactics,body:has(#upgrade-drawer:not(.-translate-x-full) #tab-casino:not(.hidden)) .endless-tactics{display:none}
-body:not([data-game-mode="story"]) #endless-tactics *{font-size:12px!important;line-height:1.4!important}
-@media(max-height:500px){.endless-tactics{max-height:calc(100dvh - 170px)}}
 
 #operations-open{min-height:44px;padding:4px 8px;margin-top:4px;border:1px solid #4d7d89;border-radius:7px;background:#142d38;color:#c9f2f0;touch-action:manipulation}
 body[data-game-mode="story"] #operations-open{display:none}
@@ -79,16 +73,11 @@ body:not([data-game-mode="story"]) #hud-top-bar{align-items:start!important}
 body:not([data-game-mode="story"]) #hud-wave-card{border-top:2px solid #668dcb!important}
 #ui-sector-detail{white-space:pre-line;color:#d9e6f5}
 #operations-open{align-self:flex-start;background:#1b3048;border-color:#55769a;color:#e0eeff;font-weight:700;padding-inline:12px}
-.endless-tactics:not([open]){width:max-content;max-width:100%;padding:0 11px;border-color:#506278;background:#152333}
-.endless-tactics:not([open]) summary{gap:8px;font-weight:700}
-.endless-tactics:not([open]) summary::before{content:"◆";color:#eac177;font-size:9px}
-.endless-tactics:not([open]) summary::after{content:"⌄";color:#b8cfe1}
 body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"]{top:auto;bottom:max(58px,calc(env(safe-area-inset-bottom) + 50px));width:max-content;max-width:calc(100vw - 24px)}
 body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"] .battle-frame{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding:8px 11px;border-radius:8px!important}
 body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"] :is(.battle-kicker,.battle-subtitle){display:none}
 body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"] .battle-title{font-size:14px;line-height:1.2}
 body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"] .battle-rewards{margin:0}
-body:has(#endless-tactics[open]) #battle-moment[data-kind="clear"]{visibility:hidden}
 #endless-operations .operations-track{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;overflow:visible}
 #endless-operations .operations-track li{min-width:0;padding:8px 3px}
 .operations-track small,.operations-track strong{display:block}
@@ -101,4 +90,28 @@ body:has(#endless-tactics[open]) #battle-moment[data-kind="clear"]{visibility:hi
 #upgrade-drawer :is(button[id^="mult-"], button[id^="upg-btn-"], [data-workshop-close]) {
     min-width: 44px;
     min-height: 44px;
+}
+
+body:not([data-game-mode="story"]) #main-body #battle-moment[data-sector-clear="true"] {
+    top: 64px;
+    bottom: auto;
+    width: min(350px, 44vw);
+    pointer-events: none;
+}
+body:not([data-game-mode="story"]) #main-body #battle-moment[data-sector-clear="true"] .battle-frame {
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+    padding: 9px 12px;
+    text-align: center;
+    border-left-color: #e8b66b !important;
+    background: linear-gradient(110deg, #132734f7, #253130f7) !important;
+}
+body:not([data-game-mode="story"]) #main-body #battle-moment[data-sector-clear="true"] :is(.battle-kicker, .battle-subtitle) {
+    display: block;
+    font-size: 12px;
+}
+body:not([data-game-mode="story"]) #main-body #battle-moment[data-sector-clear="true"] .battle-title {
+    color: #ffe1a9;
+    font-size: clamp(15px, 2.4vw, 23px);
 }

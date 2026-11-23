@@ -51,18 +51,30 @@ test('V10 and V11 repair hooks stack only at a real Endless wave completion',()=
   assert.equal(run('game.wave'),27);
 });
 
-test('temporary tactics expire by wave and owner and never affect Story',()=>{
- const {run}=setup();run("GameModeRuntime.leaveStory();game.wave=30;endlessTactic={wave:30,owner:tacticOwner(),choice:'assault',locked:true}");
- assert.equal(run('tacticMultiplier()'),1.08);run('game.wave=31');assert.equal(run('tacticMultiplier()'),1);
- run("game.wave=30;endlessTactic.choice='guard'");assert.equal(run('tacticMultiplier()'),.92);
- run("endlessTactic.owner='another-player'");assert.equal(run('tacticMultiplier()'),1);
- run("endlessTactic.owner=tacticOwner();startStoryMission(1)");assert.equal(run('tacticMultiplier()'),1);
+test('sector transition goes directly to the next wave and reports the granted reward once', () => {
+ const {run,sandbox}=setup();
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'../endless-sectors.js'),'utf8'),sandbox);
+ run(`GameModeRuntime.leaveStory();game.wave=10;game.waveKills=game.waveTargetKills;
+   window.EndlessOperations={record(wave){return wave===10?{parts:8}:undefined}};
+   globalThis.sectorMoments=[];globalThis.showBattleMoment=(kind,data)=>sectorMoments.push({kind,data});
+   completeWave();
+   killEnemy(enemies.find(enemy=>enemy.type==='boss'));`);
+ assert.equal(run('game.wave'),11);
+ assert.equal(run("sectorMoments.filter(moment=>moment.data.sector).length"),1);
+ assert.equal(run("sectorMoments.at(-1).data.nextSector.name"),'Kırık Röle');
+ assert.equal(run("sectorMoments.at(-1).data.sectorReward.parts"),8);
+ run('completeWave()');
+ assert.equal(run("sectorMoments.filter(moment=>moment.data.sector).length"),1);
+ assert.equal(run('game.wave'),12);
 });
-test('defeat recovery clears the previous wave tactic and stale panel',()=>{
- const {run}=setup();run("GameModeRuntime.leaveStory();game.wave=30;offerEndlessTactics();endlessTactic.choice='assault';endlessTactic.locked=true;recoverFromDefeat()");
- assert.equal(run('tacticMultiplier()'),1);assert.equal(run("document.getElementById('endless-tactics').hidden"),true);
- run('game.wave=30');assert.equal(run('tacticMultiplier()'),1,'returning to the same wave cannot revive a stale tactic');
- run('offerEndlessTactics()');assert.equal(run("document.getElementById('endless-tactics').hidden"),false);assert.equal(run('endlessTactic.locked'),false);
+test('a farm clear on a finale wave does not announce a sector transition', () => {
+ const {run,sandbox}=setup();
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'../endless-sectors.js'),'utf8'),sandbox);
+ run(`GameModeRuntime.leaveStory();game.wave=10;game.holdWave=true;
+   globalThis.sectorMoments=[];globalThis.showBattleMoment=(kind,data)=>sectorMoments.push({kind,data});
+   completeWave();killEnemy(enemies.find(enemy=>enemy.type==='boss'));`);
+ assert.equal(run('game.wave'),10);
+ assert.equal(run("sectorMoments.some(moment=>moment.data.sector)"),false);
 });
 
 test('a loaded sector finale spawns its boss once and cannot advance until the boss dies', () => {

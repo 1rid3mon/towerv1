@@ -43,19 +43,14 @@ const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http:
 
   await operations.getByRole('button',{name:'Kapat',exact:true}).tap();
   await page.screenshot({path:path.join(out,'endless-hud-'+width+'.png')});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
-  const balance=await page.evaluate(()=>({gold:game.gold,crystals:game.crystals}));await page.evaluate(()=>offerEndlessTactics());await page.locator('#endless-tactics summary').tap();
-  await page.locator('#endless-tactics[open]').waitFor();
-  const layout=await page.evaluate(()=>{const t=document.getElementById('endless-tactics').getBoundingClientRect(),h=document.getElementById('hud-top-bar').getBoundingClientRect();return {top:t.top,bottom:t.bottom,left:t.left,right:t.right,hudBottom:h.bottom,width:innerWidth,height:innerHeight}});assert.ok(layout.top>=layout.hudBottom,'Tactics must not cover HP/wave controls');assert.ok(layout.bottom<=layout.height&&layout.left>=0&&layout.right<=layout.width,'Tactics fits the viewport: '+JSON.stringify(layout));
-  await page.screenshot({path:path.join(out,'endless-tactic-open-'+width+'.png')});await page.locator('#endless-tactics button').filter({hasText:'TAARRUZ'}).tap();
-  assert.equal(await page.evaluate(()=>tacticMultiplier()),1.08);assert.equal(await page.locator('#endless-tactics button:disabled').count(),3);assert.deepEqual(await page.evaluate(()=>({gold:game.gold,crystals:game.crystals})),balance);
-  await page.screenshot({path:path.join(out,'endless-tactic-'+width+'.png')});
+  assert.equal(await page.locator('#endless-tactics').count(),0);
   const mascotVisibility=await page.locator('#game-mascot').evaluate(el=>getComputedStyle(el).visibility);
   await page.evaluate(()=>{toggleUpgradeDrawer();switchTab('casino')});await page.locator('#signal-action').tap();await page.evaluate(()=>toggleUpgradeDrawer());assert.equal(await page.locator('#signal-action').innerText(),'DEVAM ET');assert.equal(await page.locator('#game-mascot').evaluate(el=>getComputedStyle(el).visibility),mascotVisibility,'Piko returns after workshop closes');await page.evaluate(()=>toggleUpgradeDrawer());await page.locator('[data-signal-mode="memory"]').tap();
   const before=await page.evaluate(()=>({crystals:game.crystals,inventory:JSON.stringify(game.inventory)}));
   for(let round=0;round<5;round++){await page.locator('#signal-action').tap();const seq=(await page.locator('#signal-sequence').innerText()).trim().split(/\s+/);await page.locator('#signal-action').tap();for(const symbol of seq)await page.locator('[data-signal-symbol="'+['◈','≋','⊙','⌁'].indexOf(symbol)+'"]').tap()}
   assert.equal(await page.locator('#signal-score').innerText(),'500 / 500');assert.deepEqual(await page.evaluate(()=>({crystals:game.crystals,inventory:JSON.stringify(game.inventory)})),before);
   const record=await page.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith('towerSignalTrainingV1:')).map(k=>[k,localStorage.getItem(k)]));assert.equal(record.length,1);assert.equal(JSON.parse(record[0][1]).memory,500);
-  await page.screenshot({path:path.join(out,'memory-result-'+width+'.png')});await page.evaluate(()=>toggleUpgradeDrawer());assert.equal(await page.locator('#endless-tactics').isVisible(),true,'Tactics returns after closing the workshop');await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>!!window.SignalTraining);assert.equal(await page.evaluate(k=>localStorage.getItem(k),record[0][0]),record[0][1]);assert.deepEqual(errors,[]);await context.close();
+  await page.screenshot({path:path.join(out,'memory-result-'+width+'.png')});await page.evaluate(()=>toggleUpgradeDrawer());assert.equal(await page.locator('#endless-tactics').count(),0);await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>!!window.SignalTraining);assert.equal(await page.evaluate(k=>localStorage.getItem(k),record[0][0]),record[0][1]);assert.deepEqual(errors,[]);await context.close();
  }
  console.log('Skill games, saved record, currency isolation and HUD ('+engine+'): PASS');
 }finally{await browser.close();await new Promise(r=>server.close(r))}})().catch(e=>{console.error(e);process.exitCode=1;server.close()});

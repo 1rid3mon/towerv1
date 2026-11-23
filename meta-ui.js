@@ -174,7 +174,7 @@ function radioNotices(){return [...new Map([...(window.MetaNotices||[]),...radio
 function radioBusy(){
  const settings=document.getElementById('settings-modal'),cinema=document.getElementById('boss-cinema-v15'),moment=document.getElementById('battle-moment');
  return document.hidden||document.body.classList.contains('command-workshop-open')||document.body.dataset.gameMode==='story'||document.getElementById('story-mode-screen')?.getAttribute('aria-hidden')==='false'||
- !document.getElementById('mode-main-menu')?.classList.contains('menu-hidden')||!!document.querySelector('dialog[open]')||!!document.querySelector('#endless-tactics[open]:not([hidden])')||
+ !document.getElementById('mode-main-menu')?.classList.contains('menu-hidden')||!!document.querySelector('dialog[open]')||
  !!(settings&&!settings.classList.contains('hidden'))||!!(moment?.classList.contains('is-visible')&&['boss','bossKill','clear','loss','defeat'].includes(moment.dataset.kind))||!!(cinema&&Number(getComputedStyle(cinema).opacity)>.05)||
  (typeof isDefeated!=='undefined'&&isDefeated);
 }

@@ -254,7 +254,7 @@ canvas.addEventListener('pointerdown', handleCanvasPointerDown, { passive: false
 
 function ensureSectorBoss() {
     if (!window.EndlessSectors || GameModeRuntime.isStoryActive()) return;
-    const key = JSON.stringify([tacticOwner(), game.stats.prestiges, game.wave]);
+    const key = JSON.stringify([sectorBossOwner(), game.stats.prestiges, game.wave]);
     if (sectorBossWaveKey === key) return;
     sectorBossWaveKey = key;
     if (window.EndlessSectors.describe(game.wave).bossWave && !enemies.some(enemy => enemy.type === 'boss')) {
@@ -1037,7 +1037,6 @@ function dealDamageToEnemy(enemy, amount, isCrit = false, color = '#ffffff', app
         if (combo.bonus > 0) { amount += combo.bonus; addFloatingText(enemy.x, enemy.y - (enemy.radius || 12) - 8, combo.label + ' +' + formatNumber(combo.bonus), '#e5b36b', 9); }
         amount = window.TowerCombatDirectorV12.mitigation(enemy, amount);
     }
-    amount *= tacticMultiplier();
     enemy.hp -= amount; enemy.hitFlash = 1;
     if (window.TowerCombatV12) window.TowerCombatV12.hit(enemy.x, enemy.y, color, isCrit, enemy.type === 'boss');
     if (isCrit) window.Fx?.emit('critical');
@@ -1101,7 +1100,6 @@ function killEnemy(enemy) {
 
 function damageTower(rawDamage, attacker) {
     if (attacker?.metaSilenced > 0) return;
-    rawDamage *= tacticMultiplier();
     if (window.TowerOverhaulV11) rawDamage = window.TowerOverhaulV11.incoming(rawDamage);
     const armorVal = getTowerArmor();
     const flatReduced = Math.max(rawDamage * 0.25, rawDamage - armorVal);
@@ -1117,39 +1115,12 @@ function damageTower(rawDamage, attacker) {
     if (tower.hp <= 0) { tower.hp = 0; triggerTowerDefeat(); }
 }
 
-// One temporary, reversible tradeoff per Endless wave. No saved economy/stat mutation.
-let endlessTactic={wave:0,choice:'balanced',locked:false};
-function tacticOwner(){return typeof currentUser!=='undefined'&&currentUser?.uid?String(currentUser.uid):'guest'}
-function tacticMultiplier(){
- if(GameModeRuntime.isStoryActive()||endlessTactic.wave!==game.wave||endlessTactic.owner!==tacticOwner())return 1;
- return endlessTactic.choice==='assault'?1.08:endlessTactic.choice==='guard'?.92:1;
+function sectorBossOwner() {
+    return typeof currentUser !== 'undefined' && currentUser?.uid ? String(currentUser.uid) : 'guest';
 }
-function resetEndlessTactics(){
- sectorBossWaveKey = '';
- endlessTactic={wave:0,choice:'balanced',locked:false};
- const box=document.getElementById('endless-tactics');if(box){box.hidden=true;box.open=false;}
-}
-function offerEndlessTactics(){
- if(GameModeRuntime.isStoryActive())return;
- endlessTactic={wave:game.wave,owner:tacticOwner(),choice:'balanced',locked:false};
- let box=document.getElementById('endless-tactics');
- if(!box){box=document.createElement('details');box.id='endless-tactics';box.className='endless-tactics';(document.getElementById('hud-top-bar')||document.body).appendChild(box)}
- box.hidden=false;box.open=false;box.innerHTML='';const summary=document.createElement('summary'),description=document.createElement('p'),choices=document.createElement('div'),buttons=[];summary.textContent='DALGA '+game.wave+' · TAKTİK SEÇ';description.textContent='Yalnız bu dalga. Seçmezsen Dengeli devam eder. Para harcanmaz.';box.appendChild(summary);box.appendChild(description);box.appendChild(choices);
- if (typeof window.ResizeObserver === 'function' && !box.tacticsResizeObserver) {
-    const fit = () => {
-        const bounds = box.getBoundingClientRect();
-        if (!bounds.width) return;
-        box.style.maxHeight = Math.max(0, Math.min(320, window.innerHeight - bounds.top - 8)) + 'px';
-        box.style.maxWidth = Math.max(0, window.innerWidth - bounds.left - 8) + 'px';
-    };
-    box.tacticsResizeObserver = new window.ResizeObserver(fit);
-    box.tacticsResizeObserver.observe(box.parentElement);
-    window.addEventListener('resize',fit);
-    box.addEventListener('toggle',fit);
-    box.addEventListener('click',fit);
- }
- const options=[['assault','TAARRUZ','Verilen ve alınan hasar +%8'],['guard','KORUMA','Verilen ve alınan hasar −%8'],['balanced','DENGELİ','Standart hasar ve savunma']];
- for(const [id,title,description] of options){const b=document.createElement('button');b.textContent=title+' · '+description;b.onclick=()=>{if(GameModeRuntime.isStoryActive()||endlessTactic.locked||endlessTactic.wave!==game.wave||endlessTactic.owner!==tacticOwner())return;endlessTactic.choice=id;endlessTactic.locked=true;box.open=false;summary.textContent='DALGA '+game.wave+' · '+title;buttons.forEach(button=>button.disabled=true)};buttons.push(b);choices.appendChild(b)}
+
+function resetSectorBoss() {
+    sectorBossWaveKey = '';
 }
 
 function completeWave() {
@@ -1186,6 +1157,8 @@ function completeWave() {
     if (enemies.some(enemy => enemy.type === 'boss' && enemy.hp > 0)) return;
     const completedWaveNumber = game.wave;
     const wasHoldWave = game.holdWave;
+    const sectorCleared = !wasHoldWave && completedWaveNumber % 10 === 0
+        ? window.EndlessSectors?.describe(completedWaveNumber) : null;
     let waveRewardGold = 0;
     let milestoneCrystalsAwarded = 0;
     if (!game.holdWave) {
@@ -1219,22 +1192,29 @@ function completeWave() {
         if (game.consecutiveHoldWins >= 4) { game.holdWave = false; game.consecutiveHoldWins = 0; updateHoldWaveButton(); showToast('Farm modunda 4 dalga geçildi! Otomatik İlerleme aktif.'); }
     }
     if (!wasHoldWave) {
-        // Small reward pulse around the core: visual-only, no gameplay values are changed.
         rings.push({ x: tower.x, y: tower.y, radius: 18, color: '#e8b66b', life: 0.9 });
         rings.push({ x: tower.x, y: tower.y, radius: 30, color: '#f8d9a0', life: 0.58 });
         createParticles(tower.x, tower.y, '#e8b66b', 9, 72);
-    }
-    if (!wasHoldWave && typeof showBattleMoment === 'function') {
-        showBattleMoment('clear', { wave: completedWaveNumber, gold: waveRewardGold, crystals: milestoneCrystalsAwarded });
+        if (sectorCleared && !window.Fx?.settings?.().reduced) {
+            rings.push({ x: tower.x, y: tower.y, radius: 56, color: '#73ead7', life: 1.1 });
+            createParticles(tower.x, tower.y, '#73ead7', 14, 108);
+        }
     }
     waveFrostSpawns = 0;
     game.waveKills = 0; game.waveTargetKills = Math.min(45, 14 + Math.floor(game.wave * 0.25)); tower.hp = Math.min(tower.maxHp, tower.hp + tower.maxHp * 0.15);
     if (window.EndlessSectors) ensureSectorBoss();
     else if (!game.holdWave && game.wave % 5 === 0 && !enemies.some(e => e.type === 'boss')) spawnEnemy(true);
     if (!wasHoldWave) {
-        window.EndlessOperations?.record(completedWaveNumber);
+        const sectorReward = window.EndlessOperations?.record(completedWaveNumber);
         window.MetaRuntime?.wave(completedWaveNumber);
-        offerEndlessTactics();
+        if (typeof showBattleMoment === 'function') {
+            showBattleMoment('clear', {
+                wave: completedWaveNumber, gold: waveRewardGold, crystals: milestoneCrystalsAwarded,
+                sector: sectorCleared,
+                nextSector: sectorCleared ? window.EndlessSectors.describe(game.wave) : null,
+                sectorReward
+            });
+        }
     }
     updatePrestigeUI(); refreshUpgradeButtonsState(); saveGame(true);
 }
@@ -1273,7 +1253,7 @@ function recoverFromDefeat() {
         if (typeof showToast === 'function') showToast(storyLanguage() === 'en' ? 'Core rebooted. The mission continues.' : 'Çekirdek yeniden başlatıldı. Görev devam ediyor.');
         return;
     }
-    resetEndlessTactics();
+    resetSectorBoss();
     isDefeated = false; document.getElementById('defeat-overlay').classList.add('hidden'); enemies = []; projectiles = [];
     tower.freezeTimer = 0; tower.freezeImmunityTimer = 0; tower.frostSlowTimer = 0; waveFrostSpawns = 0;
 

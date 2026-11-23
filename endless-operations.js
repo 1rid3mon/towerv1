@@ -156,15 +156,19 @@
             if (wave%5===0) bucket.bosses = (bucket.bosses || 0)+1;
         }
         const sector = wave/10;
+        let sectorReward;
         if (wave%10===0 && sector>state.cleared) {
             state.cleared = sector;
             state.daily.sectors = (state.daily.sectors || 0)+1;
             state.career.sectors = (state.career.sectors || 0)+1;
-            grant(state, gear[(sector-1)%gear.length]);
+            const reward = gear[(sector-1)%gear.length];
+            sectorReward = state.owned[reward.id] ? {parts:8} : {item:reward.name};
+            grant(state, reward);
         }
         state.activeAt = Date.now();
-        persist();
+        const saved = persist();
         if (panel?.open) render();
+        return saved ? sectorReward : undefined;
     }
     function bonus(stat) {
         if (!active()) return 0;

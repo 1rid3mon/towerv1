@@ -45,7 +45,6 @@ body.meta-command-active #meta-command-shelf{display:flex;right:max(10px,env(saf
 body.meta-command-active #meta-command-upgrades:not([hidden]){display:flex;flex-direction:column;right:10px;bottom:148px;width:min(380px,49vw);max-height:calc(100dvh - 210px);background:linear-gradient(145deg,#152737f7,#0a1624fc);border:1px solid #91b2c839;border-radius:14px;box-shadow:0 12px 40px #0008,inset 0 1px #ffffff09;overflow:hidden}
 #meta-command-upgrades header{display:flex;gap:5px;padding:8px;flex:none;background:#96bed307;border-bottom:1px solid #7d9dbb20}#meta-command-upgrades header button:last-child{margin-left:auto}#meta-command-upgrades header button{border-radius:7px;background:#0b1927;box-shadow:none}
 .meta-upgrade-rows{overflow:auto;min-height:0;overscroll-behavior:contain}.meta-upgrade-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:58px;padding:5px 8px;border-bottom:1px solid #718ba718}.meta-upgrade-row>[data-label]{font-size:12px;color:#b4c6d4;min-width:0;line-height:1.5}.meta-upgrade-row button{display:flex;align-items:center;gap:5px;min-width:100px;padding:5px 8px;flex:none;background:#182e3e;border-radius:8px}.meta-upgrade-row .command-upgrade-icon{display:none}.meta-upgrade-row .command-upgrade-price{font-size:13px}.meta-upgrade-row .command-upgrade-arrow{margin:0;align-self:center}
-body.meta-command-active #meta-command-bar .endless-tactics{position:fixed;top:64px;left:auto;right:10px;width:min(290px,38vw);z-index:45}
 body.meta-command-active>header,body.meta-command-active #main-body>header{display:none!important}body.meta-command-active #canvas-container{top:52px!important}body.meta-command-active :is(#hud-top-bar,#hud-quick-stats,#hud-bottom-controls,#battle-sfx-toggle,#game-mascot,#game-mascot-bubble,#mobilePanelToggleBtn){display:none!important}
 body.meta-command-active:has(#defeat-overlay:not(.hidden)) :is(#meta-command-rail,#meta-command-shortcuts,#meta-command-skills,#meta-command-shelf,#meta-command-upgrades){visibility:hidden}
 @media(max-width:800px){#meta-command-status{gap:4px}.signal-sector{width:86px;gap:1px}.signal-health{width:80px}.signal-pill{padding:0 5px;gap:4px;min-width:45px}.signal-pill b{font-size:13px}.signal-pill svg{width:16px;height:16px}.signal-sector strong{font-size:12px}}
@@ -57,8 +56,6 @@ html[data-meta-reduced=true] #signal-sector-boss[data-ready=true]{animation:none
 
 .command-upgrade-price{display:flex;align-items:center;gap:4px}.command-upgrade-price>svg{width:13px!important;height:13px!important;color:#c9a36f}
 
-body.meta-command-active #meta-command-bar .endless-tactics{background:linear-gradient(145deg,#152737fa,#0b1826fc);border-color:#a4c1d42b;border-radius:12px;box-shadow:0 9px 28px #0006,inset 0 1px #ffffff09}
-body.meta-command-active:has(#endless-tactics:not([hidden])) .meta-radio-card{top:120px}
 /* Illustrated workshop: a real opening drawer with room for the live battlefield. */
 :root{--workshop-width:min(500px,52vw)}
 body.meta-command-active #meta-command-upgrades:not([hidden]){left:88px;right:auto;top:64px;bottom:12px;width:var(--workshop-width);height:auto;max-height:none;z-index:50;border-radius:16px;background:linear-gradient(145deg,#152b3cfb,#091724fd);border:1px solid #87b6cf42;box-shadow:0 16px 44px #0008,inset 0 1px #c6e9ff15;animation:workshop-slide-in 180ms var(--ease-out)}

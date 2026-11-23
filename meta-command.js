@@ -40,7 +40,7 @@ function upgradeMarkup(button,key,info){
 function sectorBossState(descriptor,active){
  if(active)return 'active';
  if(!descriptor.bossWave)return 'waiting';
- const key=JSON.stringify([tacticOwner(),game.stats.prestiges,game.wave]);
+ const key=JSON.stringify([sectorBossOwner(),game.stats.prestiges,game.wave]);
  return sectorBossWaveKey===key?'cleared':'ready';
 }
 function btn(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=fn;return b;}
@@ -200,9 +200,6 @@ function refresh(force=false){
  if(!bar||typeof game==='undefined'||!R())return;
  const active=matchMedia('(orientation:landscape)').matches&&document.body.dataset.gameMode!=='story'&&!window.GameModeRuntime?.isStoryActive()&&document.getElementById('mode-main-menu')?.classList.contains('menu-hidden');
  document.body.classList.toggle('meta-command-active',!!active);
- const tactics = document.getElementById('endless-tactics');
- const tacticsHost = active ? bar : document.getElementById('hud-top-bar');
- if(tactics && tacticsHost && tactics.parentElement!==tacticsHost)tacticsHost.append(tactics);
  if(!active){document.body.removeAttribute('data-health-low');if(opened){opened=false;drawer.hidden=true;document.body.classList.remove('command-workshop-open');resizeCanvas();}stop();return;}
  R().prepare();const m=R().getState();
  const wave=game.wave,sector=Math.ceil(wave/10),step=(wave-1)%10+1;
