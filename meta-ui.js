@@ -119,6 +119,7 @@ function renderSeason(m){
 function renderReturn(m){const r=m.returnEvent||{};if(!r.startedAt){body.append(el('h3',t('returnTitle')),el('p',t('returnInactive')));return;}if(Date.now()>=r.endsAt){body.append(el('h3',t('expired')));return;}body.classList.add('meta-return');const days=el('nav',null,'meta-days');days.setAttribute('aria-label',t('day'));for(let d=1;d<=7;d++){const b=button(t('day')+' '+d,()=>{returnDay=d;refresh();});b.setAttribute('aria-pressed',String(d===returnDay));days.append(b);}const content=el('div',null,'meta-return-content');content.append(el('h3',t('returnTitle')),el('p',t('returnNote')+' '+t('expires')+' '+remaining(r.endsAt)));const list=el('div',null,'meta-cards');for(const task of C().returnEvent?.tasks||[]){const key=returnDay+':'+task.id,claimed=!!r.tasks?.[key],count=Math.max(0,(m.progress?.[task.id==='login'?'logins':task.id]||0)-(r.baseline?.[task.id==='login'?'logins':task.id]||0)),target=task.target*returnDay,c=card(list,t(task.id),(task.reward||0)+' '+t('parca'));progress(c,Math.min(target,count),target,t(task.id));c.append(el('p',Math.min(target,count)+' / '+target),button(claimed?t('claimed'):t('claim'),()=>action('returnClaim',{day:returnDay,task:task.id})),button(t('go'),()=>{const target={login:'supply',waves:'battle',bosses:'boss',summons:'archive',fusions:'archive'}[task.id];if(R()?.route)R().route(target);else open(target);}));}content.append(list);body.append(days,content);}
 function renderNotices(){body.classList.add('meta-cards','meta-notices');for(const notice of radioNotices()){const c=card(body,notice.title,notice.body);const kind=notice.type||'yenilik';c.dataset.category=kind;c.prepend(itemArt(({sezon:'part',odul:'crate',guncelleme:'overload',etkinlik:'ark',yenilik:'signal'})[kind]||'signal',({sezon:'#e6b578',odul:'#83d6b3',guncelleme:'#90b8eb',etkinlik:'#d59bed'})[kind]||'#70d9d5','meta-notice-art'));c.dataset.read=String(state().seenNotices?.[notice.id]===true);if(notice.detail)c.append(button(t('noticeDetails'),()=>{R().action('noticeSeen',{id:notice.id});popup(notice.title,el('p',notice.detail));}));if(notice.action?.route)c.append(button(t('go'),()=>R().route(notice.action.route)));}footerAction(t('done'),close,true);}
 function renderEvent(){
+ title.textContent = 'Günlük Boss Akını';
  const event=R().eventBriefing(),challenge=window.EndlessBossRush.challenge(event.day),art=el('div',null,'meta-event-art'),portrait=el('div',null,'meta-boss-portrait');
  const bossId=({0:'tank_boss',6:'ranged_boss',12:'frost_boss',18:'leviathan'})[challenge.item]||'tank_boss';
  portrait.setAttribute('role','img');portrait.setAttribute('aria-label',event.boss);portrait.dataset.boss=bossId;
@@ -126,10 +127,36 @@ function renderEvent(){
  else{const slot={ranged_boss:0,frost_boss:2,leviathan:3}[bossId];portrait.style.backgroundImage='url("assets/enemies/v17/atlas/bosses.webp")';portrait.style.backgroundSize='400% 100%';portrait.style.backgroundPosition=(slot/3*100)+'% 0';}
  art.append(el('span',t('bossTitle'),'meta-event-kicker'),portrait,el('p',t('expires')+' · '+remaining(event.endsAt)));
  body.classList.add('meta-event');body.append(art);
- const briefing=card(body,event.boss,t('bossNote'));briefing.classList.add('meta-boss-briefing');
+ const briefing=card(body,event.boss,event.fight&&!event.result?'':t('bossNote'));briefing.classList.add('meta-boss-briefing');
  const reward=el('div',null,'meta-boss-reward');reward.append(itemArt('part','#e6b578'),el('p',t('eventReward')+' · '+event.reward));briefing.append(reward);
- if(event.result)briefing.append(el('p',t(event.result==='won'?'eventWon':'eventLost')));
- footerAction(t(event.result?'eventSummary':'bossAction'),()=>R().startEvent(event.day),true);
+ if (event.result) {
+  briefing.append(el('p', t(event.result==='won'?'eventWon':'eventLost')));
+  footerAction('Savaşa dön', close, true);
+ } else if (event.fight) {
+  const {hp, step, feedback} = event.fight;
+  const cue = el('div', null, 'meta-raid-cue');
+  cue.dataset.cue = event.cue;
+  cue.setAttribute('role', 'status');
+  cue.append(
+   el('small', 'Gövde ' + hp + '/2 · Hamle ' + (step + 1) + '/' + event.turns),
+   el('strong', event.cue === 'guard' ? 'Boss saldırıya hazırlanıyor' : 'Boss’un zırhı açık'),
+   el('span', event.cue === 'guard' ? 'Hasarı engellemek için kalkan kur.' : 'Açıklıktan yararlanmak için ateş et.')
+  );
+  body.classList.add('meta-raid-active');
+  reward.before(cue);
+  if (feedback) briefing.append(el('p', feedback));
+  for (const [move, label] of [['guard','Kalkan kur'],['strike','Ateş et']]) {
+   const action = button(label, () => {
+    const result = window.EndlessOperations.raidMove(event.day, move);
+    refresh();
+    if (!result.ok) notify(result.message);
+   }, 'meta-raid-move');
+   action.dataset.move = move;
+   footer.append(action);
+  }
+ } else {
+  footerAction('Akına gir', () => R().startEvent(event.day), true);
+ }
 }
 function renderMenu(){body.classList.add('meta-cards');
 const meta=state();

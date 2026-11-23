@@ -314,7 +314,28 @@
         end.setHours(window.MetaConfig.daily.resetHour, 0, 0, 0);
         const boss = window.EndlessBossRush.challenge(day);
         const fight = load().rush;
-        return {day, endsAt:end.getTime(), boss:boss.name, reward:gear[boss.item].name+' / 8 Parça', result:fight?.day===day ? fight.result : ''};
+        return {day, endsAt:end.getTime(), boss:boss.name, reward:gear[boss.item].name+' veya 8 Parça', result:fight?.day===day ? fight.result : '',
+            fight:fight?.day===day ? {...fight} : null, turns:boss.pattern.length, cue:boss.pattern[fight?.step || 0]};
+    }
+
+    function applyRushMove(state, day, move) {
+        const fight = state.rush?.day === day ? state.rush : null;
+        if (move === 'start' && !fight) {
+            state.rush = {day,step:0,hp:2,result:''};
+        } else if (fight && !fight.result && ['strike','guard'].includes(move)) {
+            state.rush = window.EndlessBossRush.turn(fight, move);
+            if (state.rush.result === 'won') grant(state, gear[window.EndlessBossRush.challenge(day).item]);
+        }
+    }
+    function raidMove(day, move) {
+        if (!active() || (typeof isDuplicateTab !== 'undefined' && isDuplicateTab)) return {ok:false,message:'Bu oturumda akın yapılamaz.'};
+        const state = load();
+        if (blocked) return {ok:false,message:'Kayıt doğrulanamadı. Asıl kayıt korundu.'};
+        if (day !== window.MetaModel.localDay(Date.now())) return {ok:false,message:'Bu akın sona erdi.'};
+        const previous = state.rush;
+        applyRushMove(state, day, move);
+        if (state.rush !== previous && !persist()) return {ok:false,message:'Hamle kaydedilemedi.'};
+        return {ok:true};
     }
 
     function renderBoss(state, day, line, button, content) {
@@ -324,7 +345,7 @@
         line(boss.name + ' · Günlük boss akını');
         line('Zafer ödülü · ' + gear[boss.item].name + ' veya 8 parça');
         if (!fight) {
-            button('Akını başlat', () => { state.rush = {day,step:0,hp:2,result:''}; });
+            button('Akını başlat', () => applyRushMove(state, day, 'start'));
             return;
         }
         if (fight.result) {
@@ -338,10 +359,7 @@
         cue.textContent = boss.pattern[fight.step] === 'guard' ? 'Boss saldırıya hazırlanıyor.' : 'Boss’un zırhı açık.';
         content.append(cue);
         for (const [id,label] of [['strike','Ateş et'],['guard','Kalkan kur']]) {
-            button(label, () => {
-                state.rush = rush.turn(fight,id);
-                if (state.rush.result === 'won') grant(state,gear[boss.item]);
-            });
+            button(label, () => applyRushMove(state, day, id));
         }
     }
     function mount() {
@@ -366,7 +384,7 @@
         window.setInterval(heartbeat,60000);
         window.addEventListener('pagehide',heartbeat);
     }
-    window.EndlessOperations=Object.freeze({record,bonus,eventBriefing,open:openTab,read:()=>load(),transactMeta});
+    window.EndlessOperations=Object.freeze({record,bonus,eventBriefing,raidMove,open:openTab,read:()=>load(),transactMeta});
     if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mount,{once:true});
     else mount();
 })();
