@@ -92,13 +92,13 @@ body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"] .battle-rew
     min-height: 44px;
 }
 
-body:not([data-game-mode="story"]) #main-body #battle-moment[data-sector-clear="true"] {
+body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"][data-sector-clear="true"] {
     top: 64px;
     bottom: auto;
     width: min(350px, 44vw);
     pointer-events: none;
 }
-body:not([data-game-mode="story"]) #main-body #battle-moment[data-sector-clear="true"] .battle-frame {
+body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"][data-sector-clear="true"] .battle-frame {
     display: grid;
     justify-items: center;
     gap: 3px;
@@ -107,11 +107,11 @@ body:not([data-game-mode="story"]) #main-body #battle-moment[data-sector-clear="
     border-left-color: #e8b66b !important;
     background: linear-gradient(110deg, #132734f7, #253130f7) !important;
 }
-body:not([data-game-mode="story"]) #main-body #battle-moment[data-sector-clear="true"] :is(.battle-kicker, .battle-subtitle) {
+body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"][data-sector-clear="true"] :is(.battle-kicker, .battle-subtitle) {
     display: block;
     font-size: 12px;
 }
-body:not([data-game-mode="story"]) #main-body #battle-moment[data-sector-clear="true"] .battle-title {
+body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"][data-sector-clear="true"] .battle-title {
     color: #ffe1a9;
     font-size: clamp(15px, 2.4vw, 23px);
 }

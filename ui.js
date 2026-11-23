@@ -262,7 +262,7 @@ function showBattleMoment(kind, data = {}) {
         const wave = Math.max(1, Number(data.wave) || 1);
         if (battleIntroWaveShown === wave) return;
         const moment = document.getElementById('battle-moment');
-        if (moment?.classList.contains('is-visible') && moment.dataset.sectorClear === 'true') {
+        if (moment?.classList.contains('is-visible') && moment.dataset.sectorClear === 'true' && !GameModeRuntime.isStoryActive()) {
             battleIntroWaveShown = wave;
             return;
         }
@@ -288,9 +288,14 @@ function showBattleMoment(kind, data = {}) {
     if (kind === 'clear') {
         const root = document.getElementById('battle-moment');
         clearTimeout(battleMomentClearTimer);
+        if (data.sector) {
+            clearTimeout(battleMomentBossTimer);
+            renderBattleMoment('clear', data);
+            return;
+        }
         // Preserve the boss takedown beat before showing the wave-clear reward.
         if (root && root.classList.contains('is-visible') && root.dataset.kind === 'bossKill') {
-            battleMomentClearTimer = setTimeout(() => renderBattleMoment('clear', data), data.sector ? 1150 : 1750);
+            battleMomentClearTimer = setTimeout(() => renderBattleMoment('clear', data), 1750);
         } else {
             renderBattleMoment('clear', data);
         }

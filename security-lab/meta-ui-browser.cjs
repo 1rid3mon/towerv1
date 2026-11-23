@@ -93,9 +93,9 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
   completeWave();
   const blockedByBoss=game.wave===10;
   killEnemy(enemies.find(enemy=>enemy.type==='boss'));
-  return {blockedByBoss,wave:game.wave};
+  return {blockedByBoss,wave:game.wave,sectorClear:document.getElementById('battle-moment').dataset.sectorClear};
  });
- assert.deepEqual(sector,{blockedByBoss:true,wave:11});
+ assert.deepEqual(sector,{blockedByBoss:true,wave:11,sectorClear:'true'});
  const sectorMoment=page.locator('#battle-moment.is-visible[data-sector-clear="true"]');
  await sectorMoment.waitFor();
  assert.match(await sectorMoment.innerText(),/SEKTÖR 1 GEÇİLDİ/);
