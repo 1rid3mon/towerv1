@@ -89,3 +89,40 @@ test('a loaded sector finale spawns its boss once and cannot advance until the b
  run('killEnemy(enemies.find(e=>e.type==="boss"))');
  assert.equal(run('game.wave'),11);
 });
+
+test('boss pressure starts after sector 20 and scales the real finale boss', () => {
+ const {run,sandbox}=setup();
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'../endless-sectors.js'),'utf8'),sandbox);
+ run('GameModeRuntime.leaveStory();game.wave=210;');
+ assert.equal(run('EndlessSectors.bossPressure(200)'), null);
+ assert.equal(run('EndlessSectors.bossPressure(209)'), null);
+ assert.ok(run('EndlessSectors.bossPressure(210).hp > EndlessSectors.bossPressure(205).hp'));
+ assert.ok(run('EndlessSectors.bossPressure(300).hp > EndlessSectors.bossPressure(210).hp'));
+ assert.equal(run('EndlessSectors.bossPressure(2000).hp'), 3.3);
+ const plain=run('const sectors=window.EndlessSectors;window.EndlessSectors={describe:sectors.describe};spawnEnemy(true);enemies.pop().hp');
+ const harder=run('window.EndlessSectors=sectors;spawnEnemy(true);enemies.pop().hp');
+ assert.ok(Math.abs(harder/plain-1.65)<1e-10);
+});
+test('first late boss loss falls back one wave, funds upgrades through combat and respawns the same boss', () => {
+ const {run,sandbox}=setup();
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'../endless-sectors.js'),'utf8'),sandbox);
+ run('GameModeRuntime.leaveStory();game.wave=210;game.highestWave=210;isPaused=false;ensureSectorBoss();');
+ const boss=run('enemies.find(enemy=>enemy.type==="boss").subType');
+ const gold=run('game.gold');
+ const crystals=run('game.crystals');
+ run('tower.hp=1;tower.shield=0;damageTower(100,null)');
+ assert.equal(run('isDefeated'),true);
+ run('recoverFromDefeat()');
+ assert.equal(run('game.wave'),209);
+ assert.equal(run('game.highestWave'),210);
+ assert.equal(run('isBossPreparationWave()'),true);
+ assert.equal(run('game.gold'),gold);
+ assert.equal(run('game.crystals'),crystals);
+ run('spawnEnemy(false);killEnemy(enemies[0])');
+ assert.ok(run('game.gold')>gold);
+ run('retrySectorBoss()');
+ assert.equal(run('game.wave'),209);
+ run('game.waveKills=game.waveTargetKills;completeWave()');
+ assert.equal(run('game.wave'),210);
+ assert.equal(run('enemies.find(enemy=>enemy.type==="boss").subType'),boss);
+});

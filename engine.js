@@ -356,6 +356,12 @@ function spawnEnemy(isBoss = false) {
             kbResist = 0.25;
         }
 
+        const pressure = endlessBossPressure(w);
+        if (pressure) {
+            hp *= pressure.hp;
+            dmg *= pressure.damage;
+        }
+
         if (typeof showToast === 'function') {
             showToast(`⚠️ BOSS GELDİ: ${name}!`);
         }
@@ -523,7 +529,7 @@ function updateGame(dt) {
 
     if (game.holdWave) {
         game.holdWaveTimer += simDt;
-        if (game.holdWaveTimer >= 60) {
+        if (game.holdWaveTimer >= 60 && !isBossPreparationWave()) {
             game.holdWave = false; game.holdWaveTimer = 0;
             updateHoldWaveButton(); showToast('Farm süresi doldu! Otomatik İlerleme modu aktif.');
         }
@@ -1219,12 +1225,40 @@ function completeWave() {
     updatePrestigeUI(); refreshUpgradeButtonsState(); saveGame(true);
 }
 
+function endlessBossPressure(wave) {
+    if (GameModeRuntime.isStoryActive()) return null;
+    return window.EndlessSectors?.bossPressure?.(wave);
+}
+
+function isBossPreparationWave() {
+    return game.holdWave && Boolean(endlessBossPressure(game.wave + 1));
+}
+
+function retrySectorBoss() {
+    if (!isBossPreparationWave() || isDefeated) return;
+    game.holdWave = false;
+    game.holdWaveTimer = 0;
+    game.consecutiveHoldWins = 0;
+    updateHoldWaveButton();
+    if (isPaused) togglePause();
+    showToast('Bu dalgayı tamamla. Ardından boss yeniden gelecek.');
+    saveGame(true);
+}
+
 function triggerTowerDefeat() {
+    const bossRetreat = !game.holdWave && Boolean(endlessBossPressure(game.wave));
     game.consecutiveDefeats++;
-    if (game.consecutiveDefeats >= 2) {
+    if (bossRetreat || game.consecutiveDefeats >= 2) {
         isDefeated = true;
         defeatTimer = 2.5;
-        document.getElementById('defeat-overlay').classList.remove('hidden');
+        const overlay = document.getElementById('defeat-overlay');
+        const title = document.getElementById('defeat-title');
+        const detail = document.getElementById('defeat-detail');
+        if (title) title.textContent = bossRetreat ? 'BOSS SAVUNMAYI KIRDI' : 'ÇEKİRDEK AŞIRI YÜKLENDİ!';
+        if (detail) detail.textContent = bossRetreat
+            ? 'Bir dalga geri çekiliyorsun. Altın topla, Atölye’de yükselt ve tekrar dene.'
+            : 'Kule onarılıyor ve güvenli dalgaya çekiliyor...';
+        overlay.classList.remove('hidden');
     } else {
         showToast(`Kule ağır hasar aldı! 2. yenilgide farm moduna geçilecek.`);
         tower.hp = tower.maxHp * 0.5;
@@ -1253,25 +1287,30 @@ function recoverFromDefeat() {
         if (typeof showToast === 'function') showToast(storyLanguage() === 'en' ? 'Core rebooted. The mission continues.' : 'Çekirdek yeniden başlatıldı. Görev devam ediyor.');
         return;
     }
+    const bossRetreat = !game.holdWave && Boolean(endlessBossPressure(game.wave));
     resetSectorBoss();
     isDefeated = false; document.getElementById('defeat-overlay').classList.add('hidden'); enemies = []; projectiles = [];
     tower.freezeTimer = 0; tower.freezeImmunityTimer = 0; tower.frostSlowTimer = 0; waveFrostSpawns = 0;
 
     const salvageGold = Math.floor(getWaveBaseGold(game.wave) * getGoldMultiplier() * 8);
     const salvageCrystal = Math.max(1, Math.floor(game.wave / 4));
-    game.gold += salvageGold;
-    creditGameplayCrystals(salvageCrystal);
+    if (!bossRetreat) {
+        game.gold += salvageGold;
+        creditGameplayCrystals(salvageCrystal);
+    }
 
     if (game.wave > 1) { 
         game.wave--; 
         game.holdWave = true; game.holdWaveTimer = 0; game.consecutiveHoldWins = 0; 
         updateHoldWaveButton(); 
-        showToast(`💥 Kule Yıkıldı! Enkazdan ${formatNumber(salvageGold)} 🪙 ve ${salvageCrystal} 💎 kurtardın. Güvenli dalgaya çekildin.`); 
+        if (bossRetreat) showToast('Boss hazırlığı: Bu dalgada altın topla ve Atölye’den yükselt.');
+        else showToast(`💥 Kule Yıkıldı! Enkazdan ${formatNumber(salvageGold)} 🪙 ve ${salvageCrystal} 💎 kurtardın. Güvenli dalgaya çekildin.`);
     } else {
         showToast(`💥 Kule Yıkıldı! Enkazdan ${formatNumber(salvageGold)} 🪙 ve ${salvageCrystal} 💎 kurtardın. Yeniden toparlan!`);
     }
 
     game.consecutiveDefeats = 0; game.waveKills = 0; tower.hp = getTowerMaxHp(); tower.shield = getTowerMaxShield(); updateHUD();
+    if (bossRetreat) saveGame(true);
 }
 
 function toggleHoldWave() { game.holdWave = !game.holdWave; game.holdWaveTimer = 0; game.consecutiveHoldWins = 0; updateHoldWaveButton(); showToast(game.holdWave ? 'Farm Modu Açıldı (4 dalga sonra oto döner)' : 'Otomatik İlerleme Açıldı'); }

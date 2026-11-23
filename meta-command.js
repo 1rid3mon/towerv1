@@ -147,6 +147,10 @@ function mount(){
  const tasks = btn('', () => R().route('tasks'));
  tasks.innerHTML = icon('tasks') + '<span>Görevler</span>';
  shortcuts.append(raid, tasks);
+ const retry = btn('Boss’a dön', retrySectorBoss);
+ retry.id = 'command-boss-retry';
+ retry.hidden = true;
+ shortcuts.append(retry);
  skills = document.createElement('div');
  skills.id = 'meta-command-skills';
  skills.setAttribute('role', 'group');
@@ -211,7 +215,11 @@ function refresh(force=false){
  const bossState = sectorBossState(descriptor, bossActive);
  const bossText = {active:'Sahada',cleared:'Yenildi',ready:'Geliyor',waiting:descriptor.remaining + ' dalga'};
  bossStatus.dataset.state = bossState;
- bossStatus.querySelector('span').textContent = 'Sektör Boss’u · ' + bossText[bossState];
+ const preparing = isBossPreparationWave();
+ bossStatus.querySelector('span').textContent = preparing
+  ? 'Hazırlık · Altın topla ve yükselt'
+  : 'Sektör Boss’u · ' + bossText[bossState];
+ document.getElementById('command-boss-retry').hidden = !preparing;
  const raid = document.querySelector('.command-raid span');
  const result = window.EndlessOperations.read().rush;
  raid.textContent = result?.day === MetaModel.localDay(Date.now()) && result.result ? 'Akın Sonucu' : 'Günlük Akına Gir';

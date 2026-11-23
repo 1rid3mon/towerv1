@@ -111,6 +111,19 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  });
  assert.equal(await page.evaluate(()=>game.wave),11,'normal save validation keeps the completed sector');
  await page.screenshot({path:path.join(evidence,width+'x'+height+'-sector-clear.png')});
+ // Verify the late-boss retreat and return through the live HUD.
+ await page.evaluate(()=>{
+  game.wave=210;game.highestWave=210;game.consecutiveDefeats=0;
+  game.holdWave=false;isPaused=false;enemies.length=0;resetSectorBoss();
+  window._syncShadow?.();ensureSectorBoss();triggerTowerDefeat();recoverFromDefeat();
+  MetaCommand.refresh(true);
+ });
+ assert.equal(await page.evaluate(()=>game.wave),209);
+ await page.locator('#command-boss-retry').tap();
+ assert.equal(await page.evaluate(()=>game.wave),209,'retry does not skip the preparation wave');
+ await page.evaluate(()=>{game.waveKills=game.waveTargetKills;completeWave()});
+ assert.equal(await page.evaluate(()=>game.wave),210);
+ assert.equal(await page.evaluate(()=>enemies.filter(enemy=>enemy.type==='boss').length),1);
  // Art acceptance: reproduce the user's late-game foundry theme with long numbers.
  await page.evaluate(()=>{isPaused=true;game.wave=452;game.highestWave=452;game.gold=1.83e45;game.settings.activeTheme='cengiz';enemies.length=0;for(const [key,def]of Object.entries(UPGRADE_DEFS))game.upgrades[key]=Math.min(def.maxLevel,400);tower.maxHp=getTowerMaxHp();tower.hp=tower.maxHp;window._syncShadow?.();EndlessOperations.transactMeta('qa:art','disposable visual fixture',d=>{d.offline.cleared=45;return {ok:true};});MetaCommand.refresh(true);renderGame();});
  await page.waitForTimeout(350);
