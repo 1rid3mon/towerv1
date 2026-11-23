@@ -84,6 +84,7 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  assert.ok(await page.evaluate(before=>game.stats.playTimeSeconds>before,played),'simulation continues behind radio');
  // Defeat the actual sector finale and confirm the next wave opens without input.
  const sector = await page.evaluate(()=>{
+  isPaused=true;
   game.wave=10;
   game.holdWave=false;
   enemies.length=0;
@@ -101,6 +102,10 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  assert.match(await sectorMoment.innerText(),/SEKTÖR 1 GEÇİLDİ/);
  assert.match(await sectorMoment.innerText(),/Kırık Röle/);
  assert.equal(await page.locator('#endless-tactics').count(),0);
+ await page.waitForFunction(()=>{
+  const warning=document.getElementById('boss-cinema-v15');
+  return !warning||Number(getComputedStyle(warning).opacity)<.05;
+ });
  await page.screenshot({path:path.join(evidence,width+'x'+height+'-sector-clear.png')});
  // Art acceptance: reproduce the user's late-game foundry theme with long numbers.
  await page.evaluate(()=>{isPaused=true;game.wave=452;game.highestWave=452;game.gold=1.83e45;game.settings.activeTheme='cengiz';enemies.length=0;for(const [key,def]of Object.entries(UPGRADE_DEFS))game.upgrades[key]=Math.min(def.maxLevel,400);tower.maxHp=getTowerMaxHp();tower.hp=tower.maxHp;window._syncShadow?.();EndlessOperations.transactMeta('qa:art','disposable visual fixture',d=>{d.offline.cleared=45;return {ok:true};});MetaCommand.refresh(true);renderGame();});

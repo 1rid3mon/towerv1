@@ -290,6 +290,7 @@ function showBattleMoment(kind, data = {}) {
         clearTimeout(battleMomentClearTimer);
         if (data.sector) {
             clearTimeout(battleMomentBossTimer);
+            window.TowerBossCinemaV15?.dismiss();
             renderBattleMoment('clear', data);
             return;
         }

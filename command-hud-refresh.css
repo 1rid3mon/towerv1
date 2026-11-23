@@ -93,7 +93,7 @@ body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"] .battle-rew
 }
 
 body:not([data-game-mode="story"]) #battle-moment[data-kind="clear"][data-sector-clear="true"] {
-    top: 64px;
+    top: 112px;
     bottom: auto;
     width: min(350px, 44vw);
     pointer-events: none;
