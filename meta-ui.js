@@ -128,8 +128,33 @@ function renderEvent(){
  body.classList.add('meta-event');body.append(art);
  const briefing=card(body,event.boss,t('bossNote'));briefing.classList.add('meta-boss-briefing');
  const reward=el('div',null,'meta-boss-reward');reward.append(itemArt('part','#e6b578'),el('p',t('eventReward')+' · '+event.reward));briefing.append(reward);
- if(event.result)briefing.append(el('p',t(event.result==='won'?'eventWon':'eventLost')));
- footerAction(t(event.result?'eventSummary':'bossAction'),()=>R().startEvent(event.day),true);
+ if (event.result) {
+  briefing.append(el('p', t(event.result==='won'?'eventWon':'eventLost')));
+  footerAction('Savaşa dön', close, true);
+ } else if (event.fight) {
+  const {hp, step, feedback} = event.fight;
+  const cue = el('div', null, 'meta-raid-cue');
+  cue.dataset.cue = event.cue;
+  cue.setAttribute('role', 'status');
+  cue.append(
+   el('small', 'Gövde ' + hp + '/2 · Hamle ' + (step + 1) + '/' + event.turns),
+   el('strong', event.cue === 'guard' ? 'Boss saldırıya hazırlanıyor' : 'Boss’un zırhı açık'),
+   el('span', event.cue === 'guard' ? 'Hasarı engellemek için kalkan kur.' : 'Açıklıktan yararlanmak için ateş et.')
+  );
+  briefing.append(cue);
+  if (feedback) briefing.append(el('p', feedback));
+  for (const [move, label] of [['guard','Kalkan kur'],['strike','Ateş et']]) {
+   const action = button(label, () => {
+    const result = window.EndlessOperations.raidMove(event.day, move);
+    refresh();
+    if (!result.ok) notify(result.message);
+   }, 'meta-raid-move');
+   action.dataset.move = move;
+   footer.append(action);
+  }
+ } else {
+  footerAction('Akına gir', () => R().startEvent(event.day), true);
+ }
 }
 function renderMenu(){body.classList.add('meta-cards');
 const meta=state();

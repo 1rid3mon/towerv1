@@ -274,3 +274,22 @@ html[data-meta-reduced=true] .meta-radio-card{animation:none!important}
   object-fit: contain;
   filter: drop-shadow(0 3px 3px #0006);
 }
+
+#meta-center .meta-raid-cue {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-left: 3px solid #eea875;
+  border-radius: 6px;
+  background: #4a2d2d;
+  color: #ffe5d0;
+}
+#meta-center .meta-raid-cue[data-cue="strike"] {
+  border-color: #8cdcb9;
+  background: #1d3c39;
+  color: #d7ffec;
+}
+#meta-center .meta-raid-cue small { font-size: 12px; }
+#meta-center .meta-footer .meta-raid-move { border-color: #6e8bac; background: #253c54; }
+#meta-center .meta-footer .meta-raid-move[data-move="strike"] { border-color: #b87a58; background: #52382f; }

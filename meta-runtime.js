@@ -74,10 +74,10 @@ function route(view){
  else if(view==='main')leave(()=>returnToMainMenu());
  else window.MetaUI?.open(view);
 }
-function startEvent(day){
- const event=window.EndlessOperations.eventBriefing();
- if(event.day!==day){window.MetaUI?.notify('Etkinlik sona erdi.');window.MetaUI?.refresh();return;}
- route('boss');
+function startEvent(day) {
+ const result = window.EndlessOperations.raidMove(day, 'start');
+ window.MetaUI?.open('event');
+ if (!result.ok) window.MetaUI?.notify(result.message);
 }
 function wave(waveNumber){
  if(!allowed())return;prepare();

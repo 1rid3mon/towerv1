@@ -121,3 +121,82 @@ html[data-meta-reduced=true] #meta-command-upgrades{animation:none!important}
 #meta-command-upgrades .workshop-purchase button[data-affordable="true"]:not(:disabled) .command-upgrade-price {
   color: #fff4df;
 }
+
+#meta-command-bar > .command-main-menu {
+  width: auto;
+  display: flex;
+  gap: 5px;
+  padding-inline: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+#meta-command-bar > .command-main-menu svg { width: 19px; height: 19px; }
+body.meta-command-active #meta-command-shortcuts {
+  display: grid;
+  grid-template-columns: max-content max-content;
+}
+#meta-command-shortcuts #signal-sector-boss {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  height: auto;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+#signal-sector-boss svg { width: 16px; height: 16px; }
+#meta-command-shortcuts .command-raid {
+  color: #ffe0ae;
+  border-color: #b37b4a;
+  background: linear-gradient(130deg, #523528, #282330);
+}
+#meta-command-shortcuts .command-raid svg { color: #f3b66d; }
+
+body.meta-command-active #meta-command-skills {
+  overflow-x: auto;
+  max-width: calc(100vw - 105px);
+}
+#meta-command-skills button[hidden],
+#meta-command-upgrades [hidden] { display: none !important; }
+#meta-command-skills .command-protocols,
+#meta-command-skills [data-skill-slot],
+#meta-command-skills button:last-child {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 44px;
+  width: auto;
+  padding-inline: 8px;
+  white-space: nowrap;
+}
+#meta-command-skills .command-protocols small { display: block; color: #91b4c3; font-size: 12px; }
+#meta-command-skills [data-skill-slot] svg { width: 27px; height: 27px; stroke: none; }
+#meta-command-upgrades .workshop-categories { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+#meta-command-upgrades [data-workshop-category="prestige"][aria-pressed="true"] {
+  color: #f0d3ff;
+  background: #6739aa40;
+  box-shadow: inset 0 -2px #bc90f2;
+}
+.workshop-prestige { overflow-y: auto; overscroll-behavior: contain; padding: 8px; }
+.workshop-prestige-card {
+  margin-bottom: 8px;
+  padding: 12px;
+  border: 1px solid #765ca8;
+  border-radius: 10px;
+  background: linear-gradient(140deg, #30264d, #101c30);
+}
+.workshop-prestige-card h3 { margin: 0 0 6px; font-size: 15px; color: #efe1ff; }
+.workshop-prestige-card p { margin: 0 0 8px; color: #c4c3da; font-size: 13px; }
+#meta-command-upgrades .workshop-prestige-card button:not(:disabled) { background: #69469d; border-color: #ab85e0; }
+#meta-command-upgrades .workshop-prestige-card button:disabled { opacity: .55; }
+body.command-workshop-open #confirm-modal:not(.hidden) { z-index: 80; }
+
+@media (min-width: 1050px) {
+  body.meta-command-active #meta-command-skills { max-width: calc(100vw - 475px); }
+}
+@media (max-width: 660px) {
+  .command-main-menu span { display: none; }
+}

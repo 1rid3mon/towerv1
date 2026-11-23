@@ -1,6 +1,6 @@
 /* Landscape battle controls reuse the existing upgrade/combat functions. */
 (function(){'use strict';
-let bar,rail,skills,shelf,drawer,opened=false,holdTimer=0,heldAt=0,heldKey=null,lastStamp='',lastSeasonTier=null,workshopCategory='attack',workshopOpener=null;
+let bar,rail,skills,shelf,drawer,prestigePane,opened=false,holdTimer=0,heldAt=0,heldKey=null,lastStamp='',lastSeasonTier=null,workshopCategory='attack',workshopOpener=null;
 const workshopRows=new Map();
 const R=()=>window.MetaRuntime, fmt=v=>formatNumber(v), message=m=>window.MetaUI?.notify(m), t=k=>window.MetaStrings[k]||k;
 const iconPaths={
@@ -9,6 +9,7 @@ const iconPaths={
  event:'M4 18 9 13l4 2 7-10 M14 5h6v6 M4 4v4 M2 6h4',
  season:'M8 3h8l4 6-3 10-5 3-5-3L4 9z M8 3l4 8 4-8 M4 9l8 2 8-2 M12 11v11',
  supply:'M4 8h16v12H4z M7 8V4h10v4 M4 12h16 M10 12v3h4v-3',
+ home:'M3 11 12 3l9 8 M5 10v10h14V10 M9 20v-6h6v6',
  settings:'M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
  gold:'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18 M12 7l4 5-4 5-4-5z',
  credit:'M4 7h16v10H4z M7 10h10 M7 14h4 M16 14h1',
@@ -58,7 +59,49 @@ function upgradeButton(key){
  for(const event of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(event,stop);
  return b;
 }
-function chooseCategory(category){workshopCategory=category;stop();for(const row of workshopRows.values())row.hidden=row.dataset.category!==category;drawer.querySelectorAll('[data-workshop-category]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.workshopCategory===category)));}
+function refreshPrestige() {
+ const pending = calculatePendingSouls();
+ const summary = document.createElement('article');
+ summary.className = 'workshop-prestige-card';
+ const title = document.createElement('h3');
+ title.textContent = fmt(game.souls) + ' Ruh Taşı';
+ const description = document.createElement('p');
+ description.textContent = pending > 0
+  ? '+' + fmt(pending) + ' Ruh Taşı kazan. Dalga ' + getStartWaveLevel() + '’e dönersin; savaş altını ve geçici kule yükseltmeleri sıfırlanır.'
+  : 'Prestij için Dalga ' + getMinPrestigeWave() + '’e ulaş.';
+ const reset = btn('Prestij yap', openPrestigeConfirm);
+ reset.disabled = pending <= 0;
+ summary.append(title, description, reset);
+ const cards = [summary];
+ for (const [key, def] of Object.entries(PRESTIGE_DEFS)) {
+  const level = game.prestigeUpgrades[key] || 0;
+  const cost = Math.floor(def.baseCost * Math.pow(def.costScale, level));
+  const card = document.createElement('article');
+  card.className = 'workshop-prestige-card';
+  const name = document.createElement('h3');
+  name.textContent = def.name + ' · Sv. ' + level;
+  const detail = document.createElement('p');
+  detail.textContent = def.desc + ' · Şu an: ' + def.getEffectText(level);
+  const purchase = btn(level >= def.maxLevel ? 'Son seviye' : fmt(cost) + ' Ruh Taşı', () => {
+   buyPrestigeUpgrade(key);
+   refresh(true);
+  });
+  purchase.disabled = level >= def.maxLevel || !Number.isFinite(cost) || game.souls < cost;
+  card.append(name, detail, purchase);
+  cards.push(card);
+ }
+ prestigePane.replaceChildren(...cards);
+}
+function chooseCategory(category) {
+ workshopCategory = category;
+ stop();
+ prestigePane.hidden = category !== 'prestige';
+ drawer.querySelector('.meta-upgrade-rows').hidden = category === 'prestige';
+ drawer.querySelector('.workshop-multipliers').hidden = category === 'prestige';
+ for (const row of workshopRows.values()) row.hidden = row.dataset.category !== category;
+ drawer.querySelectorAll('[data-workshop-category]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.workshopCategory === category)));
+ if (category === 'prestige') refreshPrestige();
+}
 function openUpgrades(){
  if(!drawer)return;opened=!opened;drawer.hidden=!opened;stop();
  document.body.classList.toggle('command-workshop-open',opened);
@@ -84,17 +127,47 @@ function mount(){
  const speed=btn('1×',()=>{toggleGameSpeed();refresh(true);});speed.setAttribute('aria-label',t('speed'));
  const pause=btn('Ⅱ',()=>{togglePause();refresh(true);});
  const settings=btn('',()=>openSettingsModal());settings.innerHTML=icon('settings');settings.setAttribute('aria-label',t('settings'));
- bar.append(status,speed,pause,settings);
+ const home = btn('', () => R().route('main'));
+ home.className = 'command-main-menu';
+ home.innerHTML = icon('home') + '<span>Ana Menü</span>';
+ home.setAttribute('aria-label', 'Ana Menü');
+ bar.append(status,speed,pause,settings,home);
  const progress=document.createElement('div');progress.id='signal-season-progress';progress.setAttribute('role','progressbar');progress.setAttribute('aria-label',t('season'));progress.setAttribute('aria-valuemin','0');progress.setAttribute('aria-valuemax','100');bar.append(progress);
  rail=document.createElement('nav');rail.id='meta-command-rail';rail.setAttribute('aria-label','Komuta şeridi');
- for(const [name,view]of[['Arşiv','archive'],['İstasyon','station'],['Sefer','event'],['Sezon','season'],['Depo','supply']]){const b=btn(name,()=>R().route(view));b.dataset.view=view;b.innerHTML='<span class="command-nav-icon">'+icon(view)+'</span><span>'+name+'</span>';b.addEventListener('click',()=>{rail.querySelectorAll('[data-view]').forEach(other=>other.setAttribute('aria-pressed',String(other===b)));});rail.append(b);}
+ for(const [name,view]of[['Arşiv','archive'],['İstasyon','station'],['Sezon','season'],['Depo','supply']]){const b=btn(name,()=>R().route(view));b.dataset.view=view;b.innerHTML='<span class="command-nav-icon">'+icon(view)+'</span><span>'+name+'</span>';b.addEventListener('click',()=>{rail.querySelectorAll('[data-view]').forEach(other=>other.setAttribute('aria-pressed',String(other===b)));});rail.append(b);}
  const shortcuts = document.createElement('div');
  shortcuts.id = 'meta-command-shortcuts';
- const sectorBoss=btn('◉',()=>{const d=EndlessSectors.describe(game.wave),state=sectorBossState(d,enemies.some(e=>e.type==='boss'&&e.hp>0));if(state==='ready'&&!isPaused&&!isDefeated){ensureSectorBoss();refresh(true);}else message(state==='cleared'?t('bossCleared'):state==='active'?t('bossActive'):t('bossIn')+' '+d.remaining+' '+t('stages'));});sectorBoss.id='signal-sector-boss';sectorBoss.innerHTML=icon('boss')+'<span class="command-boss-count"></span>';shortcuts.append(sectorBoss);
- for(const [label,view,symbol]of[['Boss Akını','boss','boss'],['Görevler','tasks','tasks']]){const b=btn('',()=>R().route(view));b.innerHTML=icon(symbol)+'<span>'+label+'</span>';shortcuts.append(b);}
- skills=document.createElement('div');skills.id='meta-command-skills';
- for(let i=0;i<6;i++){const b=btn(String(i+1),()=>{const r=R().useSkill(i);message(r.message);});b.setAttribute('aria-label','Protokol yuvası '+(i+1));skills.append(b);}
- const auto=btn('',()=>{const r=R().action('autoSkills');message(r.message);refresh(true);});auto.innerHTML=icon('auto')+'<span>'+t('auto')+'</span>';skills.append(auto);
+ const sectorBoss = document.createElement('div');
+ sectorBoss.id = 'signal-sector-boss';
+ sectorBoss.innerHTML = icon('boss') + '<span></span>';
+ shortcuts.append(sectorBoss);
+ const raid = btn('', () => R().startEvent(R().eventBriefing().day));
+ raid.className = 'command-raid';
+ raid.innerHTML = icon('boss') + '<span>Günlük Akına Gir</span>';
+ const tasks = btn('', () => R().route('tasks'));
+ tasks.innerHTML = icon('tasks') + '<span>Görevler</span>';
+ shortcuts.append(raid, tasks);
+ skills = document.createElement('div');
+ skills.id = 'meta-command-skills';
+ skills.setAttribute('role', 'group');
+ skills.setAttribute('aria-label', 'Savaş protokolleri');
+ const configure = btn('', () => R().route('skills'));
+ configure.className = 'command-protocols';
+ configure.innerHTML = icon('settings') + '<span>Protokoller <small></small></span>';
+ skills.append(configure);
+ for (let i = 0; i < 6; i++) {
+  const use = btn('', () => message(R().useSkill(i).message));
+  use.dataset.skillSlot = i;
+  use.hidden = true;
+  skills.append(use);
+ }
+ const auto = btn('', () => {
+  const result = R().action('autoSkills');
+  message(result.message);
+  refresh(true);
+ });
+ auto.innerHTML = icon('auto') + '<span>Otomatik</span>';
+ skills.append(auto);
  shelf=document.createElement('div');shelf.id='meta-command-shelf';
  const allUpgrades=btn('',openUpgrades);allUpgrades.className='command-all-upgrades';allUpgrades.innerHTML=icon('upgrade')+'<span>'+t('upgrade')+'</span>';allUpgrades.setAttribute('aria-label',t('workshop'));shelf.append(upgradeButton('damage'),upgradeButton('maxHp'),allUpgrades);
  drawer=document.createElement('section');drawer.id='meta-command-upgrades';drawer.hidden=true;drawer.setAttribute('aria-label','Hızlı yükseltmeler');
@@ -103,7 +176,7 @@ function mount(){
  const multipliers=document.createElement('div');multipliers.className='workshop-multipliers';for(const value of [1,10,'MAX']){const b=btn(value==='MAX'?'MAKS':'×'+value,()=>{setBuyMultiplier(value);refresh(true);});b.dataset.workshopMultiplier=String(value);multipliers.append(b);}
  const close=btn('',openUpgrades);close.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg>';close.className='workshop-close';close.setAttribute('aria-label',t('close'));head.append(heading,multipliers,close);
  const categories=document.createElement('nav');categories.className='workshop-categories';categories.setAttribute('aria-label',t('upgradeCategories'));
- for(const category of ['attack','defense','economy']){const b=btn(t(category),()=>chooseCategory(category));b.dataset.workshopCategory=category;categories.append(b);}
+ for(const category of ['attack','defense','economy','prestige']){const b=btn(category==='prestige'?'Prestij':t(category),()=>chooseCategory(category));b.dataset.workshopCategory=category;categories.append(b);}
  const rows=document.createElement('div');rows.className='meta-upgrade-rows';
  for(const [key,def]of Object.entries(UPGRADE_DEFS)){
   const row=document.createElement('article');row.className='meta-upgrade-row workshop-card';row.dataset.category=def.category;row.dataset.upgradeRow=key;
@@ -114,7 +187,10 @@ function mount(){
   const action=document.createElement('div');action.className='workshop-purchase';const gain=document.createElement('span');gain.className='workshop-gain';action.append(upgradeButton(key),gain);
   row.append(art,copy,action);rows.append(row);workshopRows.set(key,row);
  }
- drawer.append(head,categories,rows);document.body.append(bar,rail,shortcuts,skills,shelf,drawer);chooseCategory(workshopCategory);
+ prestigePane = document.createElement('section');
+ prestigePane.className = 'workshop-prestige';
+ prestigePane.setAttribute('aria-label', 'Prestij');
+ drawer.append(head,categories,rows,prestigePane);document.body.append(bar,rail,shortcuts,skills,shelf,drawer);chooseCategory(workshopCategory);
  window.addEventListener('keydown',e=>{if(opened&&!e.defaultPrevented&&e.key==='Escape'&&!document.querySelector('dialog[open]')&&!document.body.classList.contains('signal-settings-open')){e.preventDefault();openUpgrades();}});
  window.addEventListener('blur',stop);document.addEventListener('visibilitychange',stop);
  document.addEventListener('click',e=>{if(e.target.closest('button')?.closest('#meta-center,#meta-overlay,#meta-command-rail,#meta-command-bar,#meta-command-skills,.signal-settings')){window.Fx?.haptic?.(8);window.TowerCommandSounds?.play('tap');}},{passive:true});
@@ -133,7 +209,15 @@ function refresh(force=false){
  const descriptor=EndlessSectors.describe(wave), bossActive=typeof enemies!=='undefined'&&enemies.some(e=>e.type==='boss'&&e.hp>0);
  const sectorLabel=document.getElementById('signal-sector-label');sectorLabel.textContent=sector+' · '+step+'/10';sectorLabel.title=descriptor.name+' · '+(bossActive?t('bossActive'):descriptor.bossName);
  const dots=document.querySelectorAll('.signal-stage-dots i');dots.forEach((dot,i)=>{dot.dataset.state=i+1<step?'done':i+1===step?'current':'next';dot.dataset.boss=String(i===4||i===9);});
- document.querySelector('.signal-sector').dataset.boss=String(bossActive);const bossButton=document.getElementById('signal-sector-boss'),bossState=sectorBossState(descriptor,bossActive);const bossCount=bossButton.querySelector('.command-boss-count');bossCount.textContent=bossState==='active'?'!':bossState==='cleared'?'✓':descriptor.remaining;bossButton.dataset.state=bossState;bossButton.dataset.ready=String(bossState==='ready');bossButton.setAttribute('aria-label',t({active:'bossActive',cleared:'bossCleared',ready:'callBoss'}[bossState]||'bossIn')+(bossState==='waiting'?' '+descriptor.remaining+' '+t('stages'):''));bossButton.title=bossButton.getAttribute('aria-label');
+ document.querySelector('.signal-sector').dataset.boss = String(bossActive);
+ const bossStatus = document.getElementById('signal-sector-boss');
+ const bossState = sectorBossState(descriptor, bossActive);
+ const bossText = {active:'Sahada',cleared:'Yenildi',ready:'Geliyor',waiting:descriptor.remaining + ' dalga'};
+ bossStatus.dataset.state = bossState;
+ bossStatus.querySelector('span').textContent = 'Sektör Boss’u · ' + bossText[bossState];
+ const raid = document.querySelector('.command-raid span');
+ const result = window.EndlessOperations.read().rush;
+ raid.textContent = result?.day === MetaModel.localDay(Date.now()) && result.result ? 'Akın Sonucu' : 'Günlük Akına Gir';
  const hp=Math.max(0,Math.min(1,tower.hp/Math.max(1,tower.maxHp)));document.body.dataset.healthLow=String(hp<.25&&!isDefeated);document.getElementById('signal-health-label').textContent=(hp<.25?'! ':'')+fmt(tower.hp);document.getElementById('signal-health-fill').style.width=hp*100+'%';document.querySelector('.signal-health').dataset.low=String(hp<.25);
  for(const [key,value,label]of[['gold',window.Fx?.displayValue?.('gold',game.gold)??game.gold,t('battleGold')],['credit',m.currencies.kredi,t('kredi')],['crystal',m.currencies.kristal,t('kristal')],['power',getTowerDamage(),t('power')]]){const el=document.getElementById('signal-'+key),next=fmt(value);if(el.textContent!==next){el.textContent=next;if(!window.Fx?.settings().reduced)el.animate?.([{transform:'scale(1.12)'},{transform:'scale(1)'}],{duration:120});}el.parentElement.setAttribute('aria-label',label+' '+next);el.parentElement.title=label;}
  const xp=Math.min(100,m.season.xp/(MetaConfig.season.tiers*MetaConfig.season.xpPerTier)*100);const progress=document.getElementById('signal-season-progress');progress.style.setProperty('--season-progress',xp+'%');progress.setAttribute('aria-valuenow',String(Math.round(xp)));const seasonTier=Math.floor(m.season.xp/MetaConfig.season.xpPerTier);if(lastSeasonTier!==null&&seasonTier>lastSeasonTier){window.Fx?.haptic?.(20);window.TowerCommandSounds?.play('discover');if(!window.Fx?.settings().reduced)progress.animate?.([{filter:'brightness(2)'},{filter:'brightness(1)'}],{duration:400});}lastSeasonTier=seasonTier;
@@ -148,12 +232,35 @@ function refresh(force=false){
   for(const [key,info]of offers)refreshWorkshopRow(key,info);
   drawer.querySelectorAll('[data-workshop-multiplier]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.workshopMultiplier===String(buyMultiplier))));
  }
- m.archive.skillSlots.forEach((id,i)=>{const b=skills.children[i],item=MetaConfig.skills.find(x=>x.id===id),left=R().cooldown(i),unlock=MetaConfig.skillUnlockSectors[i],locked=(m.offline.cleared||0)<unlock;
- const symbol=item?({ark:'pulse',slow:'slow',shield:'shield',emp:'emp',overload:'overload',signal:'signal'}[item.id]||'pulse'):locked?'lock':['pulse','slow','shield','emp','overload','signal'][i];
- const detail=item?(left>0?String(Math.ceil(left)):''):locked?'S'+unlock:'';
- const token=symbol+':'+detail+':'+!!item;
- if(b.dataset.surface!==token){b.dataset.surface=token;b.innerHTML='<span class="command-skill-art">'+icon(symbol)+'</span><span class="command-skill-detail"></span>'+(!item&&!locked?'<span class="command-skill-add">'+icon('plus')+'</span>':'');b.querySelector('.command-skill-detail').textContent=detail;}
- b.dataset.state=locked?'locked':item?(left>0?'cooldown':'ready'):'empty';b.title=item?.name||(locked?t('sector')+' '+unlock:t('emptySlot'));b.style.setProperty('--ready',item?((1-left/item.cooldown)*100)+'%':'0%');b.setAttribute('aria-label',item?item.name+' '+(left>0?'Yeniden doluyor':'Hazır'):'Protokol yuvası '+(i+1));});skills.lastElementChild.setAttribute('aria-pressed',String(m.autoSkills));
+ let equipped = 0;
+ m.archive.skillSlots.forEach((id, i) => {
+  const button = skills.querySelector('[data-skill-slot="' + i + '"]');
+  const item = MetaConfig.skills.find(skill => skill.id === id);
+  button.hidden = !item || (m.offline.cleared || 0) < MetaConfig.skillUnlockSectors[i];
+  if (button.hidden) return;
+  equipped++;
+  const left = Math.ceil(R().cooldown(i));
+  const status = left > 0 ? left + ' sn' : 'Hazır';
+  if (button.dataset.surface !== item.id + ':' + status) {
+   button.dataset.surface = item.id + ':' + status;
+   button.innerHTML = (window.StationArt?.markup(item.id) || icon('pulse')) + '<span></span>';
+   button.querySelector('span').textContent = item.name + ' · ' + status;
+   button.setAttribute('aria-label', item.name + ' · ' + status);
+  }
+  button.dataset.state = left > 0 ? 'cooldown' : 'ready';
+  button.style.setProperty('--ready', Math.max(0, 1 - left / item.cooldown) * 100 + '%');
+ });
+ skills.querySelector('.command-protocols small').textContent = equipped ? equipped + ' takılı' : 'Protokol tak';
+ const auto = skills.lastElementChild;
+ auto.hidden = !equipped;
+ auto.setAttribute('aria-pressed', String(m.autoSkills));
+ if (opened && workshopCategory === 'prestige') {
+  const prestigeStamp = JSON.stringify([game.wave, game.souls, game.prestigeUpgrades]);
+  if (prestigePane.dataset.stamp !== prestigeStamp) {
+   prestigePane.dataset.stamp = prestigeStamp;
+   refreshPrestige();
+  }
+ }
  rail.querySelector('[data-view="archive"]').dataset.badge=String(Object.entries(m.archive.equipment).some(([id,v])=>v.level&&(!v.seen||v.copies>=MetaConfig.equipment.find(x=>x.id===id).fuseCopies)));
  rail.querySelector('[data-view="supply"]').dataset.badge=String(m.offline.pending>0||R().pending().length>0);
  rail.querySelector('[data-view="season"]').dataset.badge=String(Math.floor(m.season.xp/MetaConfig.season.xpPerTier)>m.season.claimed);

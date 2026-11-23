@@ -60,7 +60,7 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  await page.goBack();await page.locator('#settings-modal').waitFor({state:'hidden'});
  assert.equal(await page.evaluate(()=>isPaused),true,'already paused remains paused');
  await page.evaluate(()=>{isPaused=false;});
- const hud=await page.evaluate(()=>{const ids=['meta-command-bar','meta-command-skills','meta-command-shelf'];return {field:document.querySelector('#gameCanvas').getBoundingClientRect().height,height:innerHeight,controls:ids.map(id=>{const r=document.getElementById(id).getBoundingClientRect();return {id,left:r.left,right:r.right,top:r.top,bottom:r.bottom};}),small:[...document.querySelectorAll('#meta-command-bar>button,#meta-command-skills>button,#meta-command-shelf>button')].filter(b=>{const r=b.getBoundingClientRect();return r.width<44||r.height<44;}).map(b=>b.getAttribute('aria-label')),skillArt:[...document.querySelectorAll('#meta-command-skills>button')].every(b=>!!b.querySelector('svg'))};});
+ const hud=await page.evaluate(()=>{const ids=['meta-command-bar','meta-command-skills','meta-command-shelf'];return {field:document.querySelector('#gameCanvas').getBoundingClientRect().height,height:innerHeight,controls:ids.map(id=>{const r=document.getElementById(id).getBoundingClientRect();return {id,left:r.left,right:r.right,top:r.top,bottom:r.bottom};}),small:[...document.querySelectorAll('#meta-command-bar>button,#meta-command-skills>button:not([hidden]),#meta-command-shelf>button')].filter(b=>{const r=b.getBoundingClientRect();return r.width<44||r.height<44;}).map(b=>b.getAttribute('aria-label')),skillArt:[...document.querySelectorAll('#meta-command-skills>button:not([hidden])')].every(b=>!!b.querySelector('svg'))};});
  assert.deepEqual(hud.small,[],'command touch targets');assert.equal(hud.skillArt,true,'each skill slot has independent SVG artwork');
  assert.ok(hud.controls.every(r=>r.left>=0&&r.right<=width+1&&r.top>=0&&r.bottom<=height+1),'command surfaces stay inside viewport '+JSON.stringify(hud.controls));
  await page.screenshot({path:path.join(evidence,width+'x'+height+'-battle.png')});
@@ -82,6 +82,9 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  await page.screenshot({path:path.join(evidence,width+'x'+height+'-tactic-redesign.png')});
  await page.locator('#endless-tactics button').filter({hasText:'DENGELİ'}).tap();
  assert.equal(await page.evaluate(()=>tacticMultiplier()),1,'third tactic remains touchable through HUD layers');
+ await page.evaluate(()=>{
+  window.MetaNotices = [...window.MetaNotices, {id:'qa-radio', title:'Test telsizi', body:'Savaş devam ediyor.'}];
+ });
  await page.locator('#meta-radio:not([hidden])').waitFor({timeout:18000});
  assert.equal(await page.evaluate(()=>isPaused),false,'radio does not pause battle');
  const played=await page.evaluate(()=>game.stats.playTimeSeconds);await page.waitForTimeout(1250);
@@ -134,6 +137,49 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  assert.equal(await page.evaluate(()=>canvas.width),previousField.width,'closing restores full field');
  for(let i=0;i<2;i++){await page.locator('#meta-command-shelf .command-all-upgrades').tap();await page.locator('.workshop-close').tap();}
  assert.equal(await page.evaluate(()=>canvas.width),previousField.width,'repeated toggles restore full field');
+ // Verify the normal HUD paths against a disposable save.
+ assert.equal(await page.locator('#meta-command-skills [data-skill-slot]:visible').count(),0,'empty slots stay out of the HUD');
+ await page.locator('.command-protocols').tap();
+ await page.locator('#meta-center[open]').waitFor();
+ assert.ok(await page.locator('#meta-center .meta-slot-grid').isVisible(),'Protokoller opens slot management');
+ await page.locator('#meta-center .meta-close').tap();
+ await page.locator('#meta-center').waitFor({state:'hidden'});
+ await page.evaluate(()=>{
+  const result=EndlessOperations.transactMeta('qa:equip-protocol','browser fixture',d=>{
+   d.archive.skillSlots[0]='ark';
+   return {ok:true};
+  });
+  if(!result.ok)throw new Error(result.message);
+  MetaCommand.refresh(true);
+ });
+ await page.locator('#meta-command-skills').getByRole('button',{name:'Ark Darbesi · Hazır'}).waitFor();
+ await page.locator('.command-raid').tap();
+ await page.locator('#meta-center .meta-raid-cue').waitFor();
+ assert.equal(await page.locator('#endless-operations[open]').count(),0,'raid stays on its own screen');
+ await inspect(page,width+'x'+height+'-raid');
+ const event=await page.evaluate(()=>MetaRuntime.eventBriefing());
+ assert.equal(event.fight.step,0,'one tap starts the first turn');
+ for(const move of await page.evaluate(day=>EndlessBossRush.challenge(day).pattern,event.day)){
+  await page.locator('#meta-center [data-move="'+move+'"]').tap();
+ }
+ assert.equal(await page.evaluate(()=>MetaRuntime.eventBriefing().result),'won');
+ const afterRaid=await page.evaluate(()=>{const {parts,rush,owned}=EndlessOperations.read();return {parts,rush,owned};});
+ await page.getByRole('button',{name:'Savaşa dön',exact:true}).tap();
+ await page.locator('.command-raid').tap();
+ await page.getByRole('button',{name:'Savaşa dön',exact:true}).waitFor();
+ assert.deepEqual(await page.evaluate(()=>{const {parts,rush,owned}=EndlessOperations.read();return {parts,rush,owned};}),afterRaid,'reopening a finished raid cannot grant another reward');
+ await page.getByRole('button',{name:'Savaşa dön',exact:true}).tap();
+ await page.locator('#meta-command-shelf .command-all-upgrades').tap();
+ await page.locator('[data-workshop-category="prestige"]').tap();
+ const beforePrestige=await page.evaluate(()=>game.stats.prestiges);
+ await page.locator('.workshop-prestige').getByRole('button',{name:'Prestij yap',exact:true}).tap();
+ await page.locator('#confirm-modal:not(.hidden)').waitFor();
+ assert.equal(await page.evaluate(()=>game.stats.prestiges),beforePrestige,'opening confirmation does not reset progression');
+ await page.evaluate(()=>closeConfirmModal());
+ await page.screenshot({path:path.join(evidence,width+'x'+height+'-workshop-prestige.png')});
+ await page.getByRole('button',{name:'Ana Menü',exact:true}).tap();
+ await page.locator('#mode-main-menu:not(.menu-hidden)').waitFor();
+ assert.equal(await page.evaluate(()=>isPaused),true,'returning to main menu pauses the battle');
  assert.deepEqual(errors,[],'runtime console errors');if(network.length)throw new Error('External layout dependencies failed; screenshots are not visual acceptance: '+network.join(', '));
  }catch(error){failures.push({viewport:width+'x'+height,error:error.message,stack:error.stack,errors,network});await page.screenshot({path:path.join(evidence,width+'x'+height+'-failure.png')}).catch(()=>{});}finally{await context.close();}}
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));fs.writeFileSync(path.join(evidence,'report.json'),JSON.stringify({reports,failures},null,2));}
