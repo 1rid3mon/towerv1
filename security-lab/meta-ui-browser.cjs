@@ -157,6 +157,11 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  await page.locator('#meta-center .meta-raid-cue').waitFor();
  assert.equal(await page.locator('#endless-operations[open]').count(),0,'raid stays on its own screen');
  await inspect(page,width+'x'+height+'-raid');
+ assert.ok(await page.locator('#meta-center .meta-raid-cue').evaluate(cue=>{
+  const rect=cue.getBoundingClientRect();
+  const body=cue.closest('.meta-body').getBoundingClientRect();
+  return rect.top>=body.top && rect.bottom<=body.bottom;
+ }),'the full raid cue is readable without scrolling');
  const event=await page.evaluate(()=>MetaRuntime.eventBriefing());
  assert.equal(event.fight.step,0,'one tap starts the first turn');
  for(const move of await page.evaluate(day=>EndlessBossRush.challenge(day).pattern,event.day)){

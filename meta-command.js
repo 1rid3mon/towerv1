@@ -191,7 +191,7 @@ function mount(){
  prestigePane.className = 'workshop-prestige';
  prestigePane.setAttribute('aria-label', 'Prestij');
  drawer.append(head,categories,rows,prestigePane);document.body.append(bar,rail,shortcuts,skills,shelf,drawer);chooseCategory(workshopCategory);
- window.addEventListener('keydown',e=>{if(opened&&!e.defaultPrevented&&e.key==='Escape'&&!document.querySelector('dialog[open]')&&!document.body.classList.contains('signal-settings-open')){e.preventDefault();openUpgrades();}});
+ window.addEventListener('keydown',e=>{if(opened&&!e.defaultPrevented&&e.key==='Escape'&&!document.querySelector('dialog[open], #confirm-modal:not(.hidden)')&&!document.body.classList.contains('signal-settings-open')){e.preventDefault();openUpgrades();}});
  window.addEventListener('blur',stop);document.addEventListener('visibilitychange',stop);
  document.addEventListener('click',e=>{if(e.target.closest('button')?.closest('#meta-center,#meta-overlay,#meta-command-rail,#meta-command-bar,#meta-command-skills,.signal-settings')){window.Fx?.haptic?.(8);window.TowerCommandSounds?.play('tap');}},{passive:true});
  document.addEventListener('meta-state-changed',()=>refresh(true));window.setInterval(refresh,250);refresh(true);
