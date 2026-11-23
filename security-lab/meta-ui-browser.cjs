@@ -75,13 +75,6 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  assert.ok(await page.evaluate(before=>game.gold>=before.gold&&game.crystals>=before.crystals,actual),'visual fixture never deducts currency');
 
  assert.ok(hud.field/hud.height>=0.85,'Battle canvas has at least 85% viewport height: '+JSON.stringify(hud));
- await page.evaluate(()=>{offerEndlessTactics();MetaCommand.refresh(true);});
- await page.locator('#endless-tactics summary').tap();
- await page.locator('#endless-tactics[open]').waitFor();
- await page.waitForTimeout(300);
- await page.screenshot({path:path.join(evidence,width+'x'+height+'-tactic-redesign.png')});
- await page.locator('#endless-tactics button').filter({hasText:'DENGELİ'}).tap();
- assert.equal(await page.evaluate(()=>tacticMultiplier()),1,'third tactic remains touchable through HUD layers');
  await page.evaluate(()=>{
   window.MetaNotices = [...window.MetaNotices, {id:'qa-radio', title:'Test telsizi', body:'Savaş devam ediyor.'}];
  });
@@ -89,8 +82,37 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  assert.equal(await page.evaluate(()=>isPaused),false,'radio does not pause battle');
  const played=await page.evaluate(()=>game.stats.playTimeSeconds);await page.waitForTimeout(1250);
  assert.ok(await page.evaluate(before=>game.stats.playTimeSeconds>before,played),'simulation continues behind radio');
+ // Defeat the actual sector finale and confirm the next wave opens without input.
+ const sector = await page.evaluate(()=>{
+  isPaused=true;
+  game.wave=10;
+  game.highestWave=Math.max(game.highestWave,game.wave);
+  game.holdWave=false;
+  enemies.length=0;
+  resetSectorBoss();
+  game.waveKills=game.waveTargetKills;
+  window._syncShadow?.();
+  completeWave();
+  const blockedByBoss=game.wave===10;
+  killEnemy(enemies.find(enemy=>enemy.type==='boss'));
+  return {blockedByBoss,wave:game.wave,sectorClear:document.getElementById('battle-moment').dataset.sectorClear};
+ });
+ assert.deepEqual(sector,{blockedByBoss:true,wave:11,sectorClear:'true'});
+ const sectorMoment=page.locator('#battle-moment.is-visible[data-sector-clear="true"]');
+ await sectorMoment.waitFor();
+ assert.match(await sectorMoment.innerText(),/SEKTÖR 1 GEÇİLDİ/);
+ assert.match(await sectorMoment.innerText(),/Kırık Röle/);
+ assert.equal(await page.locator('#endless-tactics').count(),0);
+ await page.waitForFunction(()=>{
+  const warning=document.getElementById('boss-cinema-v15');
+  const moment=document.getElementById('battle-moment');
+  return Number(getComputedStyle(moment).opacity)>.95
+      && (!warning||Number(getComputedStyle(warning).opacity)<.05);
+ });
+ assert.equal(await page.evaluate(()=>game.wave),11,'normal save validation keeps the completed sector');
+ await page.screenshot({path:path.join(evidence,width+'x'+height+'-sector-clear.png')});
  // Art acceptance: reproduce the user's late-game foundry theme with long numbers.
- await page.evaluate(()=>{isPaused=true;game.wave=452;game.highestWave=452;game.gold=1.83e45;game.settings.activeTheme='cengiz';enemies.length=0;document.getElementById('endless-tactics').hidden=true;for(const [key,def]of Object.entries(UPGRADE_DEFS))game.upgrades[key]=Math.min(def.maxLevel,400);tower.maxHp=getTowerMaxHp();tower.hp=tower.maxHp;window._syncShadow?.();EndlessOperations.transactMeta('qa:art','disposable visual fixture',d=>{d.offline.cleared=45;return {ok:true};});MetaCommand.refresh(true);renderGame();});
+ await page.evaluate(()=>{isPaused=true;game.wave=452;game.highestWave=452;game.gold=1.83e45;game.settings.activeTheme='cengiz';enemies.length=0;for(const [key,def]of Object.entries(UPGRADE_DEFS))game.upgrades[key]=Math.min(def.maxLevel,400);tower.maxHp=getTowerMaxHp();tower.hp=tower.maxHp;window._syncShadow?.();EndlessOperations.transactMeta('qa:art','disposable visual fixture',d=>{d.offline.cleared=45;return {ok:true};});MetaCommand.refresh(true);renderGame();});
  await page.waitForTimeout(350);
  const clippedUpgrades=await page.evaluate(()=>[...document.querySelectorAll('.command-upgrade-name,.command-upgrade-price')].filter(e=>e.scrollWidth>e.clientWidth+1).map(e=>e.textContent));assert.deepEqual(clippedUpgrades,[],'late-game upgrade names and prices fit');
  await page.screenshot({path:path.join(evidence,width+'x'+height+'-foundry-redesign.png')});

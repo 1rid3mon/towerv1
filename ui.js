@@ -155,6 +155,8 @@ function renderBattleMoment(kind, data) {
 
     clearTimeout(battleMomentHideTimer);
     root.dataset.kind = kind;
+    const sectorClear = kind === 'clear' && data.sector;
+    root.dataset.sectorClear = String(Boolean(sectorClear));
     root.dataset.bossType = kind === 'boss' ? String(data.subtype || 'default') : '';
     rewards.replaceChildren();
     if (kind === 'boss') {
@@ -178,12 +180,22 @@ function renderBattleMoment(kind, data) {
         if (Number(data.crystals) > 0) addBattleReward('KRİSTAL', Number(data.crystals));
         playBattleCue('bossKill');
     } else if (kind === 'clear') {
-        kicker.textContent = 'BÖLGE GÜVENDE  /  DALGA TAMAMLANDI';
-        title.textContent = 'DALGA ' + String(Math.max(1, Number(data.wave) || 1)).padStart(2, '0') + ' TEMİZLENDİ';
-        subtitle.textContent = 'Savunma hattı ayakta. Sonraki temas için sistemler hazırlanıyor.';
+        if (sectorClear) {
+            kicker.textContent = data.sector.name;
+            title.textContent = 'SEKTÖR ' + data.sector.sector + ' GEÇİLDİ';
+            subtitle.textContent = 'Sırada: ' + data.nextSector.name + ' · Sektör ' + data.nextSector.sector;
+            if (data.sectorReward) {
+                if (data.sectorReward.parts) addBattleReward('PARÇA', data.sectorReward.parts);
+                else addBattleReward(data.sectorReward.item);
+            }
+        } else {
+            kicker.textContent = 'BÖLGE GÜVENDE  /  DALGA TAMAMLANDI';
+            title.textContent = 'DALGA ' + String(Math.max(1, Number(data.wave) || 1)).padStart(2, '0') + ' TEMİZLENDİ';
+            subtitle.textContent = 'Savunma hattı ayakta. Sonraki temas için sistemler hazırlanıyor.';
+        }
         if (Number(data.gold) > 0) addBattleReward('ALTIN', Number(data.gold));
         if (Number(data.crystals) > 0) addBattleReward('KRİSTAL', Number(data.crystals));
-        playBattleCue(Number(data.crystals) > 0 ? 'reward' : 'clear');
+        playBattleCue(sectorClear || Number(data.crystals) > 0 ? 'reward' : 'clear');
     } else {
         const wave = Math.max(1, Number(data.wave) || 1);
         const criticalWave = wave % 10 === 0;
@@ -201,7 +213,7 @@ function renderBattleMoment(kind, data) {
     // Restart the entrance transition even when two moments occur in the same frame.
     void root.offsetWidth;
     root.classList.add('is-visible');
-    const duration = kind === 'boss' ? 3300 : (kind === 'bossKill' ? 2850 : (kind === 'clear' ? 2250 : 1650));
+    const duration = kind === 'boss' ? 3300 : (kind === 'bossKill' ? 2850 : (kind === 'clear' ? (sectorClear ? 3100 : 2250) : 1650));
     battleMomentHideTimer = setTimeout(() => root.classList.remove('is-visible'), duration);
 }
 
@@ -249,6 +261,11 @@ function showBattleMoment(kind, data = {}) {
     if (kind === 'wave') {
         const wave = Math.max(1, Number(data.wave) || 1);
         if (battleIntroWaveShown === wave) return;
+        const moment = document.getElementById('battle-moment');
+        if (moment?.classList.contains('is-visible') && moment.dataset.sectorClear === 'true' && !GameModeRuntime.isStoryActive()) {
+            battleIntroWaveShown = wave;
+            return;
+        }
         battleIntroWaveShown = wave;
         renderBattleMoment('wave', { wave });
         return;
@@ -271,6 +288,12 @@ function showBattleMoment(kind, data = {}) {
     if (kind === 'clear') {
         const root = document.getElementById('battle-moment');
         clearTimeout(battleMomentClearTimer);
+        if (data.sector) {
+            clearTimeout(battleMomentBossTimer);
+            window.TowerBossCinemaV15?.dismiss();
+            renderBattleMoment('clear', data);
+            return;
+        }
         // Preserve the boss takedown beat before showing the wave-clear reward.
         if (root && root.classList.contains('is-visible') && root.dataset.kind === 'bossKill') {
             battleMomentClearTimer = setTimeout(() => renderBattleMoment('clear', data), 1750);
@@ -677,7 +700,7 @@ function openPrestigeConfirm() {
         if (window._syncShadow) window._syncShadow(); // büyük ruh kazancı anti-cheat tarafından geri alınmasın
         game.stats.prestiges++;
         game.wave = getStartWaveLevel();
-        if (typeof resetEndlessTactics === 'function') resetEndlessTactics();
+        if (typeof resetSectorBoss === 'function') resetSectorBoss();
         game.highestWave = Math.max(game.highestWave, game.wave);
         game.waveKills = 0;
         game.gold = game.wave === 1 ? 25 : Math.round(25 + getWaveBaseGold(game.wave) * 6 * getGoldMultiplier());
