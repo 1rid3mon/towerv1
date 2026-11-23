@@ -86,6 +86,7 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  const sector = await page.evaluate(()=>{
   isPaused=true;
   game.wave=10;
+  game.highestWave=Math.max(game.highestWave,game.wave);
   game.holdWave=false;
   enemies.length=0;
   resetSectorBoss();
@@ -104,8 +105,11 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  assert.equal(await page.locator('#endless-tactics').count(),0);
  await page.waitForFunction(()=>{
   const warning=document.getElementById('boss-cinema-v15');
-  return !warning||Number(getComputedStyle(warning).opacity)<.05;
+  const moment=document.getElementById('battle-moment');
+  return Number(getComputedStyle(moment).opacity)>.95
+      && (!warning||Number(getComputedStyle(warning).opacity)<.05);
  });
+ assert.equal(await page.evaluate(()=>game.wave),11,'normal save validation keeps the completed sector');
  await page.screenshot({path:path.join(evidence,width+'x'+height+'-sector-clear.png')});
  // Art acceptance: reproduce the user's late-game foundry theme with long numbers.
  await page.evaluate(()=>{isPaused=true;game.wave=452;game.highestWave=452;game.gold=1.83e45;game.settings.activeTheme='cengiz';enemies.length=0;for(const [key,def]of Object.entries(UPGRADE_DEFS))game.upgrades[key]=Math.min(def.maxLevel,400);tower.maxHp=getTowerMaxHp();tower.hp=tower.maxHp;window._syncShadow?.();EndlessOperations.transactMeta('qa:art','disposable visual fixture',d=>{d.offline.cleared=45;return {ok:true};});MetaCommand.refresh(true);renderGame();});
