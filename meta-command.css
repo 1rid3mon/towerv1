@@ -197,3 +197,11 @@ body.command-workshop-open #confirm-modal:not(.hidden) { z-index: 80; }
 @media (max-width: 660px) {
   .command-main-menu span { display: none; }
 }
+
+#meta-command-shortcuts #command-boss-retry {
+  grid-column: 1 / -1;
+  justify-self: start;
+  color: #ffe0ae;
+  border-color: #b37b4a;
+}
+#meta-command-shortcuts #command-boss-retry[hidden] { display: none; }

@@ -17,6 +17,14 @@
             bossWave: stage === 5 || stage === 10,
             remaining: stage <= 5 ? 5 - stage : 10 - stage };
     }
-    root.EndlessSectors = Object.freeze({ describe });
+    function bossPressure(wave) {
+        const { sector, stage, bossWave } = describe(wave);
+        if (!bossWave || sector <= 20) return null;
+        const ramp = Math.min(1, (sector - 21) / 9);
+        return stage === 10
+            ? { hp: 1.65 + 1.65 * ramp, damage: 1.15 + 0.4 * ramp }
+            : { hp: 1.3 + 0.7 * ramp, damage: 1.05 + 0.2 * ramp };
+    }
+    root.EndlessSectors = Object.freeze({ describe, bossPressure });
     if (typeof module !== 'undefined') module.exports = root.EndlessSectors;
 })(typeof window !== 'undefined' ? window : globalThis);
