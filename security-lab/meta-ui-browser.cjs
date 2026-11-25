@@ -217,6 +217,34 @@ async function main(){await new Promise((resolve,reject)=>{server.once('error',r
  assert.equal(await page.evaluate(()=>game.stats.prestiges),beforePrestige,'opening confirmation does not reset progression');
  await page.evaluate(()=>closeConfirmModal());
  await page.screenshot({path:path.join(evidence,width+'x'+height+'-workshop-prestige.png')});
+ // Restore the old collection from the normal landscape controls and use its existing selectors.
+ await page.evaluate(()=>{
+  game.inventory=['legendary_persona_masks'];game.equippedItems=[];
+  game.ownedSkins=['default_cyber','dgdvrn'];
+  game.ownedCompanionSkins=['default_tech','origami_crane'];
+  window._syncShadow?.();
+ });
+ await page.locator('.workshop-loadout-links').getByRole('button',{name:'Eşya ve kostüm'}).tap();
+ const inventory=page.locator('#upgrade-drawer:not(.-translate-x-full)');
+ await inventory.waitFor({state:'visible'});
+ assert.equal(await page.locator('#meta-command-upgrades').isVisible(),false);
+ await inventory.locator("#inv-panel-gear [onclick=\"toggleEquipItem('legendary_persona_masks')\"]").tap();
+ assert.equal(await page.evaluate(()=>game.equippedItems[0]),'legendary_persona_masks');
+ await inventory.locator('#inv-sub-skins').tap();
+ await inventory.locator("[onclick=\"selectTowerSkin('dgdvrn')\"]").tap();
+ assert.equal(await page.evaluate(()=>game.activeSkin),'dgdvrn');
+ await inventory.locator('#inv-sub-compskins').tap();
+ await inventory.locator("[onclick=\"selectCompanionSkin('origami_crane')\"]").tap();
+ assert.equal(await page.evaluate(()=>game.activeCompanionSkin),'origami_crane');
+ await inventory.getByRole('button',{name:'Tema seç',exact:true}).tap();
+ await page.locator("#theme-list [onclick=\"selectTheme('aurora')\"]").tap();
+ assert.equal(await page.evaluate(()=>game.settings.activeTheme),'aurora');
+ await page.getByRole('button',{name:'Temaları kapat',exact:true}).tap();
+ await inventory.locator('[data-workshop-close]').tap();
+ await page.locator('#meta-command-rail').getByRole('button',{name:'Envanter',exact:true}).tap();
+ await inventory.locator('#inv-panel-gear').waitFor({state:'visible'});
+ await page.screenshot({path:path.join(evidence,width+'x'+height+'-inventory.png')});
+ await inventory.locator('[data-workshop-close]').tap();
  await page.getByRole('button',{name:'Ana Menü',exact:true}).tap();
  await page.locator('#mode-main-menu:not(.menu-hidden)').waitFor();
  assert.equal(await page.evaluate(()=>isPaused),true,'returning to main menu pauses the battle');

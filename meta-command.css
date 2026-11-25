@@ -205,3 +205,51 @@ body.command-workshop-open #confirm-modal:not(.hidden) { z-index: 80; }
   border-color: #b37b4a;
 }
 #meta-command-shortcuts #command-boss-retry[hidden] { display: none; }
+
+#meta-command-upgrades .workshop-loadout-links {
+  display: flex;
+  flex: none;
+  gap: 8px;
+  padding: 4px 8px;
+  border-top: 1px solid #89accb35;
+  background: #101d2e;
+}
+#meta-command-upgrades .workshop-loadout-links button { flex: 1; }
+body.meta-command-active #upgrade-drawer:not(.-translate-x-full) {
+  top: 64px;
+  left: 88px;
+  bottom: 12px;
+  width: min(440px, calc(100vw - 104px));
+  border: 1px solid #7898b970;
+  border-radius: 14px;
+}
+#upgrade-drawer :is(.inventory-theme-button, .legacy-inventory-title) { display: none; }
+#upgrade-drawer:has(#tab-items:not(.hidden)) :is(.inventory-theme-button, .legacy-inventory-title) { display: block; }
+#upgrade-drawer:has(#tab-items:not(.hidden)) :is(.legacy-upgrade-multipliers, .legacy-systems-title) { display: none; }
+#upgrade-drawer .inventory-theme-button {
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid #7d96d36b;
+  border-radius: 8px;
+  color: #dae5ff;
+  background: #212d4c;
+  font-size: 13px;
+  font-weight: 700;
+}
+#tab-items [id^="inv-sub-"] { min-height: 44px; }
+@media (max-height: 440px) {
+  body.meta-command-active > #meta-command-rail > button {
+    min-height: 44px;
+    gap: 1px;
+  }
+  #meta-command-rail .command-nav-icon { height: 20px; }
+  #meta-command-rail .command-nav-icon svg { width: 19px; height: 19px; }
+}
+
+body.meta-command-active:has(#upgrade-drawer:not(.-translate-x-full)) :is(#meta-command-skills, #meta-command-shelf) {
+  visibility: hidden;
+}
+@media (max-height: 440px) {
+  body.meta-command-active #upgrade-drawer:not(.-translate-x-full) > div:first-child { padding-block: 4px; }
+  body.meta-command-active #upgrade-drawer > nav button { min-height: 44px; padding-block: 4px; }
+}
