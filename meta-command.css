@@ -223,9 +223,10 @@ body.meta-command-active #upgrade-drawer:not(.-translate-x-full) {
   border: 1px solid #7898b970;
   border-radius: 14px;
 }
-#tab-items .inventory-theme-button {
-  display: block;
-  width: 100%;
+#upgrade-drawer :is(.inventory-theme-button, .legacy-inventory-title) { display: none; }
+#upgrade-drawer:has(#tab-items:not(.hidden)) :is(.inventory-theme-button, .legacy-inventory-title) { display: block; }
+#upgrade-drawer:has(#tab-items:not(.hidden)) :is(.legacy-upgrade-multipliers, .legacy-systems-title) { display: none; }
+#upgrade-drawer .inventory-theme-button {
   min-height: 44px;
   padding: 6px 10px;
   border: 1px solid #7d96d36b;
@@ -243,4 +244,12 @@ body.meta-command-active #upgrade-drawer:not(.-translate-x-full) {
   }
   #meta-command-rail .command-nav-icon { height: 20px; }
   #meta-command-rail .command-nav-icon svg { width: 19px; height: 19px; }
+}
+
+body.meta-command-active:has(#upgrade-drawer:not(.-translate-x-full)) :is(#meta-command-skills, #meta-command-shelf) {
+  visibility: hidden;
+}
+@media (max-height: 440px) {
+  body.meta-command-active #upgrade-drawer:not(.-translate-x-full) > div:first-child { padding-block: 4px; }
+  body.meta-command-active #upgrade-drawer > nav button { min-height: 44px; padding-block: 4px; }
 }

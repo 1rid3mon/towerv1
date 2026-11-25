@@ -106,6 +106,8 @@ function openLoadout() {
  if (opened) openUpgrades();
  switchTab('items');
  switchInventorySubTab('gear');
+ const content = document.getElementById('tab-content-area');
+ if (content) content.scrollTop = 0;
  if (!isDrawerOpen) toggleUpgradeDrawer();
  document.querySelector('#upgrade-drawer [data-workshop-close]')?.focus({preventScroll:true});
 }

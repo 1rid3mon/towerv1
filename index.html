@@ -1048,11 +1048,12 @@
             <div class="p-3 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-2">
                     <span class="font-tech font-bold text-sm text-white tracking-wide uppercase flex items-center gap-1.5">
-                        <i class="fa-solid fa-wrench text-blue-400"></i> Sistem Paneli
+                        <i class="fa-solid fa-wrench text-blue-400"></i> <span class="legacy-systems-title">Sistem Paneli</span><span class="legacy-inventory-title">Envanter</span>
                     </span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="flex items-center bg-slate-900 p-0.5 rounded-lg border border-slate-800">
+                    <button type="button" class="inventory-theme-button" onclick="openThemeModal()">Tema seç</button>
+                    <div class="legacy-upgrade-multipliers flex items-center bg-slate-900 p-0.5 rounded-lg border border-slate-800">
                         <button onclick="setBuyMultiplier(1)" id="mult-1" class="px-2.5 py-0.5 rounded text-xs font-tech font-bold bg-blue-600 text-white transition">1x</button>
                         <button onclick="setBuyMultiplier(5)" id="mult-5" class="px-2.5 py-0.5 rounded text-xs font-tech font-bold text-slate-400 hover:text-white transition">5x</button>
                         <button onclick="setBuyMultiplier(10)" id="mult-10" class="px-2.5 py-0.5 rounded text-xs font-tech font-bold text-slate-400 hover:text-white transition">10x</button>
@@ -1107,7 +1108,6 @@
                 </div>
                 
                 <div id="tab-items" class="hidden space-y-3">
-                    <button type="button" class="inventory-theme-button" onclick="openThemeModal()">Tema seç</button>
                     <div class="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
                         <button onclick="switchInventorySubTab('gear')" id="inv-sub-gear" class="py-1.5 rounded-lg font-tech font-bold text-[11px] bg-blue-600 text-white transition"><i class="fa-solid fa-toolbox mr-1"></i>Eşyalar (<span id="owned-items-count">0/0</span>)</button>
                         <button onclick="switchInventorySubTab('skins')" id="inv-sub-skins" class="py-1.5 rounded-lg font-tech font-bold text-[11px] text-slate-400 hover:text-white transition"><i class="fa-solid fa-chess-rook mr-1"></i>Kule (<span id="owned-skins-count">1/26</span>)</button>
