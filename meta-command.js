@@ -102,8 +102,18 @@ function chooseCategory(category) {
  drawer.querySelectorAll('[data-workshop-category]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.workshopCategory === category)));
  if (category === 'prestige') refreshPrestige();
 }
+function openLoadout() {
+ if (opened) openUpgrades();
+ switchTab('items');
+ switchInventorySubTab('gear');
+ if (!isDrawerOpen) toggleUpgradeDrawer();
+ document.querySelector('#upgrade-drawer [data-workshop-close]')?.focus({preventScroll:true});
+}
+
 function openUpgrades(){
- if(!drawer)return;opened=!opened;drawer.hidden=!opened;stop();
+ if(!drawer)return;
+ if (!opened && isDrawerOpen) toggleUpgradeDrawer();
+ opened=!opened;drawer.hidden=!opened;stop();
  document.body.classList.toggle('command-workshop-open',opened);
  if(opened){workshopOpener=document.activeElement;chooseCategory(workshopCategory);drawer.querySelector('[data-workshop-category="'+workshopCategory+'"]').focus();}
  else if(workshopOpener?.isConnected)workshopOpener.focus();
@@ -135,6 +145,10 @@ function mount(){
  const progress=document.createElement('div');progress.id='signal-season-progress';progress.setAttribute('role','progressbar');progress.setAttribute('aria-label',t('season'));progress.setAttribute('aria-valuemin','0');progress.setAttribute('aria-valuemax','100');bar.append(progress);
  rail=document.createElement('nav');rail.id='meta-command-rail';rail.setAttribute('aria-label','Komuta şeridi');
  for(const [name,view]of[['Arşiv','archive'],['İstasyon','station'],['Sezon','season'],['Depo','supply']]){const b=btn(name,()=>R().route(view));b.dataset.view=view;b.innerHTML='<span class="command-nav-icon">'+icon(view)+'</span><span>'+name+'</span>';b.addEventListener('click',()=>{rail.querySelectorAll('[data-view]').forEach(other=>other.setAttribute('aria-pressed',String(other===b)));});rail.append(b);}
+ const inventory = btn('', openLoadout);
+ inventory.dataset.view = 'inventory';
+ inventory.innerHTML = '<span class="command-nav-icon">'+icon('supply')+'</span><span>Envanter</span>';
+ rail.insertBefore(inventory, rail.children[1]);
  const shortcuts = document.createElement('div');
  shortcuts.id = 'meta-command-shortcuts';
  const sectorBoss = document.createElement('div');
@@ -194,8 +208,11 @@ function mount(){
  prestigePane = document.createElement('section');
  prestigePane.className = 'workshop-prestige';
  prestigePane.setAttribute('aria-label', 'Prestij');
- drawer.append(head,categories,rows,prestigePane);document.body.append(bar,rail,shortcuts,skills,shelf,drawer);chooseCategory(workshopCategory);
- window.addEventListener('keydown',e=>{if(opened&&!e.defaultPrevented&&e.key==='Escape'&&!document.querySelector('dialog[open], #confirm-modal:not(.hidden)')&&!document.body.classList.contains('signal-settings-open')){e.preventDefault();openUpgrades();}});
+ const loadoutLinks = document.createElement('footer');
+ loadoutLinks.className = 'workshop-loadout-links';
+ loadoutLinks.append(btn('Eşya ve kostüm', openLoadout), btn('Tema seç', openThemeModal));
+ drawer.append(head,categories,rows,prestigePane,loadoutLinks);document.body.append(bar,rail,shortcuts,skills,shelf,drawer);chooseCategory(workshopCategory);
+ window.addEventListener('keydown',e=>{if(opened&&!e.defaultPrevented&&e.key==='Escape'&&!document.querySelector('dialog[open], #confirm-modal:not(.hidden), #theme-modal:not(.hidden)')&&!document.body.classList.contains('signal-settings-open')){e.preventDefault();openUpgrades();}});
  window.addEventListener('blur',stop);document.addEventListener('visibilitychange',stop);
  document.addEventListener('click',e=>{if(e.target.closest('button')?.closest('#meta-center,#meta-overlay,#meta-command-rail,#meta-command-bar,#meta-command-skills,.signal-settings')){window.Fx?.haptic?.(8);window.TowerCommandSounds?.play('tap');}},{passive:true});
  document.addEventListener('meta-state-changed',()=>refresh(true));window.setInterval(refresh,250);refresh(true);
